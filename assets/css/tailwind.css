@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Almarena Mono Display";
+  src: url("/fonts/almarena-mono-display-light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Almarena Mono Display";
+  src: url("/fonts/almarena-mono-display-bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Adding some sensible defaults */
+@layer base {
+  body {
+    @apply text-cyan-800;
+  }
+
+  .dark body {
+    @apply text-cyan-100;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .full-bleed {
+    left: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    max-width: 100vw;
+    position: relative;
+    right: 50%;
+    width: 100vw;
+  }
+
+  .not-full-bleed {
+    left: 0;
+    margin-left: inherit;
+    margin-right: inherit;
+    max-width: 100vw;
+    position: relative;
+    right: 0;
+    width: 100%;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+    animation-fill-mode: both;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

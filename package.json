@@ -1,0 +1,33 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@irys/query": "^0.0.6",
+    "@nuxt/ui": "^2.14.2",
+    "@pinia/nuxt": "^0.5.1",
+    "@vueuse/components": "^10.9.0",
+    "@vueuse/core": "^10.9.0",
+    "@wagmi/connectors": "^4.1.18",
+    "@wagmi/core": "^2.6.9",
+    "@web3modal/wagmi": "^4.1.1",
+    "ardb": "^1.1.10",
+    "arweave": "^1.15.0",
+    "bignumber.js": "^9.1.2",
+    "chart.js": "^4.4.2",
+    "lodash": "^4.17.21",
+    "nuxt": "^3.11.1",
+    "viem": "^2.9.0",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0",
+    "warp-contracts": "1.4.37",
+    "warp-contracts-plugin-ethers": "^1.0.8"
+  }
+}
