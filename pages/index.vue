@@ -25,7 +25,7 @@ onMounted(() => {
 
 
 <template>
-  <NotConnected />
+  <!-- <NotConnected /> -->
 
   <div class="relative grid grid-flow-row grid-cols-1 gap-6 lg:grid-cols-6">
     <section
@@ -64,10 +64,10 @@ onMounted(() => {
 
         </div>
 
-        <DataVisualRewards class="-mt-16 hidden lg:block" />
+        <!-- <DataVisualRewards class="-mt-16 hidden lg:block" /> -->
       </CardHero>
 
-      <DataVisualRewards class="block lg:hidden" />
+      <!-- <DataVisualRewards class="block lg:hidden" /> -->
     </section>
 
     <div class="flex w-full flex-col gap-4 lg:col-span-2 lg:flex-col-reverse">

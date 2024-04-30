@@ -8,7 +8,7 @@ const chains = [mainnet, sepolia];
 const nuxtConfig = useRuntimeConfig();
 const projectId = nuxtConfig.public.walletConnectProjectId;
 
-const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata })
+const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata, ssr: false })
 
 createWeb3Modal({
   chains,
