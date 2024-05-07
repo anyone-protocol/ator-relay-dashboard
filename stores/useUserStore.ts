@@ -35,12 +35,12 @@ export const useUserStore = defineStore("user", {
   actions: {
     // Get ATOR balance
     async getTokenBalance() {
-      if (!this.address) {
+      if (!this.userData.address) {
         return;
       }
       this.tokenBalance = await getBalance(config, {
         token: atorAddress,
-        address: this.address as `0x${string}`,
+        address: this.userData.address as `0x${string}`,
       });
     },
     // Get ATOR balance in USD using price store
