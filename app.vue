@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { reconnect } from '@wagmi/core'
-import { mainnet, sepolia } from 'viem/chains'
+import { reconnect } from 'use-wagmi/actions'
+import { mainnet, sepolia } from 'use-wagmi/chains'
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/vue'
 import { metadata, tokens, themeVariables } from "@/config/web3modal.config";
 
@@ -21,6 +21,7 @@ createWeb3Modal({
 onMounted(() => {
   reconnect(wagmiConfig)
 })
+
 </script>
 
 <template>

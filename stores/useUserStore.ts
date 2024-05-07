@@ -1,6 +1,7 @@
 import { formatEther } from "viem";
-import { getAccount, getBalance } from "@wagmi/core";
-import { type GetBalanceReturnType } from "@wagmi/core";
+import { useAccount } from "use-wagmi";
+import { getBalance } from "use-wagmi/actions";
+import { type GetBalanceReturnType } from "use-wagmi/actions";
 
 import { warpRead } from "@/utils/warp.read";
 import { config } from "@/config/wagmi.config";
@@ -19,7 +20,7 @@ export type RelayRow = {
 export const useUserStore = defineStore("user", {
   state: () => ({
     address: null as `0x${string}` | null,
-    userData: getAccount(config),
+    userData: useAccount({config}),
     tokenBalance: {
       value: 0n,
       symbol: "",
