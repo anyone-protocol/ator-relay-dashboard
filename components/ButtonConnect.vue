@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { useWeb3Modal } from "@web3modal/wagmi/vue";
-import { getAccount } from "@wagmi/core";
+import { useAccount } from "use-wagmi";
+import { config } from "@/config/wagmi.config"
 
-import { config } from "@/config/wagmi.config";
-
-const { address, status, isDisconnected, isReconnecting, isConnecting } = getAccount(config);
+const { address, status, isDisconnected, isReconnecting, isConnecting } = useAccount({config});
 
 const { open } = useWeb3Modal();
 </script>

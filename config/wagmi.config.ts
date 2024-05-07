@@ -1,5 +1,6 @@
-import { http, createConfig, reconnect } from "@wagmi/core";
-import { mainnet, sepolia } from "@wagmi/core/chains";
+import { reconnect } from "use-wagmi/actions";
+import { http, createConfig } from "use-wagmi"
+import { mainnet, sepolia } from "use-wagmi/chains";
 
 export const config = createConfig({
   chains: [mainnet, sepolia],
