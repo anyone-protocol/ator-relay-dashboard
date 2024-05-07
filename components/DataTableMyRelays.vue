@@ -1,9 +1,11 @@
 <script lang="ts" setup>
 import type { RelayRow } from "@/stores/useUserStore"
 import type { FunctionName } from "@/utils/warp.write";
+import { useRelayRegistry } from "@/composables/relay-registry";
 
 const toast = useToast();
 const userStore = useUserStore();
+const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
 const { transactionId } = storeToRefs(metricsStore);
 const { address, allRelays } = storeToRefs(userStore);
@@ -68,13 +70,11 @@ const { data: relayMeta, error: relayMetaError, pending: relayMetaPending } = aw
 );
 
 const relayAction = async (action: FunctionName, fingerprint: string) => {
-
   //TODO: Sign the message
   // See: The following resources
   // https://academy.warp.cc/docs/sdk/advanced/plugins/signature
   // https://github.com/brewlabs-code/ator/blob/main/composables/warp-signer.ts
   // https://docs.google.com/document/d/1VLRd2bP96avNZksMwrf8WSDmcAwrcaQpYAd5SUGDhx0/edit?pli=1#heading=h.gtsv79v2cvnl
-  window.alert("Sign the message");
 
   const verb = {
     claim: {
@@ -97,10 +97,15 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
   selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
-    // Probably more to do here other than just call the contract functions
-    // NOTE: the function doesn't take an array of fingerprints, but a single fingerprint
-    // Consider changing warpWrite to unpack a single fingerprint
-    await warpWrite([fingerprint], action);
+    switch (action) {
+      case 'claim':
+        await registry.claim(fingerprint);
+        break;
+      case 'renounce':
+        await registry.renounce(fingerprint);
+        break;
+    }
+
     // Refresh the relays
     await verifiedRelaysRefresh();
     await claimableRelaysRefresh();
@@ -152,7 +157,7 @@ const columns = [{
 const actionItemsVerified = (row: RelayRow) => [
   [
     {
-      label: 'Claim rewards',
+      label: 'Redeem rewards',
       icon: 'i-heroicons-banknotes-20-solid',
       click: () => relayAction('claim', row.fingerprint),
     }], [{
@@ -164,9 +169,9 @@ const actionItemsVerified = (row: RelayRow) => [
 
 const actionItemsClaimable = (row: RelayRow) => [
   [{
-    label: 'Register relay',
+    label: 'Claim relay',
     icon: 'i-heroicons-document-duplicate-20-solid',
-    click: () => relayAction('register', row.fingerprint),
+    click: () => relayAction('claim', row.fingerprint),
   }]
 ]
 </script>

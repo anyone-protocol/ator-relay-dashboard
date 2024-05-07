@@ -54,11 +54,11 @@ export const useUserStore = defineStore("user", {
     },
     // Get verified relays using Warp
     async getVerifiedRelays() {
-      if (!this.address) {
+      if (!this.userData.address) {
         return;
       }
 
-      const verified = await warpRead(this.address, "verified");
+      const verified = await warpRead(this.userData.address, "verified");
 
       if (verified.status === 200) {
         const relays = await verified.json();
@@ -67,11 +67,11 @@ export const useUserStore = defineStore("user", {
     },
     // Get claimable relays using Warp
     async getClaimableRelays() {
-      if (!this.address) {
+      if (!this.userData.address) {
         return;
       }
 
-      const claimable = await warpRead(this.address, "claimable");
+      const claimable = await warpRead(this.userData.address, "claimable");
 
       if (claimable.status === 200) {
         const relays = await claimable.json();
