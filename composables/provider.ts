@@ -2,7 +2,7 @@ import { AbstractProvider, BrowserProvider, ethers } from 'ethers'
 
 export const NETWORKS = {
   MAINNET: { decimal: 1, hex: '0x1', name: 'mainnet' },
-  GOERLI: { decimal: 5, hex: '0x5', name: 'goerli' }
+  SEPOLIA: { decimal: 11155111, hex: '0xaa36a7', name: 'sepolia' }
 }
 
 export const useSuggestMetaMask = () => useState<boolean | undefined>(
@@ -13,9 +13,9 @@ export const useSuggestMetaMask = () => useState<boolean | undefined>(
 export const suggestMetaMask = useSuggestMetaMask()
 
 let provider: AbstractProvider | BrowserProvider = ethers.getDefaultProvider(
-  NETWORKS.GOERLI.decimal,
+  NETWORKS.SEPOLIA.decimal,
   {
-    // NB: Required to force fallback provider.  Errors with goerli otherwise.
+    // NB: Required to force fallback provider. Errors with sepolia otherwise.
     alchemy: '-',
     ankr: '-',
     cloudflare: '-',
@@ -28,7 +28,7 @@ export const initializeBrowserProvider = () => {
   if (window && window.ethereum) {
     provider = new BrowserProvider(
       window.ethereum,
-      NETWORKS.GOERLI.decimal
+      NETWORKS.SEPOLIA.decimal
     )
   }
 

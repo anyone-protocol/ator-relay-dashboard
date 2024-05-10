@@ -10,11 +10,11 @@ export const useSigner = async () => {
   if (provider instanceof BrowserProvider) {
     try {
       const signer = await provider.getSigner()
-      if (provider._network.name !== NETWORKS.GOERLI.name) {
+      if (provider._network.name !== NETWORKS.SEPOLIA.name) {
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
           params: [{
-            chainId: NETWORKS.GOERLI.hex
+            chainId: NETWORKS.SEPOLIA.hex
           }]
         })
       }
