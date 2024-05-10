@@ -1,5 +1,6 @@
-import { http, createConfig } from "@wagmi/core";
-import { mainnet, sepolia } from "@wagmi/core/chains";
+import { reconnect } from "use-wagmi/actions";
+import { http, createConfig } from "use-wagmi"
+import { mainnet, sepolia } from "use-wagmi/chains";
 
 export const config = createConfig({
   chains: [mainnet, sepolia],
@@ -7,6 +8,9 @@ export const config = createConfig({
     [mainnet.id]: http(),
     [sepolia.id]: http(),
   },
+  ssr: false,
 });
+
+reconnect(config);
 
 export const defaultChain = sepolia;

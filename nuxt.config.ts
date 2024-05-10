@@ -2,6 +2,8 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
+  ssr: false,
+
   imports: {
     dirs: ["./stores"],
   },
@@ -14,7 +16,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["@nuxt/ui", "@pinia/nuxt"],
+  modules: ["@nuxt/ui", "@pinia/nuxt", "@use-wagmi/nuxt"],
 
   // This is used instead on env file
   // See: https://nuxt.com/docs/guide/going-further/runtime-config

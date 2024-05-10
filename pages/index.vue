@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import { initRelayRegistry } from '~/composables/relay-registry';
 
 const userStore = useUserStore();
 const { address } = storeToRefs(userStore);
@@ -21,11 +22,13 @@ onMounted(() => {
     claimableRefresh();
   }, 1000 * 60 * 5);
 })
+
+initRelayRegistry();
 </script>
 
 
 <template>
-  <NotConnected />
+  <!-- <NotConnected /> -->
 
   <div class="relative grid grid-flow-row grid-cols-1 gap-6 lg:grid-cols-6">
     <section
@@ -56,18 +59,18 @@ onMounted(() => {
 
             <ButtonAlt :icon-name="'heroicons:sparkles'" :disabled="!userStore.hasClaimableRewards"
               @click="userStore.claimAllRewards">
-              <span v-if="userStore.claimableRewards <= 0">Nothing to claim</span>
-              <span v-else>Claim rewards now</span>
+              <span v-if="userStore.claimableRewards <= 0">Nothing to redeem</span>
+              <span v-else>Redeem rewards now</span>
             </ButtonAlt>
           </div>
 
 
         </div>
 
-        <DataVisualRewards class="-mt-16 hidden lg:block" />
+        <!-- <DataVisualRewards class="-mt-16 hidden lg:block" /> -->
       </CardHero>
 
-      <DataVisualRewards class="block lg:hidden" />
+      <!-- <DataVisualRewards class="block lg:hidden" /> -->
     </section>
 
     <div class="flex w-full flex-col gap-4 lg:col-span-2 lg:flex-col-reverse">
@@ -118,8 +121,8 @@ onMounted(() => {
 
           <div class="my-4 h-px w-full bg-gradient-to-r from-gray-600/10 via-cyan-900 to-gray-600/10"></div>
           <ButtonAttention :disabled="!userStore.hasClaimableRewards" @click="userStore.claimAllRewards">
-            <span v-if="!userStore.hasClaimableRewards">Nothing to claim</span>
-            <span v-else>Claim rewards now (
+            <span v-if="!userStore.hasClaimableRewards">Nothing to redeem</span>
+            <span v-else>Redeem rewards now (
               <UserClaimableRewards />)
             </span>
           </ButtonAttention>

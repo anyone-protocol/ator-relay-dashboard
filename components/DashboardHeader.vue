@@ -20,8 +20,8 @@ const menuStore = useMenuStore();
       </div>
 
       <div class="lg:flex items-center hidden ml-auto mr-6">
-        <!-- <ButtonConnect /> -->
-        <WalletInput />
+        <ButtonConnect />
+        <!-- <WalletInput /> -->
       </div>
 
       <div class="lg:flex items-center gap-2 hidden">

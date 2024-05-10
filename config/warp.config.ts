@@ -1,4 +1,4 @@
-import { WarpFactory } from "warp-contracts/web";
+import { WarpFactory } from "warp-contracts";
 import { EthersExtension } from "warp-contracts-plugin-ethers";
 
 const warp = WarpFactory.forMainnet({
@@ -6,6 +6,8 @@ const warp = WarpFactory.forMainnet({
   dbLocation: "./cache/warp",
 }).use(new EthersExtension());
 
+export const relayRegistryAddress = "4HNMS4Re99VGS-ZnnUnzLyk8wpx5XKQ2miOYEjUvWrU";
+
 export const contract = warp.contract(
-  "R5PXlkYsP5HYVCzGhF9xzZXQqBog3KrRchp47aa5e3w"
+  relayRegistryAddress
 );

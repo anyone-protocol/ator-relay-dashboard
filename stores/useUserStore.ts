@@ -1,6 +1,7 @@
 import { formatEther } from "viem";
-import { getAccount, getBalance } from "@wagmi/core";
-import { type GetBalanceReturnType } from "@wagmi/core";
+import { useAccount } from "use-wagmi";
+import { getBalance } from "use-wagmi/actions";
+import { type GetBalanceReturnType } from "use-wagmi/actions";
 
 import { warpRead } from "@/utils/warp.read";
 import { config } from "@/config/wagmi.config";
@@ -19,7 +20,7 @@ export type RelayRow = {
 export const useUserStore = defineStore("user", {
   state: () => ({
     address: null as `0x${string}` | null,
-    userData: getAccount(config),
+    userData: useAccount({config}),
     tokenBalance: {
       value: 0n,
       symbol: "",
@@ -35,12 +36,12 @@ export const useUserStore = defineStore("user", {
   actions: {
     // Get ATOR balance
     async getTokenBalance() {
-      if (!this.address) {
+      if (!this.userData.address) {
         return;
       }
       this.tokenBalance = await getBalance(config, {
         token: atorAddress,
-        address: this.address as `0x${string}`,
+        address: this.userData.address as `0x${string}`,
       });
     },
     // Get ATOR balance in USD using price store
@@ -54,11 +55,12 @@ export const useUserStore = defineStore("user", {
     },
     // Get verified relays using Warp
     async getVerifiedRelays() {
-      if (!this.address) {
+      if (!this.userData.address) {
+        this.verifiedRelays = [];
         return;
       }
 
-      const verified = await warpRead(this.address, "verified");
+      const verified = await warpRead(this.userData.address, "verified");
 
       if (verified.status === 200) {
         const relays = await verified.json();
@@ -67,11 +69,12 @@ export const useUserStore = defineStore("user", {
     },
     // Get claimable relays using Warp
     async getClaimableRelays() {
-      if (!this.address) {
+      if (!this.userData.address) {
+        this.claimableRelays = [];
         return;
       }
 
-      const claimable = await warpRead(this.address, "claimable");
+      const claimable = await warpRead(this.userData.address, "claimable");
 
       if (claimable.status === 200) {
         const relays = await claimable.json();
