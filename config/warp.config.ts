@@ -6,7 +6,7 @@ const warp = WarpFactory.forMainnet({
   dbLocation: "./cache/warp",
 }).use(new EthersExtension());
 
-export const relayRegistryAddress = "i3QRgntzJtTyUxfer-DS_fZpzFsTKD_VWvyrh4w0KM4";
+export const relayRegistryAddress = "4HNMS4Re99VGS-ZnnUnzLyk8wpx5XKQ2miOYEjUvWrU";
 
 export const contract = warp.contract(
   relayRegistryAddress

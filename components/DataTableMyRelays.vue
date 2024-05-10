@@ -1,14 +1,17 @@
 <script lang="ts" setup>
+import { useAccount } from "use-wagmi";
 import type { RelayRow } from "@/stores/useUserStore"
 import type { FunctionName } from "@/utils/warp.write";
 import { useRelayRegistry } from "@/composables/relay-registry";
+import { config } from "@/config/wagmi.config";
 
 const toast = useToast();
 const userStore = useUserStore();
 const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
 const { transactionId } = storeToRefs(metricsStore);
-const { address, allRelays } = storeToRefs(userStore);
+const { allRelays } = storeToRefs(userStore);
+const { address } = useAccount({config});
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
 const { refresh: verifiedRelaysRefresh, error: verifiedRelaysError, pending: verifiedPending } = await useAsyncData(

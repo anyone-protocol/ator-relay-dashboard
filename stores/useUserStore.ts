@@ -56,6 +56,7 @@ export const useUserStore = defineStore("user", {
     // Get verified relays using Warp
     async getVerifiedRelays() {
       if (!this.userData.address) {
+        this.verifiedRelays = [];
         return;
       }
 
@@ -69,6 +70,7 @@ export const useUserStore = defineStore("user", {
     // Get claimable relays using Warp
     async getClaimableRelays() {
       if (!this.userData.address) {
+        this.claimableRelays = [];
         return;
       }
 
