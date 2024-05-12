@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
 import { breakpointsTailwind, useBreakpoints } from "@vueuse/core";
 
 const breakpoints = useBreakpoints(breakpointsTailwind);
@@ -7,8 +6,6 @@ const lgAndLarger = breakpoints.greaterOrEqual("lg");
 
 const router = useRouter();
 const menuStore = useMenuStore();
-const userStore = useUserStore();
-const { tokenBalance } = storeToRefs(userStore);
 
 // Close the mobile nav when navigating
 router.beforeEach(async () => {
@@ -28,13 +25,6 @@ router.beforeEach(async () => {
       </div>
 
       <div class="w-full bg-gradient-to-r from-gray-600/10 via-cyan-600 to-gray-600/10 h-px"></div>
-
-      <div v-if="tokenBalance?.formatted && tokenBalance?.formatted !== '0'" class="text-center my-6 flex flex-col">
-        <p class="text-xs">This address holds</p>
-        <UserBalance :show-ticker="true" class="dark:text-cyan-300" />
-      </div>
-
-      <div class="w-full bg-gradient-to-r from-gray-600/10 via-cyan-600 to-gray-600/10 h-px mt-4"></div>
 
       <div class="flex justify-center items-center dark:text-cyan-300 gap-4 mt-auto">
         <a href="#">

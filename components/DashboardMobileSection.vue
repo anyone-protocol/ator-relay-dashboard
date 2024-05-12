@@ -27,7 +27,7 @@ const onInView = ([{ isIntersecting }]: [{ isIntersecting: boolean }]) => {
 
 <template>
   <section v-intersection-observer="[onInView, { threshold: 0.75 }]" :data-title="title" :id="title"
-    class="h-[77svh] lg:h-auto snap-always snap-center">
+    class="h-auto snap-always snap-center">
     <slot></slot>
   </section>
 </template>

@@ -28,53 +28,9 @@ initRelayRegistry();
 
 
 <template>
-  <!-- <NotConnected /> -->
-
-  <div class="relative grid grid-flow-row grid-cols-1 gap-6 lg:grid-cols-6">
-    <section
-      class="flex h-[calc(100svh-62px)] snap-center snap-always flex-col justify-between self-center lg:col-span-4 lg:h-full lg:flex-row">
-      <CardHero>
-        <div class="px-5 py-6">
-          <div class="flex w-full justify-between">
-            <div>
-              <h2 class="text-3xl tracking-wide">Welcome back</h2>
-              <Address v-if="userStore.address" :address="userStore.address" />
-            </div>
-
-            <ChainSelector />
-          </div>
-
-          <div class="mt-6 flex flex-col gap-2">
-            <UserClaimableRewards
-              class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:bg-gradient-to-r dark:from-gray-200 dark:to-gray-600" />
-
-            <p v-if="claimableError">
-              <Icon name="iwwa:alert" class="h-4 w-4 text-red-500" />
-              <span class="text-red-500 ml-1 text-xs">Error retrieving rewards</span>
-            </p>
-            <p v-else class="ml-1 text-xs">
-              Pending rewards in
-              <Ticker />
-            </p>
-
-            <ButtonAlt :icon-name="'heroicons:sparkles'" :disabled="!userStore.hasClaimableRewards"
-              @click="userStore.claimAllRewards">
-              <span v-if="userStore.claimableRewards <= 0">Nothing to redeem</span>
-              <span v-else>Redeem rewards now</span>
-            </ButtonAlt>
-          </div>
-
-
-        </div>
-
-        <!-- <DataVisualRewards class="-mt-16 hidden lg:block" /> -->
-      </CardHero>
-
-      <!-- <DataVisualRewards class="block lg:hidden" /> -->
-    </section>
-
-    <div class="flex w-full flex-col gap-4 lg:col-span-2 lg:flex-col-reverse">
-      <DashboardMobileSection title="account-balance">
+  <div class="relative grid grid-flow-row grid-cols-1 pt-4 lg:pt-0 gap-6 lg:grid-cols-6">
+    <div class="flex w-full flex-col gap-4 lg:flex-row lg:col-span-6 lg:flex-row-reverse">
+      <DashboardMobileSection class="lg:basis-1/2" title="account-balance">
         <Card title="Account balance" :icon="'eos-icons:master-outlined'">
           <p class="mb-4 text-sm">
             The connected wallet shows the following balance:
@@ -92,7 +48,7 @@ initRelayRegistry();
         </Card>
       </DashboardMobileSection>
 
-      <DashboardMobileSection title="my-rewards">
+      <DashboardMobileSection class="lg:basis-1/2" title="my-rewards">
         <Card title="Rewards history" :icon="'eos-icons:trusted-organization'">
           <p class="mb-4 text-sm">
             Earn rewards by contributing relays to the ATOR network.
