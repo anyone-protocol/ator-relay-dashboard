@@ -75,13 +75,13 @@ initRelayRegistry();
             <!-- Last Updated: {{ lastClaimedTimestamp ?? new Date().toUTCString() }} -->
           </div>
 
-          <div class="my-4 h-px w-full bg-gradient-to-r from-gray-600/10 via-cyan-900 to-gray-600/10"></div>
+          <!-- <div class="my-4 h-px w-full bg-gradient-to-r from-gray-600/10 via-cyan-900 to-gray-600/10"></div>
           <ButtonAttention :disabled="!userStore.hasClaimableRewards" @click="userStore.claimAllRewards">
             <span v-if="!userStore.hasClaimableRewards">Nothing to redeem</span>
             <span v-else>Redeem rewards now (
               <UserClaimableRewards />)
             </span>
-          </ButtonAttention>
+          </ButtonAttention> -->
         </Card>
       </DashboardMobileSection>
     </div>
