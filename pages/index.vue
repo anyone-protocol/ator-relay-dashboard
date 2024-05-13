@@ -71,9 +71,9 @@ initRelayRegistry();
             </div>
           </div>
 
-          <div class="mt-4 p-1 text-xs text-gray-500">
-            <!-- Last Updated: {{ lastClaimedTimestamp ?? new Date().toUTCString() }} -->
-          </div>
+          <!-- <div class="mt-4 p-1 text-xs text-gray-500">
+            Last Updated: {{ lastClaimedTimestamp ?? new Date().toUTCString() }}
+          </div> -->
 
           <!-- <div class="my-4 h-px w-full bg-gradient-to-r from-gray-600/10 via-cyan-900 to-gray-600/10"></div>
           <ButtonAttention :disabled="!userStore.hasClaimableRewards" @click="userStore.claimAllRewards">
