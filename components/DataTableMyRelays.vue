@@ -169,14 +169,6 @@ const actionItemsVerified = (row: RelayRow) => [
       click: () => relayAction('renounce', row.fingerprint),
     }]
 ]
-
-const actionItemsClaimable = (row: RelayRow) => [
-  [{
-    label: 'Claim relay',
-    icon: 'i-heroicons-document-duplicate-20-solid',
-    click: () => relayAction('claim', row.fingerprint),
-  }]
-]
 </script>
 
 <template>
@@ -191,10 +183,6 @@ const actionItemsClaimable = (row: RelayRow) => [
       :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No pending claimable or verified relays!' }">
       <template #actions-data="{ row }">
         <Icon v-if="row.isWorking" name="heroicons:arrow-path-20-solid" class="h-6 w-6 animate-spin" />
-        <UDropdown v-if="row.status === 'claimable' && !row.isWorking" :items="actionItemsClaimable(row)"
-          :popper="{ placement: 'left-end' }">
-          <UButton color="gray" variant="ghost" icon="i-heroicons-ellipsis-horizontal-20-solid" />
-        </UDropdown>
         <UDropdown v-if="row.status === 'verified' && !row.isWorking" :items="actionItemsVerified(row)"
           :popper="{ placement: 'left-end' }">
           <UButton color="gray" variant="ghost" icon="i-heroicons-ellipsis-horizontal-20-solid" />
@@ -202,7 +190,7 @@ const actionItemsClaimable = (row: RelayRow) => [
       </template>
       <template #status-data="{ row }">
         <UBadge v-if="row.status === 'verified'" color="cyan" variant="outline">{{ row.status }}</UBadge>
-        <UBadge v-if="row.status === 'claimable'" color="amber" variant="outline">{{ row.status }}</UBadge>
+        <UButton v-if="row.status === 'claimable'" color="amber" variant="solid" size="2xs" @click="relayAction('claim', row.fingerprint)">Claim</UButton>
       </template>
       <template #consensusWeight-data="{ row }">
         <USkeleton v-if="relayMetaPending" class="h-6 w-full" />
