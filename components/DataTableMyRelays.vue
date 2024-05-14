@@ -53,7 +53,7 @@ const { data: relayMeta, error: relayMetaError, pending: relayMetaPending } = aw
   "relayMeta", () => $fetch(`https://arweave.net/${transactionId.value}`).then(response => response as RelayMetric[]),
   {
     server: false,
-    watch: [transactionId],
+    watch: [transactionId, fingerprints],
     // Only return the relay data for the fingerprints
     transform: (relayMeta) => {
       const trimmedResults = relayMeta.filter((item) => fingerprints.value.includes(item.relay.fingerprint));
