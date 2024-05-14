@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
+import { useAccount } from "use-wagmi";
+import { config } from "@/config/wagmi.config"
 
 const userStore = useUserStore();
 const { address, tokenBalance, tokenBalanceUsd } = storeToRefs(userStore);
+const { isConnected } = useAccount({config});
 
 const { refresh: balanceRefresh, error: balanceError } = await useAsyncData(
   "balance", () => userStore.getTokenBalance().then(() => true), { watch: [address] }
@@ -27,13 +30,13 @@ defineProps<{
 <template>
   <ClientOnly>
     <div>
-      <span class="text-4xl font-bold" v-if="tokenBalance">
+      <span class="text-4xl font-bold" v-if="isConnected">
         {{ parseFloat(tokenBalance.formatted).toFixed(3) }}
         <Ticker v-if="showTicker" />
       </span>
 
-      <span v-if="!tokenBalance?.formatted">
-        0.00
+      <span v-if="!isConnected">
+        --
         <Ticker v-if="showTicker" />
       </span>
       <slot></slot>

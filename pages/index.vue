@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { initRelayRegistry } from '~/composables/relay-registry';
+import { useAccount } from "use-wagmi";
+import { config } from "@/config/wagmi.config"
 
 const userStore = useUserStore();
 const { address } = storeToRefs(userStore);
+const { isConnected } = useAccount({config});
 
 // Initialize data fetch and cache
 // Retrieve the user data and set state
@@ -56,7 +59,8 @@ initRelayRegistry();
           <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
             <h3>Claimed rewards</h3>
             <div class="inline-flex items-baseline gap-2">
-              <span class="text-4xl font-bold"> {{ userStore.claimedRewardsTotal }} </span>
+              <span v-if="isConnected" class="text-4xl font-bold"> {{ userStore.claimedRewardsTotal }} </span>
+              <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
               <Ticker />
             </div>
           </div>
@@ -64,9 +68,8 @@ initRelayRegistry();
           <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
             <h3>Claimable rewards</h3>
             <div class="inline-flex items-baseline gap-2">
-              <span class="text-4xl font-bold">
-                {{ userStore.claimableRewards }}
-              </span>
+              <span v-if="isConnected" class="text-4xl font-bold"> {{ userStore.claimableRewards }} </span>
+              <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
               <Ticker />
             </div>
           </div>

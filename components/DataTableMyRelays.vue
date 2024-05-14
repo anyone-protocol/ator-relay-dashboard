@@ -189,7 +189,7 @@ const actionItemsVerified = (row: RelayRow) => [
         </UDropdown>
       </template>
       <template #status-data="{ row }">
-        <UBadge v-if="row.status === 'verified'" color="cyan" variant="outline">{{ row.status }}</UBadge>
+        <UBadge v-if="row.status === 'verified'" color="cyan" variant="outline">claimed</UBadge>
         <UButton v-if="row.status === 'claimable'" color="amber" variant="solid" size="2xs" @click="relayAction('claim', row.fingerprint)">Claim</UButton>
       </template>
       <template #consensusWeight-data="{ row }">
