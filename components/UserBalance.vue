@@ -35,7 +35,7 @@ defineProps<{
         <Ticker v-if="showTicker" />
       </span>
 
-      <span v-if="!isConnected">
+      <span class="text-4xl font-bold" v-if="!isConnected">
         --
         <Ticker v-if="showTicker" />
       </span>
