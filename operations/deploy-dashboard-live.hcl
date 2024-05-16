@@ -1,4 +1,4 @@
-job "deploy-dashboard-live" {
+job "deploy-relay-dashboard-live" {
     datacenters = ["ator-fin"]
     type = "batch"
 
@@ -6,7 +6,7 @@ job "deploy-dashboard-live" {
         attempts = 0
     }
 
-    task "deploy-dashboard-task" {
+    task "deploy-relay-dashboard-task" {
         driver = "docker"
 
         config {
