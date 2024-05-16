@@ -4,7 +4,8 @@ import type {
   RelayRegistryState,
   Renounce
 } from './'
-import { relayRegistryAddress } from '@/config/warp.config';
+
+import { relayRegistryContract } from '@/config/warp.config';
 
 export class RelayRegistry {
   private contract: Contract<RelayRegistryState> | null = null
@@ -67,12 +68,6 @@ export class RelayRegistry {
 const relayRegistry = new RelayRegistry()
 export const initRelayRegistry = () => {
   if (relayRegistry.isInitialized) { return }
-
-  const warp = useWarp()
-  const contract = warp.contract<RelayRegistryState>(
-    relayRegistryAddress
-  )
-
-  relayRegistry.initialize(contract)
+  relayRegistry.initialize(relayRegistryContract)
 }
 export const useRelayRegistry = () => relayRegistry

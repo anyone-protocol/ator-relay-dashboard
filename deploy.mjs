@@ -1,16 +1,10 @@
-import Bundlr from '@bundlr-network/client'
+import Irys from "@irys/sdk"
 import { LoggerFactory, WarpFactory, defaultCacheOptions } from 'warp-contracts'
 import Arweave from 'arweave'
 
 const ANT = 'PspdulWYOoBov3dJyA9TdXuqDqaV7snSiwPjtesLvNU'
 const DEPLOY_FOLDER = './.output/public'
-const BUNDLR_NODE = 'https://node2.bundlr.network'
-
-const arweave = Arweave.init({
-  host: 'arweave.net',
-  port: 443,
-  protocol: 'https'
-})
+const IRYS_NODE = 'https://node2.irys.xyz/'
 
 const jwk = JSON.parse(
   Buffer.from(
@@ -20,22 +14,16 @@ const jwk = JSON.parse(
 
 LoggerFactory.INST.logLevel('fatal')
 
-const bundlr = new Bundlr.default(BUNDLR_NODE, 'arweave', jwk)
-const warp = WarpFactory.custom(
-  arweave,
-  defaultCacheOptions,
-  'mainnet'
-).useArweaveGateway().build();
-const contract = warp.contract(ANT).connect(jwk)
+const irys = new Irys({ url: IRYS_NODE, token: 'arweave', key: jwk })
 
 // upload folder
-const result = await bundlr.uploadFolder(DEPLOY_FOLDER, {
+const result = await irys.uploadFolder(DEPLOY_FOLDER, {
   indexFile: 'index.html'
 })
 
 // update ANT
 if (result) {
-  console.log('bundlr result id', result.id)
+  console.log('irys result id', result.id)
   var subDomain = 'dev'
   if (process.env.PHASE === 'live') {
     subDomain = '@'
@@ -44,6 +32,19 @@ if (result) {
   }
 
   console.log(`Deploying to: ${subDomain}`)
+
+  const arweave = Arweave.init({
+    host: 'arweave.net',
+    port: 443,
+    protocol: 'https'
+  })
+
+  const warp = WarpFactory.custom(
+    arweave,
+    defaultCacheOptions,
+    'mainnet'
+  ).useArweaveGateway().build();
+  const contract = warp.contract(ANT).connect(jwk)
 
   const deployed = await contract.writeInteraction({
     function: 'setRecord',
@@ -57,5 +58,5 @@ if (result) {
     deployed
   )
 } else {
-  console.error('Bundlr result error', result)
+  console.error('Irys result error', result)
 }

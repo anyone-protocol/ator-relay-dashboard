@@ -1,5 +1,5 @@
 import { isAddress } from "viem";
-import { contract } from "@/config/warp.config";
+import { relayRegistryContract } from "@/config/warp.config";
 import { responseOutput } from "@/utils/responseOutput";
 
 type FunctionName = "verified" | "claimable";
@@ -21,7 +21,7 @@ export const warpRead = async (
     });
 
   try {
-    const { result } = await contract.viewState({
+    const { result } = await relayRegistryContract.viewState({
       function: functionName,
       address,
     });

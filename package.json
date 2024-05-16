@@ -7,10 +7,12 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "deploy": "pnpm run generate && node deploy.mjs"
   },
   "dependencies": {
     "@irys/query": "^0.0.6",
+    "@irys/sdk": "^0.2.0",
     "@nuxt/ui": "^2.14.2",
     "@pinia/nuxt": "^0.5.1",
     "@tanstack/vue-query": "^5.32.1",
