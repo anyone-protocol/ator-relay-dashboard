@@ -4,6 +4,28 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  app: {
+    baseURL: '/',
+    head: {
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+          hid: 'description',
+          name: 'Description',
+          content: 'ATOR Dashboard'
+        },
+        { property: 'og:site_name', content: 'ATOR Dashboard' },
+        { name: 'twitter:site', content: '@atorprotocol' }
+      ],
+      link: [{
+        rel: 'icon',
+        type: 'image/png',
+        href: '/images/AtorLogo.png'
+      }]
+    }
+  },
+
   imports: {
     dirs: ["./stores"],
   },
@@ -23,8 +45,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       walletConnectProjectId: "f5e29d36441ccd0e2f5e3473d5a2021b",
-      warpContract: "53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q",
-      validatorContract: "53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q",
+      relayRegistryAddress: 'drHgtmIezpgu-cyWBMh_sNOPBVqTqJu0j_Sp4rsQcQA'
     },
   },
 });
