@@ -12,8 +12,8 @@ job "deploy-relay-dashboard-live" {
         config {
             image = "ghcr.io/ator-development/ator-relay-dashboard:[[.deploy]]"
             entrypoint = ["pnpm"]
-            command = "run deploy"
-            args = []
+            command = "run"
+            args = ["deploy"]
         }
 
         vault {

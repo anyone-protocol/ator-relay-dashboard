@@ -13,8 +13,8 @@ job "deploy-relay-dashboard-dev" {
             image = "ghcr.io/ator-development/ator-relay-dashboard:[[.deploy]]"
             force_pull = true
             entrypoint = ["pnpm"]
-            command = "run deploy"
-            args = []
+            command = "run"
+            args = ["deploy"]
         }
 
         vault {
