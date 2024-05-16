@@ -1,4 +1,4 @@
-import { contract } from "@/config/warp.config";
+import { relayRegistryContract } from "@/config/warp.config";
 import { responseOutput } from "@/utils/responseOutput";
 
 export type FunctionName = "claim" | "renounce" | "register";
@@ -18,7 +18,7 @@ export const warpWrite = async (
     });
 
   try {
-    const { result, type, errorMessage } = await contract.viewState({
+    const { result, type, errorMessage } = await relayRegistryContract.viewState({
       function: functionName,
       fingerprint,
     });

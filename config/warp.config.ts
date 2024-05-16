@@ -8,6 +8,6 @@ const warp = WarpFactory.forMainnet({
   dbLocation: "./cache/warp",
 }).use(new EthersExtension());
 
-export const contract = warp.contract(
+export const relayRegistryContract = warp.contract(
   runtimeConfig.public.relayRegistryAddress
 );
