@@ -1,5 +1,6 @@
 job "deploy-relay-dashboard-live" {
     datacenters = ["ator-fin"]
+    namespace = "ator-network"
     type = "batch"
 
     reschedule {
