@@ -19,7 +19,7 @@ job "deploy-relay-dashboard-dev" {
         }
 
         vault {
-            policies = ["dashboard-dev"]
+            policies = ["ator-network-read"]
         }
 
         template {
