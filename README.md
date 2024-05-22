@@ -64,7 +64,7 @@ Build the application for production:
 
 ```bash
 # pnpm
-pnpm run build
+pnpm run generate
 ```
 
 Locally preview production build:
