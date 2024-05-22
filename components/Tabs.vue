@@ -42,6 +42,7 @@ const changeTab = (key: string) => {
   position: relative;
   display: flex;
   width: 100%;
+  margin-bottom: 24px;
 
   &::after {
     content: '';
