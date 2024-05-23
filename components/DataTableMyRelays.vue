@@ -94,9 +94,17 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
 
   try {
     switch (action) {
-      case 'claim':
-        await registry.claim(fingerprint);
+      case 'claim': {
+        const res = await registry.claim(fingerprint);
+
+        if (!res) {
+          selectedRow!.class = '';
+          selectedRow!.isWorking = false;
+          return;
+        }
         break;
+      }
+
       case 'renounce':
         await registry.renounce(fingerprint);
         break;
@@ -115,14 +123,17 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
       } relay ${truncatedAddress(fingerprint)}!`,
     });
   } catch (error) {
-    toast.add({
-      icon: 'i-heroicons-x-circle',
-      color: 'amber',
-      title: 'Error',
-      description: `Error ${
-        VERBS[action].presentTense
-      } relay ${truncatedAddress(fingerprint)}!`,
-    });
+    // @ts-ignore
+    if (error?.code !== 'ACTION_REJECTED') {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: `Error ${
+          VERBS[action].presentTense
+        } relay ${truncatedAddress(fingerprint)}!`,
+      });
+    }
   }
 
   selectedRow!.class = '';
@@ -196,9 +207,9 @@ const handleTabChange = (key: string) => {
         </UDropdown>
       </template>
       <template #status-data="{ row }">
-        <UBadge v-if="row.status === 'verified'" color="cyan" variant="outline"
-          >claimed</UBadge
-        >
+        <UBadge v-if="row.status === 'verified'" color="cyan" variant="outline">
+          claimed
+        </UBadge>
         <UButton
           v-if="row.status === 'claimable'"
           color="amber"
