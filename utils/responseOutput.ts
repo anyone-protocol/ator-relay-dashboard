@@ -8,7 +8,7 @@ export const responseOutput = ({ message, data, status }: ResponseOutput) => {
   // const allowDomain =
   //   import.meta.env.MODE === "development" ? "*" : "https://ator.io";
 
-  const allowDomain = "*";
+  const allowDomain = '*';
 
   return new Response(
     JSON.stringify({
@@ -18,8 +18,8 @@ export const responseOutput = ({ message, data, status }: ResponseOutput) => {
     {
       status,
       headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": allowDomain,
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': allowDomain,
       },
     }
   );

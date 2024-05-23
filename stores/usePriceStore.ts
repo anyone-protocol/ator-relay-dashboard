@@ -1,10 +1,10 @@
-import { atorAddress } from "~/config/web3modal.config";
+import { atorAddress } from '~/config/web3modal.config';
 
 const to = Math.floor(Date.now() / 1000);
 const from = to - 3600 * 48; // 48 hrs
 const apiEndpoint = `https://api.dex.guru/v1/tradingview/history?symbol=${atorAddress}-eth_USD&resolution=240&from=${from}&to=${to}`;
 
-export const usePriceStore = defineStore("price", {
+export const usePriceStore = defineStore('price', {
   state: () => {
     return {
       currentPrice: {
@@ -13,8 +13,8 @@ export const usePriceStore = defineStore("price", {
       priceHistory: {
         data: [] as number[],
       },
-      status: "",
-      fetchedAt: "" as string | Date,
+      status: '',
+      fetchedAt: '' as string | Date,
     };
   },
 
@@ -30,7 +30,7 @@ export const usePriceStore = defineStore("price", {
         // Set price history
         this.priceHistory.data = Object.values(priceData.c) as number[] | [];
       } catch (error) {
-        console.error("Price fetching error:", error);
+        console.error('Price fetching error:', error);
       }
     },
   },

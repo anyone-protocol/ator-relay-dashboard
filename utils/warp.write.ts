@@ -1,7 +1,7 @@
-import { relayRegistryContract } from "@/config/warp.config";
-import { responseOutput } from "@/utils/responseOutput";
+import { relayRegistryContract } from '@/config/warp.config';
+import { responseOutput } from '@/utils/responseOutput';
 
-export type FunctionName = "claim" | "renounce" | "register";
+export type FunctionName = 'claim' | 'renounce' | 'register';
 
 /**
  * NOTE: The fingerprints are an array here, not sure if that's accurate
@@ -14,16 +14,17 @@ export const warpWrite = async (
   if (!fingerprint)
     return responseOutput({
       status: 400,
-      message: "No fingerprint provided",
+      message: 'No fingerprint provided',
     });
 
   try {
-    const { result, type, errorMessage } = await relayRegistryContract.viewState({
-      function: functionName,
-      fingerprint,
-    });
+    const { result, type, errorMessage } =
+      await relayRegistryContract.viewState({
+        function: functionName,
+        fingerprint,
+      });
 
-    if (type === "error" || type === "exception")
+    if (type === 'error' || type === 'exception')
       return responseOutput({
         status: 400,
         message: `Error. ${errorMessage}`,
@@ -31,14 +32,14 @@ export const warpWrite = async (
 
     return responseOutput({
       data: result,
-      message: "Success.",
+      message: 'Success.',
       status: 200,
     });
   } catch (error) {
     return responseOutput({
       data: error,
       status: 500,
-      message: "Error",
+      message: 'Error',
     });
   }
 };

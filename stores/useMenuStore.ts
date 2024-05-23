@@ -1,4 +1,4 @@
-export const useMenuStore = defineStore("menu", {
+export const useMenuStore = defineStore('menu', {
   state: () => {
     return {
       isOpen: false,
