@@ -91,7 +91,7 @@ initRelayRegistry();
   </div>
 
   <DashboardMobileSection title="my-relays">
-    <Card title="My Relays" :icon="'eos-icons:product-classes-outlined'">
+    <Card title="Relays" :icon="'eos-icons:product-classes-outlined'">
       <DataTableMyRelays />
     </Card>
   </DashboardMobileSection>
