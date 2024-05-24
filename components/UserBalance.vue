@@ -1,26 +1,34 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import { useAccount } from "use-wagmi";
-import { config } from "@/config/wagmi.config"
+import { storeToRefs } from 'pinia';
+import { useAccount } from 'use-wagmi';
+import { config } from '@/config/wagmi.config';
 
 const userStore = useUserStore();
 const { address, tokenBalance, tokenBalanceUsd } = storeToRefs(userStore);
-const { isConnected } = useAccount({config});
+const { isConnected } = useAccount({ config });
 
 const { refresh: balanceRefresh, error: balanceError } = await useAsyncData(
-  "balance", () => userStore.getTokenBalance().then(() => true), { watch: [address] }
+  'balance',
+  () => userStore.getTokenBalance().then(() => true),
+  { watch: [address] }
 );
-const { refresh: balanceUsdRefresh, error: balanceUsdError } = await useAsyncData(
-  "balanceUsd", () => userStore.getUsdTokenBalance().then(() => true), { watch: [address, tokenBalance] }
-);
+const { refresh: balanceUsdRefresh, error: balanceUsdError } =
+  await useAsyncData(
+    'balanceUsd',
+    () => userStore.getUsdTokenBalance().then(() => true),
+    { watch: [address, tokenBalance] }
+  );
 
 // Get new data every 5 minutes
 onMounted(() => {
-  setInterval(() => {
-    balanceRefresh();
-    balanceUsdRefresh();
-  }, 1000 * 60 * 5);
-})
+  setInterval(
+    () => {
+      balanceRefresh();
+      balanceUsdRefresh();
+    },
+    1000 * 60 * 5
+  );
+});
 
 defineProps<{
   showTicker?: boolean;

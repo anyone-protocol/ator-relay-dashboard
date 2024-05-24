@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { breakpointsTailwind, useBreakpoints } from "@vueuse/core";
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 
 const breakpoints = useBreakpoints(breakpointsTailwind);
-const lgAndLarger = breakpoints.greaterOrEqual("lg");
+const lgAndLarger = breakpoints.greaterOrEqual('lg');
 
 const router = useRouter();
 const menuStore = useMenuStore();
@@ -14,8 +14,10 @@ router.beforeEach(async () => {
 </script>
 
 <template>
-  <div v-if="!lgAndLarger && menuStore.isOpen"
-    class="fixed inset-0 w-full h-full dark:bg-gray-900/90 from-teal-50 to-slate-200 bg-gradient-to-br backdrop-blur dark:bg-none overflow-hidden z-10">
+  <div
+    v-if="!lgAndLarger && menuStore.isOpen"
+    class="fixed inset-0 w-full h-full dark:bg-gray-900/90 from-teal-50 to-slate-200 bg-gradient-to-br backdrop-blur dark:bg-none overflow-hidden z-10"
+  >
     <GlowEffect />
 
     <div class="px-8 pb-12 pt-24 flex flex-col h-full">
@@ -24,9 +26,13 @@ router.beforeEach(async () => {
         <ButtonThemeToggle />
       </div>
 
-      <div class="w-full bg-gradient-to-r from-gray-600/10 via-cyan-600 to-gray-600/10 h-px"></div>
+      <div
+        class="w-full bg-gradient-to-r from-gray-600/10 via-cyan-600 to-gray-600/10 h-px"
+      ></div>
 
-      <div class="flex justify-center items-center dark:text-cyan-300 gap-4 mt-auto">
+      <div
+        class="flex justify-center items-center dark:text-cyan-300 gap-4 mt-auto"
+      >
         <a href="#">
           <Icon name="simple-icons:discord" class="h-5 w-auto"></Icon>
         </a>

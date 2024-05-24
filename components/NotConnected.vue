@@ -17,7 +17,11 @@ watch(address, (newAddress) => {
 </script>
 
 <template>
-  <UModal v-model="isOpen" :preventClose="true" :ui="{ shadow: 'shadow-cyan-800/40', ring: 'ring ring-cyan-400/20' }">
+  <UModal
+    v-model="isOpen"
+    :preventClose="true"
+    :ui="{ shadow: 'shadow-cyan-800/40', ring: 'ring ring-cyan-400/20' }"
+  >
     <div class="p-4 text-center flex flex-col gap-4 items-center">
       <h2>You need to be connected to view your account</h2>
       <WalletInput />

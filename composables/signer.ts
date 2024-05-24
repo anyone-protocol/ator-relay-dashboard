@@ -1,29 +1,31 @@
-import { AbstractProvider, BrowserProvider } from 'ethers'
+import { AbstractProvider, BrowserProvider } from 'ethers';
 
 export const useSigner = async () => {
-  let provider = useProvider()
+  let provider = useProvider();
 
   if (provider instanceof AbstractProvider) {
-    provider = initializeBrowserProvider()
+    provider = initializeBrowserProvider();
   }
 
   if (provider instanceof BrowserProvider) {
     try {
-      const signer = await provider.getSigner()
+      const signer = await provider.getSigner();
       if (provider._network.name !== NETWORKS.SEPOLIA.name) {
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{
-            chainId: NETWORKS.SEPOLIA.hex
-          }]
-        })
+          params: [
+            {
+              chainId: NETWORKS.SEPOLIA.hex,
+            },
+          ],
+        });
       }
 
-      return signer
+      return signer;
     } catch (error) {
-      console.error('Error getting Signer', error)
+      console.error('Error getting Signer', error);
     }
   }
 
-  return null
-}
+  return null;
+};

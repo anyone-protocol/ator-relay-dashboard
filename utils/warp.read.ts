@@ -1,8 +1,8 @@
-import { isAddress } from "viem";
-import { relayRegistryContract } from "@/config/warp.config";
-import { responseOutput } from "@/utils/responseOutput";
+import { isAddress } from 'viem';
+import { relayRegistryContract } from '@/config/warp.config';
+import { responseOutput } from '@/utils/responseOutput';
 
-type FunctionName = "verified" | "claimable";
+type FunctionName = 'verified' | 'claimable';
 
 export const warpRead = async (
   address: `0x${string}`,
@@ -11,13 +11,13 @@ export const warpRead = async (
   if (!address)
     return responseOutput({
       status: 400,
-      message: "No address provided",
+      message: 'No address provided',
     });
 
   if (!isAddress(address))
     return responseOutput({
       status: 400,
-      message: "Invalid address provided",
+      message: 'Invalid address provided',
     });
 
   try {
@@ -32,7 +32,7 @@ export const warpRead = async (
         fingerprint: data,
         status: functionName,
         active: true,
-        class: "",
+        class: '',
       };
     });
 
@@ -54,7 +54,7 @@ export const warpRead = async (
     return responseOutput({
       data: error,
       status: 500,
-      message: "Error",
+      message: 'Error',
     });
   }
 };

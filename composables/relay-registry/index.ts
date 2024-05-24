@@ -1,2 +1,2 @@
-export * from './contract'
-export * from './relay-registry'
+export * from './contract';
+export * from './relay-registry';

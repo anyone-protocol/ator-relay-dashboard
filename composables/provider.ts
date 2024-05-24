@@ -1,16 +1,14 @@
-import { AbstractProvider, BrowserProvider, ethers } from 'ethers'
+import { AbstractProvider, BrowserProvider, ethers } from 'ethers';
 
 export const NETWORKS = {
   MAINNET: { decimal: 1, hex: '0x1', name: 'mainnet' },
-  SEPOLIA: { decimal: 11155111, hex: '0xaa36a7', name: 'sepolia' }
-}
+  SEPOLIA: { decimal: 11155111, hex: '0xaa36a7', name: 'sepolia' },
+};
 
-export const useSuggestMetaMask = () => useState<boolean | undefined>(
-  'suggest-meta-mask',
-  () => false
-)
+export const useSuggestMetaMask = () =>
+  useState<boolean | undefined>('suggest-meta-mask', () => false);
 
-export const suggestMetaMask = useSuggestMetaMask()
+export const suggestMetaMask = useSuggestMetaMask();
 
 let provider: AbstractProvider | BrowserProvider = ethers.getDefaultProvider(
   NETWORKS.SEPOLIA.decimal,
@@ -20,19 +18,16 @@ let provider: AbstractProvider | BrowserProvider = ethers.getDefaultProvider(
     ankr: '-',
     cloudflare: '-',
     etherscan: '-',
-    infura: '-'
+    infura: '-',
   }
-)
+);
 
 export const initializeBrowserProvider = () => {
   if (window && window.ethereum) {
-    provider = new BrowserProvider(
-      window.ethereum,
-      NETWORKS.SEPOLIA.decimal
-    )
+    provider = new BrowserProvider(window.ethereum, NETWORKS.SEPOLIA.decimal);
   }
 
-  return provider
-}
+  return provider;
+};
 
-export const useProvider = () => provider
+export const useProvider = () => provider;

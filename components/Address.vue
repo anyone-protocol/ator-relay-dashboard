@@ -7,8 +7,8 @@ const props = defineProps<{
 const truncatedAddress = computed(
   () =>
     `${props.address.substring(0, 12)}...${props.address.substring(
-      props.address.length - 4,
-    )}`,
+      props.address.length - 4
+    )}`
 );
 </script>
 

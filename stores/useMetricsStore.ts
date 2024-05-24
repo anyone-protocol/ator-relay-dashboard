@@ -1,11 +1,11 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia';
 
-import ArDB from "ardb";
-import Arweave from "arweave";
+import ArDB from 'ardb';
+import Arweave from 'arweave';
 
-export const useMetricsStore = defineStore("relayMetrics", {
+export const useMetricsStore = defineStore('relayMetrics', {
   state: () => ({
-    transactionId: "bKdUd6vonjrZS4-FUGMPr5ecOeF405pR2DdO_at1D9I",
+    transactionId: 'bKdUd6vonjrZS4-FUGMPr5ecOeF405pR2DdO_at1D9I',
   }),
   actions: {
     async getArweaveTransactions() {
@@ -18,24 +18,24 @@ export const useMetricsStore = defineStore("relayMetrics", {
       // Get the latest relay metrics transaction
       try {
         const latestTransaction = await ardb
-          .sort("HEIGHT_DESC")
-          .search("transactions")
+          .sort('HEIGHT_DESC')
+          .search('transactions')
           .from(validatorContract)
           .tags([
-            { name: "Protocol", values: "ator" },
-            { name: "Protocol-Version", values: "0.1" },
-            { name: "Entity-Type", values: "relay/metrics" },
-            { name: "Content-Type", values: "application/json" },
+            { name: 'Protocol', values: 'ator' },
+            { name: 'Protocol-Version', values: '0.1' },
+            { name: 'Entity-Type', values: 'relay/metrics' },
+            { name: 'Content-Type', values: 'application/json' },
           ])
           .findOne();
 
         if (!latestTransaction) {
-          console.error("No relay metrics transaction found");
+          console.error('No relay metrics transaction found');
           return;
         }
         this.transactionId = latestTransaction.id;
       } catch (error) {
-        console.error("Error querying relay/metrics", error);
+        console.error('Error querying relay/metrics', error);
       }
     },
   },
