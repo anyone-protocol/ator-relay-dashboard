@@ -24,9 +24,9 @@ const changeTab = (key: string) => {
       v-for="(tab, index) in tabs"
       :key="tab.key"
       :class="[
-        'tab',
+        'tab text-gray-900 dark:text-white',
         {
-          'tab-active font-bold-500 tracking-tight text-transparent bg-clip-text bg-gradient-to-r dark:from-cyan-300 dark:to-cyan-600 from-cyan-500 to-cyan-600':
+          'tab-active bg-clip-text bg-gradient-to-r dark:from-cyan-300 dark:to-cyan-600 from-cyan-500 to-cyan-600':
             currentTab === tab.key,
         },
       ]"
@@ -57,9 +57,6 @@ const changeTab = (key: string) => {
 .tabs {
   .tab {
     position: relative;
-
-    color: #ffffffcc;
-
     cursor: pointer;
     padding: 6px 20px;
     font-weight: 400;
@@ -77,9 +74,10 @@ const changeTab = (key: string) => {
     height: 3px;
     background: linear-gradient(90deg, #5ce1f5 0%, #0c9dc0 100%);
   }
+
   .tab-active {
     color: transparent;
-    font-weight: 600;
+    font-weight: 500;
   }
 }
 </style>
