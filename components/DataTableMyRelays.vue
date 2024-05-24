@@ -7,7 +7,7 @@ import { config } from '@/config/wagmi.config';
 import { type RelayMetric } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 
-import Tabs from './Tabs.vue';
+import Tabs from './ui-kit/Tabs.vue';
 
 const toast = useToast();
 const userStore = useUserStore();

@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import ButtonConnect from './ui-kit/ButtonConnect.vue';
+import ButtonMobileMenu from './ui-kit/ButtonMobileMenu.vue';
+import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
+import TitleAndLogo from './ui-kit/TitleAndLogo.vue';
+
 const menuStore = useMenuStore();
 </script>
 

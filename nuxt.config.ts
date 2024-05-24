@@ -47,7 +47,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
-      relayRegistryAddress: 'drHgtmIezpgu-cyWBMh_sNOPBVqTqJu0j_Sp4rsQcQA',
+      relayRegistryAddress: '1RDbSNnYEcZ_bK5WXuHOLm4izwf8H_U0CctMTK9FUws',
     },
   },
 });

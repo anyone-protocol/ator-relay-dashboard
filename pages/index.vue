@@ -3,6 +3,8 @@ import { storeToRefs } from 'pinia';
 import { initRelayRegistry } from '~/composables/relay-registry';
 import { useAccount } from 'use-wagmi';
 import { config } from '@/config/wagmi.config';
+import Card from '~/components/ui-kit/Card.vue';
+import Ticker from '~/components/ui-kit/Ticker.vue';
 
 const userStore = useUserStore();
 const { address } = storeToRefs(userStore);
@@ -86,17 +88,20 @@ initRelayRegistry();
             </div>
           </div>
 
-          <!-- <div class="mt-4 p-1 text-xs text-gray-500">
+          <div class="mt-4 p-1 text-xs text-gray-500">
             Last Updated: {{ lastClaimedTimestamp ?? new Date().toUTCString() }}
           </div>
 
-          <div class="my-4 h-px w-full bg-gradient-to-r from-gray-600/10 via-cyan-900 to-gray-600/10"></div>
-          <ButtonAttention :disabled="!userStore.hasClaimableRewards" @click="userStore.claimAllRewards">
+          <div
+            class="my-4 h-px w-full bg-gradient-to-r from-gray-600/10 via-cyan-900 to-gray-600/10"
+          ></div>
+          <ButtonAttention
+            :disabled="!userStore.hasClaimableRewards"
+            @click="userStore.claimAllRewards"
+          >
             <span v-if="!userStore.hasClaimableRewards">Nothing to redeem</span>
-            <span v-else>Redeem rewards now (
-              <UserClaimableRewards />)
-            </span>
-          </ButtonAttention> -->
+            <span v-else>Redeem rewards now ( <UserClaimableRewards />) </span>
+          </ButtonAttention>
         </Card>
       </DashboardMobileSection>
     </div>
