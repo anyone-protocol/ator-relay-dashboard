@@ -6,7 +6,7 @@ export default <Partial<Config>>{
   theme: {
     extend: {
       fontFamily: {
-        brand: ['Almarena Mono Display', 'sans-serif'],
+        brand: ['Inter', 'sans-serif'],
       },
       animation: {
         shimmer: 'shimmer 2s linear infinite',
