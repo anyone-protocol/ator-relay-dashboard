@@ -189,22 +189,24 @@ const handleTabChange = (key: string) => {
       }"
     >
       <template #actions-data="{ row }">
-        <Icon
-          v-if="row.isWorking"
-          name="heroicons:arrow-path-20-solid"
-          class="h-6 w-6 animate-spin"
-        />
-        <UDropdown
-          v-if="row.status === 'verified' && !row.isWorking"
-          :items="getVerifiedItems(row)"
-          :popper="{ placement: 'left-end' }"
-        >
-          <UButton
-            color="gray"
-            variant="ghost"
-            icon="i-heroicons-ellipsis-horizontal-20-solid"
+        <div class="w-8">
+          <Icon
+            v-if="row.isWorking"
+            name="heroicons:arrow-path-20-solid"
+            class="h-6 w-6 animate-spin"
           />
-        </UDropdown>
+          <UDropdown
+            v-if="row.status === 'verified' && !row.isWorking"
+            :items="getVerifiedItems(row)"
+            :popper="{ placement: 'left-end' }"
+          >
+            <UButton
+              color="gray"
+              variant="ghost"
+              icon="i-heroicons-ellipsis-horizontal-20-solid"
+            />
+          </UDropdown>
+        </div>
       </template>
       <template #status-data="{ row }">
         <UBadge v-if="row.status === 'verified'" color="cyan" variant="outline">
