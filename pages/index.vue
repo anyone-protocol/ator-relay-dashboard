@@ -97,7 +97,7 @@ const handleClaimAllRewards = async () => {
                 Earn rewards by contributing relays to the ATOR network.
               </p>
             </div>
-            <div class="flex gap-6">
+            <div class="redeem flex gap-6 items-center">
               <div class="divider"></div>
 
               <Button
@@ -152,7 +152,17 @@ const handleClaimAllRewards = async () => {
 <style scoped lang="scss">
 .divider {
   width: 1px;
-  height: 64px;
-  background: linear-gradient(90deg, rgba(30, 37, 47, 0) 0%, #1e252f 100%);
+  min-height: 64px;
+  height: 100%;
+  background: linear-gradient(
+    0deg,
+    rgba(22, 81, 103, 0) 0%,
+    #165167 49.5%,
+    rgba(22, 81, 103, 0) 100%
+  );
+}
+
+.redeem {
+  height: 100%;
 }
 </style>

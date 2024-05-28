@@ -185,7 +185,7 @@ export class Facilitator {
 
     const GAS_COST = (await this.contract.GAS_COST()) as bigint;
     const GAS_PRICE = (await this.contract.GAS_PRICE()) as bigint;
-    const oracleWeiRequired = GAS_COST * GAS_PRICE;
+    const oracleWeiRequired = GAS_COST * GAS_PRICE + 100n;
 
     return BigNumber(oracleWeiRequired.toString());
   }
