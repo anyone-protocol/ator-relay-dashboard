@@ -145,13 +145,6 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
 const getVerifiedItems = (row: RelayRow) => [
   [
     {
-      label: 'Redeem rewards',
-      icon: 'i-heroicons-banknotes-20-solid',
-      click: () => relayAction('claim', row.fingerprint),
-    },
-  ],
-  [
-    {
       label: 'Renounce',
       icon: 'i-heroicons-trash-20-solid',
       click: () => relayAction('renounce', row.fingerprint),
