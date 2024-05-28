@@ -2,7 +2,11 @@
 import { reconnect } from 'use-wagmi/actions';
 import { mainnet, sepolia } from 'use-wagmi/chains';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/vue';
-import { metadata, tokens, themeVariables } from '@/config/web3modal.config';
+import {
+  metadata,
+  getAtorAddress,
+  themeVariables,
+} from '@/config/web3modal.config';
 
 const chains = [mainnet, sepolia];
 const nuxtConfig = useRuntimeConfig();
@@ -17,7 +21,12 @@ const wagmiConfig = defaultWagmiConfig({
 
 createWeb3Modal({
   chains,
-  tokens,
+  tokens: {
+    1: {
+      address: getAtorAddress(),
+      image: '/images/ator-logo.png',
+    },
+  },
   projectId,
   wagmiConfig,
   themeVariables,

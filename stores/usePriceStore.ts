@@ -1,8 +1,8 @@
-import { atorAddress } from '~/config/web3modal.config';
+import { getAtorAddress } from '~/config/web3modal.config';
 
 const to = Math.floor(Date.now() / 1000);
 const from = to - 3600 * 48; // 48 hrs
-const apiEndpoint = `https://api.dex.guru/v1/tradingview/history?symbol=${atorAddress}-eth_USD&resolution=240&from=${from}&to=${to}`;
+const apiEndpoint = `https://api.dex.guru/v1/tradingview/history?symbol=${getAtorAddress()}-eth_USD&resolution=240&from=${from}&to=${to}`;
 
 export const usePriceStore = defineStore('price', {
   state: () => {
