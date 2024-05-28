@@ -18,6 +18,7 @@ interface FacilitatorStoreState {
   claims: ClaimProcess[];
   pendingClaim: ClaimProcess | null;
   totalClaimedTokens: string | null;
+  alocatedTokens: string | null;
 }
 
 export const useFacilitatorStore = defineStore('facilitator', {
@@ -26,6 +27,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
       claims: [],
       pendingClaim: null,
       totalClaimedTokens: null,
+      alocatedTokens: null,
     };
   },
   getters: {
@@ -36,6 +38,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
         return state.claims;
       }
     },
+    hasClaimableRewards: (state) => !!state.alocatedTokens,
     nextClaimNumber: (state) => state.claims.length + 1,
     hasPendingClaim: (state) => !!state.pendingClaim,
   },
@@ -43,7 +46,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
     async queryEventsForAuthedUser() {
       const auth = useUserStore();
       const facilitator = useFacilitator();
-
+      debugger;
       if (!facilitator) {
         return;
       }
@@ -53,10 +56,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
 
         console.info('queryEventsForAuthedUser', address);
 
-        const requestingUpdate = await facilitator.query(
-          'RequestingUpdate',
-          address
-        );
+        const requestingUpdate = await facilitator.refresh();
         const allocationClaimed = await facilitator.query(
           'AllocationClaimed',
           address
@@ -65,6 +65,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
           ...(requestingUpdate as EventLog[]),
           ...(allocationClaimed as EventLog[]),
         ];
+
+        debugger;
 
         // NB: Sort combined event log by block and tx index ascending
         combined.sort((a, b) => {

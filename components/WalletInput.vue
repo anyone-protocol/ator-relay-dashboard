@@ -9,6 +9,7 @@ const applyAddress = () => {
   if (address.value && isAddress(address.value)) {
     userStore.$patch({ address: address.value });
     userStore.$patch({ userData: { address: address.value } });
+    debugger;
     toast.add({
       title: `Applying data for ${truncatedAddress(address.value)}`,
     });

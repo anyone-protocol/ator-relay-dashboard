@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { initRelayRegistry } from '~/composables/relay-registry';
+import { initFacilitator } from '~/composables/facilitator';
+import { formatEther } from 'ethers';
+
 import { useAccount } from 'use-wagmi';
 import { config } from '@/config/wagmi.config';
 import { useFacilitatorStore } from '~/stores/useFacilitatorStore';
@@ -12,10 +15,9 @@ import { useFacilitator } from '~/composables/facilitator';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
-const facilitator = useFacilitator();
 const { address } = storeToRefs(userStore);
 const { isConnected } = useAccount({ config });
-
+const isRedeemLoading = ref(false);
 // Initialize data fetch and cache
 // Retrieve the user data and set state
 // These auto refresh when the address changes
@@ -42,10 +44,19 @@ onMounted(() => {
 });
 
 initRelayRegistry();
+initFacilitator();
 
 const handleClaimAllRewards = async () => {
-  debugger;
-  await facilitator?.updateAllocation(100n);
+  isRedeemLoading.value = true;
+  try {
+    const facilitator = useFacilitator();
+    await facilitator?.claim();
+  } catch (error) {
+    debugger;
+    console.error(error);
+  }
+
+  isRedeemLoading.value = false;
 };
 </script>
 
@@ -86,16 +97,22 @@ const handleClaimAllRewards = async () => {
                 Earn rewards by contributing relays to the ATOR network.
               </p>
             </div>
+            <div class="flex gap-6">
+              <div class="divider"></div>
 
-            <Button
-              :disabled="userStore.hasClaimableRewards"
-              @onClick="handleClaimAllRewards"
-            >
-              <span v-if="userStore.hasClaimableRewards"
-                >Redeem rewards now</span
+              <Button
+                :disabled="
+                  !facilitatorStore.hasClaimableRewards || isRedeemLoading
+                "
+                @onClick="handleClaimAllRewards"
               >
-              <span v-else>Nothing to claim</span>
-            </Button>
+                <span v-if="isRedeemLoading">Processing...</span>
+                <span v-else-if="facilitatorStore.hasClaimableRewards"
+                  >Redeem Rewards</span
+                >
+                <span v-else>Nothing to Redeem</span>
+              </Button>
+            </div>
           </div>
 
           <div class="flex gap-32">
@@ -103,7 +120,7 @@ const handleClaimAllRewards = async () => {
               <h3>Claimed rewards</h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{ userStore.claimedRewardsTotal }}
+                  {{ formatEther(facilitatorStore.totalClaimedTokens || '0') }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
@@ -113,7 +130,7 @@ const handleClaimAllRewards = async () => {
               <h3>Claimable rewards</h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{ userStore.claimableRewards }}
+                  {{ formatEther(facilitatorStore.alocatedTokens || '0') }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
@@ -131,3 +148,11 @@ const handleClaimAllRewards = async () => {
     </Card>
   </DashboardMobileSection>
 </template>
+
+<style scoped lang="scss">
+.divider {
+  width: 1px;
+  height: 64px;
+  background: linear-gradient(90deg, rgba(30, 37, 47, 0) 0%, #1e252f 100%);
+}
+</style>

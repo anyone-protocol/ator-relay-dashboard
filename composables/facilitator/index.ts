@@ -93,29 +93,32 @@ export class Facilitator {
 
     this.setRefreshing(true);
     const auth = useUserStore();
-    this.logger.info(
+    console.info(
       auth.userData?.address
         ? `Refreshing Facilitator for ${auth.userData?.address}`
         : 'Refreshing Facilitator'
     );
-    this.logger.time();
+    console.time();
 
     let totalClaimed = null,
       gasAvailable = null,
-      gasUsed = null;
+      gasUsed = null,
+      allocatedTockens = null;
 
     if (auth.userData?.address) {
       totalClaimed = await this.getTotalClaimedTokens(auth.userData.address);
+      allocatedTockens = await this.getAllocatedTokens(auth.userData.address);
       gasAvailable = await this.getGasAvailable(auth.userData.address);
       gasUsed = await this.getGasUsed(auth.userData.address);
     }
     const oracleWeiRequired = await this.getOracleWeiRequired();
 
-    this.logger.timeEnd();
-    this.logger.info('Facilitator refreshed', {
+    console.timeEnd();
+    console.info('Facilitator refreshed', {
       totalClaimed: totalClaimed?.toString(),
       gasAvailable: gasAvailable?.toString(),
       gasUsed: gasUsed?.toString(),
+      allocatedTockens: allocatedTockens?.toString(),
       oracleWeiRequired: oracleWeiRequired.toString(),
     });
     this.setRefreshing(false);
@@ -135,6 +138,22 @@ export class Facilitator {
     }
 
     return BigNumber(totalClaimedTokens.toString());
+  }
+
+  async getAllocatedTokens(address: string): Promise<BigNumber> {
+    if (!this.contract) {
+      throw new Error(ERRORS.NOT_INITIALIZED);
+    }
+
+    const allocatedTokens = (await this.contract.allocatedTokens(
+      address
+    )) as bigint;
+
+    if (address === useUserStore().userData?.address) {
+      useFacilitatorStore().alocatedTokens = allocatedTokens.toString();
+    }
+
+    return BigNumber(allocatedTokens.toString());
   }
 
   async getGasAvailable(address: string): Promise<BigNumber> {
@@ -186,7 +205,7 @@ export class Facilitator {
 
       return await this.contract.queryFilter(filter, fromBlock, toBlock);
     } catch (error) {
-      this.logger.error('Error querying facilitator contract events', error);
+      console.error('Error querying facilitator contract events', error);
     }
 
     return [];
@@ -205,9 +224,7 @@ export class Facilitator {
     try {
       const value = oracleWeiRequired.toString();
       const to = await this.contract.getAddress();
-      // NB: receive() is a standard hook for when a normal tx sends value to
-      //     a contract.  There is no explicit receive() interface on the ABI.
-      //     So instead we send a normal transaction.
+
       const result = await this.signer.sendTransaction({ to, value });
       await result.wait();
       const block = await result.getBlock();
@@ -216,7 +233,7 @@ export class Facilitator {
 
       return result;
     } catch (error) {
-      this.logger.error(ERRORS.FUNDING_ORACLE, error);
+      console.error(ERRORS.FUNDING_ORACLE, error);
     }
 
     return null;
@@ -234,6 +251,7 @@ export class Facilitator {
     const auth = useUserStore();
 
     try {
+      const facilitatorStore = useFacilitatorStore();
       const result = await this.contract.updateAllocation(
         auth.userData.address,
         amount,
@@ -242,11 +260,11 @@ export class Facilitator {
       await result.wait();
       const block = await result.getBlock();
       const timestamp = block?.timestamp || Math.floor(Date.now() / 1000);
-      useFacilitatorStore().addPendingClaim(result.hash, timestamp);
 
+      facilitatorStore.alocatedTokens = amount.toString();
       return result;
     } catch (error) {
-      this.logger.error(ERRORS.REQUESTING_UPDATE, error);
+      console.error(ERRORS.REQUESTING_UPDATE, error);
     }
 
     return null;
@@ -263,7 +281,7 @@ export class Facilitator {
         return;
       }
       if (auth.userData.address === address) {
-        this.logger.info('onAllocationClaimed()', address, amount);
+        console.info('onAllocationClaimed()', address, amount);
         const store = useFacilitatorStore();
         await store.onAllocationClaimed(amount, event);
         const tx = await event.getTransaction();
@@ -271,7 +289,7 @@ export class Facilitator {
         await this.getTotalClaimedTokens(auth.userData.address);
       }
     } catch (error) {
-      this.logger.error('Error consuming AllocationClaimed event', error);
+      console.error('Error consuming AllocationClaimed event', error);
     }
   }
 
@@ -286,7 +304,7 @@ export class Facilitator {
         return;
       }
       if (auth.userData.address === address) {
-        this.logger.info('onAllocationClaimed()', address, amount);
+        console.info('onAllocationClaimed()', address, amount);
         const store = useFacilitatorStore();
         await store.onAllocationUpdated(amount, event);
         const tx = await event.getTransaction();
@@ -294,7 +312,7 @@ export class Facilitator {
         await this.getTotalClaimedTokens(auth.userData.address);
       }
     } catch (error) {
-      this.logger.error('Error consuming AllocationClaimed event', error);
+      console.error('Error consuming AllocationClaimed event', error);
     }
   }
   private async onGasBudgetUpdated(): Promise<void> {}
@@ -340,7 +358,6 @@ export class Facilitator {
 
 let facilitator: Facilitator | null = null;
 export const initFacilitator = async () => {
-  const config = useRuntimeConfig();
   const provider = useProvider();
   const auth = useUserStore();
 
