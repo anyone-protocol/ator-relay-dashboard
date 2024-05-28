@@ -185,7 +185,10 @@ const handleTabChange = (key: string) => {
       :ui="{ td: { base: 'max-w-sm truncate' } }"
       :empty-state="{
         icon: 'i-heroicons-circle-stack-20-solid',
-        label: 'No pending claimable or verified relays!',
+        label:
+          currentTab === 'claimable'
+            ? 'No Claimable relays!'
+            : 'No pending claimable or verified relays!',
       }"
     >
       <template #actions-data="{ row }">
