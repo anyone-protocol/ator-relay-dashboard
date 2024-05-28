@@ -3,6 +3,7 @@ import { reconnect } from 'use-wagmi/actions';
 import { mainnet, sepolia } from 'use-wagmi/chains';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/vue';
 import { metadata, tokens, themeVariables } from '@/config/web3modal.config';
+import { initFacilitator } from './composables/facilitator';
 
 const chains = [mainnet, sepolia];
 const nuxtConfig = useRuntimeConfig();
@@ -25,6 +26,7 @@ createWeb3Modal({
 
 onMounted(() => {
   reconnect(wagmiConfig);
+  initFacilitator();
 });
 </script>
 

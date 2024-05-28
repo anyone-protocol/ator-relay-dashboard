@@ -3,11 +3,16 @@ import { storeToRefs } from 'pinia';
 import { initRelayRegistry } from '~/composables/relay-registry';
 import { useAccount } from 'use-wagmi';
 import { config } from '@/config/wagmi.config';
+import { useFacilitatorStore } from '~/stores/useFacilitatorStore';
+
 import Card from '~/components/ui-kit/Card.vue';
 import Ticker from '~/components/ui-kit/Ticker.vue';
 import Button from '~/components/ui-kit/Button.vue';
+import { useFacilitator } from '~/composables/facilitator';
 
 const userStore = useUserStore();
+const facilitatorStore = useFacilitatorStore();
+const facilitator = useFacilitator();
 const { address } = storeToRefs(userStore);
 const { isConnected } = useAccount({ config });
 
@@ -40,7 +45,7 @@ initRelayRegistry();
 
 const handleClaimAllRewards = async () => {
   debugger;
-  await userStore.claimAllRewards();
+  await facilitator?.updateAllocation(100n);
 };
 </script>
 
