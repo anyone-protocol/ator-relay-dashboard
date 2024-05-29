@@ -4,10 +4,12 @@ import type { RelayRow } from '@/stores/useUserStore';
 import type { FunctionName } from '@/utils/warp.write';
 import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
-import { type RelayMetric } from '@/types/relay';
+import { type RelayMetric, type RelayMeta } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 
 import Tabs from './Tabs.vue';
+import Tooltip from './Tooltip.vue';
+import Popover from './Popover.vue';
 
 const toast = useToast();
 const userStore = useUserStore();
@@ -64,15 +66,20 @@ const {
         fingerprints.value.includes(item.relay.fingerprint)
       );
 
-      const structuredResults = trimmedResults.map((item) => {
-        return {
-          active: item.relay.running,
-          status: 'verified',
-          fingerprint: item.relay.fingerprint,
-          consensusWeight: item.relay.consensus_weight,
-          observedBandwidth: item.relay.observed_bandwidth,
-        };
-      });
+      const structuredResults = trimmedResults.reduce(
+        (acc, item) => {
+          acc[item.relay.fingerprint] = {
+            nickname: item.relay.nickname || '-',
+            active: item.relay.running,
+            status: item.relay.status || 'verified',
+            fingerprint: item.relay.fingerprint,
+            consensusWeight: item.relay.consensus_weight,
+            observedBandwidth: item.relay.observed_bandwidth,
+          };
+          return acc;
+        },
+        {} as Record<string, RelayRow>
+      );
       return structuredResults;
     },
   }
@@ -204,34 +211,46 @@ const handleTabChange = (key: string) => {
           </UDropdown>
         </div>
       </template>
-      <template #status-data="{ row }">
-        <UBadge v-if="row.status === 'verified'" color="cyan" variant="outline">
-          claimed
-        </UBadge>
-        <UButton
-          v-if="row.status === 'claimable'"
-          color="amber"
-          variant="solid"
-          size="2xs"
-          @click="relayAction('claim', row.fingerprint)"
-        >
-          Claim
-        </UButton>
+      <template #nickname-data="{ row }">
+        {{ relayMeta?.[row.fingerprint]?.nickname || '-' }}
       </template>
+
+      <template #active-data="{ row }">
+        <USkeleton v-if="relayMetaPending" class="h-6 w-full" />
+        <div
+          v-if="!relayMetaPending"
+          :class="
+            relayMeta?.[row.fingerprint]?.active
+              ? 'status-active'
+              : 'status-inactive'
+          "
+        ></div>
+      </template>
+
+      <template #lockStatus-header="{ column }">
+        <div class="flex gap-1 items-center">
+          <span>{{ column.label }}</span>
+          <Tooltip
+            placement="top"
+            arrow
+            text="The lock status of the relay. A locked relay is not eligible for rewards."
+          >
+            <Icon name="heroicons:exclamation-circle" class="h-4" />
+          </Tooltip>
+        </div>
+      </template>
+      <template #lockStatus-data="{ row }">
+        {{ row.lockStatus ?? '-' }}
+      </template>
+
       <template #consensusWeight-data="{ row }">
         <USkeleton v-if="relayMetaPending" class="h-6 w-full" />
         <span v-if="!relayMetaPending">
-          {{
-            relayMeta?.find((item) => item.fingerprint === row.fingerprint)
-              ?.consensusWeight
-          }}
+          {{ relayMeta?.[row.fingerprint]?.consensusWeight }}
         </span>
         <span
           v-if="
-            (!relayMetaPending &&
-              !relayMeta?.find(
-                (item) => item.fingerprint === row.fingerprint
-              )) ||
+            (!relayMetaPending && !relayMeta?.[row.fingerprint]) ||
             relayMetaError
           "
           class="text-sm flex items-center gap-2"
@@ -246,17 +265,11 @@ const handleTabChange = (key: string) => {
       <template #observedBandwidth-data="{ row }">
         <USkeleton v-if="relayMetaPending" class="h-6 w-full" />
         <span v-if="!relayMetaPending">
-          {{
-            relayMeta?.find((item) => item.fingerprint === row.fingerprint)
-              ?.observedBandwidth
-          }}
+          {{ relayMeta?.[row.fingerprint]?.observedBandwidth }}
         </span>
         <span
           v-if="
-            (!relayMetaPending &&
-              !relayMeta?.find(
-                (item) => item.fingerprint === row.fingerprint
-              )) ||
+            (!relayMetaPending && !relayMeta?.[row.fingerprint]) ||
             relayMetaError
           "
           class="text-sm flex items-center gap-2"
@@ -268,17 +281,75 @@ const handleTabChange = (key: string) => {
           Unable to fetch
         </span>
       </template>
-      <template #active-data="{ row }">
-        <USkeleton v-if="relayMetaPending" class="h-6 w-full" />
-        <span v-if="!relayMetaPending">
-          {{
-            relayMeta?.find((item) => item.fingerprint === row.fingerprint)
-              ?.active
-              ? 'Running'
-              : 'Inactive'
-          }}
-        </span>
+
+      <template #status-header="{ column }">
+        <div class="relative flex gap-1 items-center">
+          <span>{{ column.label }}</span>
+          <Popover placement="top" :arrow="false">
+            <template #content>
+              <div class="text-sm font-medium text-cyan-500 mb-3">
+                Registration Status
+              </div>
+              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
+                <span class="text-gray-800 dark:text-white"
+                  >Non-claimable:</span
+                >
+                This item cannot be claimed.
+              </div>
+              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
+                <span class="text-gray-800 dark:text-white">Claimable:</span>
+                This item is eligible for claim.
+              </div>
+              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
+                <span class="text-gray-800 dark:text-white">Claimed:</span> This
+                item has already been claimed. No further action is needed.
+              </div>
+            </template>
+            <template #trigger>
+              <div><Icon name="heroicons:exclamation-circle" /></div>
+            </template>
+          </Popover>
+        </div>
+      </template>
+      <template #status-data="{ row }">
+        <UButton
+          v-if="row.status === 'verified'"
+          icon="i-heroicons-check-circle-solid"
+          size="xl"
+          color="green"
+          variant="outline"
+          label="Claimed"
+          :disabled="true"
+          :trailing="false"
+        />
+
+        <UButton
+          v-if="row.status === 'claimable'"
+          size="xl"
+          color="green"
+          variant="solid"
+          label="Claim Now"
+          @click="relayAction('claim', row.fingerprint)"
+          :trailing="false"
+        />
       </template>
     </UTable>
   </div>
 </template>
+
+<style scoped lang="scss">
+.status-active,
+.status-inactive {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+// TODO: use variables
+.status-active {
+  background: #00ff84;
+}
+
+.status-inactive {
+  background: #fa5858;
+}
+</style>

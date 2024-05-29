@@ -1,11 +1,15 @@
 export const RELAY_COLUMS = [
   {
+    key: 'nickname',
+    label: 'Nickname',
+  },
+  {
     key: 'fingerprint',
     label: 'Relay fingerprint',
   },
   {
-    key: 'status',
-    label: 'Status',
+    key: 'active',
+    label: 'Running',
   },
   {
     key: 'consensusWeight',
@@ -16,8 +20,12 @@ export const RELAY_COLUMS = [
     label: 'Observed bandwidth',
   },
   {
-    key: 'active',
-    label: 'Active',
+    key: 'lockStatus',
+    label: 'Lock Status',
+  },
+  {
+    key: 'status',
+    label: 'Registration Status',
   },
   {
     key: 'actions',
