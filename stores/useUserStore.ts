@@ -79,7 +79,6 @@ export const useUserStore = defineStore('user', {
 
       if (claimable.status === 200) {
         const relays = await claimable.json();
-        debugger;
         this.claimableRelays = relays.relays;
       }
     },

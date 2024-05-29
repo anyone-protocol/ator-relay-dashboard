@@ -71,7 +71,7 @@ const {
           acc[item.relay.fingerprint] = {
             nickname: item.relay.nickname || '-',
             active: item.relay.running,
-            status: 'verified',
+            status: item.relay.status || 'verified',
             fingerprint: item.relay.fingerprint,
             consensusWeight: item.relay.consensus_weight,
             observedBandwidth: item.relay.observed_bandwidth,
