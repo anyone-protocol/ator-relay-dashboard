@@ -15,6 +15,7 @@ export type RelayRow = {
   active: boolean;
   class?: string;
   isWorking?: boolean;
+  nickname?: string;
 };
 
 export const useUserStore = defineStore('user', {
@@ -78,6 +79,7 @@ export const useUserStore = defineStore('user', {
 
       if (claimable.status === 200) {
         const relays = await claimable.json();
+        debugger;
         this.claimableRelays = relays.relays;
       }
     },

@@ -8,6 +8,7 @@ export type RelayMetricResult =
 export type RelayMeta = {
   running: boolean;
   fingerprint: string;
+  nickname?: string;
   ator_address: string;
   consensus_weight: number;
   observed_bandwidth: number;
