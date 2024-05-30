@@ -233,7 +233,7 @@ const handleTabChange = (key: string) => {
           <Tooltip
             placement="top"
             arrow
-            text="The lock status of the relay. A locked relay is not eligible for rewards."
+            text="Shows the current lock status and amount of locked tokens needed for Registration."
           >
             <Icon name="heroicons:exclamation-circle" class="h-4" />
           </Tooltip>
@@ -290,15 +290,10 @@ const handleTabChange = (key: string) => {
               <div class="text-sm font-medium text-cyan-500 mb-3">
                 Registration Status
               </div>
-              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
-                <span class="text-gray-800 dark:text-white"
-                  >Non-claimable:</span
-                >
-                This item cannot be claimed.
-              </div>
+
               <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
                 <span class="text-gray-800 dark:text-white">Claimable:</span>
-                This item is eligible for claim.
+                'Claim Now' button is active
               </div>
               <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
                 <span class="text-gray-800 dark:text-white">Claimed:</span> This
@@ -312,26 +307,30 @@ const handleTabChange = (key: string) => {
         </div>
       </template>
       <template #status-data="{ row }">
-        <UButton
-          v-if="row.status === 'verified'"
-          icon="i-heroicons-check-circle-solid"
-          size="xl"
-          color="green"
-          variant="outline"
-          label="Claimed"
-          :disabled="true"
-          :trailing="false"
-        />
+        <div class="max-w-32">
+          <UButton
+            v-if="row.status === 'verified'"
+            icon="i-heroicons-check-circle-solid"
+            size="xl"
+            color="green"
+            variant="outline"
+            label="Claimed"
+            :disabled="true"
+            :trailing="false"
+            block
+          />
 
-        <UButton
-          v-if="row.status === 'claimable'"
-          size="xl"
-          color="green"
-          variant="solid"
-          label="Claim Now"
-          @click="relayAction('claim', row.fingerprint)"
-          :trailing="false"
-        />
+          <UButton
+            v-if="row.status === 'claimable'"
+            size="xl"
+            color="green"
+            variant="solid"
+            label="Claim Now"
+            @click="relayAction('claim', row.fingerprint)"
+            :trailing="false"
+            block
+          />
+        </div>
       </template>
     </UTable>
   </div>
