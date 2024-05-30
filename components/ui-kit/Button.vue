@@ -4,7 +4,7 @@ const emit = defineEmits<{
 }>();
 
 const props = defineProps<{
-  disabled: boolean;
+  disabled?: boolean;
 }>();
 </script>
 

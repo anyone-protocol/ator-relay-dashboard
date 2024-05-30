@@ -18,6 +18,8 @@ const facilitatorStore = useFacilitatorStore();
 const { address } = storeToRefs(userStore);
 const { isConnected } = useAccount({ config });
 const isRedeemLoading = ref(false);
+const toast = useToast();
+
 // Initialize data fetch and cache
 // Retrieve the user data and set state
 // These auto refresh when the address changes
@@ -52,8 +54,12 @@ const handleClaimAllRewards = async () => {
     const facilitator = useFacilitator();
     await facilitator?.claim();
   } catch (error) {
-    debugger;
-    console.error(error);
+    toast.add({
+      icon: 'i-heroicons-x-circle',
+      color: 'amber',
+      title: 'Error',
+      description: `Error redeen rewards: ${error}`,
+    });
   }
 
   isRedeemLoading.value = false;
@@ -97,16 +103,20 @@ const handleClaimAllRewards = async () => {
                 Earn rewards by contributing relays to the ATOR network.
               </p>
             </div>
-            <div class="redeem flex gap-6 items-center">
+            <div v-if="isConnected" class="redeem flex gap-6 items-center">
               <div class="divider"></div>
 
               <Button
                 :disabled="
-                  !facilitatorStore.hasClaimableRewards || isRedeemLoading
+                  !facilitatorStore.hasClaimableRewards ||
+                  isRedeemLoading ||
+                  !!facilitatorStore.pendingClaim
                 "
                 @onClick="handleClaimAllRewards"
               >
-                <span v-if="isRedeemLoading">Processing...</span>
+                <span v-if="isRedeemLoading || !!facilitatorStore.pendingClaim"
+                  >Processing...</span
+                >
                 <span v-else-if="facilitatorStore.hasClaimableRewards"
                   >Redeem Rewards</span
                 >

@@ -1,4 +1,4 @@
-import { AbstractProvider, BrowserProvider, JsonRpcProvider } from 'ethers';
+import { AbstractProvider, BrowserProvider } from 'ethers';
 
 export const useSigner = async () => {
   let provider = useProvider();
@@ -7,10 +7,7 @@ export const useSigner = async () => {
     provider = initializeBrowserProvider();
   }
 
-  if (
-    provider instanceof BrowserProvider ||
-    provider instanceof JsonRpcProvider
-  ) {
+  if (provider instanceof BrowserProvider) {
     try {
       const signer = await provider.getSigner();
       // TODO: Uncomment this
@@ -19,7 +16,7 @@ export const useSigner = async () => {
       //     method: 'wallet_switchEthereumChain',
       //     params: [
       //       {
-      //         chainId: NETWORKS.HARDHAT.hex,
+      //         chainId: NETWORKS.SEPOLIA.hex,
       //       },
       //     ],
       //   });

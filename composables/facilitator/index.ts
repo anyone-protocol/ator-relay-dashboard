@@ -103,13 +103,17 @@ export class Facilitator {
     let totalClaimed = null,
       gasAvailable = null,
       gasUsed = null,
-      allocatedTockens = null;
+      allocatedTockens = null,
+      usedBudget = null,
+      availableBudget = null;
 
     if (auth.userData?.address) {
       totalClaimed = await this.getTotalClaimedTokens(auth.userData.address);
       allocatedTockens = await this.getAllocatedTokens(auth.userData.address);
       gasAvailable = await this.getGasAvailable(auth.userData.address);
       gasUsed = await this.getGasUsed(auth.userData.address);
+      usedBudget = await this.getUsedBudget(auth.userData.address);
+      availableBudget = await this.getAvailableBudget(auth.userData.address);
     }
     const oracleWeiRequired = await this.getOracleWeiRequired();
 
@@ -120,6 +124,8 @@ export class Facilitator {
       gasUsed: gasUsed?.toString(),
       allocatedTockens: allocatedTockens?.toString(),
       oracleWeiRequired: oracleWeiRequired.toString(),
+      availableBudget: availableBudget?.toString(),
+      usedBudget: usedBudget?.toString(),
     });
     this.setRefreshing(false);
   }
@@ -156,6 +162,28 @@ export class Facilitator {
     return BigNumber(allocatedTokens.toString());
   }
 
+  async getAvailableBudget(address: string): Promise<BigNumber> {
+    if (!this.contract) {
+      throw new Error(ERRORS.NOT_INITIALIZED);
+    }
+
+    const availableBudget = (await this.contract.availableBudget(
+      address
+    )) as bigint;
+
+    return BigNumber(availableBudget.toString());
+  }
+
+  async getUsedBudget(address: string): Promise<BigNumber> {
+    if (!this.contract) {
+      throw new Error(ERRORS.NOT_INITIALIZED);
+    }
+
+    const usedBudget = (await this.contract.usedBudget(address)) as bigint;
+
+    return BigNumber(usedBudget.toString());
+  }
+
   async getGasAvailable(address: string): Promise<BigNumber> {
     if (!this.contract) {
       throw new Error(ERRORS.NOT_INITIALIZED);
@@ -185,7 +213,7 @@ export class Facilitator {
 
     const GAS_COST = (await this.contract.GAS_COST()) as bigint;
     const GAS_PRICE = (await this.contract.GAS_PRICE()) as bigint;
-    const oracleWeiRequired = GAS_COST * GAS_PRICE + 100n;
+    const oracleWeiRequired = GAS_COST * GAS_PRICE * 2n;
 
     return BigNumber(oracleWeiRequired.toString());
   }
@@ -287,6 +315,7 @@ export class Facilitator {
         const tx = await event.getTransaction();
         await tx.wait();
         await this.getTotalClaimedTokens(auth.userData.address);
+        await this.getAllocatedTokens(auth.userData.address);
       }
     } catch (error) {
       console.error('Error consuming AllocationClaimed event', error);

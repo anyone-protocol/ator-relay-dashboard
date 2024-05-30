@@ -25,7 +25,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
   state: (): FacilitatorStoreState => {
     return {
       claims: [],
-      pendingClaim: null,
+      pendingClaim: localStorage.getItem('pendingClaim') as ClaimProcess | null,
       totalClaimedTokens: null,
       alocatedTokens: null,
     };
@@ -146,6 +146,9 @@ export const useFacilitatorStore = defineStore('facilitator', {
         };
         console.info('addPendingClaim() new claim', claim);
         this.pendingClaim = claim;
+
+        // Save  pendingClaim to local storage
+        localStorage.setItem('pendingClaim', JSON.stringify(this.pendingClaim));
       }
     },
 
@@ -158,6 +161,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
       amount: bigint,
       allocationClaimed: ContractUnknownEventPayload
     ) {
+      const toast = useToast();
+
       console.info('onAllocationClaimed()', amount);
       console.info('onAllocationClaimed() pending claim', this.pendingClaim);
       if (!this.pendingClaim) {
@@ -169,6 +174,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
         !this.pendingClaim.allocationClaimedTransactionHash
       ) {
         const block = await allocationClaimed.getBlock();
+        const tx = await allocationClaimed.getTransaction();
+
         const timestamp = new Date(block.timestamp * 1000).toUTCString();
         const pendingClaimCopy = JSON.parse(
           JSON.stringify(this.pendingClaim)
@@ -185,8 +192,26 @@ export const useFacilitatorStore = defineStore('facilitator', {
           pendingClaimCopy
         );
 
+        toast.add({
+          icon: 'i-heroicons-check-circle',
+          color: 'primary',
+          title: 'Success',
+          description: `Rewards redeemed successfully. You've redeemed ${pendingClaimCopy.amount} SATOR.`,
+          actions: [
+            {
+              label: 'View transaction',
+              click: () => {
+                window.open(`https://etherscan.io/tx/${tx.hash}`, '_blank');
+              },
+            },
+          ],
+        });
+
         this.claims.push(pendingClaimCopy);
         this.pendingClaim = null;
+
+        // Save  pendingClaim to local storage
+        localStorage.setItem('pendingClaim', JSON.stringify(this.pendingClaim));
       }
     },
   },
