@@ -6,7 +6,7 @@ import {
 } from 'warp-contracts';
 import Arweave from 'arweave';
 
-const ANT = 'PspdulWYOoBov3dJyA9TdXuqDqaV7snSiwPjtesLvNU';
+const ANT = 'kPti-YZrJ86qkGci32Q5inHtbBUlces2mTGTEm_0gzo';
 const DEPLOY_FOLDER = './.output/public';
 const IRYS_NODE = 'https://node2.irys.xyz/';
 

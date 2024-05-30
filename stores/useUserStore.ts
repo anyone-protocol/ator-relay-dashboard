@@ -15,6 +15,7 @@ export type RelayRow = {
   active: boolean;
   class?: string;
   isWorking?: boolean;
+  nickname?: string;
 };
 
 export const useUserStore = defineStore('user', {
