@@ -46,7 +46,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
     async queryEventsForAuthedUser() {
       const auth = useUserStore();
       const facilitator = useFacilitator();
-      debugger;
+
       if (!facilitator) {
         return;
       }
@@ -65,8 +65,6 @@ export const useFacilitatorStore = defineStore('facilitator', {
           ...(requestingUpdate as EventLog[]),
           ...(allocationClaimed as EventLog[]),
         ];
-
-        debugger;
 
         // NB: Sort combined event log by block and tx index ascending
         combined.sort((a, b) => {

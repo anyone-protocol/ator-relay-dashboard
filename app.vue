@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reconnect } from 'use-wagmi/actions';
-import { mainnet, sepolia } from 'use-wagmi/chains';
+import { mainnet, sepolia, hardhat } from 'use-wagmi/chains';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/vue';
 import {
   metadata,
@@ -8,7 +8,7 @@ import {
   themeVariables,
 } from '@/config/web3modal.config';
 
-const chains = [mainnet, sepolia];
+const chains = [mainnet, sepolia, hardhat];
 const nuxtConfig = useRuntimeConfig();
 const projectId = nuxtConfig.public.walletConnectProjectId;
 
