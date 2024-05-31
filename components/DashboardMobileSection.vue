@@ -6,6 +6,7 @@
 
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 import { vIntersectionObserver } from '@vueuse/components';
+import { kebabCase } from 'scule';
 
 const props = defineProps<{
   title: string;
