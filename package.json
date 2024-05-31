@@ -27,7 +27,6 @@
     "buffer": "^6.0.3",
     "chart.js": "^4.4.2",
     "ethers": "^6.12.1",
-    "lodash.kebabcase": "^4.1.1",
     "nuxt": "^3.11.1",
     "sass": "^1.77.2",
     "use-wagmi": "^1.5.0",
@@ -39,7 +38,6 @@
     "warp-contracts-plugin-ethers": "^1.0.8"
   },
   "devDependencies": {
-    "@types/lodash.kebabcase": "^4.1.9",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.4",
     "prettier": "3.2.5"
