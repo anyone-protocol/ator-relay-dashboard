@@ -16,9 +16,13 @@ export const saveRedeemProcessLocalStorage = async (
 };
 
 export const getRedeemProcessLocalStorage = (
-  address: string
+  address?: string
 ): ClaimProcess | null => {
+  if (!address) {
+    return null;
+  }
+
   const data = JSON.parse(localStorage.getItem('pendingClaim') || 'null') || {};
 
-  return data[address] || null;
+  return data?.[address] || null;
 };

@@ -175,14 +175,14 @@ export class Facilitator {
     return BigNumber(availableBudget.toString());
   }
 
-  async getUsedBudget(address: string): Promise<BigNumber> {
+  async getUsedBudget(address: string): Promise<bigint> {
     if (!this.contract) {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
 
     const usedBudget = (await this.contract.usedBudget(address)) as bigint;
 
-    return BigNumber(usedBudget.toString());
+    return usedBudget;
   }
 
   async getGasAvailable(address: string): Promise<BigNumber> {
@@ -208,13 +208,21 @@ export class Facilitator {
   }
 
   async getOracleWeiRequired(): Promise<BigNumber> {
+    const auth = useUserStore();
+
     if (!this.contract) {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
 
+    if (!auth.userData?.address) {
+      throw new Error(ERRORS.NO_SIGNER);
+    }
+
+    const usedBudget = await this.getUsedBudget(auth.userData.address);
+
     const GAS_COST = (await this.contract.GAS_COST()) as bigint;
     const GAS_PRICE = (await this.contract.GAS_PRICE()) as bigint;
-    const oracleWeiRequired = GAS_COST * GAS_PRICE * 2n;
+    const oracleWeiRequired = GAS_COST * GAS_PRICE + usedBudget;
 
     return BigNumber(oracleWeiRequired.toString());
   }
@@ -248,9 +256,11 @@ export class Facilitator {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
 
-    const oracleWeiRequired = await this.getOracleWeiRequired();
+    const toast = useToast();
 
     try {
+      const oracleWeiRequired = await this.getOracleWeiRequired();
+
       const value = oracleWeiRequired.toString();
       const to = await this.contract.getAddress();
 
@@ -262,6 +272,17 @@ export class Facilitator {
 
       return result;
     } catch (error) {
+      const msg = (error as Error)?.message;
+
+      if (!msg.includes('User denied transaction signature.')) {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: `Error redeen rewards: ${msg}`,
+        });
+      }
+
       console.error(ERRORS.FUNDING_ORACLE, error);
     }
 
