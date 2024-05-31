@@ -154,7 +154,11 @@ const handleClaimAllRewards = async () => {
               <h3>Claimable rewards</h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{ formatEther(facilitatorStore.alocatedTokens || '0') }}
+                  {{
+                    formatEther(
+                      facilitatorStore.avaliableAllocatedTokens || '0'
+                    )
+                  }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />

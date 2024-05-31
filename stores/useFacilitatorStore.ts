@@ -23,8 +23,28 @@ export const useFacilitatorStore = defineStore('facilitator', {
         return state.claims;
       }
     },
-    hasClaimableRewards: (state) =>
-      state.alocatedTokens && +state.alocatedTokens > 0,
+    hasClaimableRewards: (state) => {
+      if (state.alocatedTokens) {
+        if (state.totalClaimedTokens) {
+          return BigNumber(state.totalClaimedTokens)
+            .minus(state.alocatedTokens)
+            .isGreaterThan(0);
+        }
+        return BigNumber(state.alocatedTokens).isGreaterThan(0);
+      }
+      return false;
+    },
+    avaliableAllocatedTokens: (state) => {
+      if (state.alocatedTokens) {
+        if (state.totalClaimedTokens) {
+          return BigNumber(state.totalClaimedTokens)
+            .minus(state.alocatedTokens)
+            .toString(10);
+        }
+        return state.alocatedTokens;
+      }
+      return '0';
+    },
     nextClaimNumber: (state) => state.claims.length + 1,
     hasPendingClaim: (state) => !!state.pendingClaim,
   },
