@@ -48,6 +48,14 @@ onMounted(() => {
 initRelayRegistry();
 initFacilitator();
 
+watch(
+  () => userStore.userData.address,
+  async () => {
+    const facilitator = useFacilitator();
+    await facilitator?.refresh();
+  }
+);
+
 const handleClaimAllRewards = async () => {
   isRedeemLoading.value = true;
   try {
