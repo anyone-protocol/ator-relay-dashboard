@@ -12,7 +12,7 @@ import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import { useFacilitator } from '@/composables/facilitator';
-import { getRedeemProcessLocalStorage } from '@/utils/redeemLocalStorage';
+import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -45,7 +45,7 @@ onMounted(() => {
     1000 * 60 * 5
   );
 
-  facilitatorStore.pendingClaim = getRedeemProcessLocalStorage(
+  facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
     userStore.userData.address
   );
 });
@@ -56,7 +56,7 @@ initFacilitator();
 watch(
   () => userStore.userData.address,
   async (newAddress) => {
-    facilitatorStore.pendingClaim = getRedeemProcessLocalStorage(newAddress);
+    facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
     const facilitator = useFacilitator();
     await facilitator?.refresh();
   }
