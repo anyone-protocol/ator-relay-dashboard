@@ -19,6 +19,7 @@ const facilitatorStore = useFacilitatorStore();
 const { address } = storeToRefs(userStore);
 const { isConnected } = useAccount({ config });
 const isRedeemLoading = ref(false);
+const toast = useToast();
 
 // Initialize data fetch and cache
 // Retrieve the user data and set state
@@ -66,7 +67,14 @@ const handleClaimAllRewards = async () => {
   try {
     const facilitator = useFacilitator();
     await facilitator?.claim();
-  } catch (error) {}
+  } catch (error) {
+    toast.add({
+      icon: 'i-heroicons-x-circle',
+      color: 'amber',
+      title: 'Error',
+      description: `Error redeen rewards: ${error}`,
+    });
+  }
 
   isRedeemLoading.value = false;
 };
