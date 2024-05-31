@@ -10,7 +10,8 @@ import {
 import BigNumber from 'bignumber.js';
 
 import { abi } from './Facility.json';
-import { useFacilitatorStore } from '~/stores/useFacilitatorStore';
+import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
+import { saveRedeemProcessLocalStorage } from '@/utils/redeemLocalStorage';
 
 const runtimeConfig = useRuntimeConfig();
 
@@ -305,9 +306,11 @@ export class Facilitator {
   ): Promise<void> {
     try {
       const auth = useUserStore();
-      if (!auth.userData) {
+      if (!auth.userData?.address) {
         return;
       }
+      saveRedeemProcessLocalStorage(auth.userData.address, null);
+
       if (auth.userData.address === address) {
         console.info('onAllocationClaimed()', address, amount);
         const store = useFacilitatorStore();
