@@ -2,6 +2,7 @@
 import { useWeb3Modal } from '@web3modal/wagmi/vue';
 import { useAccount } from 'use-wagmi';
 import { config } from '@/config/wagmi.config';
+import Address from './Address.vue';
 
 const { address, status, isDisconnected, isReconnecting, isConnecting } =
   useAccount({ config });

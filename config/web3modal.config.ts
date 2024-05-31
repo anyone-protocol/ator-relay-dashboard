@@ -7,14 +7,10 @@ export const metadata = {
   icons: ['/images/ator-logo.png'],
 };
 
-export const atorAddress = '0x0f7b3f5a8fed821c5eb60049538a548db2d479ce';
+export const getAtorAddress = () => {
+  const runtimeConfig = useRuntimeConfig();
 
-// https://docs.walletconnect.com/web3modal/vue/options#tokens
-export const tokens = {
-  1: {
-    address: atorAddress,
-    image: '/images/ator-logo.png',
-  },
+  return runtimeConfig.public.sepoliaAtorTokenContract;
 };
 
 // https://docs.walletconnect.com/web3modal/vue/theming

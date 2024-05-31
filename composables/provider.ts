@@ -3,6 +3,7 @@ import { AbstractProvider, BrowserProvider, ethers } from 'ethers';
 export const NETWORKS = {
   MAINNET: { decimal: 1, hex: '0x1', name: 'mainnet' },
   SEPOLIA: { decimal: 11155111, hex: '0xaa36a7', name: 'sepolia' },
+  HARDHAT: { decimal: 31_337, hex: '0x7a69', name: 'hardhat' },
 };
 
 export const useSuggestMetaMask = () =>
@@ -24,7 +25,7 @@ let provider: AbstractProvider | BrowserProvider = ethers.getDefaultProvider(
 
 export const initializeBrowserProvider = () => {
   if (window && window.ethereum) {
-    provider = new BrowserProvider(window.ethereum, NETWORKS.SEPOLIA.decimal);
+    provider = new BrowserProvider(window.ethereum);
   }
 
   return provider;

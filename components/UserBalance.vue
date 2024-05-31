@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { useAccount } from 'use-wagmi';
 import { config } from '@/config/wagmi.config';
+import Ticker from './ui-kit/Ticker.vue';
 
 const userStore = useUserStore();
 const { address, tokenBalance, tokenBalanceUsd } = storeToRefs(userStore);

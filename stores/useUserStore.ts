@@ -5,7 +5,7 @@ import { type GetBalanceReturnType } from 'use-wagmi/actions';
 
 import { warpRead } from '@/utils/warp.read';
 import { config } from '@/config/wagmi.config';
-import { atorAddress } from '@/config/web3modal.config';
+import { getAtorAddress } from '@/config/web3modal.config';
 
 export type RelayRow = {
   fingerprint: string;
@@ -41,7 +41,7 @@ export const useUserStore = defineStore('user', {
         return;
       }
       this.tokenBalance = await getBalance(config, {
-        token: atorAddress,
+        token: getAtorAddress(),
         address: this.userData.address as `0x${string}`,
       });
     },

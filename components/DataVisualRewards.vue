@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import Chart from 'chart.js/auto';
+import Badge from './ui-kit/Badge.vue';
 
 const distributionOverMonths = ref();
 const hasHistory = ref(false);

@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import GlowEffect from '~/components/ui-kit/GlowEffect.vue';
+</script>
+
 <template>
   <main
     class="relative isolate h-full min-h-screen bg-gradient-to-br from-teal-800 via-teal-100 to-cyan-900 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900"

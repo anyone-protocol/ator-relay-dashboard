@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { reconnect } from 'use-wagmi/actions';
-import { mainnet, sepolia } from 'use-wagmi/chains';
+import { mainnet, sepolia, hardhat } from 'use-wagmi/chains';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/vue';
-import { metadata, tokens, themeVariables } from '@/config/web3modal.config';
+import {
+  metadata,
+  getAtorAddress,
+  themeVariables,
+} from '@/config/web3modal.config';
 
-const chains = [mainnet, sepolia];
+const chains = [mainnet, sepolia, hardhat];
 const nuxtConfig = useRuntimeConfig();
 const projectId = nuxtConfig.public.walletConnectProjectId;
 
@@ -17,7 +21,12 @@ const wagmiConfig = defaultWagmiConfig({
 
 createWeb3Modal({
   chains,
-  tokens,
+  tokens: {
+    1: {
+      address: getAtorAddress(),
+      image: '/images/ator-logo.png',
+    },
+  },
   projectId,
   wagmiConfig,
   themeVariables,
