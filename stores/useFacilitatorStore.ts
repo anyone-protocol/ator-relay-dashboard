@@ -24,7 +24,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
         return state.claims;
       }
     },
-    hasClaimableRewards: (state) => !!state.alocatedTokens,
+    hasClaimableRewards: (state) =>
+      state.alocatedTokens && +state.alocatedTokens > 0,
     nextClaimNumber: (state) => state.claims.length + 1,
     hasPendingClaim: (state) => !!state.pendingClaim,
   },
