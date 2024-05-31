@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { initRelayRegistry } from '~/composables/relay-registry';
-import { initFacilitator } from '~/composables/facilitator';
+import { initRelayRegistry } from '@/composables/relay-registry';
+import { initFacilitator } from '@/composables/facilitator';
 import { formatEther } from 'ethers';
 
 import { useAccount } from 'use-wagmi';
 import { config } from '@/config/wagmi.config';
-import { useFacilitatorStore } from '~/stores/useFacilitatorStore';
+import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 
-import Card from '~/components/ui-kit/Card.vue';
-import Ticker from '~/components/ui-kit/Ticker.vue';
-import Button from '~/components/ui-kit/Button.vue';
-import { useFacilitator } from '~/composables/facilitator';
+import Card from '@/components/ui-kit/Card.vue';
+import Ticker from '@/components/ui-kit/Ticker.vue';
+import Button from '@/components/ui-kit/Button.vue';
+import { useFacilitator } from '@/composables/facilitator';
+import { getRedeemProcessLocalStorage } from '@/utils/redeemLocalStorage';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -43,6 +44,10 @@ onMounted(() => {
     },
     1000 * 60 * 5
   );
+
+  facilitatorStore.pendingClaim = getRedeemProcessLocalStorage(
+    userStore.userData.address
+  );
 });
 
 initRelayRegistry();
@@ -50,7 +55,8 @@ initFacilitator();
 
 watch(
   () => userStore.userData.address,
-  async () => {
+  async (newAddress) => {
+    facilitatorStore.pendingClaim = getRedeemProcessLocalStorage(newAddress);
     const facilitator = useFacilitator();
     await facilitator?.refresh();
   }

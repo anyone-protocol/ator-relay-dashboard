@@ -4,28 +4,14 @@ import BigNumber from 'bignumber.js';
 
 import { useFacilitator } from '@/composables/facilitator';
 import { useUserStore } from '@/stores/useUserStore';
-
-interface ClaimProcess {
-  claimNumber: number;
-  amount?: string;
-  requestingUpdateTransactionHash?: string;
-  requestingUpdateBlockTimestamp?: string;
-  allocationClaimedTransactionHash?: string;
-  allocationClaimedBlockTimestamp?: string;
-}
-
-interface FacilitatorStoreState {
-  claims: ClaimProcess[];
-  pendingClaim: ClaimProcess | null;
-  totalClaimedTokens: string | null;
-  alocatedTokens: string | null;
-}
+import type { ClaimProcess, FacilitatorStoreState } from '@/types/facilitator';
+import { saveRedeemProcessLocalStorage } from '@/utils/redeemLocalStorage';
 
 export const useFacilitatorStore = defineStore('facilitator', {
   state: (): FacilitatorStoreState => {
     return {
       claims: [],
-      pendingClaim: localStorage.getItem('pendingClaim') as ClaimProcess | null,
+      pendingClaim: null,
       totalClaimedTokens: null,
       alocatedTokens: null,
     };
@@ -38,7 +24,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
         return state.claims;
       }
     },
-    hasClaimableRewards: (state) => !!state.alocatedTokens,
+    hasClaimableRewards: (state) =>
+      state.alocatedTokens && +state.alocatedTokens > 0,
     nextClaimNumber: (state) => state.claims.length + 1,
     hasPendingClaim: (state) => !!state.pendingClaim,
   },
@@ -134,6 +121,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
     },
 
     addPendingClaim(transactionHash: string, blockTimestamp: number) {
+      const userStore = useUserStore();
+
       console.info('addPendingClaim()', transactionHash, blockTimestamp);
       if (this.pendingClaim) {
         console.info('addPendingClaim() duplicate claim', this.pendingClaim);
@@ -148,7 +137,12 @@ export const useFacilitatorStore = defineStore('facilitator', {
         this.pendingClaim = claim;
 
         // Save  pendingClaim to local storage
-        localStorage.setItem('pendingClaim', JSON.stringify(this.pendingClaim));
+        if (userStore.userData.address) {
+          saveRedeemProcessLocalStorage(
+            userStore.userData.address,
+            this.pendingClaim
+          );
+        }
       }
     },
 
@@ -209,9 +203,6 @@ export const useFacilitatorStore = defineStore('facilitator', {
 
         this.claims.push(pendingClaimCopy);
         this.pendingClaim = null;
-
-        // Save  pendingClaim to local storage
-        localStorage.setItem('pendingClaim', JSON.stringify(this.pendingClaim));
       }
     },
   },
