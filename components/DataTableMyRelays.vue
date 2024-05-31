@@ -8,8 +8,8 @@ import { type RelayMetric, type RelayMeta } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 
 import Tabs from './ui-kit/Tabs.vue';
-import Tooltip from './Tooltip.vue';
-import Popover from './Popover.vue';
+import Tooltip from './ui-kit/Tooltip.vue';
+import Popover from './ui-kit/Popover.vue';
 
 const toast = useToast();
 const userStore = useUserStore();

@@ -59,6 +59,7 @@ watch(
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
     const facilitator = useFacilitator();
     await facilitator?.refresh();
+    await userStore.getTokenBalance();
   }
 );
 
