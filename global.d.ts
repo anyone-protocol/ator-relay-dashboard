@@ -7,4 +7,3 @@ declare global {
 }
 
 declare module 'warp-contracts';
-declare module 'lodash.kebabCase';

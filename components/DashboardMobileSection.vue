@@ -4,7 +4,6 @@
  * it updates the URL
  */
 
-import kebabCase from 'lodash.kebabCase';
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 import { vIntersectionObserver } from '@vueuse/components';
 

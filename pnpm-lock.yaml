@@ -52,9 +52,6 @@ importers:
       ethers:
         specifier: ^6.12.1
         version: 6.12.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      lodash.kebabcase:
-        specifier: ^4.1.1
-        version: 4.1.1
       nuxt:
         specifier: ^3.11.1
         version: 3.11.2(@parcel/watcher@2.4.1)(@types/node@20.12.10)(@unocss/reset@0.58.6)(axios@1.6.8)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.2.0)(floating-vue@5.2.2(@nuxt/kit@3.11.2(rollup@4.17.2))(vue@3.4.26(typescript@5.4.5)))(fuse.js@6.6.2)(idb-keyval@6.2.1)(ioredis@5.4.1)(optionator@0.9.4)(qrcode@1.5.3)(rollup@4.17.2)(sass@1.77.2)(terser@5.31.0)(typescript@5.4.5)(unocss@0.58.6(postcss@8.4.38)(rollup@4.17.2)(vite@5.2.10(@types/node@20.12.10)(sass@1.77.2)(terser@5.31.0)))(utf-8-validate@5.0.10)(vite@5.2.10(@types/node@20.12.10)(sass@1.77.2)(terser@5.31.0))
@@ -83,9 +80,6 @@ importers:
         specifier: ^1.0.8
         version: 1.0.8(bufferutil@4.0.8)(utf-8-validate@5.0.10)(warp-contracts@1.4.21)
     devDependencies:
-      '@types/lodash.kebabcase':
-        specifier: ^4.1.9
-        version: 4.1.9
       husky:
         specifier: ^9.0.11
         version: 9.0.11
@@ -4002,18 +3996,6 @@ packages:
     resolution:
       {
         integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==,
-      }
-
-  '@types/lodash.kebabcase@4.1.9':
-    resolution:
-      {
-        integrity: sha512-kPrrmcVOhSsjAVRovN0lRfrbuidfg0wYsrQa5IYuoQO1fpHHGSme66oyiYA/5eQPVl8Z95OA3HG0+d2SvYC85w==,
-      }
-
-  '@types/lodash@4.17.4':
-    resolution:
-      {
-        integrity: sha512-wYCP26ZLxaT3R39kiN2+HcJ4kTd3U1waI/cY7ivWYqFP6pW3ZNpvi6Wd6PHZx7T/t8z0vlkXMg3QYLa7DZ/IJQ==,
       }
 
   '@types/ms@0.7.34':
@@ -9302,12 +9284,6 @@ packages:
         integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==,
       }
 
-  lodash.kebabcase@4.1.1:
-    resolution:
-      {
-        integrity: sha512-N8XRTIMMqqDgSy4VLKPnJ/+hpGZN+PHQiJnSenYqPaVV/NCqEogTnAdZLQiGKhxX+JCs8waWq2t1XHWKOmlY8g==,
-      }
-
   lodash.memoize@4.1.2:
     resolution:
       {
@@ -11834,6 +11810,7 @@ packages:
       {
         integrity: sha512-mwqeW5XsA2qAejG46gYdENaxXjx9onRNCfn7L0duuP4hCuTIi/QO7PDK07KJfp1d+izWPrzEJDcSqBa0OZQriA==,
       }
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@2.7.1:
@@ -17494,12 +17471,6 @@ snapshots:
     dependencies:
       '@types/node': 20.12.10
 
-  '@types/lodash.kebabcase@4.1.9':
-    dependencies:
-      '@types/lodash': 4.17.4
-
-  '@types/lodash@4.17.4': {}
-
   '@types/ms@0.7.34': {}
 
   '@types/node@11.11.6': {}
@@ -21387,8 +21358,6 @@ snapshots:
   lodash.isequal@4.5.0: {}
 
   lodash.isplainobject@4.0.6: {}
-
-  lodash.kebabcase@4.1.1: {}
 
   lodash.memoize@4.1.2: {}
 
