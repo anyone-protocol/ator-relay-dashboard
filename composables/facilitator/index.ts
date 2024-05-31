@@ -375,6 +375,8 @@ export class Facilitator {
         const tx = await event.getTransaction();
         await tx.wait();
         await this.getTotalClaimedTokens(auth.userData.address);
+        await this.getAllocatedTokens(auth.userData.address);
+        await auth.getTokenBalance();
       }
     } catch (error) {
       console.error('Error consuming AllocationClaimed event', error);

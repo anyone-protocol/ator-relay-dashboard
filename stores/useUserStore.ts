@@ -41,7 +41,7 @@ export const useUserStore = defineStore('user', {
         return;
       }
       this.tokenBalance = await getBalance(config, {
-        token: getAtorAddress(),
+        token: getAtorAddress() as `0x${string}`,
         address: this.userData.address as `0x${string}`,
       });
     },
