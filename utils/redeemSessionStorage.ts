@@ -1,12 +1,13 @@
 import type { ClaimProcess } from '~/types/facilitator';
 
-export const saveRedeemProcessLocalStorage = async (
+export const saveRedeemProcessSessionStorage = async (
   address: string,
   pendingClaim: ClaimProcess | null
 ) => {
-  const data = JSON.parse(localStorage.getItem('pendingClaim') || 'null') || {};
+  const data =
+    JSON.parse(sessionStorage.getItem('pendingClaim') || 'null') || {};
 
-  localStorage.setItem(
+  sessionStorage.setItem(
     'pendingClaim',
     JSON.stringify({
       ...data,
@@ -15,14 +16,15 @@ export const saveRedeemProcessLocalStorage = async (
   );
 };
 
-export const getRedeemProcessLocalStorage = (
+export const getRedeemProcessSessionStorage = (
   address?: string
 ): ClaimProcess | null => {
   if (!address) {
     return null;
   }
 
-  const data = JSON.parse(localStorage.getItem('pendingClaim') || 'null') || {};
+  const data =
+    JSON.parse(sessionStorage.getItem('pendingClaim') || 'null') || {};
 
   return data?.[address] || null;
 };

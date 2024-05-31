@@ -11,7 +11,7 @@ import BigNumber from 'bignumber.js';
 
 import { abi } from './Facility.json';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
-import { saveRedeemProcessLocalStorage } from '@/utils/redeemLocalStorage';
+import { saveRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 
 const runtimeConfig = useRuntimeConfig();
 
@@ -104,13 +104,13 @@ export class Facilitator {
     let totalClaimed = null,
       gasAvailable = null,
       gasUsed = null,
-      allocatedTockens = null,
+      allocatedTokens = null,
       usedBudget = null,
       availableBudget = null;
 
     if (auth.userData?.address) {
       totalClaimed = await this.getTotalClaimedTokens(auth.userData.address);
-      allocatedTockens = await this.getAllocatedTokens(auth.userData.address);
+      allocatedTokens = await this.getAllocatedTokens(auth.userData.address);
       gasAvailable = await this.getGasAvailable(auth.userData.address);
       gasUsed = await this.getGasUsed(auth.userData.address);
       usedBudget = await this.getUsedBudget(auth.userData.address);
@@ -123,7 +123,7 @@ export class Facilitator {
       totalClaimed: totalClaimed?.toString(),
       gasAvailable: gasAvailable?.toString(),
       gasUsed: gasUsed?.toString(),
-      allocatedTockens: allocatedTockens?.toString(),
+      allocatedTockens: allocatedTokens?.toString(),
       oracleWeiRequired: oracleWeiRequired.toString(),
       availableBudget: availableBudget?.toString(),
       usedBudget: usedBudget?.toString(),
@@ -249,6 +249,18 @@ export class Facilitator {
   }
 
   async claim(): Promise<TransactionResponse | null> {
+    const auth = useUserStore();
+
+    let signer: JsonRpcSigner | undefined;
+    if (auth.userData) {
+      const _signer = await useSigner();
+      if (_signer) {
+        signer = _signer;
+      }
+    }
+
+    await this.setSigner(signer);
+
     if (!this.signer) {
       throw new Error(ERRORS.NO_SIGNER);
     }
@@ -330,7 +342,7 @@ export class Facilitator {
       if (!auth.userData?.address) {
         return;
       }
-      saveRedeemProcessLocalStorage(auth.userData.address, null);
+      saveRedeemProcessSessionStorage(auth.userData.address, null);
 
       if (auth.userData.address === address) {
         console.info('onAllocationClaimed()', address, amount);
@@ -412,27 +424,13 @@ export class Facilitator {
 let facilitator: Facilitator | null = null;
 export const initFacilitator = async () => {
   const provider = useProvider();
-  const auth = useUserStore();
 
   if (!facilitator) {
     facilitator = new Facilitator(
       runtimeConfig.public.facilitatorContract as string,
       provider
     );
-  }
-
-  try {
-    let signer: JsonRpcSigner | undefined;
-    if (auth.userData) {
-      const _signer = await useSigner();
-      if (_signer) {
-        signer = _signer;
-      }
-    }
-
-    await facilitator.setSigner(signer);
-  } catch (error) {
-    console.error(ERRORS.CONNECTING_CONTRACT, error);
+    await facilitator.refresh();
   }
 };
 export const useFacilitator = () => facilitator;
