@@ -99,12 +99,15 @@ export const useFacilitatorStore = defineStore('facilitator', {
           icon: 'i-heroicons-check-circle',
           color: 'primary',
           title: 'Success',
-          description: `Rewards redeemed successfully. You've redeemed ${pendingClaimCopy.amount} SATOR.`,
+          description: `Rewards redeemed successfully. You've redeemed ${pendingClaimCopy.amount} $ATOR.`,
           actions: [
             {
               label: 'View transaction',
               click: () => {
-                window.open(`https://etherscan.io/tx/${tx.hash}`, '_blank');
+                window.open(
+                  `https://sepolia.etherscan.io/tx/${tx.hash}`,
+                  '_blank'
+                );
               },
             },
           ],
