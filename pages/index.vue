@@ -15,6 +15,7 @@ import DataTableMyRelays from '@/components/DataTableMyRelays/DataTableMyRelays.
 import { useFacilitator } from '@/composables/facilitator';
 import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 import { initRegistrator } from '@/composables/registrator';
+import { initToken } from '@/composables/token';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -55,6 +56,7 @@ onMounted(() => {
 initRelayRegistry();
 initFacilitator();
 initRegistrator();
+initToken();
 
 watch(
   () => userStore.userData.address,

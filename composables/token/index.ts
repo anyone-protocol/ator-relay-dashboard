@@ -75,16 +75,18 @@ export class Token {
     }
 
     const toast = useToast();
-
     try {
-      const result = await this.contract
-        .connect(this.signer)
-        .approve(address, amount);
+      this.contract.connect(this.signer);
+      const lockAmount = 100n * BigInt(1e18);
+
+      const result = await this.contract.approve(address, lockAmount);
+      debugger;
 
       await result.wait();
 
       return result;
     } catch (error) {
+      console.error('Error approving token', error);
       const msg = (error as Error)?.message;
       if (!msg.includes('User denied transaction signature.')) {
         toast.add({

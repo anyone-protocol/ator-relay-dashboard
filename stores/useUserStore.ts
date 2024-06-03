@@ -32,13 +32,13 @@ export const useUserStore = defineStore('user', {
         return;
       }
       const token = getAtorAddress() as `0x${string}`;
-      debugger;
+
+      // TODO: change to sepolia
       this.tokenBalance = await getBalance(config, {
         token,
         address: this.userData.address as `0x${string}`,
         chainId: hardhat.id,
       });
-      debugger;
     },
     // Get ATOR balance in USD using price store
     async getUsdTokenBalance() {

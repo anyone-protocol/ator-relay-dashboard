@@ -55,8 +55,6 @@ export class Registrator {
       this.contractAddress,
       providerOrSigner
     );
-    /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
-    this.listenForUserEvents();
   }
 
   async setSigner(signer?: JsonRpcSigner) {
@@ -67,7 +65,6 @@ export class Registrator {
       this.signer = null;
       this.refreshContract(useProvider());
     }
-    /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
     return this.refresh();
   }
 
@@ -90,15 +87,18 @@ export class Registrator {
     );
     console.time();
 
-    let lockedRelays = null;
+    let lockedRelays = null,
+      currentLockSize = null;
 
     if (auth.userData?.address) {
       lockedRelays = await this.getLokedRelaysTokens(auth.userData.address);
+      currentLockSize = await this.getCurrentLockSize(auth.userData.address);
     }
 
     console.timeEnd();
     console.info('Registrator refreshed', {
       lockedRelays: lockedRelays,
+      currentLockSize: currentLockSize,
     });
     this.setRefreshing(false);
   }
@@ -108,15 +108,15 @@ export class Registrator {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
 
-    const lokedRelays = (await this.contract.registrations(
-      address
-    )) as string[];
+    const lokedRelays = (await this.contract.getRegistration(address)) as {
+      data: string[];
+    };
 
     if (address === useUserStore().userData?.address) {
-      useRegistratorStore().lokedRelays = lokedRelays;
+      useRegistratorStore().lokedRelays = lokedRelays.data;
     }
 
-    return lokedRelays;
+    return lokedRelays.data;
   }
 
   async getCurrentLockSize(address: string): Promise<bigint> {
@@ -135,7 +135,7 @@ export class Registrator {
 
   async lock(fingerprint: string): Promise<TransactionResponse | null> {
     const auth = useUserStore();
-    const registrator = useRegistratorStore();
+    const registratorStore = useRegistratorStore();
 
     let signer: JsonRpcSigner | undefined;
     if (auth.userData) {
@@ -150,28 +150,28 @@ export class Registrator {
     if (!this.signer) {
       throw new Error(ERRORS.NO_SIGNER);
     }
-    if (!this.contract) {
+    if (!this.contract || !registratorStore.currentLockSize) {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
 
     const toast = useToast();
 
     try {
-      initToken();
       const token = useToken();
-
-      if (!token || !registrator.currentLockSize) {
+      if (!token) {
         throw new Error(ERRORS.NOT_INITIALIZED);
       }
+      debugger;
 
       const tokenResult = await token.approve(
         runtimeConfig.public.registratorContract as string,
-        registrator.currentLockSize
+        registratorStore.currentLockSize
       );
       await tokenResult?.wait();
-
+      debugger;
       const result = await this.contract
         .connect(this.signer)
+        // @ts-ignore
         .register(auth.userData.address, fingerprint);
 
       await result.wait();
@@ -181,6 +181,8 @@ export class Registrator {
 
       return result;
     } catch (error) {
+      debugger;
+
       const msg = (error as Error)?.message;
 
       if (!msg.includes('User denied transaction signature.')) {
