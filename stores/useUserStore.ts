@@ -2,21 +2,12 @@ import { formatEther } from 'viem';
 import { useAccount } from 'use-wagmi';
 import { getBalance } from 'use-wagmi/actions';
 import { type GetBalanceReturnType } from 'use-wagmi/actions';
+import { hardhat } from 'viem/chains';
 
 import { warpRead } from '@/utils/warp.read';
 import { config } from '@/config/wagmi.config';
 import { getAtorAddress } from '@/config/web3modal.config';
-
-export type RelayRow = {
-  fingerprint: string;
-  status: string;
-  consensusWeight: number;
-  observedBandwidth: number;
-  active: boolean;
-  class?: string;
-  isWorking?: boolean;
-  nickname?: string;
-};
+import type { RelayRow } from '@/types/relay';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -40,10 +31,14 @@ export const useUserStore = defineStore('user', {
       if (!this.userData.address) {
         return;
       }
+      const token = getAtorAddress() as `0x${string}`;
+      debugger;
       this.tokenBalance = await getBalance(config, {
-        token: getAtorAddress() as `0x${string}`,
+        token,
         address: this.userData.address as `0x${string}`,
+        chainId: hardhat.id,
       });
+      debugger;
     },
     // Get ATOR balance in USD using price store
     async getUsdTokenBalance() {
@@ -62,11 +57,19 @@ export const useUserStore = defineStore('user', {
       }
 
       const verified = await warpRead(this.userData.address, 'verified');
+      // const serials = await warpRead(this.userData.address, 'serials');
 
       if (verified.status === 200) {
         const relays = await verified.json();
+
         this.verifiedRelays = relays.relays;
       }
+
+      // if (serials.status === 200) {
+      //   const relays1 = await serials.json();
+
+      //   this.verifiedRelays = relays1.relays;
+      // }
     },
     // Get claimable relays using Warp
     async getClaimableRelays() {
@@ -80,56 +83,6 @@ export const useUserStore = defineStore('user', {
       if (claimable.status === 200) {
         const relays = await claimable.json();
         this.claimableRelays = relays.relays;
-      }
-    },
-    // TODO: Implement this method
-    async getClaimableRewards() {
-      if (!this.address) {
-        return;
-      }
-      // Mocked response
-      this.claimableRewards = 10;
-    },
-    // TODO: Implement this method
-    async getClaimedRewardsTotal() {
-      if (!this.address) {
-        return;
-      }
-      // Mocked response
-      this.claimedRewardsTotal = 145;
-    },
-    // TODO: Claim all rewards
-    async claimAllRewards() {
-      if (!this.address) {
-        return;
-      }
-      const toast = useToast();
-      // TODO: Sign the transaction
-      window.alert('Sign the message');
-
-      const allRelays = [...this.verifiedRelays, ...this.claimableRelays];
-      const allFingerprints = allRelays.map((relay) => relay.fingerprint);
-
-      try {
-        // Probably more to do here other than just call the contract functions
-        await warpWrite(allFingerprints, 'claim');
-
-        // On success, update the store
-        this.claimableRewards = 0;
-
-        toast.add({
-          icon: 'i-heroicons-check-circle',
-          color: 'primary',
-          title: 'Success',
-          description: 'Successfully claimed all  relay rewards!',
-        });
-      } catch (error) {
-        toast.add({
-          icon: 'i-heroicons-x-circle',
-          color: 'amber',
-          title: 'Error',
-          description: `Error claiming rewards: ${error}`,
-        });
       }
     },
   },

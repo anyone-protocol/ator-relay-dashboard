@@ -2,7 +2,7 @@ import { isAddress } from 'viem';
 import { relayRegistryContract } from '@/config/warp.config';
 import { responseOutput } from '@/utils/responseOutput';
 
-type FunctionName = 'verified' | 'claimable';
+type FunctionName = 'verified' | 'claimable' | 'serials';
 
 export const warpRead = async (
   address: `0x${string}`,

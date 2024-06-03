@@ -1,15 +1,18 @@
 <script lang="ts" setup>
 import { useAccount } from 'use-wagmi';
-import type { RelayRow } from '@/stores/useUserStore';
 import type { FunctionName } from '@/utils/warp.write';
 import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
-import { type RelayMetric, type RelayMeta } from '@/types/relay';
+import { type RelayMetric, type RelayRow } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 
-import Tabs from './ui-kit/Tabs.vue';
-import Tooltip from './ui-kit/Tooltip.vue';
-import Popover from './ui-kit/Popover.vue';
+import Tabs from '../ui-kit/Tabs.vue';
+import Tooltip from '../ui-kit/Tooltip.vue';
+import Popover from '../ui-kit/Popover.vue';
+
+import LockStatusColumn from './columns/LockStatusColumn.vue';
+import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
+import { useRegistrator } from '@/composables/registrator';
 
 const toast = useToast();
 const userStore = useUserStore();
@@ -102,13 +105,15 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
   try {
     switch (action) {
       case 'claim': {
-        const res = await registry.claim(fingerprint);
+        // const res = await registry.claim(fingerprint);
 
-        if (!res) {
-          selectedRow!.class = '';
-          selectedRow!.isWorking = false;
-          return;
-        }
+        // if (!res) {
+        //   selectedRow!.class = '';
+        //   selectedRow!.isWorking = false;
+        //   return;
+        // }
+        const register = useRegistrator();
+        register?.lock(fingerprint);
         break;
       }
 
@@ -240,7 +245,9 @@ const handleTabChange = (key: string) => {
         </div>
       </template>
       <template #lockStatus-data="{ row }">
-        {{ row.lockStatus ?? '-' }}
+        <LockStatusColumn
+          :status="row.status === 'verified' ? 'locked' : 'lock-required'"
+        />
       </template>
 
       <template #consensusWeight-data="{ row }">
@@ -307,30 +314,7 @@ const handleTabChange = (key: string) => {
         </div>
       </template>
       <template #status-data="{ row }">
-        <div class="max-w-32">
-          <UButton
-            v-if="row.status === 'verified'"
-            icon="i-heroicons-check-circle-solid"
-            size="xl"
-            color="green"
-            variant="outline"
-            label="Claimed"
-            :disabled="true"
-            :trailing="false"
-            block
-          />
-
-          <UButton
-            v-if="row.status === 'claimable'"
-            size="xl"
-            color="green"
-            variant="solid"
-            label="Claim Now"
-            @click="relayAction('claim', row.fingerprint)"
-            :trailing="false"
-            block
-          />
-        </div>
+        <RegistrationActionColumn :row="row" @relayAction="relayAction" />
       </template>
     </UTable>
   </div>
