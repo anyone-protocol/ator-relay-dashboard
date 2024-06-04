@@ -327,6 +327,7 @@ const handleTabChange = (key: string) => {
             variant="solid"
             label="Claim Now"
             @click="relayAction('claim', row.fingerprint)"
+            :disabled="row.isWorking"
             :trailing="false"
             block
           />
