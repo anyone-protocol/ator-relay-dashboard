@@ -19,6 +19,7 @@ import { initToken } from '@/composables/token';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
+const registratorStore = useRegistratorStore();
 const { address } = storeToRefs(userStore);
 const { isConnected } = useAccount({ config });
 const isRedeemLoading = ref(false);
@@ -114,11 +115,7 @@ const handleClaimAllRewards = async () => {
               </h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{
-                    formatEther(
-                      facilitatorStore.avaliableAllocatedTokens || '0'
-                    )
-                  }}
+                  {{ formatEther(registratorStore.totalLockedTokens || '0') }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />

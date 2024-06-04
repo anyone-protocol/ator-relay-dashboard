@@ -9,6 +9,7 @@ import {
 import { abi } from './Registrator.json';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import { initToken, useToken } from '../token';
+import type { LokedRelaysResponse, LokedRelaysType } from '~/types/registrator';
 
 const runtimeConfig = useRuntimeConfig();
 
@@ -103,20 +104,31 @@ export class Registrator {
     this.setRefreshing(false);
   }
 
-  async getLokedRelaysTokens(address: string): Promise<string[]> {
+  async getLokedRelaysTokens(address: string): Promise<LokedRelaysType> {
     if (!this.contract) {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
 
-    const lokedRelays = (await this.contract.getRegistration(address)) as {
-      data: string[];
+    const lokedRelaysReponse = (await this.contract.getRegistration(
+      address
+    )) as {
+      data: LokedRelaysResponse;
     };
+    let totalLockedTokens = 0n;
+    const lokedRelays = lokedRelaysReponse.data.reduce((acc, item) => {
+      if (item[3]) {
+        acc[item[3]] = item[0];
+        totalLockedTokens += item[0];
+      }
+      return acc;
+    }, {} as LokedRelaysType);
 
     if (address === useUserStore().userData?.address) {
-      useRegistratorStore().lokedRelays = lokedRelays.data;
+      useRegistratorStore().lokedRelays = lokedRelays;
+      useRegistratorStore().totalLockedTokens = totalLockedTokens;
     }
 
-    return lokedRelays.data;
+    return lokedRelays;
   }
 
   async getCurrentLockSize(address: string): Promise<bigint> {
@@ -129,7 +141,7 @@ export class Registrator {
     if (address === useUserStore().userData?.address) {
       useRegistratorStore().currentLockSize = currentLockSize;
     }
-
+    debugger;
     return currentLockSize;
   }
 
@@ -161,7 +173,6 @@ export class Registrator {
       if (!token) {
         throw new Error(ERRORS.NOT_INITIALIZED);
       }
-      debugger;
 
       const tokenResult = await token.approve(
         runtimeConfig.public.registratorContract as string,

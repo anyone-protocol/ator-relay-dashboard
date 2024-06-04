@@ -18,6 +18,8 @@ const toast = useToast();
 const userStore = useUserStore();
 const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
+const registratorStore = useRegistratorStore();
+
 const { transactionId } = storeToRefs(metricsStore);
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
@@ -232,24 +234,6 @@ const handleTabChange = (key: string) => {
         ></div>
       </template>
 
-      <template #lockStatus-header="{ column }">
-        <div class="flex gap-1 items-center">
-          <span>{{ column.label }}</span>
-          <Tooltip
-            placement="top"
-            arrow
-            text="Shows the current lock status and amount of locked tokens needed for Registration."
-          >
-            <Icon name="heroicons:exclamation-circle" class="h-4" />
-          </Tooltip>
-        </div>
-      </template>
-      <template #lockStatus-data="{ row }">
-        <LockStatusColumn
-          :status="row.status === 'verified' ? 'locked' : 'lock-required'"
-        />
-      </template>
-
       <template #consensusWeight-data="{ row }">
         <USkeleton v-if="relayMetaPending" class="h-6 w-full" />
         <span v-if="!relayMetaPending">
@@ -289,6 +273,29 @@ const handleTabChange = (key: string) => {
         </span>
       </template>
 
+      <template #lockStatus-header="{ column }">
+        <div class="flex gap-1 items-center">
+          <span>{{ column.label }}</span>
+          <Tooltip
+            placement="top"
+            arrow
+            text="Shows the current lock status and amount of locked tokens needed for Registration."
+          >
+            <Icon name="heroicons:exclamation-circle" class="h-4" />
+          </Tooltip>
+        </div>
+      </template>
+      <template #lockStatus-data="{ row }">
+        <LockStatusColumn
+          :status="
+            row.status === 'verified' ||
+            registratorStore.isRelayLocked(row.fingerprint)
+              ? 'locked'
+              : 'lock-required'
+          "
+        />
+      </template>
+
       <template #status-header="{ column }">
         <div class="relative flex gap-1 items-center">
           <span>{{ column.label }}</span>
@@ -314,7 +321,11 @@ const handleTabChange = (key: string) => {
         </div>
       </template>
       <template #status-data="{ row }">
-        <RegistrationActionColumn :row="row" @relayAction="relayAction" />
+        <RegistrationActionColumn
+          :row="row"
+          @relayAction="relayAction"
+          :isLocked="registratorStore.isRelayLocked(row.fingerprint)"
+        />
       </template>
     </UTable>
   </div>
