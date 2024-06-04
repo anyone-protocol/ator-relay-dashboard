@@ -80,7 +80,6 @@ export class Token {
       const lockAmount = 100n * BigInt(1e18);
 
       const result = await this.contract.approve(address, lockAmount);
-      debugger;
 
       await result.wait();
 

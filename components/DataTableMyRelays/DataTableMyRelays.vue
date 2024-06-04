@@ -107,15 +107,14 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
   try {
     switch (action) {
       case 'claim': {
-        // const res = await registry.claim(fingerprint);
+        const res = await registry.claim(fingerprint);
 
-        // if (!res) {
-        //   selectedRow!.class = '';
-        //   selectedRow!.isWorking = false;
-        //   return;
-        // }
-        const register = useRegistrator();
-        register?.lock(fingerprint);
+        if (!res) {
+          selectedRow!.class = '';
+          selectedRow!.isWorking = false;
+          return;
+        }
+
         break;
       }
 
@@ -168,6 +167,25 @@ const getVerifiedItems = (row: RelayRow) => [
 
 const handleTabChange = (key: string) => {
   currentTab.value = key;
+};
+
+const handleLockRelay = async (fingerprint: string) => {
+  const selectedRow = allRelays.value.find(
+    (row) => row.fingerprint === fingerprint
+  );
+  selectedRow!.isWorking = true;
+  selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
+
+  try {
+    const register = useRegistrator();
+    await register?.lock(fingerprint);
+
+    selectedRow!.class = '';
+    selectedRow!.isWorking = false;
+  } catch {
+    selectedRow!.class = '';
+    selectedRow!.isWorking = false;
+  }
 };
 </script>
 
@@ -288,10 +306,11 @@ const handleTabChange = (key: string) => {
       <template #lockStatus-data="{ row }">
         <LockStatusColumn
           :status="
-            row.status === 'verified' ||
-            registratorStore.isRelayLocked(row.fingerprint)
-              ? 'locked'
-              : 'lock-required'
+            row.status === 'verified'
+              ? undefined
+              : registratorStore.isRelayLocked(row.fingerprint)
+                ? 'locked'
+                : 'lock-required'
           "
         />
       </template>
@@ -324,7 +343,11 @@ const handleTabChange = (key: string) => {
         <RegistrationActionColumn
           :row="row"
           @relayAction="relayAction"
-          :isLocked="registratorStore.isRelayLocked(row.fingerprint)"
+          @onLockRelay="handleLockRelay"
+          :isLocked="
+            registratorStore.isRelayLocked(row.fingerprint) ||
+            row.status === 'verified'
+          "
         />
       </template>
     </UTable>

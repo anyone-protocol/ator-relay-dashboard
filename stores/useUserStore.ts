@@ -64,12 +64,6 @@ export const useUserStore = defineStore('user', {
 
         this.verifiedRelays = relays.relays;
       }
-
-      // if (serials.status === 200) {
-      //   const relays1 = await serials.json();
-
-      //   this.verifiedRelays = relays1.relays;
-      // }
     },
     // Get claimable relays using Warp
     async getClaimableRelays() {

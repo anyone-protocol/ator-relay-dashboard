@@ -14,41 +14,18 @@ import Button from '@/components/ui-kit/Button.vue';
 import DataTableMyRelays from '@/components/DataTableMyRelays/DataTableMyRelays.vue';
 import { useFacilitator } from '@/composables/facilitator';
 import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
-import { initRegistrator } from '@/composables/registrator';
+import { initRegistrator, useRegistrator } from '@/composables/registrator';
 import { initToken } from '@/composables/token';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
 const registratorStore = useRegistratorStore();
-const { address } = storeToRefs(userStore);
 const { isConnected } = useAccount({ config });
 const isRedeemLoading = ref(false);
 const toast = useToast();
 
-// Initialize data fetch and cache
-// Retrieve the user data and set state
-// These auto refresh when the address changes
-// const { refresh: claimedRefresh, error: claimedError } = await useAsyncData(
-//   'claimed',
-//   () => userStore.getClaimedRewardsTotal().then(() => true),
-//   { watch: [address] }
-// );
-// const { refresh: claimableRefresh, error: claimableError } = await useAsyncData(
-//   'claimable',
-//   () => userStore.getClaimableRewards().then(() => true),
-//   { watch: [address] }
-// );
-
 // Get new data every 5 minutes
 onMounted(() => {
-  // setInterval(
-  //   () => {
-  //     claimedRefresh();
-  //     claimableRefresh();
-  //   },
-  //   1000 * 60 * 5
-  // );
-
   facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
     userStore.userData.address
   );
@@ -66,6 +43,9 @@ watch(
     const facilitator = useFacilitator();
     await facilitator?.refresh();
     await userStore.getTokenBalance();
+
+    const registrator = useRegistrator();
+    await registrator?.refresh();
   }
 );
 

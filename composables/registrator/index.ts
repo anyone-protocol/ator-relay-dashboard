@@ -141,7 +141,6 @@ export class Registrator {
     if (address === useUserStore().userData?.address) {
       useRegistratorStore().currentLockSize = currentLockSize;
     }
-    debugger;
     return currentLockSize;
   }
 
@@ -179,21 +178,17 @@ export class Registrator {
         registratorStore.currentLockSize
       );
       await tokenResult?.wait();
-      debugger;
+
       const result = await this.contract
         .connect(this.signer)
         // @ts-ignore
         .register(auth.userData.address, fingerprint);
 
       await result.wait();
-      const block = await result.getBlock();
-      const timestamp = block?.timestamp || Math.floor(Date.now() / 1000);
-      useRegistratorStore().lockRelay(fingerprint);
+      await this.refresh();
 
       return result;
     } catch (error) {
-      debugger;
-
       const msg = (error as Error)?.message;
 
       if (!msg.includes('User denied transaction signature.')) {

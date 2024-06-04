@@ -17,4 +17,5 @@ const props = defineProps<{
     <Icon name="material-symbols:memory" />
     Hardware Relay
   </div>
+  <div v-else class="text-athena-50">-</div>
 </template>
