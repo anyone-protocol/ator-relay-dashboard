@@ -131,6 +131,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
       icon: 'i-heroicons-check-circle',
       color: 'primary',
       title: 'Success',
+      timeout: 0,
       description: `Successfully ${
         VERBS[action].pastTense
       } relay ${truncatedAddress(fingerprint)}!`,

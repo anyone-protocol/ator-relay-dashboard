@@ -4,6 +4,7 @@ import {
   Contract,
   JsonRpcSigner,
   TransactionResponse,
+  formatEther,
 } from 'ethers';
 
 import { abi } from './Registrator.json';
@@ -186,6 +187,14 @@ export class Registrator {
 
       await result.wait();
       await this.refresh();
+
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        color: 'primary',
+        title: 'Success',
+        timeout: 0,
+        description: `Relay locked. We've locked ${formatEther(registratorStore.totalLockedTokens || '0')} $ATOR.`,
+      });
 
       return result;
     } catch (error) {

@@ -77,9 +77,8 @@ export class Token {
     const toast = useToast();
     try {
       this.contract.connect(this.signer);
-      const lockAmount = 100n * BigInt(1e18);
 
-      const result = await this.contract.approve(address, lockAmount);
+      const result = await this.contract.approve(address, amount);
 
       await result.wait();
 
