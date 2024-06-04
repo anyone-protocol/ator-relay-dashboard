@@ -25,7 +25,10 @@ export const useFacilitatorStore = defineStore('facilitator', {
     },
     hasClaimableRewards: (state) => {
       if (state.alocatedTokens) {
-        if (state.totalClaimedTokens) {
+        if (
+          state.totalClaimedTokens &&
+          BigNumber(state.totalClaimedTokens).isGreaterThan(0)
+        ) {
           return BigNumber(state.totalClaimedTokens)
             .minus(state.alocatedTokens)
             .isGreaterThan(0);
@@ -36,7 +39,10 @@ export const useFacilitatorStore = defineStore('facilitator', {
     },
     avaliableAllocatedTokens: (state) => {
       if (state.alocatedTokens) {
-        if (state.totalClaimedTokens) {
+        if (
+          state.totalClaimedTokens &&
+          BigNumber(state.totalClaimedTokens).isGreaterThan(0)
+        ) {
           return BigNumber(state.totalClaimedTokens)
             .minus(state.alocatedTokens)
             .toString(10);
