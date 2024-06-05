@@ -51,6 +51,7 @@ export default defineNuxtConfig({
       facilitatorContract: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
       sepoliaAtorTokenContract: '0x5D690a4C67925b5f73d405e59dda1425e1560fDf',
       distributionContract: 'zOkPxTrRYVQ7IplTnEyTgt9iBDarhhWJjibm8UXI6Q0',
+      warpGateway: 'https://gw.warp.cc/gateway/v2',
     },
   },
 });
