@@ -58,3 +58,44 @@ export const warpRead = async (
     });
   }
 };
+
+export const warpReadSerials = async (
+  address: `0x${string}`
+): Promise<string[]> => {
+  if (!address) {
+    responseOutput({
+      status: 400,
+      message: 'No address provided',
+    });
+    return [];
+  }
+
+  if (!isAddress(address)) {
+    responseOutput({
+      status: 400,
+      message: 'Invalid address provided',
+    });
+    return [];
+  }
+
+  try {
+    const { state } = await relayRegistryContract.viewState({
+      address,
+    });
+
+    // Construct the response
+
+    const serials = Object.keys(
+      (state as { serials: Record<string, object> })?.serials || {}
+    );
+
+    return serials;
+  } catch (error) {
+    responseOutput({
+      data: error,
+      status: 500,
+      message: 'Error',
+    });
+    return [];
+  }
+};

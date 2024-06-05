@@ -22,6 +22,7 @@ export const useUserStore = defineStore('user', {
     tokenBalanceUsd: 0,
     verifiedRelays: [] as RelayRow[],
     claimableRelays: [] as RelayRow[],
+    serials: [] as string[],
     claimableRewards: 0,
     claimedRewardsTotal: 0,
   }),
@@ -78,6 +79,19 @@ export const useUserStore = defineStore('user', {
         const relays = await claimable.json();
         this.claimableRelays = relays.relays;
       }
+    },
+    async getSerialsRelays() {
+      if (!this.userData.address) {
+        this.serials = [];
+        return;
+      }
+
+      const serials = await warpReadSerials(this.userData.address);
+
+      this.serials = serials;
+    },
+    isHardwareRelay(fingerprint: string) {
+      return this.serials.includes(fingerprint);
     },
   },
   getters: {

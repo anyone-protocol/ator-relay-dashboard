@@ -25,10 +25,11 @@ const isRedeemLoading = ref(false);
 const toast = useToast();
 
 // Get new data every 5 minutes
-onMounted(() => {
+onMounted(async () => {
   facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
     userStore.userData.address
   );
+  await userStore.getSerialsRelays();
 });
 
 initRelayRegistry();
@@ -46,6 +47,8 @@ watch(
 
     const registrator = useRegistrator();
     await registrator?.refresh();
+
+    await userStore.getSerialsRelays();
   }
 );
 

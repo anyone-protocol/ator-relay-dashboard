@@ -306,13 +306,9 @@ const handleLockRelay = async (fingerprint: string) => {
       </template>
       <template #lockStatus-data="{ row }">
         <LockStatusColumn
-          :status="
-            row.status === 'verified'
-              ? undefined
-              : registratorStore.isRelayLocked(row.fingerprint)
-                ? 'locked'
-                : 'lock-required'
-          "
+          :isLoked="registratorStore.isRelayLocked(row.fingerprint)"
+          :isHardware="userStore.isHardwareRelay(row.fingerprint)"
+          :isVerified="row.status === 'verified'"
         />
       </template>
 
@@ -347,7 +343,8 @@ const handleLockRelay = async (fingerprint: string) => {
           @onLockRelay="handleLockRelay"
           :isLocked="
             registratorStore.isRelayLocked(row.fingerprint) ||
-            row.status === 'verified'
+            row.status === 'verified' ||
+            userStore.isHardwareRelay(row.fingerprint)
           "
         />
       </template>
