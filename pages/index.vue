@@ -13,6 +13,7 @@ import Ticker from '@/components/ui-kit/Ticker.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import { useFacilitator } from '@/composables/facilitator';
 import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
+import { initDistribution } from '@/composables/distribution';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -52,6 +53,7 @@ onMounted(() => {
 
 initRelayRegistry();
 initFacilitator();
+initDistribution();
 
 watch(
   () => userStore.userData.address,

@@ -52,6 +52,9 @@ importers:
       ethers:
         specifier: ^6.12.1
         version: 6.12.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      moment:
+        specifier: ^2.30.1
+        version: 2.30.1
       nuxt:
         specifier: ^3.11.1
         version: 3.11.2(@parcel/watcher@2.4.1)(@types/node@20.12.10)(@unocss/reset@0.58.6)(axios@1.6.8)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.2.0)(floating-vue@5.2.2(@nuxt/kit@3.11.2(rollup@4.17.2))(vue@3.4.26(typescript@5.4.5)))(fuse.js@6.6.2)(idb-keyval@6.2.1)(ioredis@5.4.1)(optionator@0.9.4)(qrcode@1.5.3)(rollup@4.17.2)(sass@1.77.2)(terser@5.31.0)(typescript@5.4.5)(unocss@0.58.6(postcss@8.4.38)(rollup@4.17.2)(vite@5.2.10(@types/node@20.12.10)(sass@1.77.2)(terser@5.31.0)))(utf-8-validate@5.0.10)(vite@5.2.10(@types/node@20.12.10)(sass@1.77.2)(terser@5.31.0))
@@ -74,14 +77,14 @@ importers:
         specifier: ^4.3.0
         version: 4.3.2(vue@3.4.26(typescript@5.4.5))
       warp-contracts:
-        specifier: 1.4.21
-        version: 1.4.21
+        specifier: 1.4.45
+        version: 1.4.45
       warp-contracts-plugin-deploy:
         specifier: ^1.0.13
-        version: 1.0.13(arweave@1.15.0)(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)(warp-arbundles@1.0.4)(warp-contracts@1.4.21)
+        version: 1.0.13(arweave@1.15.0)(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)(warp-arbundles@1.0.4)(warp-contracts@1.4.45)
       warp-contracts-plugin-ethers:
         specifier: ^1.0.8
-        version: 1.0.8(bufferutil@4.0.8)(utf-8-validate@5.0.10)(warp-contracts@1.4.21)
+        version: 1.0.8(bufferutil@4.0.8)(utf-8-validate@5.0.10)(warp-contracts@1.4.45)
     devDependencies:
       husky:
         specifier: ^9.0.11
@@ -5199,10 +5202,10 @@ packages:
     peerDependencies:
       arweave: ^1.10.0
 
-  arweave@1.13.7:
+  arweave@1.14.4:
     resolution:
       {
-        integrity: sha512-Hv+x2bSI6UyBHpuVbUDMMpMje1ETfpJWj52kKfz44O0IqDRi/LukOkkDUptup1p6OT6KP1/DdpnUnsNHoskFeA==,
+        integrity: sha512-tmqU9fug8XAmFETYwgUhLaD3WKav5DaM4p1vgJpEj/Px2ORPPMikwnSySlFymmL2qgRh2ZBcZsg11+RXPPGLsA==,
       }
     engines: { node: '>=16.15.0' }
 
@@ -9880,6 +9883,12 @@ packages:
       }
     engines: { node: '>=10' }
 
+  moment@2.30.1:
+    resolution:
+      {
+        integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==,
+      }
+
   motion@10.16.2:
     resolution:
       {
@@ -13652,10 +13661,10 @@ packages:
     peerDependencies:
       warp-contracts: '*'
 
-  warp-contracts@1.4.21:
+  warp-contracts@1.4.45:
     resolution:
       {
-        integrity: sha512-Re5aUKPdYXomzGOGaHSobYtErS3s2AubZhwW8yA+Yh0ZJAzdiMQL9aoJV4xC5xgGR0HUgkt0gsjdF8x63F+Wfg==,
+        integrity: sha512-v4asbKIofCmQjH+1Q+yTyJmGUFwaL11zNnfaipRsxQ488MB7lGfQGNeadMfYhhc2yvUDhcVok1UcSfvfgugPaQ==,
       }
     engines: { node: '>=16.8' }
 
@@ -18722,7 +18731,7 @@ snapshots:
       exponential-backoff: 3.1.1
     optional: true
 
-  arweave@1.13.7:
+  arweave@1.14.4:
     dependencies:
       arconnect: 0.4.2
       asn1.js: 5.4.1
@@ -21793,6 +21802,8 @@ snapshots:
 
   module-error@1.0.2: {}
 
+  moment@2.30.1: {}
+
   motion@10.16.2:
     dependencies:
       '@motionone/animation': 10.17.0
@@ -24440,13 +24451,13 @@ snapshots:
       buffer: 6.0.3
       warp-isomorphic: 1.0.7
 
-  warp-contracts-plugin-deploy@1.0.13(arweave@1.15.0)(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)(warp-arbundles@1.0.4)(warp-contracts@1.4.21):
+  warp-contracts-plugin-deploy@1.0.13(arweave@1.15.0)(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)(warp-arbundles@1.0.4)(warp-contracts@1.4.45):
     dependencies:
       arbundles: 0.10.1(arweave@1.15.0)(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
       node-pre-gyp: 0.17.0
       node-stdlib-browser: 1.2.0
       warp-arbundles: 1.0.4
-      warp-contracts: 1.4.21
+      warp-contracts: 1.4.45
     transitivePeerDependencies:
       - arweave
       - bufferutil
@@ -24455,20 +24466,20 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  warp-contracts-plugin-ethers@1.0.8(bufferutil@4.0.8)(utf-8-validate@5.0.10)(warp-contracts@1.4.21):
+  warp-contracts-plugin-ethers@1.0.8(bufferutil@4.0.8)(utf-8-validate@5.0.10)(warp-contracts@1.4.45):
     dependencies:
       ethers: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       node-nlp: 4.27.0
-      warp-contracts: 1.4.21
+      warp-contracts: 1.4.45
     transitivePeerDependencies:
       - bufferutil
       - supports-color
       - utf-8-validate
 
-  warp-contracts@1.4.21:
+  warp-contracts@1.4.45:
     dependencies:
       archiver: 5.3.2
-      arweave: 1.13.7
+      arweave: 1.14.4
       async-mutex: 0.4.1
       bignumber.js: 9.1.1
       events: 3.3.0

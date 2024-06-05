@@ -20,7 +20,6 @@ export const useSigner = async () => {
           ],
         });
       }
-
       return signer;
     } catch (error) {
       console.error('Error getting Signer', error);

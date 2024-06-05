@@ -5,5 +5,3 @@ declare global {
     ethereum: Eip1193Provider;
   }
 }
-
-declare module 'warp-contracts';
