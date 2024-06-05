@@ -1,4 +1,10 @@
-export type LokedRelaysType = Record<string, bigint>;
+export type LokedRelaysType = Record<
+  string,
+  {
+    amount: bigint;
+    owner: string;
+  }
+>;
 
 export interface RegistratorStoreState {
   lokedRelays: LokedRelaysType;

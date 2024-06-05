@@ -9,7 +9,7 @@ import {
 
 import { abi } from './Registrator.json';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
-import { initToken, useToken } from '../token';
+import { useToken } from '../token';
 import type { LokedRelaysResponse, LokedRelaysType } from '~/types/registrator';
 
 const runtimeConfig = useRuntimeConfig();
@@ -118,7 +118,10 @@ export class Registrator {
     let totalLockedTokens = 0n;
     const lokedRelays = lokedRelaysReponse.data.reduce((acc, item) => {
       if (item[3]) {
-        acc[item[3]] = item[0];
+        acc[item[3]] = {
+          amount: item[0],
+          owner: item[2],
+        };
         totalLockedTokens += item[0];
       }
       return acc;
