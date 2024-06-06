@@ -7,12 +7,15 @@ import { formatEther } from 'ethers';
 import { useAccount } from 'use-wagmi';
 import { config } from '@/config/wagmi.config';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
+import { useMetricsStore } from '@/stores/useMetricsStore';
 
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import { useFacilitator } from '@/composables/facilitator';
+import { initDistribution } from '@/composables/distribution';
 import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
+
 import type { ClaimProcess } from '~/types/facilitator';
 
 const userStore = useUserStore();
@@ -56,6 +59,8 @@ onMounted(() => {
 
 initRelayRegistry();
 initFacilitator();
+initDistribution();
+useMetricsStore().refresh();
 
 watch(
   () => userStore.userData.address,

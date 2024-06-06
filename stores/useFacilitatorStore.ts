@@ -13,6 +13,11 @@ export const useFacilitatorStore = defineStore('facilitator', {
       pendingClaim: null,
       totalClaimedTokens: null,
       alocatedTokens: null,
+      distributionRefreshing: false,
+      distributionRatePerDay: '',
+      sumOfTotalDistributions: '',
+      previousDistributions: [],
+      claimableAtomicTokens: '',
     };
   },
   getters: {
@@ -24,30 +29,24 @@ export const useFacilitatorStore = defineStore('facilitator', {
       }
     },
     hasClaimableRewards: (state) => {
-      if (state.alocatedTokens) {
-        if (
-          state.totalClaimedTokens &&
-          BigNumber(state.totalClaimedTokens).isGreaterThan(0)
-        ) {
-          return BigNumber(state.totalClaimedTokens)
-            .minus(state.alocatedTokens)
+      if (state.claimableAtomicTokens) {
+        if (state.totalClaimedTokens) {
+          return BigNumber(state.claimableAtomicTokens)
+            .minus(state.totalClaimedTokens)
             .isGreaterThan(0);
         }
-        return BigNumber(state.alocatedTokens).isGreaterThan(0);
+        return BigNumber(state.claimableAtomicTokens).isGreaterThan(0);
       }
       return false;
     },
     avaliableAllocatedTokens: (state) => {
-      if (state.alocatedTokens) {
-        if (
-          state.totalClaimedTokens &&
-          BigNumber(state.totalClaimedTokens).isGreaterThan(0)
-        ) {
-          return BigNumber(state.totalClaimedTokens)
-            .minus(state.alocatedTokens)
+      if (state.claimableAtomicTokens) {
+        if (state.totalClaimedTokens) {
+          return BigNumber(state.claimableAtomicTokens)
+            .minus(state.totalClaimedTokens)
             .toString(10);
         }
-        return state.alocatedTokens;
+        return state.claimableAtomicTokens;
       }
       return '0';
     },
