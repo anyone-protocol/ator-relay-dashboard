@@ -65,6 +65,7 @@ export interface MetricsStoreState {
     timestamp?: number;
     transactionIds: string[];
   };
+  relayMetricsPending: boolean;
 }
 
 const logger = new Logger('MetricsStore');
@@ -83,6 +84,7 @@ export const useMetricsStore = defineStore('metrics', {
         latest: null,
         transactionIds: [],
       },
+      relayMetricsPending: true,
     };
   },
   getters: {},
@@ -97,6 +99,8 @@ export const useMetricsStore = defineStore('metrics', {
         return;
       }
 
+      this.relayMetricsPending = true;
+
       logger.info('Metrics start refreshing');
       logger.time();
       await this.refreshValidationStats();
@@ -104,6 +108,8 @@ export const useMetricsStore = defineStore('metrics', {
       logger.timeEnd();
       logger.log('Metrics finished refreshing');
       this._refresh.last = Date.now();
+
+      this.relayMetricsPending = false;
     },
 
     async refreshRelayMetrics(limit: number = 5) {
