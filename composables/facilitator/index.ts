@@ -14,6 +14,7 @@ import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { saveRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 
 const runtimeConfig = useRuntimeConfig();
+const contactSupportLink = runtimeConfig.public.githubNewIssueUrl;
 
 export const FACILITATOR_EVENTS = {
   AllocationUpdated: 'AllocationUpdated',
@@ -278,6 +279,20 @@ export class Facilitator {
 
       const result = await this.signer.sendTransaction({ to, value });
       await result.wait();
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        color: 'primary',
+        title: 'Request Accepted',
+        description: `Your request was accepted. Now is going to be processed.`,
+        actions: [
+          {
+            label: 'Copy transaction hash',
+            click: () => {
+              navigator.clipboard.writeText(result.hash);
+            },
+          },
+        ],
+      });
       const block = await result.getBlock();
       const timestamp = block?.timestamp || Math.floor(Date.now() / 1000);
       useFacilitatorStore().addPendingClaim(result.hash, timestamp);
@@ -285,7 +300,33 @@ export class Facilitator {
       return result;
     } catch (error) {
       const msg = (error as Error)?.message;
-
+      if (msg.includes('send ETH to contract address to refill')) {
+        toast.add({
+          icon: 'i-heroicons-exclamation-circle',
+          color: 'red',
+          title: 'Accepting Request Failed',
+          description: `Request failed to be send for processing. Please try again. \n  
+          If need guidance or have any questions Contact Support.`,
+          timeout: 0,
+          actions: [
+            {
+              label: 'Contact Support',
+              click: () => {
+                window.open(contactSupportLink, '_blank');
+              },
+            },
+          ],
+        });
+      }
+      if (msg.includes('insufficient funds')) {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Insufficient Balance',
+          description: `Your current balance is not enough to complete the transaction. \n
+          Please ensure your wallet has enough ETH to cover the transaction fee and try again.`,
+        });
+      }
       if (!msg.includes('User denied transaction signature.')) {
         toast.add({
           icon: 'i-heroicons-x-circle',
