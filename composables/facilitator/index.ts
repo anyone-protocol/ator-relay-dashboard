@@ -163,7 +163,7 @@ export class Facilitator {
     return BigNumber(allocatedTokens.toString());
   }
 
-  async getAvailableBudget(address: string): Promise<BigNumber> {
+  async getAvailableBudget(address: string): Promise<bigint> {
     if (!this.contract) {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
@@ -172,7 +172,7 @@ export class Facilitator {
       address
     )) as bigint;
 
-    return BigNumber(availableBudget.toString());
+    return availableBudget;
   }
 
   async getUsedBudget(address: string): Promise<bigint> {
@@ -219,10 +219,14 @@ export class Facilitator {
     }
 
     const usedBudget = await this.getUsedBudget(auth.userData.address);
+    const availableBudget = await this.getAvailableBudget(
+      auth.userData.address
+    );
 
     const GAS_COST = (await this.contract.GAS_COST()) as bigint;
     const GAS_PRICE = (await this.contract.GAS_PRICE()) as bigint;
-    const oracleWeiRequired = GAS_COST * GAS_PRICE + usedBudget;
+    const oracleWeiRequired =
+      GAS_COST * GAS_PRICE + (usedBudget - availableBudget);
 
     return BigNumber(oracleWeiRequired.toString());
   }
@@ -275,7 +279,6 @@ export class Facilitator {
 
       const value = oracleWeiRequired.toString();
       const to = await this.contract.getAddress();
-
       const result = await this.signer.sendTransaction({ to, value });
       await result.wait();
       const block = await result.getBlock();
