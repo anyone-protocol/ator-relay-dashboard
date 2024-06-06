@@ -12,7 +12,7 @@ export const useSuggestMetaMask = () =>
 export const suggestMetaMask = useSuggestMetaMask();
 
 let provider: AbstractProvider | BrowserProvider = ethers.getDefaultProvider(
-  'http://127.0.0.1:8545/',
+  NETWORKS.SEPOLIA.decimal,
   {
     // NB: Required to force fallback provider. Errors with sepolia otherwise.
     alchemy: '-',
