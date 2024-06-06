@@ -14,6 +14,8 @@ import Button from '@/components/ui-kit/Button.vue';
 import { useFacilitator } from '@/composables/facilitator';
 import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 import { initDistribution } from '@/composables/distribution';
+import { useMetricsStore } from '@/stores/useMetricsStore';
+
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -54,6 +56,7 @@ onMounted(() => {
 initRelayRegistry();
 initFacilitator();
 initDistribution();
+useMetricsStore().refresh();
 
 watch(
   () => userStore.userData.address,
