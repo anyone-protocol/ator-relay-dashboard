@@ -75,7 +75,7 @@ const relayMeta = computed(() => {
       const relay = myMetrics ? myMetrics.relay : null;
 
       // @ts-ignore
-      acc[fp.fingerprint] = relay
+      acc[fp] = relay
         ? {
             ...relay,
             consensus_weight: BigNumber(relay.consensus_weight).toFormat(),
@@ -86,7 +86,7 @@ const relayMeta = computed(() => {
           }
         : { fingerprint: fp };
 
-      return;
+      return acc;
     },
     {} as Record<string, RelayMeta>
   );
@@ -225,7 +225,9 @@ const handleTabChange = (key: string) => {
       </template>
 
       <template #active-data="{ row }">
+        <USkeleton v-if="metricsStore.relayMetricsPending" class="h-6 w-full" />
         <div
+          v-else
           :class="
             relayMeta?.[row.fingerprint]?.running
               ? 'status-active'
@@ -251,13 +253,15 @@ const handleTabChange = (key: string) => {
       </template>
 
       <template #consensusWeight-data="{ row }">
-        <span>
-          {{ relayMeta?.[row.fingerprint]?.consensusWeight }}
-        </span>
+        <USkeleton v-if="metricsStore.relayMetricsPending" class="h-6 w-full" />
         <span
-          v-if="!relayMeta?.[row.fingerprint] || relayMetaError"
-          class="text-sm flex items-center gap-2"
+          v-else-if="
+            relayMeta?.[row.fingerprint]?.consensus_weight !== undefined
+          "
         >
+          {{ relayMeta?.[row.fingerprint]?.consensus_weight }}
+        </span>
+        <span v-else class="text-sm flex items-center gap-2">
           <Icon
             name="heroicons:exclamation-circle"
             class="h-4 w-4 text-red-500"
@@ -266,13 +270,16 @@ const handleTabChange = (key: string) => {
         </span>
       </template>
       <template #observedBandwidth-data="{ row }">
-        <span>
-          {{ relayMeta?.[row.fingerprint]?.observedBandwidth }}
-        </span>
+        <USkeleton v-if="metricsStore.relayMetricsPending" class="h-6 w-full" />
+
         <span
-          v-if="!relayMeta?.[row.fingerprint] || relayMetaError"
-          class="text-sm flex items-center gap-2"
+          v-else-if="
+            relayMeta?.[row.fingerprint]?.observed_bandwidth !== undefined
+          "
         >
+          {{ relayMeta?.[row.fingerprint]?.observed_bandwidth }}
+        </span>
+        <span v-else class="text-sm flex items-center gap-2">
           <Icon
             name="heroicons:exclamation-circle"
             class="h-4 w-4 text-red-500"
