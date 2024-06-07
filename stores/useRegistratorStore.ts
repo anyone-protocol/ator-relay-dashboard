@@ -11,8 +11,8 @@ export const useRegistratorStore = defineStore('registrator', {
     };
   },
   actions: {
-    lockRelay(fingerprint: string) {
-      this.lokedRelays[fingerprint] = 10n;
+    isRelayOwner(fingerprint: string, address: string) {
+      return this.lokedRelays[fingerprint]?.owner === address;
     },
     isRelayLocked(fingerprint: string) {
       return this.lokedRelays[fingerprint] !== undefined;

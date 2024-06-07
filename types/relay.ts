@@ -31,3 +31,5 @@ export type RelayRow = {
   isWorking?: boolean;
   nickname?: string;
 };
+
+export type RelayTabType = 'all' | 'claimable' | 'locked';

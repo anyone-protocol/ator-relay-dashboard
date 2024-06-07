@@ -3,7 +3,11 @@ import { useAccount } from 'use-wagmi';
 import type { FunctionName } from '@/utils/warp.write';
 import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
-import { type RelayMetric, type RelayRow } from '@/types/relay';
+import {
+  type RelayMetric,
+  type RelayRow,
+  type RelayTabType,
+} from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 
 import Tabs from '../ui-kit/Tabs.vue';
@@ -13,6 +17,7 @@ import Popover from '../ui-kit/Popover.vue';
 import LockStatusColumn from './columns/LockStatusColumn.vue';
 import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
 import { useRegistrator } from '@/composables/registrator';
+import type { base, hedera } from 'viem/chains';
 
 const toast = useToast();
 const userStore = useUserStore();
@@ -23,7 +28,7 @@ const registratorStore = useRegistratorStore();
 const { transactionId } = storeToRefs(metricsStore);
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
-const currentTab = ref('all');
+const currentTab = ref<RelayTabType>('all');
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
 const {
@@ -167,7 +172,7 @@ const getVerifiedItems = (row: RelayRow) => [
 ];
 
 const handleTabChange = (key: string) => {
-  currentTab.value = key;
+  currentTab.value = key as RelayTabType;
 };
 
 const handleLockRelay = async (fingerprint: string) => {
@@ -188,6 +193,19 @@ const handleLockRelay = async (fingerprint: string) => {
     selectedRow!.isWorking = false;
   }
 };
+
+const getTableData = (tab: RelayTabType) => {
+  switch (tab) {
+    case 'all':
+      return allRelays.value;
+    case 'locked':
+      return allRelays.value.filter((relay) =>
+        registratorStore.isRelayLocked(relay.fingerprint)
+      );
+    case 'claimable':
+      return claimableRelays.value;
+  }
+};
 </script>
 
 <template>
@@ -206,8 +224,8 @@ const handleLockRelay = async (fingerprint: string) => {
 
     <UTable
       :loading="verifiedPending || claimablePending"
-      :columns="RELAY_COLUMS"
-      :rows="currentTab === 'claimable' ? claimableRelays : allRelays"
+      :columns="RELAY_COLUMS[currentTab]"
+      :rows="getTableData(currentTab)"
       :ui="{ td: { base: 'max-w-sm truncate' } }"
       :empty-state="{
         icon: 'i-heroicons-circle-stack-20-solid',
@@ -306,9 +324,9 @@ const handleLockRelay = async (fingerprint: string) => {
       </template>
       <template #lockStatus-data="{ row }">
         <LockStatusColumn
-          :isLoked="registratorStore.isRelayLocked(row.fingerprint)"
-          :isHardware="userStore.isHardwareRelay(row.fingerprint)"
-          :isVerified="row.status === 'verified'"
+          :is-locked="registratorStore.isRelayLocked(row.fingerprint)"
+          :is-hardware="userStore.isHardwareRelay(row.fingerprint)"
+          :is-verified="row.status === 'verified'"
         />
       </template>
 
@@ -339,14 +357,41 @@ const handleLockRelay = async (fingerprint: string) => {
       <template #status-data="{ row }">
         <RegistrationActionColumn
           :row="row"
-          @relayAction="relayAction"
-          @onLockRelay="handleLockRelay"
-          :isLocked="
+          @relay-action="relayAction"
+          @on-lock-relay="handleLockRelay"
+          :is-locked="
             registratorStore.isRelayLocked(row.fingerprint) ||
             row.status === 'verified' ||
             userStore.isHardwareRelay(row.fingerprint)
           "
         />
+      </template>
+      <template #unlock-data="{ row }">
+        <UButton
+          :ui="{ base: 'text-sm' }"
+          icon="i-heroicons-check-circle-solid"
+          size="xl"
+          color="green"
+          variant="outline"
+          label="Unlock"
+          :disabled="true"
+          :trailing="false"
+        />
+      </template>
+      <template #owner-data="{ row }">
+        <UBadge
+          v-if="
+            registratorStore.isRelayOwner(
+              row.fingerprint,
+              userStore.userData.address!
+            )
+          "
+          color="white"
+          variant="solid"
+        >
+          Owner
+        </UBadge>
+        <UBadge v-else color="cayan" variant="outline"> Others </UBadge>
       </template>
     </UTable>
   </div>

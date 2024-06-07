@@ -1,4 +1,9 @@
-export const RELAY_COLUMS = [
+import type { RelayTabType } from '~/types/relay';
+
+const defaultColumns: {
+  key: string;
+  label?: string;
+}[] = [
   {
     key: 'nickname',
     label: 'Nickname',
@@ -32,6 +37,43 @@ export const RELAY_COLUMS = [
   },
 ];
 
+export const RELAY_COLUMS: Record<
+  RelayTabType,
+  {
+    key: string;
+    label?: string;
+  }[]
+> = {
+  all: defaultColumns,
+  claimable: defaultColumns,
+  locked: [
+    {
+      key: 'owner',
+      label: 'Ownership',
+    },
+    {
+      key: 'nickname',
+      label: 'Nickname',
+    },
+    {
+      key: 'fingerprint',
+      label: 'Relay fingerprint',
+    },
+    {
+      key: 'consensusWeight',
+      label: 'Consensus weight',
+    },
+    {
+      key: 'lockStatus',
+      label: 'Lock Status',
+    },
+    {
+      key: 'unlock',
+      label: 'Actions',
+    },
+  ],
+};
+
 export const TABS = [
   {
     label: 'All relays',
@@ -40,6 +82,10 @@ export const TABS = [
   {
     label: 'Claimable relays',
     key: 'claimable',
+  },
+  {
+    label: 'Locked Relays',
+    key: 'locked',
   },
 ];
 
