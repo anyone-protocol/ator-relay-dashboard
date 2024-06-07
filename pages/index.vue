@@ -40,7 +40,7 @@ initFacilitator();
 initRegistrator();
 initToken();
 initDistribution();
-useMetricsStore().refresh();
+// useMetricsStore().refresh();
 
 watch(
   () => userStore.userData.address,
