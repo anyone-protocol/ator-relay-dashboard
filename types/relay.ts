@@ -11,7 +11,7 @@ export type RelayMeta = {
   nickname?: string;
   status?: string;
   ator_address: string;
-  consensus_weight: number;
+  consensus_weight: string;
   observed_bandwidth: number;
   consensus_weight_fraction: number;
 };

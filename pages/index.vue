@@ -16,6 +16,9 @@ import { useFacilitator } from '@/composables/facilitator';
 import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 import { initRegistrator, useRegistrator } from '@/composables/registrator';
 import { initToken } from '@/composables/token';
+import { initDistribution, useDistribution } from '@/composables/distribution';
+import { useMetricsStore } from '@/stores/useMetricsStore';
+import { useRegistratorStore } from '~/stores/useRegistratorStore';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -36,19 +39,24 @@ initRelayRegistry();
 initFacilitator();
 initRegistrator();
 initToken();
+initDistribution();
+useMetricsStore().refresh();
 
 watch(
   () => userStore.userData.address,
   async (newAddress) => {
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
+
     const facilitator = useFacilitator();
     await facilitator?.refresh();
+
     await userStore.getTokenBalance();
+    await userStore.getSerialsRelays();
 
     const registrator = useRegistrator();
     await registrator?.refresh();
 
-    await userStore.getSerialsRelays();
+    await useDistribution().claimable(newAddress as string);
   }
 );
 

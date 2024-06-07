@@ -4,20 +4,22 @@ import type { FunctionName } from '@/utils/warp.write';
 import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
 import {
-  type RelayMetric,
   type RelayRow,
   type RelayTabType,
 } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
+import { useMetricsStore } from '@/stores/useMetricsStore';
 
 import Tabs from '../ui-kit/Tabs.vue';
 import Tooltip from '../ui-kit/Tooltip.vue';
 import Popover from '../ui-kit/Popover.vue';
 
+import BigNumber from 'bignumber.js';
+
 import LockStatusColumn from './columns/LockStatusColumn.vue';
 import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
 import { useRegistrator } from '@/composables/registrator';
-import type { base, hedera } from 'viem/chains';
+import { useRegistratorStore } from '@/stores/useRegistratorStore';
 
 const toast = useToast();
 const userStore = useUserStore();
@@ -25,7 +27,6 @@ const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
 
-const { transactionId } = storeToRefs(metricsStore);
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
 const currentTab = ref<RelayTabType>('all');
@@ -50,50 +51,56 @@ const {
   { watch: [address] }
 );
 
+const timestamp = computed(
+  () => metricsStore.relays.timestamp && new Date(metricsStore.relays.timestamp)
+);
+
 // The user's relays
 const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
 
-// Get the associated relay/metrics Arweave transaction
-// See: stores\useMetricsStore.ts
-const {
-  data: relayMeta,
-  error: relayMetaError,
-  pending: relayMetaPending,
-} = await useAsyncData(
-  'relayMeta',
-  () =>
-    $fetch(`https://arweave.net/${transactionId.value}`).then(
-      (response) => response as RelayMetric[]
-    ),
-  {
-    server: false,
-    watch: [transactionId, fingerprints],
-    // Only return the relay data for the fingerprints
-    transform: (relayMeta) => {
-      const trimmedResults = relayMeta.filter((item) =>
-        fingerprints.value.includes(item.relay.fingerprint)
-      );
+console.log('STAGE LOG: fingerprints', fingerprints);
+console.log('STAGE LOG: metricsStore', metricsStore);
 
-      const structuredResults = trimmedResults.reduce(
-        (acc, item) => {
-          acc[item.relay.fingerprint] = {
-            nickname: item.relay.nickname || '-',
-            active: item.relay.running,
-            status: item.relay.status || 'verified',
-            fingerprint: item.relay.fingerprint,
-            consensusWeight: item.relay.consensus_weight,
-            observedBandwidth: item.relay.observed_bandwidth,
-          };
-          return acc;
-        },
-        {} as Record<string, RelayRow>
-      );
-      return structuredResults;
-    },
+const relayMeta = computed(() => {
+  if (!userStore.userData) {
+    return null;
   }
-);
+  if (!allRelays.value) {
+    return null;
+  }
+  if (!metricsStore.relays.latest) {
+    return null;
+  }
+
+  return fingerprints.value.reduce(
+    // @ts-ignore
+    (acc, fp) => {
+      const myMetrics = metricsStore.relays.latest!.find(
+        ({ relay }) => fp === relay.fingerprint
+      );
+      const relay = myMetrics ? myMetrics.relay : null;
+
+      // @ts-ignore
+      acc[fp] = relay
+        ? {
+            ...relay,
+            consensus_weight: BigNumber(relay.consensus_weight).toFormat(),
+            observed_bandwidth:
+              BigNumber(relay.observed_bandwidth)
+                .dividedBy(Math.pow(1024, 2))
+                .toFormat(3) + ' MiB/s',
+          }
+        : { fingerprint: fp };
+
+      return acc;
+    },
+    {} as Record<string, RelayMeta>
+  );
+});
+
+console.log('STAGE LOG: relayMeta', relayMeta);
 
 const relayAction = async (action: FunctionName, fingerprint: string) => {
   //TODO: Sign the message
@@ -260,11 +267,11 @@ const getTableData = (tab: RelayTabType) => {
       </template>
 
       <template #active-data="{ row }">
-        <USkeleton v-if="relayMetaPending" class="h-6 w-full" />
+        <USkeleton v-if="metricsStore.relayMetricsPending" class="h-6 w-full" />
         <div
-          v-if="!relayMetaPending"
+          v-else
           :class="
-            relayMeta?.[row.fingerprint]?.active
+            relayMeta?.[row.fingerprint]?.running
               ? 'status-active'
               : 'status-inactive'
           "
@@ -272,17 +279,15 @@ const getTableData = (tab: RelayTabType) => {
       </template>
 
       <template #consensusWeight-data="{ row }">
-        <USkeleton v-if="relayMetaPending" class="h-6 w-full" />
-        <span v-if="!relayMetaPending">
-          {{ relayMeta?.[row.fingerprint]?.consensusWeight }}
-        </span>
+        <USkeleton v-if="metricsStore.relayMetricsPending" class="h-6 w-full" />
         <span
-          v-if="
-            (!relayMetaPending && !relayMeta?.[row.fingerprint]) ||
-            relayMetaError
+          v-else-if="
+            relayMeta?.[row.fingerprint]?.consensus_weight !== undefined
           "
-          class="text-sm flex items-center gap-2"
         >
+          {{ relayMeta?.[row.fingerprint]?.consensus_weight }}
+        </span>
+        <span v-else class="text-sm flex items-center gap-2">
           <Icon
             name="heroicons:exclamation-circle"
             class="h-4 w-4 text-red-500"
@@ -291,17 +296,16 @@ const getTableData = (tab: RelayTabType) => {
         </span>
       </template>
       <template #observedBandwidth-data="{ row }">
-        <USkeleton v-if="relayMetaPending" class="h-6 w-full" />
-        <span v-if="!relayMetaPending">
-          {{ relayMeta?.[row.fingerprint]?.observedBandwidth }}
-        </span>
+        <USkeleton v-if="metricsStore.relayMetricsPending" class="h-6 w-full" />
+
         <span
-          v-if="
-            (!relayMetaPending && !relayMeta?.[row.fingerprint]) ||
-            relayMetaError
+          v-else-if="
+            relayMeta?.[row.fingerprint]?.observed_bandwidth !== undefined
           "
-          class="text-sm flex items-center gap-2"
         >
+          {{ relayMeta?.[row.fingerprint]?.observed_bandwidth }}
+        </span>
+        <span v-else class="text-sm flex items-center gap-2">
           <Icon
             name="heroicons:exclamation-circle"
             class="h-4 w-4 text-red-500"
