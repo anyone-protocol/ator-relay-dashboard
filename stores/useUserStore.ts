@@ -7,7 +7,7 @@ import type { RelayMeta } from '@/types/relay';
 import { warpRead } from '@/utils/warp.read';
 import { config } from '@/config/wagmi.config';
 import { getAtorAddress } from '@/config/web3modal.config';
-import { getRelaysInfo } from '~/utils/relays';
+import { getRelaysInfo } from '@/utils/relays';
 
 export type RelayRow = {
   fingerprint: string;

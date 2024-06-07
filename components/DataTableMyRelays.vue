@@ -4,7 +4,6 @@ import type { RelayRow } from '@/stores/useUserStore';
 import type { FunctionName } from '@/utils/warp.write';
 import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
-import { type RelayMetric, type RelayMeta } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 
@@ -12,7 +11,6 @@ import Tabs from './ui-kit/Tabs.vue';
 import Tooltip from './ui-kit/Tooltip.vue';
 import Popover from './ui-kit/Popover.vue';
 import BigNumber from 'bignumber.js';
-import type { ValidatedRelay } from '@/stores/useMetricsStore';
 
 const toast = useToast();
 const userStore = useUserStore();
