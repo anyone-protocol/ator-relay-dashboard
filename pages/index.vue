@@ -55,7 +55,7 @@ onMounted(() => {
 initRelayRegistry();
 initFacilitator();
 initDistribution();
-useMetricsStore().refresh();
+// useMetricsStore().refresh();
 
 watch(
   () => userStore.userData.address,
