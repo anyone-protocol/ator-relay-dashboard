@@ -12,6 +12,7 @@ import BigNumber from 'bignumber.js';
 import { abi } from './Facility.json';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { saveRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
+import { useDistribution } from '../distribution';
 
 const runtimeConfig = useRuntimeConfig();
 
@@ -355,6 +356,7 @@ export class Facilitator {
         await tx.wait();
         await this.getTotalClaimedTokens(auth.userData.address);
         await this.getAllocatedTokens(auth.userData.address);
+        await useDistribution().claimable(auth.userData.address as string);
       }
     } catch (error) {
       console.error('Error consuming AllocationClaimed event', error);
