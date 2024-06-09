@@ -13,10 +13,12 @@ import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import { useFacilitator } from '@/composables/facilitator';
-import { initDistribution } from '@/composables/distribution';
+
 import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
+import { initDistribution, useDistribution } from '@/composables/distribution';
 
 import type { ClaimProcess } from '~/types/facilitator';
+
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -60,7 +62,7 @@ onMounted(() => {
 initRelayRegistry();
 initFacilitator();
 initDistribution();
-useMetricsStore().refresh();
+// useMetricsStore().refresh();
 
 watch(
   () => userStore.userData.address,
@@ -69,6 +71,7 @@ watch(
     const facilitator = useFacilitator();
     await facilitator?.refresh();
     await userStore.getTokenBalance();
+    await useDistribution().claimable(newAddress as string);
   }
 );
 
