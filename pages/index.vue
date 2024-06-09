@@ -159,16 +159,18 @@ const handleClaimAllRewards = async () => {
                   <span v-else>Nothing to Redeem</span>
                 </Button>
                 <div v-if="progressLoading" class="text-center">
-                  <span v-if="progressLoading === 1" class="text-xs">
-                    1 / 2 Accepting Request...
-                  </span>
-                  <span v-else class="text-xs">
-                    2 / 2 Accepting Request...
-                  </span>
-                  <UProgress
-                    animation="carousel"
-                    class="border-2 border-cyan-500 rounded-xl"
-                  />
+                  <UProgress animation="carousel">
+                    <template #indicator="{ progressLoading }">
+                      <div class="text-center">
+                        <span v-if="progressLoading === 1" class="text-xs">
+                          1 / 2 Accepting Request...
+                        </span>
+                        <span v-else class="text-xs">
+                          2 / 2 Accepting Request...
+                        </span>
+                      </div>
+                    </template>
+                  </UProgress>
                 </div>
               </div>
             </div>
