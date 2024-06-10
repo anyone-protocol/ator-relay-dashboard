@@ -171,15 +171,11 @@ export class Facilitator {
         },
         {
           target: this.contractAddress,
-          callData: this.contract.interface.encodeFunctionData('GAS_COST', [
-            auth.userData.address,
-          ]),
+          callData: this.contract.interface.encodeFunctionData('GAS_COST', []),
         },
         {
           target: this.contractAddress,
-          callData: this.contract.interface.encodeFunctionData('GAS_COST', [
-            auth.userData.address,
-          ]),
+          callData: this.contract.interface.encodeFunctionData('GAS_PRICE', []),
         },
       ];
 
