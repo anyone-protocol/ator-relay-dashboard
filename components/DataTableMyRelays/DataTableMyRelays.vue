@@ -1,25 +1,32 @@
 <script lang="ts" setup>
 import { useAccount } from 'use-wagmi';
-import type { RelayRow } from '@/stores/useUserStore';
 import type { FunctionName } from '@/utils/warp.write';
 import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
+import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 
-import Tabs from './ui-kit/Tabs.vue';
-import Tooltip from './ui-kit/Tooltip.vue';
-import Popover from './ui-kit/Popover.vue';
+import Tabs from '../ui-kit/Tabs.vue';
+import Tooltip from '../ui-kit/Tooltip.vue';
+import Popover from '../ui-kit/Popover.vue';
+
 import BigNumber from 'bignumber.js';
+
+import LockStatusColumn from './columns/LockStatusColumn.vue';
+import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
+import { useRegistrator } from '@/composables/registrator';
+import { useRegistratorStore } from '@/stores/useRegistratorStore';
 
 const toast = useToast();
 const userStore = useUserStore();
 const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
+const registratorStore = useRegistratorStore();
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
-const currentTab = ref('all');
+const currentTab = ref<RelayTabType>('all');
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
 const {
@@ -74,6 +81,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           selectedRow!.isWorking = false;
           return;
         }
+
         break;
       }
 
@@ -90,6 +98,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
       icon: 'i-heroicons-check-circle',
       color: 'primary',
       title: 'Success',
+      timeout: 0,
       description: `Successfully ${
         VERBS[action].pastTense
       } relay ${truncatedAddress(fingerprint)}!`,
@@ -125,7 +134,39 @@ const getVerifiedItems = (row: RelayRow) => [
 ];
 
 const handleTabChange = (key: string) => {
-  currentTab.value = key;
+  currentTab.value = key as RelayTabType;
+};
+
+const handleLockRelay = async (fingerprint: string) => {
+  const selectedRow = allRelays.value.find(
+    (row) => row.fingerprint === fingerprint
+  );
+  selectedRow!.isWorking = true;
+  selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
+
+  try {
+    const register = useRegistrator();
+    await register?.lock(fingerprint);
+
+    selectedRow!.class = '';
+    selectedRow!.isWorking = false;
+  } catch {
+    selectedRow!.class = '';
+    selectedRow!.isWorking = false;
+  }
+};
+
+const getTableData = (tab: RelayTabType) => {
+  switch (tab) {
+    case 'all':
+      return allRelays.value;
+    case 'locked':
+      return allRelays.value.filter((relay) =>
+        registratorStore.isRelayLocked(relay.fingerprint)
+      );
+    case 'claimable':
+      return claimableRelays.value;
+  }
 };
 
 const getObservedBandwidth = (fingerprint: string) => {
@@ -153,8 +194,8 @@ const getObservedBandwidth = (fingerprint: string) => {
 
     <UTable
       :loading="verifiedPending || claimablePending"
-      :columns="RELAY_COLUMS"
-      :rows="currentTab === 'claimable' ? claimableRelays : allRelays"
+      :columns="RELAY_COLUMS[currentTab]"
+      :rows="getTableData(currentTab)"
       :ui="{ td: { base: 'max-w-sm truncate' } }"
       :empty-state="{
         icon: 'i-heroicons-circle-stack-20-solid',
@@ -198,22 +239,6 @@ const getObservedBandwidth = (fingerprint: string) => {
         ></div>
       </template>
 
-      <template #lockStatus-header="{ column }">
-        <div class="flex gap-1 items-center">
-          <span>{{ column.label }}</span>
-          <Tooltip
-            placement="top"
-            arrow
-            text="Shows the current lock status and amount of locked tokens needed for Registration."
-          >
-            <Icon name="heroicons:exclamation-circle" class="h-4" />
-          </Tooltip>
-        </div>
-      </template>
-      <template #lockStatus-data="{ row }">
-        {{ row.lockStatus ?? '-' }}
-      </template>
-
       <template #consensusWeight-data="{ row }">
         <span
           v-if="
@@ -249,6 +274,26 @@ const getObservedBandwidth = (fingerprint: string) => {
         </span>
       </template>
 
+      <template #lockStatus-header="{ column }">
+        <div class="flex gap-1 items-center">
+          <span>{{ column.label }}</span>
+          <Tooltip
+            placement="top"
+            arrow
+            text="Shows the current lock status and amount of locked tokens needed for Registration."
+          >
+            <Icon name="heroicons:exclamation-circle" class="h-4" />
+          </Tooltip>
+        </div>
+      </template>
+      <template #lockStatus-data="{ row }">
+        <LockStatusColumn
+          :is-locked="registratorStore.isRelayLocked(row.fingerprint)"
+          :is-hardware="userStore.isHardwareRelay(row.fingerprint)"
+          :is-verified="row.status === 'verified'"
+        />
+      </template>
+
       <template #status-header="{ column }">
         <div class="relative flex gap-1 items-center">
           <span>{{ column.label }}</span>
@@ -274,31 +319,43 @@ const getObservedBandwidth = (fingerprint: string) => {
         </div>
       </template>
       <template #status-data="{ row }">
-        <div class="max-w-32">
-          <UButton
-            v-if="row.status === 'verified'"
-            icon="i-heroicons-check-circle-solid"
-            size="xl"
-            color="green"
-            variant="outline"
-            label="Claimed"
-            :disabled="true"
-            :trailing="false"
-            block
-          />
-
-          <UButton
-            v-if="row.status === 'claimable'"
-            size="xl"
-            color="green"
-            variant="solid"
-            label="Claim Now"
-            @click="relayAction('claim', row.fingerprint)"
-            :disabled="row.isWorking"
-            :trailing="false"
-            block
-          />
-        </div>
+        <RegistrationActionColumn
+          :row="row"
+          @relay-action="relayAction"
+          @on-lock-relay="handleLockRelay"
+          :is-locked="
+            registratorStore.isRelayLocked(row.fingerprint) ||
+            row.status === 'verified' ||
+            userStore.isHardwareRelay(row.fingerprint)
+          "
+        />
+      </template>
+      <template #unlock-data="{ row }">
+        <UButton
+          :ui="{ base: 'text-sm' }"
+          icon="i-heroicons-check-circle-solid"
+          size="xl"
+          color="green"
+          variant="outline"
+          label="Unlock"
+          :disabled="true"
+          :trailing="false"
+        />
+      </template>
+      <template #owner-data="{ row }">
+        <UBadge
+          v-if="
+            registratorStore.isRelayOwner(
+              row.fingerprint,
+              userStore.userData.address!
+            )
+          "
+          color="white"
+          variant="solid"
+        >
+          Owner
+        </UBadge>
+        <UBadge v-else color="cayan" variant="outline"> Others </UBadge>
       </template>
     </UTable>
   </div>

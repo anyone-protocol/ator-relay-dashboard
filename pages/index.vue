@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
 import { initRelayRegistry } from '@/composables/relay-registry';
 import { initFacilitator } from '@/composables/facilitator';
 import { formatEther } from 'ethers';
@@ -7,22 +6,23 @@ import { formatEther } from 'ethers';
 import { useAccount } from 'use-wagmi';
 import { config } from '@/config/wagmi.config';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
-import { useMetricsStore } from '@/stores/useMetricsStore';
 
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
 import Button from '@/components/ui-kit/Button.vue';
+import DataTableMyRelays from '@/components/DataTableMyRelays/DataTableMyRelays.vue';
 import { useFacilitator } from '@/composables/facilitator';
 
 import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
+import { initRegistrator, useRegistrator } from '@/composables/registrator';
+import { initToken } from '@/composables/token';
 import { initDistribution, useDistribution } from '@/composables/distribution';
-
-import type { ClaimProcess } from '~/types/facilitator';
-
+import { useRegistratorStore } from '@/stores/useRegistratorStore';
+import type { ClaimProcess } from '@/types/facilitator';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
-const { address } = storeToRefs(userStore);
+const registratorStore = useRegistratorStore();
 const { isConnected } = useAccount({ config });
 const facilitator = useFacilitator();
 const isRedeemLoading = ref(false);
@@ -30,37 +30,18 @@ const progressLoading = ref(0);
 
 const toast = useToast();
 
-// Initialize data fetch and cache
-// Retrieve the user data and set state
-// These auto refresh when the address changes
-const { refresh: claimedRefresh, error: claimedError } = await useAsyncData(
-  'claimed',
-  () => userStore.getClaimedRewardsTotal().then(() => true),
-  { watch: [address] }
-);
-const { refresh: claimableRefresh, error: claimableError } = await useAsyncData(
-  'claimable',
-  () => userStore.getClaimableRewards().then(() => true),
-  { watch: [address] }
-);
-
 // Get new data every 5 minutes
-onMounted(() => {
-  setInterval(
-    () => {
-      claimedRefresh();
-      claimableRefresh();
-    },
-    1000 * 60 * 5
-  );
-
+onMounted(async () => {
   facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
     userStore.userData.address
   );
+  await userStore.getSerialsRelays();
 });
 
 initRelayRegistry();
 initFacilitator();
+initRegistrator();
+initToken();
 initDistribution();
 // useMetricsStore().refresh();
 
@@ -68,9 +49,16 @@ watch(
   () => userStore.userData.address,
   async (newAddress?: string) => {
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
+
     const facilitator = useFacilitator();
     await facilitator?.refresh();
+
     await userStore.getTokenBalance();
+    await userStore.getSerialsRelays();
+
+    const registrator = useRegistrator();
+    await registrator?.refresh();
+
     await useDistribution().claimable(newAddress as string);
   }
 );
@@ -116,12 +104,27 @@ const handleClaimAllRewards = async () => {
             The connected wallet shows the following balance:
           </p>
 
-          <div class="flex flex-col">
-            <UserBalance
-              class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
-            >
-              <p class="ml-1 mt-2 text-sm"><Ticker /> Account balance</p>
-            </UserBalance>
+          <div class="flex gap-32">
+            <div class="border-l-4 border-cyan-600 pl-3">
+              <UserBalance
+                class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
+              >
+                <p class="ml-1 mt-2 text-sm"><Ticker /> Account balance</p>
+              </UserBalance>
+            </div>
+            <div class="flex flex-col border-l-4 border-cyan-600 pl-3">
+              <h3>
+                <Icon name="material-symbols:lock" />
+                Locked
+              </h3>
+              <div class="inline-flex items-baseline gap-2">
+                <span v-if="isConnected" class="text-4xl font-bold">
+                  {{ formatEther(registratorStore.totalLockedTokens || '0') }}
+                </span>
+                <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
+                <Ticker />
+              </div>
+            </div>
           </div>
         </Card>
       </DashboardMobileSection>

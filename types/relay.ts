@@ -20,3 +20,16 @@ export type RelayMetric = {
   result: RelayMetricResult;
   relay: RelayMeta;
 };
+
+export type RelayRow = {
+  fingerprint: string;
+  status: string;
+  consensusWeight: number;
+  observedBandwidth: number;
+  active: boolean;
+  class?: string;
+  isWorking?: boolean;
+  nickname?: string;
+};
+
+export type RelayTabType = 'all' | 'claimable' | 'locked';

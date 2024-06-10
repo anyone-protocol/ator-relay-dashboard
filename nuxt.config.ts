@@ -47,11 +47,12 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
-      relayRegistryAddress: 'wcbR5hkhk1boUq0V5OLf38cM0qVs45m6kK4B6Ejfdf4',
-      facilitatorContract: '0x21ad8F73c8E43C3cCf158AA2Af58cA19ed960fFF',
-      sepoliaAtorTokenContract: '0xe0E527318Fe1644a368b4eA5AaCcBFB3FE8737B0',
-      distributionContract: 'GeyCU06plVtWiudHxgXIu4863wwRByBmsP5AMBdhyj4',
-      metricsDeployer: 'x0cuVieEDTFjtxI5m5i22u2IMr-WpBiTS-Vir8U3dbw',
+      relayRegistryAddress: 'cQ5drDr3Na6m-_QthV4qbBY2wT7oEn8B3qCDg1owzxI',
+      facilitatorContract: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
+      sepoliaAtorTokenContract: '0x5D690a4C67925b5f73d405e59dda1425e1560fDf',
+      distributionContract: 'zOkPxTrRYVQ7IplTnEyTgt9iBDarhhWJjibm8UXI6Q0',
+      metricsDeployer: 'guDw5nBzO2zTpuYMnxkSpQ2qCQjL8gxB34GjPpZ2qpY',
+      registratorContract: '0xDB0cABef9e8DBbB9Dad6B1DB672f2EcCd425cE18',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
       githubNewIssueUrl:
         'https://github.com/ATOR-Development/ator-dashboard/issues/new',
