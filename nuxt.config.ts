@@ -48,7 +48,7 @@ export default defineNuxtConfig({
     public: {
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
       relayRegistryAddress: 'cQ5drDr3Na6m-_QthV4qbBY2wT7oEn8B3qCDg1owzxI',
-      facilitatorContract: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
+      facilitatorContract: '0xC46E912231F1792830b8590d4fcA19d2Ac491ed4',
       sepoliaAtorTokenContract: '0x5D690a4C67925b5f73d405e59dda1425e1560fDf',
       distributionContract: 'zOkPxTrRYVQ7IplTnEyTgt9iBDarhhWJjibm8UXI6Q0',
       metricsDeployer: 'guDw5nBzO2zTpuYMnxkSpQ2qCQjL8gxB34GjPpZ2qpY',
