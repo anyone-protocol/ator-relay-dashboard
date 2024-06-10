@@ -64,13 +64,13 @@ export const useUserStore = defineStore('user', {
         const relays = await verified.json();
 
         this.verifiedRelays = relays.relays;
-        const meta = await getRelaysInfo(
-          relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
-        );
-        this.relaysMeta = {
-          ...this.relaysMeta,
-          ...meta,
-        };
+        // const meta = await getRelaysInfo(
+        //   relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
+        // );
+        // this.relaysMeta = {
+        //   ...this.relaysMeta,
+        //   ...meta,
+        // };
       }
     },
     // Get claimable relays using Warp
@@ -84,14 +84,15 @@ export const useUserStore = defineStore('user', {
 
       if (claimable.status === 200) {
         const relays = await claimable.json();
+        console.log(relays.relays);
         this.claimableRelays = relays.relays;
-        const meta = await getRelaysInfo(
-          relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
-        );
-        this.relaysMeta = {
-          ...this.relaysMeta,
-          ...meta,
-        };
+        // const meta = await getRelaysInfo(
+        //   relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
+        // );
+        // this.relaysMeta = {
+        //   ...this.relaysMeta,
+        //   ...meta,
+        // };
       }
     },
     async getSerialsRelays() {

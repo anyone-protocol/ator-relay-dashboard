@@ -4,59 +4,70 @@ import { responseOutput } from '@/utils/responseOutput';
 
 type FunctionName = 'verified' | 'claimable' | 'serials';
 
+var test = "0x722256e823bCB92D2C9510Bf185149Ef167f3903";
+
 export const warpRead = async (
   address: `0x${string}`,
   functionName: FunctionName
 ) => {
-  if (!address)
-    return responseOutput({
-      status: 400,
-      message: 'No address provided',
-    });
+  return new Promise(async (resolve,reject) => {
+    if (!address)
+      resolve(responseOutput({
+        status: 400,
+        message: 'No address provided',
+      }));
+  
+    if (!isAddress(address))
+      resolve(responseOutput({
+        status: 400,
+        message: 'Invalid address provided',
+      }));
+    
+    try {
+      const { result } = await relayRegistryContract.viewState({
+        function: functionName,
+        test
+      });
 
-  if (!isAddress(address))
-    return responseOutput({
-      status: 400,
-      message: 'Invalid address provided',
-    });
+      // Construct the response
+      const returnedData = Object.entries(result).map(([key, value]) => {
+        if (value === test) {
+          return {
+            fingerprint: key,
+            status: functionName,
+            active: true,
+            class: '',
+          };
+        }
+        return null;
+      }).filter(entry => entry !== null);
+  
+      const count = Object.keys(result as object).length;
+      const message =
+        count === 0
+          ? `No ${functionName} relays found`
+          : `Success. All ${functionName} relays fetched.`;
 
-  try {
-    const { result } = await relayRegistryContract.viewState({
-      function: functionName,
-      address,
-    });
-
-    // Construct the response
-    const returnedData = (result as string[]).map((data) => {
-      return {
-        fingerprint: data,
-        status: functionName,
-        active: true,
-        class: '',
-      };
-    });
-
-    const count = Object.keys(result as object).length;
-    const message =
-      count === 0
-        ? `No ${functionName} relays found`
-        : `Success. All ${functionName} relays fetched.`;
-
-    return responseOutput({
-      data: {
-        count,
-        relays: returnedData,
-      },
-      message,
-      status: 200,
-    });
-  } catch (error) {
-    return responseOutput({
-      data: error,
-      status: 500,
-      message: 'Error',
-    });
-  }
+      
+      console.log(returnedData);
+  
+      resolve(responseOutput({
+        data: {
+          count,
+          relays: returnedData,
+        },
+        message,
+        status: 200,
+      }))
+    } catch (error) {
+      console.log("error: ", error)
+      resolve(responseOutput({
+        data: error,
+        status: 500,
+        message: 'Error',
+      }));
+    }
+  })
 };
 
 export const warpReadSerials = async (
@@ -80,7 +91,7 @@ export const warpReadSerials = async (
 
   try {
     const { state } = await relayRegistryContract.viewState({
-      address,
+      data: {address: address},
     });
 
     // Construct the response

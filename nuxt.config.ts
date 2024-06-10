@@ -47,12 +47,12 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
-      relayRegistryAddress: 'cQ5drDr3Na6m-_QthV4qbBY2wT7oEn8B3qCDg1owzxI',
+      relayRegistryAddress: 'dvaRvbXviuoPLSniksgxq6D_rkjDNWG46URnIJLwMUA',
       facilitatorContract: '0xC46E912231F1792830b8590d4fcA19d2Ac491ed4',
       sepoliaAtorTokenContract: '0x5D690a4C67925b5f73d405e59dda1425e1560fDf',
       distributionContract: 'zOkPxTrRYVQ7IplTnEyTgt9iBDarhhWJjibm8UXI6Q0',
       metricsDeployer: 'guDw5nBzO2zTpuYMnxkSpQ2qCQjL8gxB34GjPpZ2qpY',
-      registratorContract: '0xDB0cABef9e8DBbB9Dad6B1DB672f2EcCd425cE18',
+      registratorContract: '0x525C31B35065540059701eE5feC12120F581E96e',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
       githubNewIssueUrl:
         'https://github.com/ATOR-Development/ator-dashboard/issues/new',
