@@ -2,7 +2,6 @@ import { formatEther } from 'viem';
 import { useAccount } from 'use-wagmi';
 import { getBalance } from 'use-wagmi/actions';
 import { type GetBalanceReturnType } from 'use-wagmi/actions';
-import { hardhat } from 'viem/chains';
 import type { RelayMeta } from '@/types/relay';
 
 import { warpRead } from '@/utils/warp.read';
@@ -35,11 +34,9 @@ export const useUserStore = defineStore('user', {
       }
       const token = getAtorAddress() as `0x${string}`;
 
-      // TODO: change to sepolia
       this.tokenBalance = await getBalance(config, {
         token,
         address: this.userData.address as `0x${string}`,
-        chainId: hardhat.id,
       });
     },
     // Get ATOR balance in USD using price store
