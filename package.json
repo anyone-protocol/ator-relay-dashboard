@@ -36,6 +36,7 @@
     "viem": "2.9.29",
     "vue": "3.4.21",
     "vue-router": "4.3.0",
+    "vuetify": "^3.6.8",
     "warp-contracts": "1.4.21",
     "warp-contracts-plugin-deploy": "1.0.13",
     "warp-contracts-plugin-ethers": "1.0.8"

@@ -58,4 +58,5 @@ export default defineNuxtConfig({
         'https://github.com/ATOR-Development/ator-dashboard/issues/new',
     },
   },
+  plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
 });

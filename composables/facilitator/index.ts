@@ -12,10 +12,8 @@ import BigNumber from 'bignumber.js';
 import { abi } from './Facility.json';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { saveRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
-import { useDistribution } from '../distribution';
 
 const runtimeConfig = useRuntimeConfig();
-const contactSupportLink = runtimeConfig.public.githubNewIssueUrl;
 
 export const FACILITATOR_EVENTS = {
   AllocationUpdated: 'AllocationUpdated',
@@ -41,16 +39,47 @@ const ERRORS = {
   NO_SIGNER: 'No Signer connected',
 };
 
+const MULTICALL_ABI = [
+  {
+    constant: true,
+    inputs: [
+      {
+        components: [
+          { name: 'target', type: 'address' },
+          { name: 'callData', type: 'bytes' },
+        ],
+        name: 'calls',
+        type: 'tuple[]',
+      },
+    ],
+    name: 'aggregate',
+    outputs: [
+      { name: 'blockNumber', type: 'uint256' },
+      { name: 'returnData', type: 'bytes[]' },
+    ],
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+];
+
 export class Facilitator {
   private _refreshing: boolean = false;
   private contract!: Contract;
+  private multicallContract!: Contract;
   private signer: JsonRpcSigner | null = null;
   private readonly logger = console;
 
   constructor(
     private contractAddress: string,
-    provider: BrowserProvider | AbstractProvider
+    provider: BrowserProvider | AbstractProvider,
+    multicallAddress: string
   ) {
+    this.multicallContract = new Contract(
+      '0x25eef291876194aefad0d60dff89e268b90754bb',
+      MULTICALL_ABI,
+      provider
+    );
     this.refreshContract(provider);
   }
 
@@ -108,28 +137,112 @@ export class Facilitator {
       gasUsed = null,
       allocatedTokens = null,
       usedBudget = null,
-      availableBudget = null;
+      availableBudget = null,
+      oracleWeiRequired = null;
 
     if (auth.userData?.address) {
-      totalClaimed = await this.getTotalClaimedTokens(auth.userData.address);
-      allocatedTokens = await this.getAllocatedTokens(auth.userData.address);
-      gasAvailable = await this.getGasAvailable(auth.userData.address);
-      gasUsed = await this.getGasUsed(auth.userData.address);
-      usedBudget = await this.getUsedBudget(auth.userData.address);
-      availableBudget = await this.getAvailableBudget(auth.userData.address);
-    }
-    const oracleWeiRequired = await this.getOracleWeiRequired();
+      const calls = [
+        {
+          target: this.contractAddress,
+          callData: this.contract.interface.encodeFunctionData(
+            'claimedTokens',
+            [auth.userData.address]
+          ),
+        },
+        {
+          target: this.contractAddress,
+          callData: this.contract.interface.encodeFunctionData(
+            'allocatedTokens',
+            [auth.userData.address]
+          ),
+        },
+        {
+          target: this.contractAddress,
+          callData: this.contract.interface.encodeFunctionData(
+            'availableBudget',
+            [auth.userData.address]
+          ),
+        },
+        {
+          target: this.contractAddress,
+          callData: this.contract.interface.encodeFunctionData('usedBudget', [
+            auth.userData.address,
+          ]),
+        },
+        {
+          target: this.contractAddress,
+          callData: this.contract.interface.encodeFunctionData('GAS_COST', [
+            auth.userData.address,
+          ]),
+        },
+        {
+          target: this.contractAddress,
+          callData: this.contract.interface.encodeFunctionData('GAS_COST', [
+            auth.userData.address,
+          ]),
+        },
+      ];
 
-    console.timeEnd();
-    console.info('Facilitator refreshed', {
-      totalClaimed: totalClaimed?.toString(),
-      gasAvailable: gasAvailable?.toString(),
-      gasUsed: gasUsed?.toString(),
-      allocatedTockens: allocatedTokens?.toString(),
-      oracleWeiRequired: oracleWeiRequired.toString(),
-      availableBudget: availableBudget?.toString(),
-      usedBudget: usedBudget?.toString(),
-    });
+      const response = await this.multicallContract.aggregate(calls);
+
+      const returnData = response.returnData;
+
+      totalClaimed = BigNumber(
+        this.contract.interface
+          .decodeFunctionResult('claimedTokens', returnData[0])[0]
+          .toString()
+      );
+      allocatedTokens = BigNumber(
+        this.contract.interface
+          .decodeFunctionResult('allocatedTokens', returnData[1])[0]
+          .toString()
+      );
+      availableBudget = BigNumber(
+        this.contract.interface
+          .decodeFunctionResult('availableBudget', returnData[2])[0]
+          .toString()
+      );
+      gasUsed = BigNumber(
+        this.contract.interface
+          .decodeFunctionResult('usedBudget', returnData[3])[0]
+          .toString()
+      );
+      usedBudget = BigNumber(
+        this.contract.interface
+          .decodeFunctionResult('usedBudget', returnData[3])[0]
+          .toString()
+      );
+      const gasCost = BigNumber(
+        this.contract.interface
+          .decodeFunctionResult('GAS_COST', returnData[4])[0]
+          .toString()
+      );
+      const gasPrice = BigNumber(
+        this.contract.interface
+          .decodeFunctionResult('GAS_PRICE', returnData[5])[0]
+          .toString()
+      );
+
+      const oracleWeiRequired = gasCost
+        .multipliedBy(gasPrice)
+        .plus(usedBudget.minus(availableBudget));
+
+      useFacilitatorStore().totalClaimedTokens = totalClaimed.toString();
+      useFacilitatorStore().alocatedTokens = allocatedTokens.toString();
+      useFacilitatorStore().availableBudget = availableBudget.toString();
+      useFacilitatorStore().usedBudget = usedBudget.toString();
+
+      console.timeEnd();
+      console.info('Facilitator refreshed', {
+        totalClaimed: totalClaimed.toString(),
+        gasAvailable: availableBudget.toString(),
+        gasUsed: gasUsed.toString(),
+        allocatedTokens: allocatedTokens.toString(),
+        oracleWeiRequired: oracleWeiRequired.toString(),
+        availableBudget: availableBudget.toString(),
+        usedBudget: usedBudget.toString(),
+      });
+    }
     this.setRefreshing(false);
   }
 
@@ -165,7 +278,7 @@ export class Facilitator {
     return BigNumber(allocatedTokens.toString());
   }
 
-  async getAvailableBudget(address: string): Promise<bigint> {
+  async getAvailableBudget(address: string): Promise<BigNumber> {
     if (!this.contract) {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
@@ -174,7 +287,7 @@ export class Facilitator {
       address
     )) as bigint;
 
-    return availableBudget;
+    return BigNumber(availableBudget.toString());
   }
 
   async getUsedBudget(address: string): Promise<bigint> {
@@ -221,14 +334,10 @@ export class Facilitator {
     }
 
     const usedBudget = await this.getUsedBudget(auth.userData.address);
-    const availableBudget = await this.getAvailableBudget(
-      auth.userData.address
-    );
 
     const GAS_COST = (await this.contract.GAS_COST()) as bigint;
     const GAS_PRICE = (await this.contract.GAS_PRICE()) as bigint;
-    const oracleWeiRequired =
-      GAS_COST * GAS_PRICE + (usedBudget - availableBudget);
+    const oracleWeiRequired = GAS_COST * GAS_PRICE + usedBudget;
 
     return BigNumber(oracleWeiRequired.toString());
   }
@@ -281,22 +390,9 @@ export class Facilitator {
 
       const value = oracleWeiRequired.toString();
       const to = await this.contract.getAddress();
+
       const result = await this.signer.sendTransaction({ to, value });
       await result.wait();
-      toast.add({
-        icon: 'i-heroicons-check-circle',
-        color: 'primary',
-        title: 'Request Accepted',
-        description: `Your request was accepted. Now is going to be processed.`,
-        actions: [
-          {
-            label: 'Copy transaction hash',
-            click: () => {
-              navigator.clipboard.writeText(result.hash);
-            },
-          },
-        ],
-      });
       const block = await result.getBlock();
       const timestamp = block?.timestamp || Math.floor(Date.now() / 1000);
       useFacilitatorStore().addPendingClaim(result.hash, timestamp);
@@ -304,33 +400,7 @@ export class Facilitator {
       return result;
     } catch (error) {
       const msg = (error as Error)?.message;
-      if (msg.includes('send ETH to contract address to refill')) {
-        toast.add({
-          icon: 'i-heroicons-exclamation-circle',
-          color: 'red',
-          title: 'Accepting Request Failed',
-          description: `Request failed to be send for processing. Please try again. \n  
-          If need guidance or have any questions Contact Support.`,
-          timeout: 0,
-          actions: [
-            {
-              label: 'Contact Support',
-              click: () => {
-                window.open(contactSupportLink, '_blank');
-              },
-            },
-          ],
-        });
-      }
-      if (msg.includes('insufficient funds')) {
-        toast.add({
-          icon: 'i-heroicons-x-circle',
-          color: 'amber',
-          title: 'Insufficient Balance',
-          description: `Your current balance is not enough to complete the transaction. \n
-          Please ensure your wallet has enough ETH to cover the transaction fee and try again.`,
-        });
-      }
+
       if (!msg.includes('User denied transaction signature.')) {
         toast.add({
           icon: 'i-heroicons-x-circle',
@@ -397,7 +467,6 @@ export class Facilitator {
         await tx.wait();
         await this.getTotalClaimedTokens(auth.userData.address);
         await this.getAllocatedTokens(auth.userData.address);
-        await useDistribution().claimable(auth.userData.address as string);
       }
     } catch (error) {
       console.error('Error consuming AllocationClaimed event', error);
@@ -476,7 +545,8 @@ export const initFacilitator = async () => {
   if (!facilitator) {
     facilitator = new Facilitator(
       runtimeConfig.public.facilitatorContract as string,
-      provider
+      provider,
+      runtimeConfig.public.multicallContract as string // Add your multicall contract address here
     );
     await facilitator.refresh();
   }

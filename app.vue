@@ -1,23 +1,24 @@
+<template>
+  <NuxtLayout>
+    <NuxtLoadingIndicator />
+    <NuxtPage />
+  </NuxtLayout>
+</template>
+
 <script setup lang="ts">
 import { reconnect } from 'use-wagmi/actions';
 import { mainnet, sepolia, hardhat } from 'use-wagmi/chains';
-import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/vue';
+import { createWeb3Modal} from '@web3modal/wagmi/vue';
 import {
-  metadata,
   getAtorAddress,
   themeVariables,
 } from '@/config/web3modal.config';
+import { wagmiConfig } from '@/config/wagmi.config';
 
 const chains = [mainnet, sepolia, hardhat];
 const nuxtConfig = useRuntimeConfig();
 const projectId = nuxtConfig.public.walletConnectProjectId;
 
-const wagmiConfig = defaultWagmiConfig({
-  chains,
-  projectId,
-  metadata,
-  ssr: false,
-});
 
 createWeb3Modal({
   chains,
@@ -28,18 +29,11 @@ createWeb3Modal({
     },
   },
   projectId,
-  wagmiConfig,
+  wagmiConfig: wagmiConfig,
   themeVariables,
 });
 
 onMounted(() => {
-  reconnect(wagmiConfig);
+  void reconnect(wagmiConfig);
 });
 </script>
-
-<template>
-  <NuxtLayout>
-    <NuxtLoadingIndicator />
-    <NuxtPage />
-  </NuxtLayout>
-</template>

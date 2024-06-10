@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { useWeb3Modal } from '@web3modal/wagmi/vue';
 import { useAccount } from 'use-wagmi';
-import { config } from '@/config/wagmi.config';
+import { wagmiConfig } from '@/config/wagmi.config';
 import Address from './Address.vue';
 
 const { address, status, isDisconnected, isReconnecting, isConnecting } =
-  useAccount({ config });
+  useAccount({ config:wagmiConfig });
 
 const { open } = useWeb3Modal();
+const { disconnect } = useDisconnect({ config:wagmiConfig  });
+
+const handleDisconnect = () => {
+  disconnect();
+};
 </script>
 
 <template>
-  <div v-if="address" class="flex gap-3 items-center text-left">
+  <div v-if="address" class="flex gap-3 items-center text-left cursor-pointer" @click="handleDisconnect">
     <Icon
       name="heroicons:user-circle"
       class="dark:text-cyan-100 w-8 h-8 ring ring-cyan-600 rounded-full relative bg-slate-200/50 dark:bg-transparent"
