@@ -54,6 +54,8 @@ export default defineNuxtConfig({
       metricsDeployer: 'guDw5nBzO2zTpuYMnxkSpQ2qCQjL8gxB34GjPpZ2qpY',
       registratorContract: '0xDB0cABef9e8DBbB9Dad6B1DB672f2EcCd425cE18',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
+      githubNewIssueUrl:
+        'https://github.com/ATOR-Development/ator-dashboard/issues/new',
     },
   },
 });

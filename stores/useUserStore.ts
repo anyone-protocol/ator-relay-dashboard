@@ -4,10 +4,11 @@ import { getBalance } from 'use-wagmi/actions';
 import { type GetBalanceReturnType } from 'use-wagmi/actions';
 import type { RelayMeta } from '@/types/relay';
 
-import { warpRead } from '@/utils/warp.read';
+import { warpRead, warpReadSerials } from '@/utils/warp.read';
 import { config } from '@/config/wagmi.config';
 import { getAtorAddress } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
+import { getRelaysInfo } from '@/utils/relays';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -25,6 +26,7 @@ export const useUserStore = defineStore('user', {
     relaysMeta: {} as Record<string, RelayMeta>,
     claimableRewards: 0,
     claimedRewardsTotal: 0,
+    serials: [] as string[],
   }),
   actions: {
     // Get ATOR balance

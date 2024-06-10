@@ -3,11 +3,7 @@ import { useAccount } from 'use-wagmi';
 import type { FunctionName } from '@/utils/warp.write';
 import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
-import {
-  type RelayRow,
-  type RelayTabType,
-  type RelayMeta,
-} from '@/types/relay';
+import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 
@@ -21,8 +17,6 @@ import LockStatusColumn from './columns/LockStatusColumn.vue';
 import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
 import { useRegistrator } from '@/composables/registrator';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
-
-import type { ValidatedRelay } from '@/stores/useMetricsStore';
 
 const toast = useToast();
 const userStore = useUserStore();

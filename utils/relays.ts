@@ -22,11 +22,11 @@ export const getRelaysInfo = async (fingerPrints: string[]) => {
           ator_address: data.ator_address,
           consensus_weight_fraction: data.consensus_weight_fraction,
         };
-        await wait(1000);
       }
     } catch (e) {
       console.error(e);
     }
+    await wait(500);
   }
 
   return relays;

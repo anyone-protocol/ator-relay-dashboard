@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
 import { initRelayRegistry } from '@/composables/relay-registry';
 import { initFacilitator } from '@/composables/facilitator';
 import { formatEther } from 'ethers';
@@ -13,18 +12,22 @@ import Ticker from '@/components/ui-kit/Ticker.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import DataTableMyRelays from '@/components/DataTableMyRelays/DataTableMyRelays.vue';
 import { useFacilitator } from '@/composables/facilitator';
+
 import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 import { initRegistrator, useRegistrator } from '@/composables/registrator';
 import { initToken } from '@/composables/token';
 import { initDistribution, useDistribution } from '@/composables/distribution';
-import { useMetricsStore } from '@/stores/useMetricsStore';
-import { useRegistratorStore } from '~/stores/useRegistratorStore';
+import { useRegistratorStore } from '@/stores/useRegistratorStore';
+import type { ClaimProcess } from '@/types/facilitator';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
 const registratorStore = useRegistratorStore();
 const { isConnected } = useAccount({ config });
+const facilitator = useFacilitator();
 const isRedeemLoading = ref(false);
+const progressLoading = ref(0);
+
 const toast = useToast();
 
 // Get new data every 5 minutes
@@ -44,7 +47,7 @@ initDistribution();
 
 watch(
   () => userStore.userData.address,
-  async (newAddress) => {
+  async (newAddress?: string) => {
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
 
     const facilitator = useFacilitator();
@@ -60,8 +63,17 @@ watch(
   }
 );
 
+watch(
+  () => facilitatorStore.pendingClaim,
+  (updatedPendingClaim: ClaimProcess | null) => {
+    progressLoading.value = updatedPendingClaim ? 2 : 0;
+  }
+);
+
 const handleClaimAllRewards = async () => {
   isRedeemLoading.value = true;
+  progressLoading.value = 1;
+
   try {
     const facilitator = useFacilitator();
     await facilitator?.claim();
@@ -75,6 +87,7 @@ const handleClaimAllRewards = async () => {
   }
 
   isRedeemLoading.value = false;
+  progressLoading.value = 0;
 };
 </script>
 
@@ -132,23 +145,40 @@ const handleClaimAllRewards = async () => {
             </div>
             <div v-if="isConnected" class="redeem flex gap-6 items-center">
               <div class="divider"></div>
-
-              <Button
-                :disabled="
-                  !facilitatorStore.hasClaimableRewards ||
-                  isRedeemLoading ||
-                  !!facilitatorStore.pendingClaim
-                "
-                @onClick="handleClaimAllRewards"
-              >
-                <span v-if="isRedeemLoading || !!facilitatorStore.pendingClaim"
-                  >Processing...</span
+              <div>
+                <Button
+                  :disabled="
+                    !facilitatorStore.hasClaimableRewards ||
+                    isRedeemLoading ||
+                    !!facilitatorStore.pendingClaim
+                  "
+                  @onClick="handleClaimAllRewards"
+                  class="mb-2"
                 >
-                <span v-else-if="facilitatorStore.hasClaimableRewards"
-                  >Redeem Rewards</span
-                >
-                <span v-else>Nothing to Redeem</span>
-              </Button>
+                  <span
+                    v-if="isRedeemLoading || !!facilitatorStore.pendingClaim"
+                    >Processing...</span
+                  >
+                  <span v-else-if="facilitatorStore.hasClaimableRewards"
+                    >Redeem Rewards</span
+                  >
+                  <span v-else>Nothing to Redeem</span>
+                </Button>
+                <div v-if="progressLoading" class="text-center">
+                  <UProgress animation="carousel">
+                    <template #indicator="{ progressLoading }">
+                      <div class="text-center">
+                        <span v-if="progressLoading === 1" class="text-xs">
+                          1 / 2 Accepting Request...
+                        </span>
+                        <span v-else class="text-xs">
+                          2 / 2 Accepting Request...
+                        </span>
+                      </div>
+                    </template>
+                  </UProgress>
+                </div>
+              </div>
             </div>
           </div>
 
