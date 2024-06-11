@@ -14,7 +14,7 @@ const props = defineProps<{
 
 <template>
   <div class="max-w-32" v-if="props.row">
-    <UButton
+    <!-- <UButton
       v-if="!props.isLocked"
       size="xl"
       color="orange"
@@ -27,9 +27,9 @@ const props = defineProps<{
     >
       <div class="text-sm font-medium">Lock</div>
       <div>Lock 100 $ATOR</div>
-    </UButton>
+    </UButton> -->
     <UButton
-      v-else-if="props.row.status === 'claimable' && props.isLocked"
+      v-if="props.row.status === 'claimable'"
       size="xl"
       color="green"
       variant="solid"
@@ -40,7 +40,7 @@ const props = defineProps<{
       block
     />
     <UButton
-      v-else-if="props.row.status === 'verified' || props.isLocked"
+      v-else-if="props.row.status === 'verified'"
       icon="i-heroicons-check-circle-solid"
       size="xl"
       color="green"
