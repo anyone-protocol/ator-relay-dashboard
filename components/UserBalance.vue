@@ -40,7 +40,7 @@ defineProps<{
   <ClientOnly>
     <div>
       <span class="text-4xl font-bold" v-if="isConnected">
-        {{ parseFloat(tokenBalance.formatted).toFixed(3) }}
+        {{ parseFloat(tokenBalance.formatted).toFixed(2) }}
         <Ticker v-if="showTicker" />
       </span>
 
