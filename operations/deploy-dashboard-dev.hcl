@@ -31,6 +31,7 @@ job "deploy-relay-dashboard-dev" {
             NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/sepolia/dev/address" ]]"
             NUXT_PUBLIC_WARP_GATEWAY = "https://warp-dre-node-dev.dmz.ator.dev"
             NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{.Data.data.SUPPORT_ADDRESS_BASE64}}"
+            NUXT_PUBLIC_REGISTRATOR_CONTRACT="0x850eDF904e64a61f175a11bD16A7501496131cc7"
             {{with secret "kv/dashboard/dev"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
             {{end}}
