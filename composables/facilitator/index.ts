@@ -45,8 +45,14 @@ const MULTICALL_ABI = [
     inputs: [
       {
         components: [
-          { name: 'target', type: 'address' },
-          { name: 'callData', type: 'bytes' },
+          {
+            name: 'target',
+            type: 'address',
+          },
+          {
+            name: 'callData',
+            type: 'bytes',
+          },
         ],
         name: 'calls',
         type: 'tuple[]',
@@ -54,11 +60,17 @@ const MULTICALL_ABI = [
     ],
     name: 'aggregate',
     outputs: [
-      { name: 'blockNumber', type: 'uint256' },
-      { name: 'returnData', type: 'bytes[]' },
+      {
+        name: 'blockNumber',
+        type: 'uint256',
+      },
+      {
+        name: 'returnData',
+        type: 'bytes[]',
+      },
     ],
     payable: false,
-    stateMutability: 'nonpayable',
+    stateMutability: 'view',
     type: 'function',
   },
 ];
@@ -75,12 +87,15 @@ export class Facilitator {
     provider: BrowserProvider | AbstractProvider,
     multicallAddress: string
   ) {
-    this.multicallContract = new Contract(
+    const ethersProvider = new ethers.JsonRpcProvider(
+      'https://rpc.sepolia.org'
+    );
+    this.multicallContract = new ethers.Contract(
       '0x25eef291876194aefad0d60dff89e268b90754bb',
       MULTICALL_ABI,
-      provider
+      ethersProvider
     );
-    this.refreshContract(provider);
+    this.refreshContract(ethersProvider);
   }
 
   static buildContract(
