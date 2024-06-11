@@ -26,12 +26,14 @@ export const warpRead = async (
     try {
       const { result } = await relayRegistryContract.viewState({
         function: functionName,
-        test
+        data: {address: address}
       });
+
+      console.log(result);
 
       // Construct the response
       const returnedData = Object.entries(result).map(([key, value]) => {
-        if (value === test) {
+        if (value === address) {
           return {
             fingerprint: key,
             status: functionName,

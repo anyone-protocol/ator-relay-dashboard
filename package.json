@@ -9,7 +9,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "deploy": "pnpm run generate && node deploy.mjs",
-    "prepare": "husky && husky install"
+    "prepare": "husky && husky install",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@irys/query": "0.0.6",

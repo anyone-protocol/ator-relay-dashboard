@@ -58,7 +58,7 @@ export interface MetricsStoreState {
   validation: {
     latest: ValidationStats | null;
     timestamp?: number;
-    transactionIds: string[];
+    transactionIds: string[]; 
   };
   relays: {
     latest: VerificationResultDto[] | null;
