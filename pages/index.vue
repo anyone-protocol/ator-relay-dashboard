@@ -118,7 +118,7 @@ const trancateUserBalance = (userBalance: string | null | bigint) => {
                 <p class="ml-1 mt-2 text-sm"><Ticker /> Account balance</p>
               </UserBalance>
             </div>
-            <!-- <div class="flex flex-col border-l-4 border-cyan-600 pl-3">
+            <div class="flex flex-col border-l-4 border-cyan-600 pl-3">
               <h3>
                 <Icon name="material-symbols:lock" />
                 Locked
@@ -130,7 +130,7 @@ const trancateUserBalance = (userBalance: string | null | bigint) => {
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
               </div>
-            </div> -->
+            </div>
           </div>
         </Card>
       </DashboardMobileSection>

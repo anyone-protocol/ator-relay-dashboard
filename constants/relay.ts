@@ -24,10 +24,10 @@ const defaultColumns: {
     key: 'observedBandwidth',
     label: 'Observed bandwidth',
   },
-  // {
-  //   key: 'lockStatus',
-  //   label: 'Lock Status',
-  // },
+  {
+    key: 'lockStatus',
+    label: 'Lock Status',
+  },
   {
     key: 'status',
     label: 'Registration Status',
@@ -83,10 +83,10 @@ export const TABS = [
     label: 'Claimable relays',
     key: 'claimable',
   },
-  // {
-  //   label: 'Locked Relays',
-  //   key: 'locked',
-  // },
+  {
+    label: 'Locked Relays',
+    key: 'locked',
+  },
 ];
 
 export const VERBS = {
