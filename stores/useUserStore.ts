@@ -9,6 +9,7 @@ import { config } from '@/config/wagmi.config';
 import { getAtorAddress } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
 import { getRelaysInfo } from '@/utils/relays';
+import { hardhat } from 'viem/chains';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -39,6 +40,7 @@ export const useUserStore = defineStore('user', {
       this.tokenBalance = await getBalance(config, {
         token,
         address: this.userData.address as `0x${string}`,
+        chainId: hardhat.id,
       });
     },
     // Get ATOR balance in USD using price store

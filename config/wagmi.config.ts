@@ -16,4 +16,4 @@ export const config = createConfig({
 
 reconnect(config);
 
-export const defaultChain = sepolia;
+export const defaultChain = hardhat;
