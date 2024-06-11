@@ -36,6 +36,8 @@ export const useUserStore = defineStore('user', {
       }
       const token = getAtorAddress() as `0x${string}`;
 
+      console.log("tokenAddress", token);
+
       this.tokenBalance = await getBalance(config, {
         token,
         address: this.userData.address as `0x${string}`,
@@ -94,6 +96,9 @@ export const useUserStore = defineStore('user', {
         //   ...meta,
         // };
       }
+    },
+    async getRelaysMeta() {
+
     },
     async getSerialsRelays() {
       if (!this.userData.address) {

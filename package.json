@@ -9,7 +9,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "deploy": "pnpm run generate && node deploy.mjs",
-    "prepare": "husky"
+    "prepare": "husky && husky install"
   },
   "dependencies": {
     "@irys/query": "0.0.6",
@@ -42,7 +42,7 @@
     "warp-contracts-plugin-ethers": "1.0.8"
   },
   "devDependencies": {
-    "husky": "9.0.11",
+    "husky": "^8.0.0",
     "lint-staged": "15.2.4",
     "prettier": "3.2.5"
   },
