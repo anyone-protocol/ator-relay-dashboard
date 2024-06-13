@@ -18,6 +18,11 @@ export const config = createConfig({
 
 export const wagmiConfig = defaultWagmiConfig({
   chains: [mainnet, sepolia],
+  transports: {
+    [mainnet.id]: http(),
+    [sepolia.id]: http(),
+    [hardhat.id]: http(),
+  },
   projectId,
   metadata,
   ssr: false,

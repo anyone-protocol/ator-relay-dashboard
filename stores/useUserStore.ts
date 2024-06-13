@@ -36,14 +36,14 @@ export const useUserStore = defineStore('user', {
       }
       const token = getAtorAddress() as `0x${string}`;
 
-      console.log("tokenAddress", token);
+      console.log('tokenAddress', token);
 
       this.tokenBalance = await getBalance(config, {
         token,
         address: this.userData.address as `0x${string}`,
       });
     },
-    // Get ATOR balance in USD using price store
+    // Get ATOR balance in USD using price store (Change to Mainnet address to show correct price)
     async getUsdTokenBalance() {
       const priceStore = usePriceStore();
       await priceStore.fetchPrice();
@@ -97,9 +97,7 @@ export const useUserStore = defineStore('user', {
         // };
       }
     },
-    async getRelaysMeta() {
-
-    },
+    async getRelaysMeta() {},
     async getSerialsRelays() {
       if (!this.userData.address) {
         this.serials = [];

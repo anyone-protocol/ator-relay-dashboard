@@ -210,6 +210,13 @@ export class Registrator {
           title: 'Error',
           description: `Error redeen rewards: ${msg}`,
         });
+      } else {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: 'User denied transaction signature.',
+        });
       }
 
       console.error(ERRORS.FUNDING_ORACLE, error);

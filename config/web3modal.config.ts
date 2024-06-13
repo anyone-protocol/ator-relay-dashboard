@@ -13,6 +13,12 @@ export const getAtorAddress = () => {
   return runtimeConfig.public.sepoliaAtorTokenContract;
 };
 
+export const getAtorAddressMain = () => {
+  const runtimeConfig = useRuntimeConfig();
+
+  return runtimeConfig.public.tokenContractMain;
+};
+
 // https://docs.walletconnect.com/web3modal/vue/theming
 export const themeVariables = {
   '--w3m-accent': '#06b6d4',
