@@ -9,6 +9,8 @@ import {
 
 import { abi } from './Registrator.json';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
+import { useUserStore } from '@/stores/useUserStore'; // Import the user store
+
 import { useToken } from '../token';
 import type { LokedRelaysResponse, LokedRelaysType } from '~/types/registrator';
 
@@ -95,6 +97,8 @@ export class Registrator {
     if (auth.userData?.address) {
       lockedRelays = await this.getLokedRelaysTokens(auth.userData.address);
       currentLockSize = await this.getCurrentLockSize(auth.userData.address);
+      await auth.getTokenBalance();
+      await auth.getUsdTokenBalance();
     }
 
     console.timeEnd();
