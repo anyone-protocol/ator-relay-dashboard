@@ -97,8 +97,6 @@ export class Registrator {
     if (auth.userData?.address) {
       lockedRelays = await this.getLokedRelaysTokens(auth.userData.address);
       currentLockSize = await this.getCurrentLockSize(auth.userData.address);
-      await auth.getTokenBalance();
-      await auth.getUsdTokenBalance();
     }
 
     console.timeEnd();
@@ -194,6 +192,8 @@ export class Registrator {
 
       await result.wait();
       await this.refresh();
+      await auth.getTokenBalance();
+      await auth.getUsdTokenBalance();
 
       toast.add({
         icon: 'i-heroicons-check-circle',
