@@ -131,10 +131,10 @@ const handleClaimAllRewards = async () => {
 
       <DashboardMobileSection class="lg:basis-1/2" title="my-rewards">
         <Card>
-          <div class="flex justify-between items-center flex-col lg:flex-row mb-2 lg:mb-0">
+          <div class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0">
             <div>
               <h2
-                class="dark:text-cyan-200 lg:text-3xl text-2xl tracking-wide flex items-center gap-2 font-brand"
+                class="dark:text-cyan-200 lg:text-3xl text-2xl tracking-wide flex items-center  gap-2 font-brand"
               >
                 <Icon name="eos-icons:trusted-organization" />
                 Rewards history
