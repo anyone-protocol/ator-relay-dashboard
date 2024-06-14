@@ -3,7 +3,7 @@ import { initRelayRegistry } from '@/composables/relay-registry';
 import { initFacilitator } from '@/composables/facilitator';
 import { formatEther } from 'ethers';
 
-import { useAccount } from 'use-wagmi';
+import { useAccount } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 

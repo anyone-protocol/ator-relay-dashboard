@@ -1,7 +1,7 @@
 import { formatEther } from 'viem';
-import { useAccount } from 'use-wagmi';
-import { getBalance } from 'use-wagmi/actions';
-import { type GetBalanceReturnType } from 'use-wagmi/actions';
+import { useAccount } from '@wagmi/vue';
+import { getBalance } from '@wagmi/core';
+import { type GetBalanceReturnType } from '@wagmi/core';
 import type { RelayMeta } from '@/types/relay';
 
 import { warpRead, warpReadSerials } from '@/utils/warp.read';

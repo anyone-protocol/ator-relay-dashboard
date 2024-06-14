@@ -88,7 +88,7 @@ export class Facilitator {
     multicallAddress: string
   ) {
     const ethersProvider = new ethers.JsonRpcProvider(
-      'https://rpc.sepolia.org'
+      'https://rpc2.sepolia.org'
     );
     this.multicallContract = new ethers.Contract(
       '0x25eef291876194aefad0d60dff89e268b90754bb',

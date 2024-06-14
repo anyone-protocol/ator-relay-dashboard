@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useAccount } from 'use-wagmi';
+import { useAccount } from '@wagmi/vue';
 import type { FunctionName } from '@/utils/warp.write';
 import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
@@ -25,7 +25,7 @@ const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
-const { address } = useAccount({ config });
+const { address } = useAccount({ config});
 const currentTab = ref<RelayTabType>('all');
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store

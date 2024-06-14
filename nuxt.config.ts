@@ -40,7 +40,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/ui', '@pinia/nuxt', '@use-wagmi/nuxt'],
+  modules: ['@nuxt/ui', '@pinia/nuxt'],
 
   // This is used instead on env file
   // See: https://nuxt.com/docs/guide/going-further/runtime-config

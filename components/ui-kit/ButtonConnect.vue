@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useWeb3Modal } from '@web3modal/wagmi/vue';
-import { useAccount } from 'use-wagmi';
-import { wagmiConfig } from '@/config/wagmi.config';
+import { useAccount, useDisconnect } from '@wagmi/vue';
+import { config } from '@/config/wagmi.config';
 import Address from './Address.vue';
 
 const { address, status, isDisconnected, isReconnecting, isConnecting } =
-  useAccount({ config:wagmiConfig as any });
+  useAccount({ config });
 
 const { open } = useWeb3Modal();
-const { disconnect } = useDisconnect({ config:wagmiConfig as any  });
+const { disconnect } = useDisconnect({ config  });
 
 const handleDisconnect = () => {
   disconnect();

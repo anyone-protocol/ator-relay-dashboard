@@ -6,34 +6,32 @@
 </template>
 
 <script setup lang="ts">
-import { reconnect } from 'use-wagmi/actions';
-import { mainnet, sepolia, hardhat } from 'use-wagmi/chains';
-import { createWeb3Modal} from '@web3modal/wagmi/vue';
-import {
-  getAtorAddress,
-  themeVariables,
-} from '@/config/web3modal.config';
-import { wagmiConfig } from '@/config/wagmi.config';
+  import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/vue'
 
-const chains = [mainnet, sepolia, hardhat];
+import { mainnet, sepolia } from 'viem/chains'
+import { reconnect } from '@wagmi/core'
+import { metadata } from '@/config/web3modal.config';
+import {config} from '@/config/wagmi.config'
+import { watchAccount } from '@wagmi/core'
+
 const nuxtConfig = useRuntimeConfig();
 const projectId = nuxtConfig.public.walletConnectProjectId;
 
 
+reconnect(config)
+// 3. Create modal
 createWeb3Modal({
-  chains,
-  tokens: {
-    1: {
-      address: getAtorAddress(),
-      image: '/images/ator-logo.png',
-    },
-  },
+  wagmiConfig: config,
   projectId,
-  wagmiConfig: wagmiConfig,
-  themeVariables,
-});
+  metadata,
+  defaultChain: sepolia,
+})
 
-onMounted(() => {
-  void reconnect(wagmiConfig);
-});
+const unwatch = watchAccount(config, {
+  onChange(account) { 
+    console.log('Account changed!', account)
+  },
+})
+unwatch()
+
 </script>

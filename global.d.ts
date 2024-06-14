@@ -5,3 +5,9 @@ declare global {
     ethereum: Eip1193Provider;
   }
 }
+
+declare module '@wagmi/vue' {
+  interface Register {
+    config: typeof config;
+  }
+}

@@ -12,7 +12,7 @@ export const useSuggestMetaMask = () =>
 export const suggestMetaMask = useSuggestMetaMask();
 
 let provider: AbstractProvider | BrowserProvider = ethers.getDefaultProvider(
-  "https://rpc.sepolia.org",
+  'https://rpc2.sepolia.org',
   {
     // NB: Required to force fallback provider. Errors with sepolia otherwise.
     alchemy: '-',
