@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   ssr: false,
 
@@ -47,9 +47,10 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
-      relayRegistryAddress: 'dvaRvbXviuoPLSniksgxq6D_rkjDNWG46URnIJLwMUA',
+      relayRegistryAddress: 'w31pOm7jnaa6urAB3w9AXlFBWdpcDHMxHdkBCaw3ZCs',
       facilitatorContract: '0xC46E912231F1792830b8590d4fcA19d2Ac491ed4',
       sepoliaAtorTokenContract: '0xef775699f295bc9f7c4e6b3224a9541572e9a7bb',
+      tokenContractMain: '0x0f7b3f5a8fed821c5eb60049538a548db2d479ce',
       distributionContract: 'zOkPxTrRYVQ7IplTnEyTgt9iBDarhhWJjibm8UXI6Q0',
       metricsDeployer: '53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q',
       registratorContract: '0x525C31B35065540059701eE5feC12120F581E96e',

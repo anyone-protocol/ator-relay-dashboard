@@ -5,10 +5,10 @@ import { wagmiConfig } from '@/config/wagmi.config';
 import Address from './Address.vue';
 
 const { address, status, isDisconnected, isReconnecting, isConnecting } =
-  useAccount({ config:wagmiConfig });
+  useAccount({ config:wagmiConfig as any });
 
 const { open } = useWeb3Modal();
-const { disconnect } = useDisconnect({ config:wagmiConfig  });
+const { disconnect } = useDisconnect({ config:wagmiConfig as any  });
 
 const handleDisconnect = () => {
   disconnect();

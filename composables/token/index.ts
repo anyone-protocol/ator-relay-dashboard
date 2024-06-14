@@ -77,6 +77,15 @@ export class Token {
     const toast = useToast();
     try {
       this.contract.connect(this.signer);
+      const currentAllowance = await this.allowance(
+        this.signer.address,
+        address
+      );
+      console.log('currentAllowance', currentAllowance.toString());
+      console.log('amount', amount.toString());
+      if (currentAllowance >= amount) {
+        return null;
+      }
 
       const result = await this.contract.approve(address, amount);
 
@@ -97,6 +106,18 @@ export class Token {
     }
 
     return null;
+  }
+
+  async allowance(owner: string, spender: string): Promise<bigint> {
+    if (!this.contract) {
+      throw new Error(ERRORS.NOT_INITIALIZED);
+    }
+    try {
+      return await this.contract.allowance(owner, spender);
+    } catch (error) {
+      console.error('Error fetching allowance', error);
+      return BigInt(0);
+    }
   }
 }
 
