@@ -35,12 +35,15 @@ export const useUserStore = defineStore('user', {
         return;
       }
       const token = getAtorAddress() as `0x${string}`;
+
+      console.log('tokenAddress', token);
+
       this.tokenBalance = await getBalance(config, {
         token,
         address: this.userData.address as `0x${string}`,
       });
     },
-    // Get ATOR balance in USD using price store (Change to Mainnet address to show correct price)
+    // Get ATOR balance in USD using price store
     async getUsdTokenBalance() {
       const priceStore = usePriceStore();
       await priceStore.fetchPrice();
@@ -70,6 +73,15 @@ export const useUserStore = defineStore('user', {
         //   ...this.relaysMeta,
         //   ...meta,
         // };
+      } else {
+        const toast = useToast();
+        toast.add({
+          icon: 'i-heroicons-check-circle',
+          color: 'amber',
+          title: 'Error',
+          timeout: 10000,
+          description: `Error fetching verified relays, rate limited...`,
+        });
       }
     },
     // Get claimable relays using Warp
@@ -83,6 +95,7 @@ export const useUserStore = defineStore('user', {
 
       if (claimable.status === 200) {
         const relays = await claimable.json();
+        console.log(relays.relays);
         this.claimableRelays = relays.relays;
         // const meta = await getRelaysInfo(
         //   relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
@@ -91,6 +104,20 @@ export const useUserStore = defineStore('user', {
         //   ...this.relaysMeta,
         //   ...meta,
         // };
+      } else {
+        const toast = useToast();
+        toast.add({
+          icon: 'i-heroicons-check-circle',
+          color: 'amber',
+          title: 'Error',
+          timeout: 10000,
+          description: `Error fetching claimable relays, rate limited...`,
+        });
+
+        // wait for 8 seconds then redo the request
+        setTimeout(() => {
+          this.getClaimableRelays();
+        }, 10000);
       }
     },
     async getRelaysMeta() {},
