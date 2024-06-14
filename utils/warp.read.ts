@@ -4,8 +4,10 @@ import { responseOutput } from '@/utils/responseOutput';
 
 type FunctionName = 'verified' | 'claimable' | 'serials';
 
-var test = "0x722256e823bCB92D2C9510Bf185149Ef167f3903";
+// test address for relays
+var test = '0x722256e823bCB92D2C9510Bf185149Ef167f3903';
 
+// getting the relays, either claimed or verified, by using corresponding function name and user's EVM address.
 export const warpRead = async (
   address: `0x${string}`,
   functionName: FunctionName
@@ -26,43 +28,38 @@ export const warpRead = async (
     try {
       const { result } = await relayRegistryContract.viewState({
         function: functionName,
-        data: {address: address}
+        address: address
       });
 
       console.log(result);
 
-      // Construct the response
-      const returnedData = Object.entries(result).map(([key, value]) => {
-        if (value === address) {
-          return {
-            fingerprint: key,
-            status: functionName,
-            active: true,
-            class: '',
-          };
+      const relays = result.map((relay: string) => {
+        return {
+          fingerprint: relay,
+          status: functionName,
+          active: true,
+          class: ''
         }
-        return null;
-      }).filter(entry => entry !== null);
+      })
+
+      console.log(relays)
   
-      const count = Object.keys(result as object).length;
+      const count = relays.length;
       const message =
         count === 0
           ? `No ${functionName} relays found`
           : `Success. All ${functionName} relays fetched.`;
 
-      
-      console.log(returnedData);
-  
+        
       resolve(responseOutput({
         data: {
           count,
-          relays: returnedData,
+          relays: relays,
         },
         message,
         status: 200,
       }))
     } catch (error) {
-      console.log("error: ", error)
       resolve(responseOutput({
         data: error,
         status: 500,
@@ -93,7 +90,7 @@ export const warpReadSerials = async (
 
   try {
     const { state } = await relayRegistryContract.viewState({
-      data: {address: address},
+      data: { address: address },
     });
 
     // Construct the response
