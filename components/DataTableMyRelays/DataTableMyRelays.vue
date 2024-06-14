@@ -6,6 +6,7 @@ import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
+import { debounce } from 'lodash';
 
 import Tabs from '../ui-kit/Tabs.vue';
 import Tooltip from '../ui-kit/Tooltip.vue';
@@ -57,14 +58,23 @@ const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
 
+
+
+const debounceRefresh = debounce(async () => {
+  await verifiedRelaysRefresh();
+  await claimableRelaysRefresh();
+}, 500);
+
+
 const relayAction = async (action: FunctionName, fingerprint: string) => {
-  //TODO: Sign the message
+    //TODO: Sign the message
   // See: The following resources
   // https://academy.warp.cc/docs/sdk/advanced/plugins/signature
   // https://github.com/brewlabs-code/ator/blob/main/composables/warp-signer.ts
   // https://docs.google.com/document/d/1VLRd2bP96avNZksMwrf8WSDmcAwrcaQpYAd5SUGDhx0/edit?pli=1#heading=h.gtsv79v2cvnl
 
   // Apply style to the selected row
+  
   const selectedRow = allRelays.value.find(
     (row) => row.fingerprint === fingerprint
   );
@@ -73,35 +83,33 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
 
   try {
     switch (action) {
-      case 'claim': {
+      case 'claim':
         const res = await registry.claim(fingerprint);
-
         if (!res) {
           selectedRow!.class = '';
           selectedRow!.isWorking = false;
           return;
         }
-
         break;
-      }
 
       case 'renounce':
         await registry.renounce(fingerprint);
         break;
     }
 
-    // Refresh the relays
-    await verifiedRelaysRefresh();
-    await claimableRelaysRefresh();
+    // Update the selected row status immediately
+    selectedRow!.isWorking = false;
+    selectedRow!.class = '';
+
+    // Debounced refresh
+    debounceRefresh();
 
     toast.add({
       icon: 'i-heroicons-check-circle',
       color: 'primary',
       title: 'Success',
       timeout: 0,
-      description: `Successfully ${
-        VERBS[action].pastTense
-      } relay ${truncatedAddress(fingerprint)}!`,
+      description: `Successfully ${VERBS[action].pastTense} relay ${truncatedAddress(fingerprint)}!`,
     });
   } catch (error) {
     // @ts-ignore
@@ -110,16 +118,15 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
         icon: 'i-heroicons-x-circle',
         color: 'amber',
         title: 'Error',
-        description: `Error ${
-          VERBS[action].presentTense
-        } relay ${truncatedAddress(fingerprint)}!`,
+        description: `Error ${VERBS[action].presentTense} relay ${truncatedAddress(fingerprint)}!`,
       });
     }
+  } finally {
+    selectedRow!.class = '';
+    selectedRow!.isWorking = false;
   }
-
-  selectedRow!.class = '';
-  selectedRow!.isWorking = false;
 };
+
 
 // Table columns and actions
 
@@ -156,13 +163,24 @@ const handleLockRelay = async (fingerprint: string) => {
   }
 };
 
+const filterUniqueRelays = (relays: RelayRow[]) => {
+  const seen = new Set();
+  return relays.filter((relay) => {
+    const duplicate = seen.has(relay.fingerprint);
+    seen.add(relay.fingerprint);
+    return !duplicate;
+  });
+};
+
 const getTableData = (tab: RelayTabType) => {
   switch (tab) {
     case 'all':
-      return allRelays.value;
+      return filterUniqueRelays(allRelays.value);
     case 'locked':
-      return allRelays.value.filter((relay) =>
-        registratorStore.isRelayLocked(relay.fingerprint)
+      return filterUniqueRelays(
+        allRelays.value.filter((relay) =>
+          registratorStore.isRelayLocked(relay.fingerprint)
+        )
       );
     case 'claimable':
       return claimableRelays.value;
