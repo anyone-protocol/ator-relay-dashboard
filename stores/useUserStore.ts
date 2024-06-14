@@ -36,8 +36,11 @@ export const useUserStore = defineStore('user', {
       }
       const token = getAtorAddress() as `0x${string}`;
 
+<<<<<<< Updated upstream
       console.log("tokenAddress", token);
 
+=======
+>>>>>>> Stashed changes
       this.tokenBalance = await getBalance(config, {
         token,
         address: this.userData.address as `0x${string}`,
@@ -86,7 +89,6 @@ export const useUserStore = defineStore('user', {
 
       if (claimable.status === 200) {
         const relays = await claimable.json();
-        console.log(relays.relays);
         this.claimableRelays = relays.relays;
         // const meta = await getRelaysInfo(
         //   relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)

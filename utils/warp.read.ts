@@ -4,28 +4,34 @@ import { responseOutput } from '@/utils/responseOutput';
 
 type FunctionName = 'verified' | 'claimable' | 'serials';
 
-var test = "0x722256e823bCB92D2C9510Bf185149Ef167f3903";
+var test = '0x722256e823bCB92D2C9510Bf185149Ef167f3903';
 
+// getting the relays, either claimed or verified, by using corresponding function name and user's EVM address.
 export const warpRead = async (
   address: `0x${string}`,
   functionName: FunctionName
 ) => {
-  return new Promise(async (resolve,reject) => {
+  return new Promise(async (resolve, reject) => {
     if (!address)
-      resolve(responseOutput({
-        status: 400,
-        message: 'No address provided',
-      }));
-  
+      resolve(
+        responseOutput({
+          status: 400,
+          message: 'No address provided',
+        })
+      );
+
     if (!isAddress(address))
-      resolve(responseOutput({
-        status: 400,
-        message: 'Invalid address provided',
-      }));
-    
+      resolve(
+        responseOutput({
+          status: 400,
+          message: 'Invalid address provided',
+        })
+      );
+
     try {
       const { result } = await relayRegistryContract.viewState({
         function: functionName,
+<<<<<<< Updated upstream
         test
       });
 
@@ -43,31 +49,50 @@ export const warpRead = async (
       }).filter(entry => entry !== null);
   
       const count = Object.keys(result as object).length;
+=======
+        address: address,
+      });
+
+      console.log(result);
+
+      const relays = result.map((relay: string) => {
+        return {
+          fingerprint: relay,
+          status: functionName,
+          active: true,
+          class: '',
+        };
+      });
+
+      console.log(relays);
+
+      const count = relays.length;
+>>>>>>> Stashed changes
       const message =
         count === 0
           ? `No ${functionName} relays found`
           : `Success. All ${functionName} relays fetched.`;
 
-      
-      console.log(returnedData);
-  
-      resolve(responseOutput({
-        data: {
-          count,
-          relays: returnedData,
-        },
-        message,
-        status: 200,
-      }))
+      resolve(
+        responseOutput({
+          data: {
+            count,
+            relays: relays,
+          },
+          message,
+          status: 200,
+        })
+      );
     } catch (error) {
-      console.log("error: ", error)
-      resolve(responseOutput({
-        data: error,
-        status: 500,
-        message: 'Error',
-      }));
+      resolve(
+        responseOutput({
+          data: error,
+          status: 500,
+          message: 'Error',
+        })
+      );
     }
-  })
+  });
 };
 
 export const warpReadSerials = async (
@@ -91,7 +116,7 @@ export const warpReadSerials = async (
 
   try {
     const { state } = await relayRegistryContract.viewState({
-      data: {address: address},
+      data: { address: address },
     });
 
     // Construct the response
