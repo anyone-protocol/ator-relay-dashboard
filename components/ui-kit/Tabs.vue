@@ -42,6 +42,7 @@ const changeTab = (key: string) => {
 <style scoped lang="scss">
 .tabs {
   position: relative;
+  text-align: center;
   display: flex;
   width: 100%;
   margin-bottom: 24px;
