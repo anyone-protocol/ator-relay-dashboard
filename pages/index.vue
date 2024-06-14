@@ -104,10 +104,10 @@ const handleClaimAllRewards = async () => {
             The connected wallet shows the following balance:
           </p>
 
-          <div class="flex gap-32">
+          <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row">
             <div class="border-l-4 border-cyan-600 pl-3">
               <UserBalance
-                class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
+                class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500 "
               >
                 <p class="ml-1 mt-2 text-sm"><Ticker /> Account balance</p>
               </UserBalance>
@@ -131,7 +131,7 @@ const handleClaimAllRewards = async () => {
 
       <DashboardMobileSection class="lg:basis-1/2" title="my-rewards">
         <Card>
-          <div class="flex justify-between items-center">
+          <div class="flex justify-between items-center flex-col lg:flex-row mb-2 lg:mb-0">
             <div>
               <h2
                 class="dark:text-cyan-200 lg:text-3xl text-2xl tracking-wide flex items-center gap-2 font-brand"
@@ -144,7 +144,7 @@ const handleClaimAllRewards = async () => {
               </p>
             </div>
             <div v-if="isConnected" class="redeem flex gap-6 items-center">
-              <div class="divider"></div>
+              <div class="divider  hidden lg:visible"></div>
               <div>
                 <Button
                   :disabled="
@@ -182,7 +182,7 @@ const handleClaimAllRewards = async () => {
             </div>
           </div>
 
-          <div class="flex gap-32">
+          <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
               <h3>Claimed rewards</h3>
               <div class="inline-flex items-baseline gap-2">
