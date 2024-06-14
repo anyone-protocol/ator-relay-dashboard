@@ -9,6 +9,7 @@ import { config } from '@/config/wagmi.config';
 import { getAtorAddress } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
 import { getRelaysInfo } from '@/utils/relays';
+import { toDisplayString } from 'vue';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -60,32 +61,12 @@ export const useUserStore = defineStore('user', {
       }
 
       const verified = await warpRead(this.userData.address, 'verified');
-      // const serials = await warpRead(this.userData.address, 'serials');
-
       if (verified.status === 200) {
         const relays = await verified.json();
-
         this.verifiedRelays = relays.relays;
-        // const meta = await getRelaysInfo(
-        //   relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
-        // );
-        // this.relaysMeta = {
-        //   ...this.relaysMeta,
-        //   ...meta,
-        // };
-      } else {
-        const toast = useToast();
-        toast.add({
-          icon: 'i-heroicons-check-circle',
-          color: 'amber',
-          title: 'Error',
-          timeout: 150000,
-          description: `Error fetching verified relays, rate limited...`,
-        });
-
-        setTimeout(() => {
-          this.getVerifiedRelays();
-        }, 15000);
+      } else if (verified.status === 500) {
+        this.verifiedRelays = [];
+        throw new Error('rate limited');
       }
     },
     // Get claimable relays using Warp
@@ -97,6 +78,7 @@ export const useUserStore = defineStore('user', {
 
       const claimable = await warpRead(this.userData.address, 'claimable');
 
+      // make this keep retrying until it gets a 200 status
       if (claimable.status === 200) {
         const relays = await claimable.json();
         console.log(relays.relays);
@@ -108,20 +90,39 @@ export const useUserStore = defineStore('user', {
         //   ...this.relaysMeta,
         //   ...meta,
         // };
-      } else {
-        const toast = useToast();
-        toast.add({
-          icon: 'i-heroicons-check-circle',
-          color: 'amber',
-          title: 'Error',
-          timeout: 15000,
-          description: `Error fetching claimable relays, rate limited...`,
-        });
-
-        // wait for 8 seconds then redo the request
-        setTimeout(() => {
-          this.getClaimableRelays();
-        }, 15000);
+      } else if (claimable.status === 500) {
+        this.claimableRelays = [];
+        throw new Error('rate limited');
+      }
+    },
+    async claimRelayRefresh() {
+      var error = true;
+      const toast = useToast();
+      // keep trying until it gets a 200 status
+      while (error) {
+        try {
+          await this.getClaimableRelays();
+          error = false;
+          toast.remove('claimable-relays-error');
+        } catch (e) {
+          console.log(e);
+          await new Promise((resolve) => setTimeout(resolve, 15000));
+        }
+      }
+    },
+    async verifiedRelaysRefresh() {
+      var error = true;
+      const toast = useToast();
+      // keep trying until it gets a 200 status
+      while (error) {
+        try {
+          await this.getVerifiedRelays();
+          error = false;
+          toast.remove('verified-relays-error');
+        } catch (e) {
+          console.log(e);
+          await new Promise((resolve) => setTimeout(resolve, 15000));
+        }
       }
     },
     async getRelaysMeta() {},
