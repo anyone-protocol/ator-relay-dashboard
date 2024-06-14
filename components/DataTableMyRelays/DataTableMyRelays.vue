@@ -35,7 +35,7 @@ const {
   pending: verifiedPending,
 } = await useAsyncData(
   'verifiedRelays',
-  () => userStore.getVerifiedRelays().then(() => true),
+  () => userStore.getVerifiedRelays(),
   { server: false, watch: [address] }
 );
 const {
@@ -44,9 +44,29 @@ const {
   pending: claimablePending,
 } = await useAsyncData(
   'claimableRelays',
-  () => userStore.getClaimableRelays().then(() => true),
+  () => userStore.getClaimableRelays(),
   { watch: [address] }
 );
+
+if (claimableRelaysError.value?.cause?.message == "rate limited" || verifiedRelaysError.value?.cause?.message == "rate limited") {
+  toast.add({
+      id: "claimable-relays-error",
+      icon: 'i-heroicons-exclamation-triangle',
+      color: 'primary',
+      title: 'Arweave rate limit exceeded!',
+      timeout: 0,
+      description: 'Please wait...',
+    });
+  if (claimableRelaysError.value != null) {
+    userStore.claimRelayRefresh().then(() => claimableRelaysError.value = null);
+  } else if (verifiedRelaysError.value != null) {
+    userStore.verifiedRelaysRefresh().then(() => verifiedRelaysError.value = null);
+  } else {
+    userStore.claimRelayRefresh().then(() => claimableRelaysError.value = null);
+    userStore.verifiedRelaysRefresh().then(() => verifiedRelaysError.value = null);
+  }
+  // keep trying to fetch the claimable relays
+}
 
 const timestamp = computed(
   () => metricsStore.relays.timestamp && new Date(metricsStore.relays.timestamp)
@@ -192,7 +212,7 @@ const getObservedBandwidth = (fingerprint: string) => {
 <template>
   <div class="-mx-4 sm:-mx-0">
     <UAlert
-      v-if="verifiedRelaysError || claimableRelaysError"
+      v-if="verifiedRelaysError?.value || claimableRelaysError?.value"
       class="mb-6"
       icon="i-heroicons-exclamation-triangle"
       description="There was an error retrieving relays. We'll load what we can."
