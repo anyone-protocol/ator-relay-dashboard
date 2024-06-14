@@ -79,9 +79,13 @@ export const useUserStore = defineStore('user', {
           icon: 'i-heroicons-check-circle',
           color: 'amber',
           title: 'Error',
-          timeout: 10000,
+          timeout: 150000,
           description: `Error fetching verified relays, rate limited...`,
         });
+
+        setTimeout(() => {
+          this.getVerifiedRelays();
+        }, 15000);
       }
     },
     // Get claimable relays using Warp
@@ -110,14 +114,14 @@ export const useUserStore = defineStore('user', {
           icon: 'i-heroicons-check-circle',
           color: 'amber',
           title: 'Error',
-          timeout: 10000,
+          timeout: 15000,
           description: `Error fetching claimable relays, rate limited...`,
         });
 
         // wait for 8 seconds then redo the request
         setTimeout(() => {
           this.getClaimableRelays();
-        }, 10000);
+        }, 15000);
       }
     },
     async getRelaysMeta() {},
