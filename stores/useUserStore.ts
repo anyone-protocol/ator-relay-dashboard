@@ -37,8 +37,6 @@ export const useUserStore = defineStore('user', {
       }
       const token = getAtorAddress() as `0x${string}`;
 
-      console.log('tokenAddress', token);
-
       this.tokenBalance = await getBalance(config, {
         token,
         address: this.userData.address as `0x${string}`,
@@ -81,7 +79,6 @@ export const useUserStore = defineStore('user', {
       // make this keep retrying until it gets a 200 status
       if (claimable.status === 200) {
         const relays = await claimable.json();
-        console.log(relays.relays);
         this.claimableRelays = relays.relays;
         // const meta = await getRelaysInfo(
         //   relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
@@ -105,7 +102,6 @@ export const useUserStore = defineStore('user', {
           error = false;
           toast.remove('claimable-relays-error');
         } catch (e) {
-          console.log(e);
           await new Promise((resolve) => setTimeout(resolve, 15000));
         }
       }
@@ -120,7 +116,6 @@ export const useUserStore = defineStore('user', {
           error = false;
           toast.remove('verified-relays-error');
         } catch (e) {
-          console.log(e);
           await new Promise((resolve) => setTimeout(resolve, 15000));
         }
       }

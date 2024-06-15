@@ -17,5 +17,8 @@ export const useRegistratorStore = defineStore('registrator', {
     isRelayLocked(fingerprint: string) {
       return this.lokedRelays[fingerprint] !== undefined;
     },
+    getUnlockTime(fingerprint: string) {
+      return this.lokedRelays[fingerprint]?.unlockedAt;
+    },
   },
 });

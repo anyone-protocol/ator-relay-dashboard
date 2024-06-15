@@ -76,7 +76,6 @@ const timestamp = computed(
 const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
-
 const relayAction = async (action: FunctionName, fingerprint: string) => {
   //TODO: Sign the message
   // See: The following resources
@@ -207,6 +206,21 @@ const getObservedBandwidth = (fingerprint: string) => {
       .toFormat(3) + ' MiB/s'
   );
 };
+
+const handleUnlockClick = (fingerprint: string) => {
+  console.log('Unlocking relay', fingerprint);
+  if (registratorStore.isRelayLocked(fingerprint)) {
+    toast.remove('unlock-relays-error');
+    toast.add({
+      id: "unlock-relays-error",
+      icon: 'i-heroicons-exclamation-triangle',
+      color: 'amber',
+      title: 'Unlock failed',
+      timeout: 0,
+      description: `This relay is currently locked. It unlocks at block: ${registratorStore.getUnlockTime(fingerprint)}`,
+    })
+  }
+}
 </script>
 
 <template>
@@ -364,13 +378,16 @@ const getObservedBandwidth = (fingerprint: string) => {
       <template #unlock-data="{ row }">
         <UButton
           :ui="{ base: 'text-sm' }"
+          :class="
+            registratorStore.isRelayLocked(row.fingerprint) ? 'cursor-not-allowed' : ''
+          "
           icon="i-heroicons-check-circle-solid"
           size="xl"
           color="green"
           variant="outline"
           label="Unlock"
-          :disabled="true"
           :trailing="false"
+          @click="handleUnlockClick(row.fingerprint)"
         />
       </template>
       <template #owner-data="{ row }">
@@ -406,5 +423,9 @@ const getObservedBandwidth = (fingerprint: string) => {
 
 .status-inactive {
   background: #fa5858;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
 }
 </style>

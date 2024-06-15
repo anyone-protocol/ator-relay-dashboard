@@ -120,17 +120,21 @@ export class Registrator {
     )) as {
       data: LokedRelaysResponse;
     };
+
     let totalLockedTokens = 0n;
     const lokedRelays = lokedRelaysReponse.data.reduce((acc, item) => {
       if (item[3]) {
         acc[item[3]] = {
           amount: item[0],
           owner: item[2],
+          unlockedAt: item[1],
         };
         totalLockedTokens += item[0];
       }
       return acc;
     }, {} as LokedRelaysType);
+
+    console.log(lokedRelays);
 
     if (address === useUserStore().userData?.address) {
       useRegistratorStore().lokedRelays = lokedRelays;
