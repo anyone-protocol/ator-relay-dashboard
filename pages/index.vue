@@ -19,6 +19,9 @@ import { initToken } from '@/composables/token';
 import { initDistribution, useDistribution } from '@/composables/distribution';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import type { ClaimProcess } from '@/types/facilitator';
+import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
+import  ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
+
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -96,13 +99,17 @@ const handleClaimAllRewards = async () => {
     class="relative grid grid-flow-row grid-cols-1 pt-4 lg:pt-0 gap-6 lg:grid-cols-6"
   >
     <div
-      class="flex w-full flex-col gap-4 lg:flex-row lg:col-span-6 lg:flex-row-reverse"
+      class="flex w-full flex-col gap-4  lg:col-span-6 lg:flex-row-reverse"
     >
       <DashboardMobileSection class="lg:basis-1/2" title="account-balance">
         <Card title="Account balance" :icon="'eos-icons:master-outlined'">
+          <div class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0">
+
           <p class="mb-4 text-sm">
             The connected wallet shows the following balance:
           </p>
+          <ReportIssueButton />
+        </div>
 
           <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row">
             <div class="border-l-4 border-cyan-600 pl-3">
@@ -218,6 +225,10 @@ const handleClaimAllRewards = async () => {
       <DataTableMyRelays />
     </Card>
   </DashboardMobileSection>
+  <ReportIssueDialog />
+  <SupportIssueDialog />
+
+
 </template>
 
 <style scoped lang="scss">
