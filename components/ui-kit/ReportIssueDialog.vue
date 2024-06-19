@@ -147,31 +147,8 @@ const onReportIssueClicked = debounce(async () => {
     const baseBody = `**Description**\n${description}`
     let encryptedBody = ''
 
-    const supportIssue: SupportIssue = {
-      address: auth.userData?.address || 'anonymous',
-      logs: eventlog.logs,
-      host: window.location.host,
-      path: route.path,
-      phase: config.public.phase || 'unknown'
-    }
-
-    console.log(supportIssue);
-
-    const { encrypted, publicKey, nonce } = encrypt(
-      JSON.stringify(supportIssue),
-      config.public.supportWalletPublicKeyBase64
-    )
-
-    const encryptedPayload: EncryptedPayload = {
-      encrypted: hexlify(encrypted),
-      nonce: hexlify(nonce),
-      publicKey: hexlify(publicKey)
-    }
-
-    const logsJson = JSON.stringify(encryptedPayload)
-
-    if (encryptedPayload && encryptedPayload.encrypted) {
-      encryptedBody = `\n\n**Logs**\n` + logsJson
+    if (payload.value && logsCopySuccess.value) {
+      encryptedBody = `\n\n**Logs**\n<Paste Encrypted Logs Here>`
     }
 
     const body = encodeURI(baseBody + encryptedBody)
