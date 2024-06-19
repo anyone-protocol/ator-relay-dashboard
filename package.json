@@ -13,6 +13,12 @@
     "test": "echo \"No tests specified\""
   },
   "dependencies": {
+    "@iconify-json/eos-icons": "^1.1.10",
+    "@iconify-json/heroicons": "^1.1.21",
+    "@iconify-json/heroicons-outline": "^1.1.10",
+    "@iconify-json/material-symbols": "^1.1.82",
+    "@iconify-json/simple-icons": "^1.1.106",
+    "@iconify/json": "^2.2.220",
     "@irys/query": "0.0.6",
     "@irys/sdk": "0.2.0",
     "@nuxt/ui": "2.14.2",
@@ -49,7 +55,8 @@
     "warp-contracts-plugin-ethers": "1.0.8"
   },
   "devDependencies": {
-    "husky": "^8.0.0",
+    "@iconify-json/uil": "^1.1.8",
+    "husky": "^8.0.3",
     "lint-staged": "15.2.4",
     "prettier": "3.2.5"
   },

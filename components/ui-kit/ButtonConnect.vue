@@ -21,7 +21,6 @@ const handleDisconnect = () => {
       name="heroicons:user-circle"
       class="dark:text-cyan-100 w-8 h-8 ring ring-cyan-600 rounded-full relative bg-slate-200/50 dark:bg-transparent"
     />
-
     <div class="flex flex-col flex-wrap gap-1">
       <span class="dark:text-white text-xs uppercase">{{ status }}</span>
       <Address :address="address" />
