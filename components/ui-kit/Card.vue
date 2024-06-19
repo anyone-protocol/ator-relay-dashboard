@@ -32,7 +32,7 @@ const onInView = ([{ isIntersecting }]: [{ isIntersecting: boolean }]) => {
           ? 'dark:bg-gray-900 bg-slate-200'
           : 'dark:bg-gray-900/60 bg-slate-200/60',
       ]"
-      class="dark:group-hover:bg-gray-900 group-hover:bg-slate-100 relative flex flex-col h-full rounded-3xl dark:lg:bg-gray-900/60 bg-gradient-to-br from-slate-100/50 to-gray-300/50 dark:bg-none overflow-hidden"
+      class="dark:group-hover:bg-gray-900 group-hover:bg-slate-100 relative flex flex-col h-full rounded-3xl dark:lg:bg-gray-900/60 bg-gradient-to-br from-slate-100/50 to-gray-300/50 dark:bg-none overflow-hidden transition-all duration-700"
     >
       <h2
         v-if="title"
