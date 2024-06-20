@@ -4,6 +4,10 @@ const to = Math.floor(Date.now() / 1000);
 const from = to - 3600 * 48; // 48 hrs
 const apiEndpoint = `https://api.dex.guru/v1/tradingview/history?symbol=${getAtorAddressMain()}-eth_USD&resolution=240&from=${from}&to=${to}`; // TODO Use In MainNet
 
+import Logger from '~/utils/logger';
+
+const logger = new Logger('PriceStore');
+
 export const usePriceStore = defineStore('price', {
   state: () => {
     return {
@@ -30,7 +34,7 @@ export const usePriceStore = defineStore('price', {
         // Set price history
         this.priceHistory.data = Object.values(priceData.c) as number[] | [];
       } catch (error) {
-        console.error('Price fetching error:', error);
+        logger.error('Price fetching error:', error);
       }
     },
   },

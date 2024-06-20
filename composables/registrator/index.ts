@@ -99,6 +99,12 @@ export class Registrator {
       currentLockSize = await this.getCurrentLockSize(auth.userData.address);
     }
 
+    this.logger.info(
+      auth.userData?.address
+        ? `Refreshing Registrator for ${auth.userData?.address}`
+        : 'Refreshing Registrator'
+    );
+
     await auth.getTokenBalance();
     await auth.getUsdTokenBalance();
 
@@ -225,7 +231,7 @@ export class Registrator {
         });
       }
 
-      console.error(ERRORS.FUNDING_ORACLE, error);
+      this.logger.error(ERRORS.FUNDING_ORACLE, error);
     }
 
     return null;
