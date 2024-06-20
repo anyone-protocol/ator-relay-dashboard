@@ -1,11 +1,13 @@
 import type { Contract, WriteInteractionResponse } from 'warp-contracts';
 import type { Claim, RelayRegistryState, Renounce } from './';
+import Logger from '~/utils/logger';
 
 import { relayRegistryContract } from '@/config/warp.config';
 
 export class RelayRegistry {
   private contract: Contract<RelayRegistryState> | null = null;
   private _isInitialized: boolean = false;
+  private readonly logger = new Logger('RelayRegistry');
 
   get isInitialized() {
     return this._isInitialized;
@@ -21,16 +23,16 @@ export class RelayRegistry {
   }
 
   async claim(fingerprint: string): Promise<WriteInteractionResponse | null> {
-    console.info(`Claiming fingerprint ${fingerprint}`);
+    this.logger.info(`Claiming fingerprint ${fingerprint}`);
 
     if (!this.contract) {
-      console.error('claim() relay registry contract is null');
+      this.logger.error('claim() relay registry contract is null');
       return null;
     }
 
     const warpSigner = await useWarpSigner();
     if (!warpSigner) {
-      console.error('claim() relay registry warpSigner is null');
+      this.logger.error('claim() relay registry warpSigner is null');
       return null;
     }
 
@@ -45,16 +47,16 @@ export class RelayRegistry {
   async renounce(
     fingerprint: string
   ): Promise<WriteInteractionResponse | null> {
-    console.info(`Renouncing fingerprint ${fingerprint}`);
+    this.logger.info(`Renouncing fingerprint ${fingerprint}`);
 
     if (!this.contract) {
-      console.error('renounce() relay registry contract is null');
+      this.logger.error('renounce() relay registry contract is null');
       return null;
     }
 
     const warpSigner = await useWarpSigner();
     if (!warpSigner) {
-      console.error('renounce() relay registry warpSigner is null');
+      this.logger.error('renounce() relay registry warpSigner is null');
       return null;
     }
 

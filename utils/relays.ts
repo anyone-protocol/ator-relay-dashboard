@@ -26,7 +26,7 @@ export const getRelaysInfo = async (fingerPrints: string[]) => {
           consensus_weight_fraction: relay.consensus_weight_fraction,
         };
       } else {
-        logger.error(`Relay with fingerprint ${fingerPrint} not found`);
+        console.error(`Relay with fingerprint ${fingerPrint} not found`);
       }
     } catch (e) {
       console.error(e);

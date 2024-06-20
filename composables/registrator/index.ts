@@ -10,6 +10,7 @@ import {
 import { abi } from './Registrator.json';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import { useUserStore } from '@/stores/useUserStore'; // Import the user store
+import Logger from '~/utils/logger';
 
 import { useToken } from '../token';
 import type { LokedRelaysResponse, LokedRelaysType } from '~/types/registrator';
@@ -36,7 +37,7 @@ export class Registrator {
   private _refreshing: boolean = false;
   private contract!: Contract;
   private signer: JsonRpcSigner | null = null;
-  private readonly logger = console;
+  private readonly logger = new Logger('Registrator');
 
   constructor(
     private contractAddress: string,
@@ -84,12 +85,12 @@ export class Registrator {
 
     this.setRefreshing(true);
     const auth = useUserStore();
-    console.info(
-      auth.userData?.address
-        ? `Refreshing Registrator for ${auth.userData?.address}`
-        : 'Refreshing Registrator'
-    );
-    console.time();
+    // changed this
+    // this.logger.info(
+    //   auth.userData?.address
+    //     ? `Refreshing Registrator for ${auth.userData?.address}`
+    //     : 'Refreshing Registrator'
+    // );
 
     let lockedRelays = null,
       currentLockSize = null;
@@ -102,12 +103,12 @@ export class Registrator {
     await auth.getTokenBalance();
     await auth.getUsdTokenBalance();
 
-    console.timeEnd();
-    console.info('Registrator refreshed', {
-      lockedRelays: lockedRelays,
-      currentLockSize: currentLockSize,
-    });
+    // changed this
     this.setRefreshing(false);
+    // this.logger.info('Registrator refreshed', {
+    //   lockedRelays: lockedRelays,
+    //   currentLockSize: currentLockSize,
+    // });
   }
 
   async getLokedRelaysTokens(address: string): Promise<LokedRelaysType> {
@@ -133,8 +134,6 @@ export class Registrator {
       }
       return acc;
     }, {} as LokedRelaysType);
-
-    console.log(lokedRelays);
 
     if (address === useUserStore().userData?.address) {
       useRegistratorStore().lokedRelays = lokedRelays;
