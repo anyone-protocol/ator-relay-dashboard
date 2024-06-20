@@ -13,11 +13,8 @@ import { useUserStore } from '@/stores/useUserStore'; // Import the user store
 
 import { useToken } from '../token';
 import type { LokedRelaysResponse, LokedRelaysType } from '~/types/registrator';
-import Logger from '~/utils/logger';
 
 const runtimeConfig = useRuntimeConfig();
-
-const logger = new Logger('Registrator');
 
 const ERRORS = {
   NOT_INITIALIZED: 'Registrator is not initialized!',
@@ -87,12 +84,12 @@ export class Registrator {
 
     this.setRefreshing(true);
     const auth = useUserStore();
-    logger.info(
+    console.info(
       auth.userData?.address
         ? `Refreshing Registrator for ${auth.userData?.address}`
         : 'Refreshing Registrator'
     );
-    logger.time();
+    console.time();
 
     let lockedRelays = null,
       currentLockSize = null;
@@ -105,8 +102,8 @@ export class Registrator {
     await auth.getTokenBalance();
     await auth.getUsdTokenBalance();
 
-    logger.timeEnd();
-    logger.info('Registrator refreshed', {
+    console.timeEnd();
+    console.info('Registrator refreshed', {
       lockedRelays: lockedRelays,
       currentLockSize: currentLockSize,
     });
@@ -136,6 +133,8 @@ export class Registrator {
       }
       return acc;
     }, {} as LokedRelaysType);
+
+    console.log(lokedRelays);
 
     if (address === useUserStore().userData?.address) {
       useRegistratorStore().lokedRelays = lokedRelays;
@@ -229,7 +228,7 @@ export class Registrator {
         });
       }
 
-      logger.error(ERRORS.FUNDING_ORACLE, error);
+      console.error(ERRORS.FUNDING_ORACLE, error);
     }
 
     return null;

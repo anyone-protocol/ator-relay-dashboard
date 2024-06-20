@@ -1,7 +1,6 @@
 import { isAddress } from 'viem';
 import { relayRegistryContract } from '@/config/warp.config';
 import { responseOutput } from '@/utils/responseOutput';
-import { add } from 'lodash';
 
 type FunctionName = 'verified' | 'claimable' | 'serials';
 
@@ -35,6 +34,8 @@ export const warpRead = async (
         address: address,
       });
 
+      console.log(result);
+
       const relays = result.map((relay: string) => {
         return {
           fingerprint: relay,
@@ -43,6 +44,8 @@ export const warpRead = async (
           class: '',
         };
       });
+
+      console.log(relays);
 
       const count = relays.length;
       const message =
@@ -92,7 +95,9 @@ export const warpReadSerials = async (
   }
 
   try {
-    const { state } = await relayRegistryContract.viewState(address);
+    const { state } = await relayRegistryContract.viewState({
+      data: { address: address },
+    });
 
     // Construct the response
 

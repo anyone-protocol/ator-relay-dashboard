@@ -1,10 +1,6 @@
 import type { RelayMeta } from '@/types/relay';
-import Logger from './logger';
-import { useMetricsStore } from '#imports';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const logger = new Logger('getRelaysInfo');
 
 export const getRelaysInfo = async (fingerPrints: string[]) => {
   const metricStore = useMetricsStore();
@@ -33,7 +29,7 @@ export const getRelaysInfo = async (fingerPrints: string[]) => {
         logger.error(`Relay with fingerprint ${fingerPrint} not found`);
       }
     } catch (e) {
-      logger.error(e);
+      console.error(e);
     }
   }
 

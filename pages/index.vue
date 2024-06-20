@@ -21,7 +21,6 @@ import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import type { ClaimProcess } from '@/types/facilitator';
 import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
 import  ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
-import { formatNumber } from '~/utils/formatNumber';
 
 
 const userStore = useUserStore();
@@ -47,7 +46,7 @@ initFacilitator();
 initRegistrator();
 initToken();
 initDistribution();
-useMetricsStore().refresh();
+// useMetricsStore().refresh();
 
 watch(
   () => userStore.userData.address,
@@ -204,9 +203,11 @@ const handleClaimAllRewards = async () => {
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
               <h3>Claimable rewards</h3>
               <div class="inline-flex items-baseline gap-2">
-                <span v-if="isConnected" class="text-4xl font-bold whitespace-nowrap">
+                <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                      formatEther(facilitatorStore.avaliableAllocatedTokens || '0')
+                    formatEther(
+                      facilitatorStore.avaliableAllocatedTokens || '0'
+                    )
                   }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>

@@ -12,10 +12,8 @@ import BigNumber from 'bignumber.js';
 import { abi } from './Facility.json';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { saveRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
-import Logger from '~/utils/logger';
 
 const runtimeConfig = useRuntimeConfig();
-const logger = new Logger('Facilitator');
 
 export const FACILITATOR_EVENTS = {
   AllocationUpdated: 'AllocationUpdated',
@@ -82,6 +80,8 @@ export class Facilitator {
   private contract!: Contract;
   private multicallContract!: Contract;
   private signer: JsonRpcSigner | null = null;
+  private readonly logger = console;
+
   constructor(
     private contractAddress: string,
     provider: BrowserProvider | AbstractProvider,
@@ -140,12 +140,12 @@ export class Facilitator {
 
     this.setRefreshing(true);
     const auth = useUserStore();
-    logger.info(
+    console.info(
       auth.userData?.address
         ? `Refreshing Facilitator for ${auth.userData?.address}`
         : 'Refreshing Facilitator'
     );
-    logger.time();
+    console.time();
 
     let totalClaimed = null,
       gasAvailable = null,
@@ -243,8 +243,8 @@ export class Facilitator {
       useFacilitatorStore().availableBudget = availableBudget.toString();
       useFacilitatorStore().usedBudget = usedBudget.toString();
 
-      logger.timeEnd();
-      logger.info('Facilitator refreshed', {
+      console.timeEnd();
+      console.info('Facilitator refreshed', {
         totalClaimed: totalClaimed.toString(),
         gasAvailable: availableBudget.toString(),
         gasUsed: gasUsed.toString(),
@@ -368,7 +368,7 @@ export class Facilitator {
 
       return await this.contract.queryFilter(filter, fromBlock, toBlock);
     } catch (error) {
-      logger.error('Error querying facilitator contract events', error);
+      console.error('Error querying facilitator contract events', error);
     }
 
     return [];
@@ -421,7 +421,7 @@ export class Facilitator {
         });
       }
 
-      logger.error(ERRORS.FUNDING_ORACLE, error);
+      console.error(ERRORS.FUNDING_ORACLE, error);
     }
 
     return null;
@@ -452,7 +452,7 @@ export class Facilitator {
       facilitatorStore.alocatedTokens = amount.toString();
       return result;
     } catch (error) {
-      logger.error(ERRORS.REQUESTING_UPDATE, error);
+      console.error(ERRORS.REQUESTING_UPDATE, error);
     }
 
     return null;
@@ -471,7 +471,7 @@ export class Facilitator {
       saveRedeemProcessSessionStorage(auth.userData.address, null);
 
       if (auth.userData.address === address) {
-        logger.info('onAllocationClaimed()', address, amount);
+        console.info('onAllocationClaimed()', address, amount);
         const store = useFacilitatorStore();
         await store.onAllocationClaimed(amount, event);
         const tx = await event.getTransaction();
@@ -480,7 +480,7 @@ export class Facilitator {
         await this.getAllocatedTokens(auth.userData.address);
       }
     } catch (error) {
-      logger.error('Error consuming AllocationClaimed event', error);
+      console.error('Error consuming AllocationClaimed event', error);
     }
   }
 
@@ -495,7 +495,7 @@ export class Facilitator {
         return;
       }
       if (auth.userData.address === address) {
-        logger.info('onAllocationClaimed()', address, amount);
+        console.info('onAllocationClaimed()', address, amount);
         const store = useFacilitatorStore();
         await store.onAllocationUpdated(amount, event);
         const tx = await event.getTransaction();
@@ -505,7 +505,7 @@ export class Facilitator {
         await auth.getTokenBalance();
       }
     } catch (error) {
-      logger.error('Error consuming AllocationClaimed event', error);
+      console.error('Error consuming AllocationClaimed event', error);
     }
   }
   private async onGasBudgetUpdated(): Promise<void> {}

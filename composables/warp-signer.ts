@@ -6,9 +6,6 @@ import {
 } from 'ethers';
 import { InjectedEthereumSigner } from 'warp-contracts-plugin-deploy';
 import { Buffer } from 'buffer';
-import Logger from '~/utils/logger';
-
-const logger = new Logger('WarpSigner');
 
 /* @ts-expect-error types */
 export class WarpSigner extends InjectedEthereumSigner {
@@ -55,7 +52,7 @@ export const useWarpSigner = async () => {
     provider = initializeBrowserProvider();
   }
   if (!(provider instanceof BrowserProvider)) {
-    logger.error('Provider is not instanceof BrowserProvider');
+    console.error('Provider is not instanceof BrowserProvider');
     return null;
   }
   try {
@@ -66,7 +63,7 @@ export const useWarpSigner = async () => {
 
     return warpSigner;
   } catch (error) {
-    logger.error('Error creating warp signer', error);
+    console.error('Error creating warp signer', error);
     return null;
   }
 };

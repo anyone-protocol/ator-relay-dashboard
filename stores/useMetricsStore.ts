@@ -130,6 +130,8 @@ export const useMetricsStore = defineStore('metrics', {
           .sort('HEIGHT_DESC')
           .find()) as ArdbTransaction[];
 
+        logger.info(`Got ${txs.length} relay/metrics transactions`);
+
         const latestTx = txs[0];
 
         if (latestTx) {
