@@ -99,18 +99,11 @@ export class Registrator {
       currentLockSize = await this.getCurrentLockSize(auth.userData.address);
     }
 
-    this.logger.info(
-      auth.userData?.address
-        ? `Refreshing Registrator for ${auth.userData?.address}`
-        : 'Refreshing Registrator'
-    );
-
     await auth.getTokenBalance();
     await auth.getUsdTokenBalance();
 
     this.setRefreshing(false);
     this.logger.info('Registrator refreshed', {
-      lockedRelays: lockedRelays,
       currentLockSize: currentLockSize ? currentLockSize.toString() : null,
     });
   }
