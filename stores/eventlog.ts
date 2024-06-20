@@ -35,6 +35,10 @@ interface EventlogStoreState {
   isSupportIssueOpen: boolean;
 }
 
+function replacer(key: string, value: any) {
+  return typeof value === 'bigint' ? value.toString() : value;
+}
+
 export const useEventlogStore = defineStore('eventlog', {
   state: (): EventlogStoreState => {
     return {
@@ -65,7 +69,7 @@ export const useEventlogStore = defineStore('eventlog', {
           c instanceof Error
             ? c.stack || c.message
             : typeof c === 'object'
-              ? JSON.stringify(c)
+              ? JSON.stringify(c, replacer) // Use replacer here
               : `${c}`;
         /* eslint-enable @typescript-eslint/no-unsafe-argument */
         /* eslint-enable @typescript-eslint/no-unsafe-assignment */

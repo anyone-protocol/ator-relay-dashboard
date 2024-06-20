@@ -85,12 +85,11 @@ export class Registrator {
 
     this.setRefreshing(true);
     const auth = useUserStore();
-    // changed this
-    // this.logger.info(
-    //   auth.userData?.address
-    //     ? `Refreshing Registrator for ${auth.userData?.address}`
-    //     : 'Refreshing Registrator'
-    // );
+    this.logger.info(
+      auth.userData?.address
+        ? `Refreshing Registrator for ${auth.userData?.address}`
+        : 'Refreshing Registrator'
+    );
 
     let lockedRelays = null,
       currentLockSize = null;
@@ -103,12 +102,11 @@ export class Registrator {
     await auth.getTokenBalance();
     await auth.getUsdTokenBalance();
 
-    // changed this
     this.setRefreshing(false);
-    // this.logger.info('Registrator refreshed', {
-    //   lockedRelays: lockedRelays,
-    //   currentLockSize: currentLockSize,
-    // });
+    this.logger.info('Registrator refreshed', {
+      lockedRelays: lockedRelays,
+      currentLockSize: currentLockSize ? currentLockSize.toString() : null,
+    });
   }
 
   async getLokedRelaysTokens(address: string): Promise<LokedRelaysType> {
@@ -216,7 +214,7 @@ export class Registrator {
           icon: 'i-heroicons-x-circle',
           color: 'amber',
           title: 'Error',
-          description: `Error redeen rewards: ${msg}`,
+          description: `Error redeem rewards: ${msg}`,
         });
       } else {
         toast.add({
