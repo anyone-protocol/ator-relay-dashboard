@@ -5,7 +5,9 @@ import BigNumber from 'bignumber.js';
 import { useUserStore } from '@/stores/useUserStore';
 import type { ClaimProcess, FacilitatorStoreState } from '@/types/facilitator';
 import { saveRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
+import Logger from '~/utils/logger';
 
+const logger = new Logger('FacilitatorStore');
 export const useFacilitatorStore = defineStore('facilitator', {
   state: (): FacilitatorStoreState => {
     return {
@@ -57,9 +59,9 @@ export const useFacilitatorStore = defineStore('facilitator', {
     addPendingClaim(transactionHash: string, blockTimestamp: number) {
       const userStore = useUserStore();
 
-      console.info('addPendingClaim()', transactionHash, blockTimestamp);
+      logger.info('addPendingClaim()', transactionHash, blockTimestamp);
       if (this.pendingClaim) {
-        console.info('addPendingClaim() duplicate claim', this.pendingClaim);
+        logger.info('addPendingClaim() duplicate claim', this.pendingClaim);
       } else {
         const timestamp = new Date(blockTimestamp * 1000).toUTCString();
         const claim = {
@@ -67,7 +69,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
           requestingUpdateTransactionHash: transactionHash,
           requestingUpdateBlockTimestamp: timestamp,
         };
-        console.info('addPendingClaim() new claim', claim);
+        logger.info('addPendingClaim() new claim', claim);
         this.pendingClaim = claim;
 
         // Save  pendingClaim to local storage
@@ -91,8 +93,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
     ) {
       const toast = useToast();
 
-      console.info('onAllocationClaimed()', amount);
-      console.info('onAllocationClaimed() pending claim', this.pendingClaim);
+      logger.info('onAllocationClaimed()', amount);
+      logger.info('onAllocationClaimed() pending claim', this.pendingClaim);
       if (!this.pendingClaim) {
         return;
       }
@@ -115,7 +117,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
           .dividedBy(1e18)
           .toFormat(3);
 
-        console.info(
+        logger.info(
           'onAllocationClaimed() pending claim finalized',
           pendingClaimCopy
         );

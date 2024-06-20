@@ -1,6 +1,9 @@
 import type { RelayMeta } from '@/types/relay';
+import Logger from './logger';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const logger = new Logger('getRelaysInfo');
 
 export const getRelaysInfo = async (fingerPrints: string[]) => {
   const relays = {} as Record<string, RelayMeta>;
@@ -21,7 +24,7 @@ export const getRelaysInfo = async (fingerPrints: string[]) => {
         consensus_weight_fraction: data.consensus_weight_fraction,
       };
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
     await wait(500);
   }

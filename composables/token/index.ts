@@ -7,6 +7,7 @@ import {
 } from 'ethers';
 
 import { abi } from './Token.json';
+import Logger from '~/utils/logger';
 
 const runtimeConfig = useRuntimeConfig();
 
@@ -16,10 +17,11 @@ const ERRORS = {
   NO_SIGNER: 'No Signer connected',
 };
 
+const logger = new Logger('Token');
+
 export class Token {
   private contract!: Contract;
   private signer: JsonRpcSigner | null = null;
-  private readonly logger = console;
 
   constructor(
     private contractAddress: string,
@@ -81,8 +83,6 @@ export class Token {
         this.signer.address,
         address
       );
-      console.log('currentAllowance', currentAllowance.toString());
-      console.log('amount', amount.toString());
       if (currentAllowance >= amount) {
         return null;
       }
@@ -93,7 +93,7 @@ export class Token {
 
       return result;
     } catch (error) {
-      console.error('Error approving token', error);
+      logger.error('Error approving token', error);
       const msg = (error as Error)?.message;
       if (!msg.includes('User denied transaction signature.')) {
         toast.add({
@@ -115,7 +115,7 @@ export class Token {
     try {
       return await this.contract.allowance(owner, spender);
     } catch (error) {
-      console.error('Error fetching allowance', error);
+      logger.error('Error fetching allowance', error);
       return BigInt(0);
     }
   }

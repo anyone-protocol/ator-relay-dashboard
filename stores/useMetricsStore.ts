@@ -58,7 +58,7 @@ export interface MetricsStoreState {
   validation: {
     latest: ValidationStats | null;
     timestamp?: number;
-    transactionIds: string[]; 
+    transactionIds: string[];
   };
   relays: {
     latest: VerificationResultDto[] | null;
@@ -129,8 +129,6 @@ export const useMetricsStore = defineStore('metrics', {
           .limit(limit)
           .sort('HEIGHT_DESC')
           .find()) as ArdbTransaction[];
-
-        logger.info(`Got ${txs.length} relay/metrics transactions`);
 
         const latestTx = txs[0];
 

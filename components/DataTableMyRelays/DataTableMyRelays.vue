@@ -209,7 +209,6 @@ const getObservedBandwidth = (fingerprint: string) => {
 };
 
 const handleUnlockClick = (fingerprint: string) => {
-  console.log('Unlocking relay', fingerprint);
   if (registratorStore.isRelayLocked(fingerprint)) {
     toast.remove('unlock-relays-error');
     toast.add({
