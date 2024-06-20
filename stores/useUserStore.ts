@@ -62,6 +62,13 @@ export const useUserStore = defineStore('user', {
       if (verified.status === 200) {
         const relays = await verified.json();
         this.verifiedRelays = relays.relays;
+        const meta = await getRelaysInfo(
+          relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
+        );
+        this.relaysMeta = {
+          ...this.relaysMeta,
+          ...meta,
+        };
       } else if (verified.status === 500) {
         this.verifiedRelays = [];
         throw new Error('rate limited');
@@ -80,13 +87,13 @@ export const useUserStore = defineStore('user', {
       if (claimable.status === 200) {
         const relays = await claimable.json();
         this.claimableRelays = relays.relays;
-        // const meta = await getRelaysInfo(
-        //   relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
-        // );
-        // this.relaysMeta = {
-        //   ...this.relaysMeta,
-        //   ...meta,
-        // };
+        const meta = await getRelaysInfo(
+          relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
+        );
+        this.relaysMeta = {
+          ...this.relaysMeta,
+          ...meta,
+        };
       } else if (claimable.status === 500) {
         this.claimableRelays = [];
         throw new Error('rate limited');
