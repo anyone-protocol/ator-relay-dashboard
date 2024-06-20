@@ -35,7 +35,6 @@ export const getRelaysInfo = async (fingerPrints: string[]) => {
     } catch (e) {
       logger.error(e);
     }
-    await wait(500);
   }
 
   return relays;

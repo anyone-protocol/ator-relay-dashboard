@@ -62,7 +62,7 @@ export const useUserStore = defineStore('user', {
       if (verified.status === 200) {
         const relays = await verified.json();
         this.verifiedRelays = relays.relays;
-        const meta = await getRelaysInfo(
+        const meta = getRelaysInfo(
           relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
         );
         this.relaysMeta = {
