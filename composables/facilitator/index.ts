@@ -246,7 +246,7 @@ export class Facilitator {
       useFacilitatorStore().usedBudget = usedBudget.toString();
 
       this.logger.timeEnd();
-      console.info('Facilitator refreshed', {
+      this.logger.info('Facilitator refreshed', {
         totalClaimed: totalClaimed.toString(),
         gasAvailable: availableBudget.toString(),
         gasUsed: gasUsed.toString(),
@@ -473,7 +473,7 @@ export class Facilitator {
       saveRedeemProcessSessionStorage(auth.userData.address, null);
 
       if (auth.userData.address === address) {
-        this.logger.info('onAllocationClaimed()', address, amount);
+        this.logger.info('onAllocationClaimed()', address, amount.toString());
         const store = useFacilitatorStore();
         await store.onAllocationClaimed(amount, event);
         const tx = await event.getTransaction();
@@ -497,7 +497,7 @@ export class Facilitator {
         return;
       }
       if (auth.userData.address === address) {
-        this.logger.info('onAllocationClaimed()', address, amount);
+        this.logger.info('onAllocationClaimed()', address, amount.toString());
         const store = useFacilitatorStore();
         await store.onAllocationUpdated(amount, event);
         const tx = await event.getTransaction();

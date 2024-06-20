@@ -85,12 +85,6 @@ export class Registrator {
 
     this.setRefreshing(true);
     const auth = useUserStore();
-    // changed this
-    // this.logger.info(
-    //   auth.userData?.address
-    //     ? `Refreshing Registrator for ${auth.userData?.address}`
-    //     : 'Refreshing Registrator'
-    // );
 
     let lockedRelays = null,
       currentLockSize = null;
@@ -100,15 +94,22 @@ export class Registrator {
       currentLockSize = await this.getCurrentLockSize(auth.userData.address);
     }
 
+    this.logger.info(
+      auth.userData?.address
+        ? `Refreshing Registrator for ${auth.userData?.address}`
+        : 'Refreshing Registrator'
+    );
+
     await auth.getTokenBalance();
     await auth.getUsdTokenBalance();
 
     // changed this
     this.setRefreshing(false);
-    // this.logger.info('Registrator refreshed', {
-    //   lockedRelays: lockedRelays,
-    //   currentLockSize: currentLockSize,
-    // });
+
+    console.log(currentLockSize?.toString());
+    this.logger.info('Registrator refreshed', {
+      currentLockSize: currentLockSize?.toString(),
+    });
   }
 
   async getLokedRelaysTokens(address: string): Promise<LokedRelaysType> {
@@ -227,7 +228,7 @@ export class Registrator {
         });
       }
 
-      console.error(ERRORS.FUNDING_ORACLE, error);
+      this.logger.error(ERRORS.FUNDING_ORACLE, error);
     }
 
     return null;
