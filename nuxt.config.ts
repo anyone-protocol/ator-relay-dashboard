@@ -60,7 +60,7 @@ export default defineNuxtConfig({
       phase: 'dev',
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
-      commitHash: process.env.COMMIT_HASH || 'dev',
+      commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
