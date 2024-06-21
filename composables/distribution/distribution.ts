@@ -49,7 +49,7 @@ export class Distribution {
       this.logger.time();
 
       let claimableAtomicTokens = null;
-      if (auth.userData) {
+      if (auth.userData?.address) {
         claimableAtomicTokens = await this.claimable(
           auth.userData.address as string
         );

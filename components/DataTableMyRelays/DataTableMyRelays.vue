@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import { useAccount } from 'use-wagmi';
+import { useAccount } from '@wagmi/vue';
 import type { FunctionName } from '@/utils/warp.write';
 import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
+
 
 import Tabs from '../ui-kit/Tabs.vue';
 import Tooltip from '../ui-kit/Tooltip.vue';
@@ -25,7 +26,7 @@ const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
-const { address } = useAccount({ config });
+const { address } = useAccount({ config});
 const currentTab = ref<RelayTabType>('all');
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
@@ -35,7 +36,7 @@ const {
   pending: verifiedPending,
 } = await useAsyncData(
   'verifiedRelays',
-  () => userStore.getVerifiedRelays().then(() => true),
+  () => userStore.getVerifiedRelays(),
   { server: false, watch: [address] }
 );
 const {
@@ -44,9 +45,29 @@ const {
   pending: claimablePending,
 } = await useAsyncData(
   'claimableRelays',
-  () => userStore.getClaimableRelays().then(() => true),
+  () => userStore.getClaimableRelays(),
   { watch: [address] }
 );
+
+if (claimableRelaysError.value?.cause?.message == "rate limited" || verifiedRelaysError.value?.cause?.message == "rate limited") {
+  toast.add({
+      id: "claimable-relays-error",
+      icon: 'i-heroicons-exclamation-triangle',
+      color: 'primary',
+      title: 'Arweave rate limit exceeded!',
+      timeout: 0,
+      description: 'Please wait...',
+    });
+  if (claimableRelaysError.value != null) {
+    userStore.claimRelayRefresh().then(() => claimableRelaysError.value = null);
+  } else if (verifiedRelaysError.value != null) {
+    userStore.verifiedRelaysRefresh().then(() => verifiedRelaysError.value = null);
+  } else {
+    userStore.claimRelayRefresh().then(() => claimableRelaysError.value = null);
+    userStore.verifiedRelaysRefresh().then(() => verifiedRelaysError.value = null);
+  }
+  // keep trying to fetch the claimable relays
+}
 
 const timestamp = computed(
   () => metricsStore.relays.timestamp && new Date(metricsStore.relays.timestamp)
@@ -56,7 +77,6 @@ const timestamp = computed(
 const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
-
 const relayAction = async (action: FunctionName, fingerprint: string) => {
   //TODO: Sign the message
   // See: The following resources
@@ -156,13 +176,24 @@ const handleLockRelay = async (fingerprint: string) => {
   }
 };
 
+const filterUniqueRelays = (relays: RelayRow[]) => {
+  const seen = new Set();
+  return relays.filter((relay) => {
+    const duplicate = seen.has(relay.fingerprint);
+    seen.add(relay.fingerprint);
+    return !duplicate;
+  });
+};
+
 const getTableData = (tab: RelayTabType) => {
   switch (tab) {
     case 'all':
-      return allRelays.value;
+      return filterUniqueRelays(allRelays.value);
     case 'locked':
-      return allRelays.value.filter((relay) =>
-        registratorStore.isRelayLocked(relay.fingerprint)
+      return filterUniqueRelays(
+        allRelays.value.filter((relay) =>
+          registratorStore.isRelayLocked(relay.fingerprint)
+        )
       );
     case 'claimable':
       return claimableRelays.value;
@@ -176,12 +207,26 @@ const getObservedBandwidth = (fingerprint: string) => {
       .toFormat(3) + ' MiB/s'
   );
 };
+
+const handleUnlockClick = (fingerprint: string) => {
+  if (registratorStore.isRelayLocked(fingerprint)) {
+    toast.remove('unlock-relays-error');
+    toast.add({
+      id: "unlock-relays-error",
+      icon: 'i-heroicons-exclamation-triangle',
+      color: 'amber',
+      title: 'Unlock failed',
+      timeout: 0,
+      description: `This relay is currently locked. It unlocks at block: ${registratorStore.getUnlockTime(fingerprint)}`,
+    })
+  }
+}
 </script>
 
 <template>
   <div class="-mx-4 sm:-mx-0">
     <UAlert
-      v-if="verifiedRelaysError || claimableRelaysError"
+      v-if="verifiedRelaysError?.value || claimableRelaysError?.value"
       class="mb-6"
       icon="i-heroicons-exclamation-triangle"
       description="There was an error retrieving relays. We'll load what we can."
@@ -333,13 +378,16 @@ const getObservedBandwidth = (fingerprint: string) => {
       <template #unlock-data="{ row }">
         <UButton
           :ui="{ base: 'text-sm' }"
+          :class="
+            registratorStore.isRelayLocked(row.fingerprint) ? 'cursor-not-allowed' : ''
+          "
           icon="i-heroicons-check-circle-solid"
           size="xl"
           color="green"
           variant="outline"
           label="Unlock"
-          :disabled="true"
           :trailing="false"
+          @click="handleUnlockClick(row.fingerprint)"
         />
       </template>
       <template #owner-data="{ row }">
@@ -375,5 +423,9 @@ const getObservedBandwidth = (fingerprint: string) => {
 
 .status-inactive {
   background: #fa5858;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
 }
 </style>

@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   ssr: false,
 
@@ -40,22 +40,28 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/ui', '@pinia/nuxt', '@use-wagmi/nuxt'],
+  modules: ['@nuxt/ui', '@pinia/nuxt'],
 
   // This is used instead on env file
   // See: https://nuxt.com/docs/guide/going-further/runtime-config
   runtimeConfig: {
     public: {
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
-      relayRegistryAddress: 'cQ5drDr3Na6m-_QthV4qbBY2wT7oEn8B3qCDg1owzxI',
-      facilitatorContract: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
-      sepoliaAtorTokenContract: '0x5D690a4C67925b5f73d405e59dda1425e1560fDf',
-      distributionContract: 'zOkPxTrRYVQ7IplTnEyTgt9iBDarhhWJjibm8UXI6Q0',
-      metricsDeployer: 'guDw5nBzO2zTpuYMnxkSpQ2qCQjL8gxB34GjPpZ2qpY',
-      registratorContract: '0xDB0cABef9e8DBbB9Dad6B1DB672f2EcCd425cE18',
+      relayRegistryAddress: 'LYtr_ztHqd4nFFSZyYN9_BWIinESJNBVzOJwo1u5dU0',
+      facilitatorContract: '0xC46E912231F1792830b8590d4fcA19d2Ac491ed4',
+      sepoliaAtorTokenContract: '0xd90AAfacD4596FAF1cAD5423Bf838cCEc59ECac4',
+      tokenContractMain: '0x0f7b3f5a8fed821c5eb60049538a548db2d479ce',
+      distributionContract: 'ugUcnhSSpiW3TDHgBo0rLCL08HHZiqK9-ZHOmcJ7jLE',
+      metricsDeployer: '53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q',
+      registratorContract: '0x525C31B35065540059701eE5feC12120F581E96e',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
       githubNewIssueUrl:
         'https://github.com/ATOR-Development/ator-dashboard/issues/new',
+      phase: 'dev',
+      supportWalletPublicKeyBase64:
+        'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
+      commitHash: process.env.COMMIT_HASH || 'dev',
     },
   },
+  plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
 });

@@ -2,6 +2,7 @@
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 import ButtonConnect from './ui-kit/ButtonConnect.vue';
 import GlowEffect from './ui-kit/GlowEffect.vue';
+import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
 
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const lgAndLarger = breakpoints.greaterOrEqual('lg');

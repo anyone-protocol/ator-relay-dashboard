@@ -3,6 +3,7 @@ export type LokedRelaysType = Record<
   {
     amount: bigint;
     owner: string;
+    unlockedAt: bigint;
   }
 >;
 

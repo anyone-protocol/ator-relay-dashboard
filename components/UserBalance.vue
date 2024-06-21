@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { useAccount } from 'use-wagmi';
+import { useAccount } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import Ticker from './ui-kit/Ticker.vue';
 

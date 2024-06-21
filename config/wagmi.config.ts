@@ -1,16 +1,14 @@
-import { reconnect } from 'use-wagmi/actions';
-import { http, createConfig } from 'use-wagmi';
-import { mainnet, sepolia, hardhat } from 'use-wagmi/chains';
+import { reconnect } from '@wagmi/core';
+import { defaultWagmiConfig } from '@web3modal/wagmi/vue';
+import { metadata } from './web3modal.config';
+import { mainnet, sepolia } from 'viem/chains';
 
-export const config = createConfig({
-  chains: [mainnet, sepolia, hardhat],
+const projectId = 'f5e29d36441ccd0e2f5e3473d5a2021b';
 
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [hardhat.id]: http(),
-  },
-
+export const config = defaultWagmiConfig({
+  chains: [mainnet, sepolia],
+  projectId,
+  metadata,
   ssr: false,
 });
 

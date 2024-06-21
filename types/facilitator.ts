@@ -28,4 +28,6 @@ export interface FacilitatorStoreState {
   sumOfTotalDistributions: string;
   previousDistributions: PreviousDistribution[];
   claimableAtomicTokens?: string;
+  availableBudget?: string;
+  usedBudget?: string;
 }

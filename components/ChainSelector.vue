@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { switchChain, watchAccount } from 'use-wagmi/actions';
-import { useAccount } from 'use-wagmi';
+import { switchChain, watchAccount } from '@wagmi/core';
+import { useAccount } from '@wagmi/vue';
 import { config, defaultChain } from '@/config/wagmi.config';
 
 const { chainId } = useAccount({ config });

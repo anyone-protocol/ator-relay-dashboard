@@ -1,7 +1,7 @@
 import { formatEther } from 'viem';
-import { useAccount } from 'use-wagmi';
-import { getBalance } from 'use-wagmi/actions';
-import { type GetBalanceReturnType } from 'use-wagmi/actions';
+import { useAccount } from '@wagmi/vue';
+import { getBalance } from '@wagmi/core';
+import { type GetBalanceReturnType } from '@wagmi/core';
 import type { RelayMeta } from '@/types/relay';
 
 import { warpRead, warpReadSerials } from '@/utils/warp.read';
@@ -9,6 +9,7 @@ import { config } from '@/config/wagmi.config';
 import { getAtorAddress } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
 import { getRelaysInfo } from '@/utils/relays';
+import { toDisplayString } from 'vue';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -58,19 +59,19 @@ export const useUserStore = defineStore('user', {
       }
 
       const verified = await warpRead(this.userData.address, 'verified');
-      // const serials = await warpRead(this.userData.address, 'serials');
-
       if (verified.status === 200) {
         const relays = await verified.json();
-
         this.verifiedRelays = relays.relays;
-        const meta = await getRelaysInfo(
+        const meta = getRelaysInfo(
           relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
         );
         this.relaysMeta = {
           ...this.relaysMeta,
           ...meta,
         };
+      } else if (verified.status === 500) {
+        this.verifiedRelays = [];
+        throw new Error('rate limited');
       }
     },
     // Get claimable relays using Warp
@@ -82,6 +83,7 @@ export const useUserStore = defineStore('user', {
 
       const claimable = await warpRead(this.userData.address, 'claimable');
 
+      // make this keep retrying until it gets a 200 status
       if (claimable.status === 200) {
         const relays = await claimable.json();
         this.claimableRelays = relays.relays;
@@ -92,8 +94,40 @@ export const useUserStore = defineStore('user', {
           ...this.relaysMeta,
           ...meta,
         };
+      } else if (claimable.status === 500) {
+        this.claimableRelays = [];
+        throw new Error('rate limited');
       }
     },
+    async claimRelayRefresh() {
+      var error = true;
+      const toast = useToast();
+      // keep trying until it gets a 200 status
+      while (error) {
+        try {
+          await this.getClaimableRelays();
+          error = false;
+          toast.remove('claimable-relays-error');
+        } catch (e) {
+          await new Promise((resolve) => setTimeout(resolve, 15000));
+        }
+      }
+    },
+    async verifiedRelaysRefresh() {
+      var error = true;
+      const toast = useToast();
+      // keep trying until it gets a 200 status
+      while (error) {
+        try {
+          await this.getVerifiedRelays();
+          error = false;
+          toast.remove('verified-relays-error');
+        } catch (e) {
+          await new Promise((resolve) => setTimeout(resolve, 15000));
+        }
+      }
+    },
+    async getRelaysMeta() {},
     async getSerialsRelays() {
       if (!this.userData.address) {
         this.serials = [];

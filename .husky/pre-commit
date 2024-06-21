@@ -1,1 +1,12 @@
-pnpm exec lint-staged
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Check if the test script is the placeholder one and skip it if so
+if grep -q "\"test\": \"echo \\\"Error: no test specified\\\" && exit 1\"" package.json; then
+  echo "Skipping tests because no test script is specified."
+else
+  npm test
+fi
+
+# Run lint-staged to format the code
+npx lint-staged

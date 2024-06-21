@@ -9,6 +9,9 @@ import {
 
 import { abi } from './Registrator.json';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
+import { useUserStore } from '@/stores/useUserStore'; // Import the user store
+import Logger from '~/utils/logger';
+
 import { useToken } from '../token';
 import type { LokedRelaysResponse, LokedRelaysType } from '~/types/registrator';
 
@@ -34,7 +37,7 @@ export class Registrator {
   private _refreshing: boolean = false;
   private contract!: Contract;
   private signer: JsonRpcSigner | null = null;
-  private readonly logger = console;
+  private readonly logger = new Logger('Registrator');
 
   constructor(
     private contractAddress: string,
@@ -82,12 +85,11 @@ export class Registrator {
 
     this.setRefreshing(true);
     const auth = useUserStore();
-    console.info(
+    this.logger.info(
       auth.userData?.address
         ? `Refreshing Registrator for ${auth.userData?.address}`
         : 'Refreshing Registrator'
     );
-    console.time();
 
     let lockedRelays = null,
       currentLockSize = null;
@@ -97,12 +99,13 @@ export class Registrator {
       currentLockSize = await this.getCurrentLockSize(auth.userData.address);
     }
 
-    console.timeEnd();
-    console.info('Registrator refreshed', {
-      lockedRelays: lockedRelays,
-      currentLockSize: currentLockSize,
-    });
+    await auth.getTokenBalance();
+    await auth.getUsdTokenBalance();
+
     this.setRefreshing(false);
+    this.logger.info('Registrator refreshed', {
+      currentLockSize: currentLockSize ? currentLockSize.toString() : null,
+    });
   }
 
   async getLokedRelaysTokens(address: string): Promise<LokedRelaysType> {
@@ -115,12 +118,14 @@ export class Registrator {
     )) as {
       data: LokedRelaysResponse;
     };
+
     let totalLockedTokens = 0n;
     const lokedRelays = lokedRelaysReponse.data.reduce((acc, item) => {
       if (item[3]) {
         acc[item[3]] = {
           amount: item[0],
           owner: item[2],
+          unlockedAt: item[1],
         };
         totalLockedTokens += item[0];
       }
@@ -208,11 +213,18 @@ export class Registrator {
           icon: 'i-heroicons-x-circle',
           color: 'amber',
           title: 'Error',
-          description: `Error redeen rewards: ${msg}`,
+          description: `Error redeem rewards: ${msg}`,
+        });
+      } else {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: 'User denied transaction signature.',
         });
       }
 
-      console.error(ERRORS.FUNDING_ORACLE, error);
+      this.logger.error(ERRORS.FUNDING_ORACLE, error);
     }
 
     return null;

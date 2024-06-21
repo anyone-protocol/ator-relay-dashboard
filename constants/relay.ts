@@ -5,10 +5,6 @@ const defaultColumns: {
   label?: string;
 }[] = [
   {
-    key: 'nickname',
-    label: 'Nickname',
-  },
-  {
     key: 'fingerprint',
     label: 'Relay fingerprint',
   },
@@ -19,10 +15,6 @@ const defaultColumns: {
   {
     key: 'consensusWeight',
     label: 'Consensus weight',
-  },
-  {
-    key: 'observedBandwidth',
-    label: 'Observed bandwidth',
   },
   {
     key: 'lockStatus',
@@ -50,10 +42,6 @@ export const RELAY_COLUMS: Record<
     {
       key: 'owner',
       label: 'Ownership',
-    },
-    {
-      key: 'nickname',
-      label: 'Nickname',
     },
     {
       key: 'fingerprint',
