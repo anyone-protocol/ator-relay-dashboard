@@ -18,9 +18,7 @@ const handleDisconnect = () => {
 const { chains, switchChain } = useSwitchChain({ config });
 const chainId = getChainId(config)
 
-console.log(chains, chainId);
 const isWrongNetwork = computed(() => !chains.value.some((chainItem) => chainItem.id === chainId));
-console.log(isWrongNetwork);
 const isOpen = ref(false);
 </script>
 
