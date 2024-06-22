@@ -4,7 +4,7 @@ export const metadata = {
   description:
     'ATOR empowers the adoption and strength of the Tor network. ATOR Proof-of-Uptime and relay hardware allow users to earn passively while contributing to Tor.',
   url: 'https://ator-dashboard.ar-io.dev/',
-  icons: ['/images/ator-logo.png'],
+  icons: ['/images/AtorLogo.png'],
 };
 
 export const getAtorAddress = () => {
