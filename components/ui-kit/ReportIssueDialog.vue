@@ -3,82 +3,54 @@
     <UCard class="modal-card" name="text-black dark:text-white">
       <template #header>
         <h4 tabindex="999" @keyup="onKeyup">Report Issue</h4>
-    </template>
-     
-        <UContainer class="pb-0">
-          <div class="mb-4">
-            <UFormGroup label="Title">
-              <UInput
-                ref="titleField"
-                v-model="title"
-                hint="Title will be public"
-                placeholder="Issue Title"
-                :rules="[rules.required]"
-                :error="titleError !== null"
-                persistent-hint
-                class="mb-1"
-              >
-                <template #message="{ message }">
-                  <UIcon name="w-4 h-4">mdi-alert</UIcon>
-                  {{ message }}
-                </template>
-              </UInput>
-            </UFormGroup>
-            <UFormGroup label="Description">
-              <UTextarea
-                v-model="desc"
-                hint="Description will be public"
-                placeholder="Issue Description (optional)"
-                persistent-hint
-              >
-                <template #message="{ message }">
-                  <UIcon name="w-4 h-4">mdi-alert</UIcon>
-                  {{ message }}
-                </template>
-              </UTextarea>
-            </UFormGroup>
-            </div>
+      </template>
 
-        </UContainer>
+      <UContainer class="pb-0">
+        <div class="mb-4">
+          <UFormGroup label="Title">
+            <UInput ref="titleField" v-model="title" hint="Title will be public" placeholder="Issue Title"
+              :rules="[rules.required]" :error="titleError !== null" persistent-hint class="mb-1">
+              <template #message="{ message }">
+                <UIcon name="w-4 h-4">mdi-alert</UIcon>
+                {{ message }}
+              </template>
+            </UInput>
+          </UFormGroup>
+          <UFormGroup label="Description">
+            <UTextarea v-model="desc" hint="Description will be public" placeholder="Issue Description (optional)"
+              persistent-hint>
+              <template #message="{ message }">
+                <UIcon name="w-4 h-4">mdi-alert</UIcon>
+                {{ message }}
+              </template>
+            </UTextarea>
+          </UFormGroup>
+        </div>
 
-        <UContainer class="pt-0">
-          <div class="text-center mb-4">
-              <UButton
-                variant="outline"
-                 size="sm"
-                color="primary"
-                :icon="logsCopySuccess ? 'i-heroicons-check' : 'i-heroicons-clipboard'"
-                @click="onCopyLogsClicked"
-              >
-                (Optional) Copy Encrypted Logs
-              </UButton>
-            </div>
-       
+      </UContainer>
 
-            <div class="flex justify-between">
-              <UButton
-                variant="outline"
-                size="sm"
-                color="red"
-                @click="onCancelClicked"
-              >
-                Cancel
-              </UButton>
-          
-            <UDivider  />
-        
-              <UButton
-                variant="outline"
-                size="sm"
-                color="primary"
-                icon="i-heroicons-link"
-                @click="onReportIssueClicked"
-              >
-                Open GitHub Issue
-              </UButton>
-     
-          </div>
-        </UContainer>        
+      <UContainer class="pt-0">
+        <div class="text-center mb-4">
+          <UButton variant="outline" size="sm" color="primary"
+            :icon="logsCopySuccess ? 'i-heroicons-check' : 'i-heroicons-clipboard'" @click="onCopyLogsClicked">
+            (Optional) Copy Encrypted Logs
+          </UButton>
+        </div>
+
+
+        <div class="flex justify-between">
+          <UButton variant="outline" size="sm" color="red" @click="onCancelClicked">
+            Cancel
+          </UButton>
+
+          <UDivider />
+
+          <UButton variant="outline" size="sm" color="primary" icon="i-heroicons-link" @click="onReportIssueClicked">
+            Open GitHub Issue
+          </UButton>
+
+        </div>
+      </UContainer>
     </UCard>
   </UModal>
 </template>
@@ -198,9 +170,9 @@ const onCopyLogsClicked = debounce(async () => {
 
     const type = 'text/plain'
     const logsJson = JSON.stringify(payload.value)
-    const logsBlob = new Blob([ logsJson ], { type })
+    const logsBlob = new Blob([logsJson], { type })
     const item = new ClipboardItem({ [type]: logsBlob })
-    await navigator.clipboard.write([ item ])
+    await navigator.clipboard.write([item])
     logger.info('copied encrypted logs to clipboard')
     logsCopySuccess.value = true
     setTimeout(() => { logsCopySuccess.value = false }, 2500)
@@ -212,16 +184,20 @@ const onCopyLogsClicked = debounce(async () => {
 
 <style scoped>
 .modal-overlay {
-  background-color: rgba(0, 0, 0, 0.7); /* Change background color */
+  background-color: rgba(0, 0, 0, 0.7);
+  /* Change background color */
 }
 
 .modal-card {
-  background-color: #333; /* Change modal card background color */
-  color: #fff; /* Change text color */
+  background-color: #333;
+  /* Change modal card background color */
+  color: #fff;
+  /* Change text color */
 }
 
 .modal-card h4 {
-  color: #fff; /* Change title color */
+  color: #fff;
+  /* Change title color */
 }
 
 .modal-card .u-button {
