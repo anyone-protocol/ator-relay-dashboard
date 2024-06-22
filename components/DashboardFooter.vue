@@ -3,8 +3,9 @@ import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
 
 const config = useRuntimeConfig();
 
-const version = '1.0.0';
+const version = config.public.version;
 const commitHash = config.public.commitHash || 'dev';
+
 </script>
 
 <template>
