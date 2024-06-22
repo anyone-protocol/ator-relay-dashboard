@@ -26,7 +26,7 @@ jobs:
         run: echo "NUXT_PUBLIC_COMMIT_HASH=${{ github.sha }}" >> $GITHUB_ENV      
 
       - name: Build image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
+        run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}" --build-arg NUXT_PUBLIC_COMMIT_HASH=${{ github.sha }}
 
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
