@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { switchChain, watchAccount } from '@wagmi/core';
+import { switchChain, watchAccount, watchChainId } from '@wagmi/core';
 import { useAccount } from '@wagmi/vue';
 import { config, defaultChain } from '@/config/wagmi.config';
 
@@ -10,7 +10,13 @@ const unwatch = watchAccount(config, {
     console.log('Account changed!', data);
   },
 });
+const unwatchChainId = watchChainId(config, {
+  onChange(data) {
+    console.log('Chain ID changed!', data);
+  },
+});
 unwatch();
+unwatchChainId();
 </script>
 
 <template>

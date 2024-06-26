@@ -20,8 +20,7 @@ import { initDistribution, useDistribution } from '@/composables/distribution';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import type { ClaimProcess } from '@/types/facilitator';
 import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
-import  ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
-
+import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -104,23 +103,22 @@ const trancateUserBalance = (userBalance: string | null | bigint) => {
   <div
     class="relative grid grid-flow-row grid-cols-1 pt-4 lg:pt-0 gap-6 lg:grid-cols-6"
   >
-    <div
-      class="flex w-full flex-col gap-4  lg:col-span-6 lg:flex-row-reverse"
-    >
+    <div class="flex w-full flex-col gap-4 lg:col-span-6 lg:flex-row-reverse">
       <DashboardMobileSection class="lg:basis-1/2" title="account-balance">
         <Card title="Account balance" :icon="'eos-icons:master-outlined'">
-          <div class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0">
-
-          <p class="mb-4 text-sm">
-            The connected wallet shows the following balance:
-          </p>
-          <ReportIssueButton />
-        </div>
+          <div
+            class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
+          >
+            <p class="mb-4 text-sm">
+              The connected wallet shows the following balance:
+            </p>
+            <ReportIssueButton />
+          </div>
 
           <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row">
             <div class="border-l-4 border-cyan-600 pl-3">
               <UserBalance
-                class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500 "
+                class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
               >
                 <p class="ml-1 mt-2 text-sm"><Ticker /> Account balance</p>
               </UserBalance>
@@ -144,10 +142,12 @@ const trancateUserBalance = (userBalance: string | null | bigint) => {
 
       <DashboardMobileSection class="lg:basis-1/2" title="my-rewards">
         <Card>
-          <div class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0">
+          <div
+            class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
+          >
             <div>
               <h2
-                class="dark:text-cyan-200 lg:text-3xl text-2xl tracking-wide flex items-center  gap-2 font-brand"
+                class="dark:text-cyan-200 lg:text-3xl text-2xl tracking-wide flex items-center gap-2 font-brand"
               >
                 <Icon name="eos-icons:trusted-organization" />
                 Rewards history
@@ -157,7 +157,7 @@ const trancateUserBalance = (userBalance: string | null | bigint) => {
               </p>
             </div>
             <div v-if="isConnected" class="redeem flex gap-6 items-center">
-              <div class="divider  hidden lg:visible"></div>
+              <div class="divider hidden lg:visible"></div>
               <div>
                 <Button
                   :disabled="
@@ -233,8 +233,6 @@ const trancateUserBalance = (userBalance: string | null | bigint) => {
   </DashboardMobileSection>
   <ReportIssueDialog />
   <SupportIssueDialog />
-
-
 </template>
 
 <style scoped lang="scss">
