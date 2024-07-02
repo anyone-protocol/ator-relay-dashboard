@@ -153,7 +153,10 @@ export class Registrator {
     return currentLockSize;
   }
 
-  async lock(fingerprint: string): Promise<TransactionResponse | null> {
+  async lock(
+    fingerprint: string,
+    address: string
+  ): Promise<TransactionResponse | null> {
     const auth = useUserStore();
     const registratorStore = useRegistratorStore();
 
@@ -191,7 +194,7 @@ export class Registrator {
       const result = await this.contract
         .connect(this.signer)
         // @ts-ignore
-        .register(auth.userData.address, fingerprint);
+        .register(address == '' ? auth.userData.address : address, fingerprint);
 
       await result.wait();
       await this.refresh();
