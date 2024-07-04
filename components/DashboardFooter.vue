@@ -96,7 +96,6 @@ const isOpen = ref(false);
 
     <div class="flex justify-between items-center rounded-xl w-full">
       <div class="flex gap-2">
-        <h1 class="lg:hidden capitalize font-brand tracking-wider">ANON</h1>
         <div class="font-brand tracking-wider">
           <UButton variant="outline" @click="isOpen = true"
             >View Contracts</UButton
