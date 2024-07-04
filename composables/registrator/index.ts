@@ -204,7 +204,7 @@ export class Registrator {
         color: 'primary',
         title: 'Success',
         timeout: 0,
-        description: `Relay locked. We've locked ${formatEther(registratorStore.totalLockedTokens || '0')} $ATOR.`,
+        description: `Relay locked. We've locked ${formatEther(registratorStore.totalLockedTokens || '0')} $ANON.`,
       });
 
       return result;

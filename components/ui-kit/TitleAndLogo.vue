@@ -5,7 +5,7 @@
       <h2
         class="dark:text-white text-cyan-800 text-xl sr-only lg:not-sr-only font-brand font-bold"
       >
-        ATOR
+        AnyOne
       </h2>
     </router-link>
   </div>

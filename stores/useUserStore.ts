@@ -6,7 +6,7 @@ import type { RelayMeta } from '@/types/relay';
 
 import { warpRead, warpReadSerials } from '@/utils/warp.read';
 import { config } from '@/config/wagmi.config';
-import { getAtorAddress } from '@/config/web3modal.config';
+import { getAnonAddress } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
 import { getRelaysInfo } from '@/utils/relays';
 import { toDisplayString } from 'vue';
@@ -30,19 +30,19 @@ export const useUserStore = defineStore('user', {
     serials: [] as string[],
   }),
   actions: {
-    // Get ATOR balance
+    // Get ANON balance
     async getTokenBalance() {
       if (!this.userData.address) {
         return;
       }
-      const token = getAtorAddress() as `0x${string}`;
+      const token = getAnonAddress() as `0x${string}`;
 
       this.tokenBalance = await getBalance(config, {
         token,
         address: this.userData.address as `0x${string}`,
       });
     },
-    // Get ATOR balance in USD using price store
+    // Get ANON balance in USD using price store
     async getUsdTokenBalance() {
       const priceStore = usePriceStore();
       await priceStore.fetchPrice();

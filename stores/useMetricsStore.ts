@@ -31,7 +31,7 @@ export type RelayVerificationResult =
 
 export interface ValidatedRelay {
   fingerprint: string;
-  ator_address: string;
+  anon_address: string;
   consensus_weight: number;
   consensus_weight_fraction: number;
   observed_bandwidth: number;

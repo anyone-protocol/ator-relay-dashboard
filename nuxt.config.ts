@@ -13,7 +13,7 @@ export default defineNuxtConfig({
         {
           hid: 'description',
           name: 'Description',
-          content: 'ATOR Dashboard',
+          content: 'ANON Dashboard',
         },
         { property: 'og:site_name', content: 'ATOR Dashboard' },
         { name: 'twitter:site', content: '@atorprotocol' },

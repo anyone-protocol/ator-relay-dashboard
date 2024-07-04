@@ -24,7 +24,7 @@ export const getRelaysInfo = async (fingerPrints: string[]) => {
           fingerprint: relay.fingerprint,
           nickname: relay.nickname,
           status: '',
-          ator_address: relay.ator_address,
+          anon_address: relay.anon_address,
           consensus_weight: relay.consensus_weight.toString(),
           observed_bandwidth: relay.observed_bandwidth,
           consensus_weight_fraction: relay.consensus_weight_fraction,
