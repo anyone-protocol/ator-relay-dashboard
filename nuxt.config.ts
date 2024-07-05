@@ -47,11 +47,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
-      relayRegistryAddress: '5yjhGMs-sX1YREo9RQGqVN_P_7eIR8elEcQMhae6MgM',
+      relayRegistryAddress: 'qAKbvWizYxpZZiGKfo8Dy0qGfb6DuXBSgx2xLE-Zf7Y',
       facilitatorContract: '0xba55dfC8E60177e550316CA51711F23AF5161A42',
       sepoliaAtorTokenContract: '0x3F7D7e1161B4CbC172517a2957A13814f4a657A2',
       tokenContractMain: '0x0f7b3f5a8fed821c5eb60049538a548db2d479ce',
-      distributionContract: 'lmKgmCnvdWvU1pcsLCX1XtyWf665jPXBrFt-3jX1TZo',
+      distributionContract: 'VK7smaaSFuh2WN7uK02JfJat8cMu_ju6ax2n_nQ3wTU',
       metricsDeployer: '53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q',
       registratorContract: '0xa7325b28ED397AC0391529425bB7d5C34dD4FD74',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
