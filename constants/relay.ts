@@ -21,6 +21,10 @@ const defaultColumns: {
     label: 'Lock Status',
   },
   {
+    key: 'nickname',
+    label: 'Nickname',
+  },
+  {
     key: 'status',
     label: 'Registration Status',
   },

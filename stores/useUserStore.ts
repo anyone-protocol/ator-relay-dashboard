@@ -4,12 +4,15 @@ import { getBalance } from '@wagmi/core';
 import { type GetBalanceReturnType } from '@wagmi/core';
 import type { RelayMeta } from '@/types/relay';
 
-import { warpRead, warpReadSerials } from '@/utils/warp.read';
+import { useNickNameCache } from '~/composables/nicknameCache';
+
+import { warpRead, warpReadSerials, readNickNames } from '@/utils/warp.read';
 import { config } from '@/config/wagmi.config';
-import { getAtorAddress } from '@/config/web3modal.config';
+import { getAnonAddress } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
 import { getRelaysInfo } from '@/utils/relays';
 import { toDisplayString } from 'vue';
+import { useRelayCache } from '~/composables/relayCache';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -25,24 +28,25 @@ export const useUserStore = defineStore('user', {
     verifiedRelays: [] as RelayRow[],
     claimableRelays: [] as RelayRow[],
     relaysMeta: {} as Record<string, RelayMeta>,
+    nickNames: {} as Record<string, string>,
     claimableRewards: 0,
     claimedRewardsTotal: 0,
     serials: [] as string[],
   }),
   actions: {
-    // Get ATOR balance
+    // Get ANON balance
     async getTokenBalance() {
       if (!this.userData.address) {
         return;
       }
-      const token = getAtorAddress() as `0x${string}`;
+      const token = getAnonAddress() as `0x${string}`;
 
       this.tokenBalance = await getBalance(config, {
         token,
         address: this.userData.address as `0x${string}`,
       });
     },
-    // Get ATOR balance in USD using price store
+    // Get ANON balance in USD using price store
     async getUsdTokenBalance() {
       const priceStore = usePriceStore();
       await priceStore.fetchPrice();
@@ -51,61 +55,98 @@ export const useUserStore = defineStore('user', {
         priceStore.currentPrice.data *
         Number(formatEther(this.tokenBalance?.value ?? BigInt(0)));
     },
+
+    // Get nicknames
+    async getNickNames(forceRefresh = false) {
+      if (!this.userData.address) {
+        return;
+      }
+      const cacheStore = useNickNameCache();
+      if (!forceRefresh) {
+        console.log('Fetching nicknames from cache');
+        const cachedData = await cacheStore.getNickNames('nicknames');
+        if (cachedData) {
+          console.log('Using cached nicknames', cachedData);
+          this.nickNames = JSON.parse(cachedData);
+          return;
+        }
+      }
+
+      const nicknames = await readNickNames();
+      if (nicknames != null) {
+        this.nickNames = nicknames;
+        var serialized = JSON.stringify(nicknames);
+        await cacheStore.saveNickNames('nicknames', serialized);
+      }
+    },
+
     // Get verified relays using Warp
-    async getVerifiedRelays() {
+    async getVerifiedRelays(forceRefresh = false) {
       if (!this.userData.address) {
         this.verifiedRelays = [];
         return;
       }
 
-      const verified = await warpRead(this.userData.address, 'verified');
+      const relayCache = useRelayCache();
+      if (!forceRefresh) {
+        console.log('Fetching verified relays from cache');
+        const cachedData = await relayCache.getRelayData('verifiedRelays');
+        if (cachedData) {
+          console.log('Using cached verified relays', cachedData);
+          this.verifiedRelays = cachedData;
+          return;
+        }
+      }
+
+      const verified: any = await warpRead(this.userData.address, 'verified');
       if (verified.status === 200) {
         const relays = await verified.json();
         this.verifiedRelays = relays.relays;
-        const meta = getRelaysInfo(
-          relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
-        );
-        this.relaysMeta = {
-          ...this.relaysMeta,
-          ...meta,
-        };
+        console.log('Saving verified relays to cache', this.verifiedRelays);
+        await relayCache.saveRelayData('verifiedRelays', this.verifiedRelays);
       } else if (verified.status === 500) {
         this.verifiedRelays = [];
         throw new Error('rate limited');
       }
     },
     // Get claimable relays using Warp
-    async getClaimableRelays() {
+    async getClaimableRelays(forceRefresh = false) {
+      console.log('forcerefresh', forceRefresh);
       if (!this.userData.address) {
         this.claimableRelays = [];
         return;
       }
 
-      const claimable = await warpRead(this.userData.address, 'claimable');
+      const relayCache = useRelayCache();
+      if (!forceRefresh) {
+        console.log('Fetching claimable relays from cache');
+        const cachedData = await relayCache.getRelayData('claimableRelays');
+        if (cachedData) {
+          console.log('Using cached claimable relays', cachedData);
+          this.claimableRelays = cachedData;
+          return;
+        }
+      }
 
-      // make this keep retrying until it gets a 200 status
+      const claimable: any = await warpRead(this.userData.address, 'claimable');
       if (claimable.status === 200) {
         const relays = await claimable.json();
         this.claimableRelays = relays.relays;
-        const meta = await getRelaysInfo(
-          relays.relays.map((relay: { fingerprint: any }) => relay.fingerprint)
-        );
-        this.relaysMeta = {
-          ...this.relaysMeta,
-          ...meta,
-        };
+        console.log('Saving claimable relays to cache', this.claimableRelays);
+        await relayCache.saveRelayData('claimableRelays', this.claimableRelays);
       } else if (claimable.status === 500) {
         this.claimableRelays = [];
         throw new Error('rate limited');
       }
     },
-    async claimRelayRefresh() {
-      var error = true;
+    async claimRelayRefresh(forceRefresh = false) {
+      console.log('forcerefresh', forceRefresh);
+
+      let error = true;
       const toast = useToast();
-      // keep trying until it gets a 200 status
       while (error) {
         try {
-          await this.getClaimableRelays();
+          await this.getClaimableRelays(forceRefresh);
           error = false;
           toast.remove('claimable-relays-error');
         } catch (e) {
@@ -113,13 +154,12 @@ export const useUserStore = defineStore('user', {
         }
       }
     },
-    async verifiedRelaysRefresh() {
-      var error = true;
+    async verifiedRelaysRefresh(forceRefresh = false) {
+      let error = true;
       const toast = useToast();
-      // keep trying until it gets a 200 status
       while (error) {
         try {
-          await this.getVerifiedRelays();
+          await this.getVerifiedRelays(forceRefresh);
           error = false;
           toast.remove('verified-relays-error');
         } catch (e) {
@@ -128,15 +168,24 @@ export const useUserStore = defineStore('user', {
       }
     },
     async getRelaysMeta() {},
-    async getSerialsRelays() {
+    async getSerialsRelays(forceRefresh = false) {
       if (!this.userData.address) {
         this.serials = [];
         return;
       }
 
-      const serials = await warpReadSerials(this.userData.address);
+      const relayCache = useRelayCache();
+      if (!forceRefresh) {
+        const cachedData = await relayCache.getRelayData('serialsRelays');
+        if (cachedData) {
+          this.serials = cachedData;
+          return;
+        }
+      }
 
+      const serials = await warpReadSerials(this.userData.address);
       this.serials = serials;
+      await relayCache.saveRelayData('serialsRelays', this.serials);
     },
     isHardwareRelay(fingerprint: string) {
       return this.serials.includes(fingerprint);

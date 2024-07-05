@@ -1,14 +1,14 @@
-# ATOR Relay Dashboard (WIP)
+# AnyOne Relay Dashboard (WIP)
 
-This repo houses the code to display the user specific information pertaining to ATOR Relays.
+This repo houses the code to display the user specific information pertaining to ANON Relays.
 
 ## To Do
 
 Since this is in progress, there is still work to be done.
 While this list seems long much of the boilerplate exists.
 
-- Get claimable rewards total (hardcoded now)
-- Get previously claimed to date (hardcoded now)
+- Get claimable rewards total
+- Get previously claimed to date
 - Get reward history per user and plot a graph (empty array now)
 - We need to implement signing for the functions - see below.
 - Register, Claim and Renounce functions need to be tested (need mock data)
@@ -18,11 +18,11 @@ While this list seems long much of the boilerplate exists.
 
 This is actually the third iteration of this code:
 
-1. ATOR built: https://github.com/ATOR-Development/ator-dashboard/
+1. ANON built: https://github.com/ATOR-Development/ator-dashboard/
 2. Brewlabs built: https://github.com/brewlabs-code/ator/
 3. Brewlabs built stripped down: https://github.com/brewlabs-code/ator-relay-dashboard
 
-For reasons not worth getting into now ATOR changed directions technically. As such the 2nd build was halted.
+For reasons not worth getting into now ANON changed directions technically. As such the 2nd build was halted.
 Now, the underlying tech has changed somewhat and we are developing an MVP version focussing on the user account section.
 Much of the code has been migrated but also some updates where necessary.
 

@@ -44,7 +44,7 @@ initRelayRegistry();
 initFacilitator();
 initRegistrator();
 initToken();
-initDistribution();
+
 // useMetricsStore().refresh();
 
 watch(

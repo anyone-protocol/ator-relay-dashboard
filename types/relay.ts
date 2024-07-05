@@ -10,7 +10,7 @@ export type RelayMeta = {
   fingerprint: string;
   nickname?: string;
   status?: string;
-  ator_address: string;
+  anon_address: string;
   consensus_weight: string;
   observed_bandwidth: number;
   consensus_weight_fraction: number;

@@ -7,13 +7,13 @@ export const metadata = {
   icons: ['/images/ator-logo.png'],
 };
 
-export const getAtorAddress = () => {
+export const getAnonAddress = () => {
   const runtimeConfig = useRuntimeConfig();
 
   return runtimeConfig.public.sepoliaAtorTokenContract;
 };
 
-export const getAtorAddressMain = () => {
+export const getAnonAddressMain = () => {
   const runtimeConfig = useRuntimeConfig();
 
   return runtimeConfig.public.tokenContractMain;
