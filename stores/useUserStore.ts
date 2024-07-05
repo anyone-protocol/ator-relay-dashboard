@@ -4,7 +4,9 @@ import { getBalance } from '@wagmi/core';
 import { type GetBalanceReturnType } from '@wagmi/core';
 import type { RelayMeta } from '@/types/relay';
 
-import { warpRead, warpReadSerials } from '@/utils/warp.read';
+import { useNickNameCache } from '~/composables/nicknameCache';
+
+import { warpRead, warpReadSerials, readNickNames } from '@/utils/warp.read';
 import { config } from '@/config/wagmi.config';
 import { getAnonAddress } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
@@ -26,6 +28,7 @@ export const useUserStore = defineStore('user', {
     verifiedRelays: [] as RelayRow[],
     claimableRelays: [] as RelayRow[],
     relaysMeta: {} as Record<string, RelayMeta>,
+    nickNames: {} as Record<string, string>,
     claimableRewards: 0,
     claimedRewardsTotal: 0,
     serials: [] as string[],
@@ -52,6 +55,31 @@ export const useUserStore = defineStore('user', {
         priceStore.currentPrice.data *
         Number(formatEther(this.tokenBalance?.value ?? BigInt(0)));
     },
+
+    // Get nicknames
+    async getNickNames(forceRefresh = false) {
+      if (!this.userData.address) {
+        return;
+      }
+      const cacheStore = useNickNameCache();
+      if (!forceRefresh) {
+        console.log('Fetching nicknames from cache');
+        const cachedData = await cacheStore.getNickNames('nicknames');
+        if (cachedData) {
+          console.log('Using cached nicknames', cachedData);
+          this.nickNames = JSON.parse(cachedData);
+          return;
+        }
+      }
+
+      const nicknames = await readNickNames();
+      if (nicknames != null) {
+        this.nickNames = nicknames;
+        var serialized = JSON.stringify(nicknames);
+        await cacheStore.saveNickNames('nicknames', serialized);
+      }
+    },
+
     // Get verified relays using Warp
     async getVerifiedRelays(forceRefresh = false) {
       if (!this.userData.address) {

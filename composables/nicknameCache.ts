@@ -1,14 +1,14 @@
 import Logger from '@/utils/logger';
 
-class RelayCache {
+class NickNameCache {
   private dbName: string;
   private objectStoreName: string;
-  private readonly logger = new Logger('RelayCache');
+  private readonly logger = new Logger('NickNameCache');
   private cacheDuration = 5 * 60 * 1000;
 
   constructor() {
-    this.dbName = 'relayDataDB';
-    this.objectStoreName = 'relays';
+    this.dbName = 'nicknameDataDB';
+    this.objectStoreName = 'nicknames';
   }
 
   private async openDB(): Promise<IDBDatabase> {
@@ -35,7 +35,7 @@ class RelayCache {
     });
   }
 
-  public async getRelayData<Data = any>(key: string): Promise<Data | null> {
+  public async getNickNames<Data = any>(key: string): Promise<Data | null> {
     try {
       const db = await this.openDB();
 
@@ -48,8 +48,8 @@ class RelayCache {
         const request = objectStore.get(key);
 
         request.onerror = () => {
-          this.logger.error('Failed to get relay data from IndexedDB');
-          reject(new Error('Failed to get relay data from IndexedDB'));
+          this.logger.error('Failed to get nickname data from IndexedDB');
+          reject(new Error('Failed to get nickname data from IndexedDB'));
         };
 
         request.onsuccess = () => {
@@ -60,6 +60,7 @@ class RelayCache {
       if (fromCache) {
         this.logger.info(`Cache hit for key: ${key}`, fromCache);
       } else {
+        this.logger.info(`Cache miss for key: ${key}`);
       }
 
       if (fromCache && Date.now() - fromCache.timestamp < this.cacheDuration) {
@@ -69,31 +70,26 @@ class RelayCache {
 
       return null;
     } catch (error) {
-      this.logger.error('Failed to get relay data', error);
+      this.logger.error('Failed to get nickname data', error);
       return null;
     }
   }
 
-  public async saveRelayData(key: string, data: any): Promise<void> {
+  public async saveNickNames(key: string, data: any): Promise<void> {
     try {
       const db = await this.openDB();
       const timestamp = Date.now();
-
-      const serializedData = JSON.stringify(data);
 
       this.logger.info(`Saving data for key: ${key}`, data);
 
       return new Promise<void>((resolve, reject) => {
         const transaction = db.transaction(this.objectStoreName, 'readwrite');
         const objectStore = transaction.objectStore(this.objectStoreName);
-        const request = objectStore.put(
-          { data: serializedData, timestamp },
-          key
-        );
+        const request = objectStore.put({ data: data, timestamp }, key);
 
         request.onerror = () => {
-          this.logger.error('Failed to save relay data');
-          reject(new Error('Failed to save relay data'));
+          this.logger.error('Failed to save nickname data');
+          reject(new Error('Failed to save nickname data'));
         };
 
         request.onsuccess = () => {
@@ -102,10 +98,10 @@ class RelayCache {
         };
       });
     } catch (error) {
-      this.logger.error('Failed to save relay data', error);
+      this.logger.error('Failed to save nickname data', error);
     }
   }
 }
 
-const relayCache = new RelayCache();
-export const useRelayCache = () => relayCache;
+const nickNameCache = new NickNameCache();
+export const useNickNameCache = () => nickNameCache;

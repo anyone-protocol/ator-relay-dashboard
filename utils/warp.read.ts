@@ -71,6 +71,22 @@ export const warpRead = async (
   });
 };
 
+export const readNickNames = async (): Promise<Record<
+  string,
+  string
+> | null> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const result = await relayRegistryContract.readState();
+
+      resolve(result?.cachedValue?.state?.nicknames);
+    } catch (error) {
+      console.log(error);
+      resolve(null);
+    }
+  });
+};
+
 export const warpReadSerials = async (
   address: `0x${string}`
 ): Promise<string[]> => {

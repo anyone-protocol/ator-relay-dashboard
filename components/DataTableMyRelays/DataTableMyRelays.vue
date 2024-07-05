@@ -41,6 +41,12 @@ const { error: claimableRelaysError, pending: claimablePending } =
     watch: [address],
   });
 
+// for nicknames
+const { error: nickNamesError, pending: nickNamesPending } =
+  await useAsyncData('nickNames', () => userStore.getNickNames(), {
+    watch: [address],
+  });
+
 const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
 const fingerPrintRegister = ref<string>('');
@@ -402,7 +408,7 @@ const handleUnlockClick = (fingerprint: string) => {
         </div>
       </template>
       <template #nickname-data="{ row }">
-        {{ userStore?.relaysMeta?.[row.fingerprint]?.nickname || '-' }}
+        {{ userStore?.nickNames?.[row.fingerprint] || '-' }}
       </template>
 
       <template #active-data="{ row }">
