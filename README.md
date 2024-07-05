@@ -7,8 +7,8 @@ This repo houses the code to display the user specific information pertaining to
 Since this is in progress, there is still work to be done.
 While this list seems long much of the boilerplate exists.
 
-- Get claimable rewards total (hardcoded now)
-- Get previously claimed to date (hardcoded now)
+- Get claimable rewards total
+- Get previously claimed to date
 - Get reward history per user and plot a graph (empty array now)
 - We need to implement signing for the functions - see below.
 - Register, Claim and Renounce functions need to be tested (need mock data)

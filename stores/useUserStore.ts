@@ -70,7 +70,7 @@ export const useUserStore = defineStore('user', {
         }
       }
 
-      const verified = await warpRead(this.userData.address, 'verified');
+      const verified: any = await warpRead(this.userData.address, 'verified');
       if (verified.status === 200) {
         const relays = await verified.json();
         this.verifiedRelays = relays.relays;
@@ -100,7 +100,7 @@ export const useUserStore = defineStore('user', {
         }
       }
 
-      const claimable = await warpRead(this.userData.address, 'claimable');
+      const claimable: any = await warpRead(this.userData.address, 'claimable');
       if (claimable.status === 200) {
         const relays = await claimable.json();
         this.claimableRelays = relays.relays;

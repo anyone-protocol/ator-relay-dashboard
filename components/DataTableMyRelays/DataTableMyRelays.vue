@@ -47,8 +47,8 @@ const fingerPrintRegister = ref<string>('');
 const fingerPrintRegisterError = ref<string | null>(null);
 
 if (
-  claimableRelaysError.value?.cause?.message == 'rate limited' ||
-  verifiedRelaysError.value?.cause?.message == 'rate limited'
+  (claimableRelaysError as any).value?.cause?.message == 'rate limited' ||
+  (verifiedRelaysError as any).value?.cause?.message == 'rate limited'
 ) {
   toast.add({
     id: 'claimable-relays-error',
@@ -342,7 +342,10 @@ const handleUnlockClick = (fingerprint: string) => {
   </UModal>
   <div class="-mx-4 sm:-mx-0">
     <UAlert
-      v-if="verifiedRelaysError?.value || claimableRelaysError?.value"
+      v-if="
+        (verifiedRelaysError as any)?.value ||
+        (claimableRelaysError as any)?.value
+      "
       class="mb-6"
       icon="i-heroicons-exclamation-triangle"
       description="There was an error retrieving relays. We'll load what we can."
