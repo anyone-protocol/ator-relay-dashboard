@@ -13,6 +13,7 @@
     "test": "echo \"No tests specified\""
   },
   "dependencies": {
+    "@ar.io/sdk": "^1.2.1",
     "@iconify-json/eos-icons": "^1.1.10",
     "@iconify-json/heroicons": "^1.1.21",
     "@iconify-json/heroicons-outline": "^1.1.10",

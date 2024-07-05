@@ -1,62 +1,49 @@
-import Irys from '@irys/sdk';
-import {
-  LoggerFactory,
-  WarpFactory,
-  defaultCacheOptions,
-} from 'warp-contracts';
-import Arweave from 'arweave';
+import Irys from '@irys/sdk'
+import { ANT, ArweaveSigner } from '@ar.io/sdk'
 
-const ANT = 'kPti-YZrJ86qkGci32Q5inHtbBUlces2mTGTEm_0gzo';
-const DEPLOY_FOLDER = './.output/public';
-const IRYS_NODE = 'https://node2.irys.xyz/';
-
+const processId = '9UpvN6H7sMo0vkuQeou3Ra0pZguWavtpt_8lfqPQlI8'
+const DEPLOY_FOLDER = './.output/public'
+const IRYS_NODE = 'https://node2.irys.xyz/'
 const jwk = JSON.parse(
   Buffer.from(process.env.PERMAWEB_KEY || 'NO_KEY', 'base64').toString('utf-8')
-);
+)
+const irys = new Irys({ url: IRYS_NODE, token: 'arweave', key: jwk })
+const ant = ANT.init({
+  processId,
+  signer: new ArweaveSigner(jwk)
+})
 
-LoggerFactory.INST.logLevel('fatal');
+let undername = 'dev'
+if (process.env.PHASE === 'stage') {
+  undername = 'stage'
+} else if (process.env.PHASE === 'live') {
+  undername = '@'
+}
 
-const irys = new Irys({ url: IRYS_NODE, token: 'arweave', key: jwk });
+async function deploy() {
+  const buildArtifact = await irys.uploadFolder(DEPLOY_FOLDER, {
+    indexFile: 'index.html'
+  })
 
-// upload folder
-const result = await irys.uploadFolder(DEPLOY_FOLDER, {
-  indexFile: 'index.html',
-});
+  if (!buildArtifact) {
+    console.error('Irys result error', buildArtifact)
 
-// update ANT
-if (result) {
-  console.log('irys result id', result.id);
-  var subDomain = 'dev';
-  if (process.env.PHASE === 'live') {
-    subDomain = '@';
-  } else if (process.env.PHASE === 'stage') {
-    subDomain = 'stage';
+    return
   }
 
-  console.log(`Deploying to: ${subDomain}`);
+  console.log('Irys result id', buildArtifact.id)
+  console.log('Updating ANT undername', undername)
 
-  const arweave = Arweave.init({
-    host: 'arweave.net',
-    port: 443,
-    protocol: 'https',
-  });
-
-  const warp = WarpFactory.custom(arweave, defaultCacheOptions, 'mainnet')
-    .useArweaveGateway()
-    .build();
-  const contract = warp.contract(ANT).connect(jwk);
-
-  const deployed = await contract.writeInteraction({
-    function: 'setRecord',
-    subDomain: subDomain,
-    ttlSeconds: 3600,
-    transactionId: result.id,
-  });
+  const { id: deployedTxId } = await ant.setRecord({
+    undername,
+    transactionId: buildArtifact.id,
+    ttlSeconds: 3600
+  })
 
   console.log(
-    'Deployed!  Please wait 20 - 30 minutes for ArNS to update!',
-    deployed
-  );
-} else {
-  console.error('Irys result error', result);
+    'Deployed!  Please wait 20 - 30 minutes for ARNS to update!',
+    deployedTxId
+  )
 }
+
+deploy().then().catch(err => console.error(err))
