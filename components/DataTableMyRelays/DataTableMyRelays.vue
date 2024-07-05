@@ -18,6 +18,7 @@ import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
 import { useRegistrator } from '@/composables/registrator';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import { ethers } from 'ethers';
+import { watchAccount } from '@wagmi/core';
 
 const toast = useToast();
 const userStore = useUserStore();
@@ -29,6 +30,15 @@ const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
 const currentTab = ref<RelayTabType>('all');
 const registerModalOpen = ref(false);
+
+const unwatch = watchAccount(config, {
+  onChange(account) {
+    console.log('Account changed!', account);
+    userStore.getVerifiedRelays(true);
+    userStore.getClaimableRelays(true);
+  },
+});
+unwatch();
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
 const { error: verifiedRelaysError, pending: verifiedPending } =
@@ -42,10 +52,13 @@ const { error: claimableRelaysError, pending: claimablePending } =
   });
 
 // for nicknames
-const { error: nickNamesError, pending: nickNamesPending } =
-  await useAsyncData('nickNames', () => userStore.getNickNames(), {
+const { error: nickNamesError, pending: nickNamesPending } = await useAsyncData(
+  'nickNames',
+  () => userStore.getNickNames(),
+  {
     watch: [address],
-  });
+  }
+);
 
 const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
