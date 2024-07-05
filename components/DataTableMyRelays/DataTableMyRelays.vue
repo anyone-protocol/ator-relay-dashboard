@@ -36,6 +36,7 @@ const unwatch = watchAccount(config, {
     console.log('Account changed!', account);
     userStore.getVerifiedRelays(true);
     userStore.getClaimableRelays(true);
+    userStore.getNickNames(true);
   },
 });
 unwatch();
