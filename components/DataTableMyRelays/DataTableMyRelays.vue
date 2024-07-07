@@ -277,18 +277,11 @@ const getObservedBandwidth = (fingerprint: string) => {
       .toFormat(3) + ' MiB/s'
   );
 };
-
-const handleUnlockClick = (fingerprint: string) => {
+ 
+const handleUnlockClick = async (fingerprint: string) => {
   if (registratorStore.isRelayLocked(fingerprint)) {
-    toast.remove('unlock-relays-error');
-    toast.add({
-      id: 'unlock-relays-error',
-      icon: 'i-heroicons-exclamation-triangle',
-      color: 'amber',
-      title: 'Unlock failed',
-      timeout: 0,
-      description: `This relay is currently locked. It unlocks at block: ${registratorStore.getUnlockTime(fingerprint)}`,
-    });
+    const register = useRegistrator();
+    await register?.unlock(fingerprint, BigInt(100));
   }
 };
 </script>

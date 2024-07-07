@@ -204,7 +204,7 @@ export class Registrator {
         color: 'primary',
         title: 'Success',
         timeout: 0,
-        description: `Relay locked. We've locked ${formatEther(registratorStore.totalLockedTokens || '0')} $ANON.`,
+        description: `Relay locked. We've locked ${formatEther(registratorStore.currentLockSize || '0')} $ANON.`,
       });
 
       return result;
@@ -228,6 +228,124 @@ export class Registrator {
       }
 
       this.logger.error(ERRORS.FUNDING_ORACLE, error);
+    }
+
+    return null;
+  }
+
+  async unlock(
+    fingerprint: string,
+    upto: bigint
+  ): Promise<TransactionResponse | null> {
+    const auth = useUserStore();
+    const registratorStore = useRegistratorStore();
+
+    let signer: JsonRpcSigner | undefined;
+    if (auth.userData) {
+      const _signer = await useSigner();
+      if (_signer) {
+        signer = _signer;
+      }
+    }
+
+    await this.setSigner(signer);
+
+    if (!this.signer) {
+      throw new Error(ERRORS.NO_SIGNER);
+    }
+    if (!this.contract) {
+      throw new Error(ERRORS.NOT_INITIALIZED);
+    }
+
+    const toast = useToast();
+
+    try {
+      const blockNumber = await signer?.provider?.getBlockNumber();
+      if (!blockNumber || typeof blockNumber !== 'number') {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: 'Error getting block number',
+        });
+        this.logger.error('Error getting block number');
+        return null;
+      }
+
+      const lockTime = await registratorStore.getUnlockTime(fingerprint);
+      if (!lockTime) {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: 'Error getting unlock time',
+        });
+        this.logger.error('Error getting unlock time');
+        return null;
+      }
+
+      if (blockNumber < Number(lockTime)) {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description:
+            'Tokens are still locked, they can be unlocked after block number ' +
+            lockTime,
+        });
+        this.logger.error('Tokens are still locked');
+        return null;
+      }
+
+      const token = useToken();
+      if (!token) {
+        throw new Error(ERRORS.NOT_INITIALIZED);
+      }
+
+      const tokenResult = await token.approve(
+        runtimeConfig.public.registratorContract as string,
+        upto
+      );
+
+      await tokenResult?.wait();
+
+      const result = await this.contract
+        .connect(this.signer)
+        // @ts-ignore
+        .unregister(auth.userData.address, upto, fingerprint);
+
+      await result.wait();
+      await this.refresh();
+
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        color: 'primary',
+        title: 'Success',
+        timeout: 0,
+        description: `Tokens unlocked. We've unlocked ${formatEther(upto.toString())} $ANON.`,
+      });
+
+      return result;
+    } catch (error) {
+      const msg = (error as Error)?.message;
+
+      if (!msg.includes('User denied transaction signature.')) {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: `Error unlocking tokens: ${msg}`,
+        });
+      } else {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: 'User denied transaction signature.',
+        });
+      }
+
+      this.logger.error('Error with unlocking: ', error);
     }
 
     return null;
