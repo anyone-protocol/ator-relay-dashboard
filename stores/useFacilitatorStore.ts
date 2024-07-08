@@ -21,6 +21,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
       sumOfTotalDistributions: '',
       previousDistributions: [],
       claimableAtomicTokens: '',
+      distributionPerRelay: {},
     };
   },
   getters: {

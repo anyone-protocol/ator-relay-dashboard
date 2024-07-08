@@ -17,6 +17,10 @@ const defaultColumns: {
     label: 'Consensus weight',
   },
   {
+    key: 'previousDistribution',
+    label: 'Previous Distribution',
+  },
+  {
     key: 'lockStatus',
     label: 'Lock Status',
   },
@@ -56,8 +60,16 @@ export const RELAY_COLUMS: Record<
       label: 'Consensus weight',
     },
     {
+      key: 'previousDistribution',
+      label: 'Previous Distribution',
+    },
+    {
       key: 'lockStatus',
       label: 'Lock Status',
+    },
+    {
+      key: 'nickname',
+      label: 'Nickname',
     },
     {
       key: 'unlock',

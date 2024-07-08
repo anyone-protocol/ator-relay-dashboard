@@ -1,3 +1,5 @@
+import type BigNumber from "bignumber.js";
+
 export interface ClaimProcess {
   claimNumber: number;
   amount?: string;
@@ -18,6 +20,8 @@ export type PreviousDistribution = {
   fromNowHumanized: string;
 };
 
+export type DistributionPerRelay = Record<string, BigNumber>;
+
 export interface FacilitatorStoreState {
   claims: ClaimProcess[];
   pendingClaim: ClaimProcess | null;
@@ -26,6 +30,7 @@ export interface FacilitatorStoreState {
   distributionRefreshing: boolean;
   distributionRatePerDay: string;
   sumOfTotalDistributions: string;
+  distributionPerRelay: DistributionPerRelay;
   previousDistributions: PreviousDistribution[];
   claimableAtomicTokens?: string;
   availableBudget?: string;

@@ -170,6 +170,7 @@ onMounted(async () => {
   initFacilitator();
   initRegistrator();
   initToken();
+  initDistribution();
 });
 
 watch(
@@ -187,6 +188,7 @@ watch(
     await registrator?.refresh();
 
     await useDistribution().claimable(newAddress as string);
+    await useDistribution().refresh()
   }
 );
 

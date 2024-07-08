@@ -6,6 +6,7 @@ import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
+import {useFacilitatorStore} from '@/stores/useFacilitatorStore';
 
 import Tabs from '../ui-kit/Tabs.vue';
 import Tooltip from '../ui-kit/Tooltip.vue';
@@ -25,6 +26,7 @@ const userStore = useUserStore();
 const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
+const facilitatorStore = useFacilitatorStore();
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
@@ -416,6 +418,9 @@ const handleUnlockClick = async (fingerprint: string) => {
       </template>
       <template #nickname-data="{ row }">
         {{ userStore?.nickNames?.[row.fingerprint] || '-' }}
+      </template>
+      <template #previousDistribution-data="{ row }">
+        {{ facilitatorStore?.distributionPerRelay?.[row.fingerprint] || '-' }}
       </template>
 
       <template #active-data="{ row }">
