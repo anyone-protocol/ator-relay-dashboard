@@ -20,9 +20,9 @@ const menuStore = useMenuStore();
     <div
       class="flex justify-between items-center px-6 pb-4 lg:pt-6 pt-4 relative"
     >
-      <div class="flex gap-2">
+      <div class="flex gap-2 items-center">
         <TitleAndLogo />
-        <h1 class="lg:hidden capitalize font-brand tracking-wider">ANON</h1>
+        <h1 class="lg:hidden capitalize font-brand tracking-wider">ANyONe</h1>
       </div>
       <nav class="flex-1">
         <ul class="flex justify-center items-center space-x-4">
