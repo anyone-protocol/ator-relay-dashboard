@@ -31,7 +31,7 @@ export const warpRead = async (
     try {
       const { result } = await relayRegistryContract.viewState({
         function: functionName,
-        address: test,
+        address: address,
       });
 
       const relays = result.map((relay: string) => {

@@ -1,4 +1,4 @@
-import type BigNumber from "bignumber.js";
+import type BigNumber from 'bignumber.js';
 
 export interface ClaimProcess {
   claimNumber: number;

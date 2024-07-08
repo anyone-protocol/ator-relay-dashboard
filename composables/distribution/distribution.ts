@@ -28,22 +28,21 @@ interface TempMap {
   [fingerprint: string]: BigNumber;
 }
 
-
 const state: State = {
   previousDistributions: {
-    "timestamp1": {
+    timestamp1: {
       details: {
-        "fingerprint1": { distributedTokens: new BigNumber(100) },
-        "fingerprint2": { distributedTokens: new BigNumber(200) }
-      }
+        fingerprint1: { distributedTokens: new BigNumber(100) },
+        fingerprint2: { distributedTokens: new BigNumber(200) },
+      },
     },
-    "timestamp2": {
+    timestamp2: {
       details: {
-        "fingerprint1": { distributedTokens: new BigNumber(50) },
-        "fingerprint3": { distributedTokens: new BigNumber(300) }
-      }
-    }
-  }
+        fingerprint1: { distributedTokens: new BigNumber(50) },
+        fingerprint3: { distributedTokens: new BigNumber(300) },
+      },
+    },
+  },
 };
 
 export class Distribution {
@@ -193,17 +192,24 @@ export class Distribution {
 
     // Iterate through state and populate tempMap
     if (state?.previousDistributions) {
-      for (const [timestamp, distributionResult] of Object.entries(state.previousDistributions)) {
+      for (const [timestamp, distributionResult] of Object.entries(
+        state.previousDistributions
+      )) {
         const distResult = distributionResult as DistributionResult;
         if (distResult?.details) {
-          for (const [fingerprint, previousDistribution] of Object.entries(distResult.details)) {
-            const distributionDetail = previousDistribution as DistributionDetail;
-    
+          for (const [fingerprint, previousDistribution] of Object.entries(
+            distResult.details
+          )) {
+            const distributionDetail =
+              previousDistribution as DistributionDetail;
+
             if (!tempMap[fingerprint]) {
               tempMap[fingerprint] = distributionDetail.distributedTokens;
             } else {
               // add
-              tempMap[fingerprint] = tempMap[fingerprint].plus(distributionDetail.distributedTokens);
+              tempMap[fingerprint] = tempMap[fingerprint].plus(
+                distributionDetail.distributedTokens
+              );
             }
           }
         }
@@ -211,7 +217,7 @@ export class Distribution {
     }
 
     useFacilitatorStore().distributionPerRelay = tempMap;
-    
+
     return previousDistributions;
   }
 
