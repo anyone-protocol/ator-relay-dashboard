@@ -216,6 +216,10 @@ export class Distribution {
       }
     }
 
+    for (const [fingerprint, totalDistributed] of Object.entries(tempMap)) {
+      tempMap[fingerprint] = totalDistributed.dividedBy(1e18).decimalPlaces(2);
+    }
+
     useFacilitatorStore().distributionPerRelay = tempMap;
 
     return previousDistributions;
