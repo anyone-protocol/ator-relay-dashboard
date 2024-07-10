@@ -204,7 +204,7 @@ export class Registrator {
         color: 'primary',
         title: 'Success',
         timeout: 0,
-        description: `Relay locked. We've locked ${formatEther(registratorStore.currentLockSize || '0')} $ANON.`,
+        description: `Relay locked. We've locked ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE.`,
       });
 
       return result;
@@ -322,7 +322,7 @@ export class Registrator {
         color: 'primary',
         title: 'Success',
         timeout: 0,
-        description: `Tokens unlocked. We've unlocked ${formatEther(upto.toString())} $ANON.`,
+        description: `Tokens unlocked. We've unlocked ${formatEther(upto.toString())} $ANYONE.`,
       });
 
       return result;

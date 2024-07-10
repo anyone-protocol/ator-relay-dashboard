@@ -6,7 +6,7 @@ import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
-import {useFacilitatorStore} from '@/stores/useFacilitatorStore';
+import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 
 import Tabs from '../ui-kit/Tabs.vue';
 import Tooltip from '../ui-kit/Tooltip.vue';
@@ -279,11 +279,14 @@ const getObservedBandwidth = (fingerprint: string) => {
       .toFormat(3) + ' MiB/s'
   );
 };
- 
+
 const handleUnlockClick = async (fingerprint: string) => {
   if (registratorStore.isRelayLocked(fingerprint)) {
     const register = useRegistrator();
-    await register?.unlock(fingerprint, BigInt(100));
+    await register?.unlock(fingerprint, BigInt(100 * 1e18));
+    // Refresh the relays
+    await userStore.getVerifiedRelays(true);
+    await userStore.getClaimableRelays(true);
   }
 };
 </script>
