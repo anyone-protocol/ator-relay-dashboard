@@ -29,7 +29,7 @@
               </h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{ trancateUserBalance(registratorStore.totalLockedTokens) }}
+                  {{ formatEther(registratorStore.totalLockedTokens || '0') }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
@@ -99,7 +99,7 @@
               <h3>Claimed rewards</h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{ trancateUserBalance(facilitatorStore.totalClaimedTokens) }}
+                  {{ formatEther(facilitatorStore.totalClaimedTokens || '0') }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
@@ -110,8 +110,8 @@
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                    trancateUserBalance(
-                      facilitatorStore.avaliableAllocatedTokens
+                    formatEther(
+                      facilitatorStore.avaliableAllocatedTokens || '0'
                     )
                   }}
                 </span>
