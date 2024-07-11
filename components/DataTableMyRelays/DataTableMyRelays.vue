@@ -244,7 +244,19 @@ const handleLockRemote = async () => {
 
   try {
     const register = useRegistrator();
-    await register?.lock(fingerPrintRegister.value, ethAddress.value);
+    const success = await register?.lock(fingerPrintRegister.value, ethAddress.value);
+    if (success != null && typeof success != typeof Error) {
+      registerModalOpen.value = false;
+    } else {
+      toast.remove('invalid-evm-address');
+      toast.add({
+        id: 'invalid-evm-address',
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: `Error registering relay`,
+      });
+    }
   } catch (error: any) {}
 };
 
