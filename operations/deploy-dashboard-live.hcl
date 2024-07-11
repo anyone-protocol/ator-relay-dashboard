@@ -29,6 +29,7 @@ job "deploy-relay-dashboard-live" {
             NUXT_PUBLIC_FACILITATOR_CONTRACT="[[ consulKey "facilitator/sepolia/live/address" ]]"
             NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/sepolia/live/address" ]]"
             NUXT_PUBLIC_WARP_GATEWAY = "https://warp-dre-node-live.dmz.ator.dev"
+            NUXT_PUBLIC_REGISTRATOR_CONTRACT="0x525C31B35065540059701eE5feC12120F581E96e"
             {{with secret "kv/dashboard/live"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
                 NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{.Data.data.SUPPORT_ADDRESS_BASE64}}"

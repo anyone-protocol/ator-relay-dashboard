@@ -29,7 +29,7 @@
               </h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{ formatEther(registratorStore.totalLockedTokens || '0') }}
+                  {{ trancateUserBalance(registratorStore.totalLockedTokens) }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
@@ -99,7 +99,7 @@
               <h3>Claimed rewards</h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{ formatEther(facilitatorStore.totalClaimedTokens || '0') }}
+                  {{ trancateUserBalance(facilitatorStore.totalClaimedTokens) }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
@@ -110,8 +110,8 @@
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                    formatEther(
-                      facilitatorStore.avaliableAllocatedTokens || '0'
+                    trancateUserBalance(
+                      facilitatorStore.avaliableAllocatedTokens
                     )
                   }}
                 </span>
@@ -188,7 +188,7 @@ watch(
     await registrator?.refresh();
 
     await useDistribution().claimable(newAddress as string);
-    await useDistribution().refresh()
+    await useDistribution().refresh();
   }
 );
 
