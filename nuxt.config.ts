@@ -15,14 +15,14 @@ export default defineNuxtConfig({
           name: 'Description',
           content: 'ANON Dashboard',
         },
-        { property: 'og:site_name', content: 'ATOR Dashboard' },
+        { property: 'og:site_name', content: 'AnyOne Dashboard' },
         { name: 'twitter:site', content: '@atorprotocol' },
       ],
       link: [
         {
           rel: 'icon',
           type: 'image/png',
-          href: '/images/ator-logo.png',
+          href: '/images/anyone-logo.png',
         },
       ],
     },
@@ -61,7 +61,7 @@ export default defineNuxtConfig({
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.0.4',
+      version: '1.0.5',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
