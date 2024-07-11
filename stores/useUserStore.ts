@@ -45,6 +45,14 @@ export const useUserStore = defineStore('user', {
         token,
         address: this.userData.address as `0x${string}`,
       });
+      console.log(
+        this.tokenBalance,
+        'tokenBalance',
+        token,
+        'token',
+        this.userData.address,
+        'userAddress'
+      );
     },
     // Get ANON balance in USD using price store
     async getUsdTokenBalance() {
