@@ -204,7 +204,9 @@ export class Distribution {
               previousDistribution as DistributionDetail;
 
             if (!tempMap[fingerprint]) {
-              tempMap[fingerprint] = distributionDetail.distributedTokens;
+              tempMap[fingerprint] = BigNumber(
+                distributionDetail.distributedTokens
+              );
             } else {
               // add
               tempMap[fingerprint] = tempMap[fingerprint].plus(
@@ -217,7 +219,11 @@ export class Distribution {
     }
 
     for (const [fingerprint, totalDistributed] of Object.entries(tempMap)) {
-      tempMap[fingerprint] = totalDistributed.dividedBy(1e18).decimalPlaces(2);
+      console.log(totalDistributed);
+      // change string to BigNumber
+
+      const toBigNumber = BigNumber(totalDistributed);
+      tempMap[fingerprint] = toBigNumber.dividedBy(1e18).decimalPlaces(2);
     }
 
     useFacilitatorStore().distributionPerRelay = tempMap;
