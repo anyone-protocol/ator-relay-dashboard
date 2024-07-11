@@ -6,6 +6,7 @@ import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
+import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 
 import Tabs from '../ui-kit/Tabs.vue';
 import Tooltip from '../ui-kit/Tooltip.vue';
@@ -25,6 +26,7 @@ const userStore = useUserStore();
 const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
+const facilitatorStore = useFacilitatorStore();
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
@@ -242,7 +244,19 @@ const handleLockRemote = async () => {
 
   try {
     const register = useRegistrator();
-    await register?.lock(fingerPrintRegister.value, ethAddress.value);
+    const success = await register?.lock(fingerPrintRegister.value, ethAddress.value);
+    if (success != null && typeof success != typeof Error) {
+      registerModalOpen.value = false;
+    } else {
+      toast.remove('invalid-evm-address');
+      toast.add({
+        id: 'invalid-evm-address',
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: `Error registering relay`,
+      });
+    }
   } catch (error: any) {}
 };
 
@@ -278,17 +292,13 @@ const getObservedBandwidth = (fingerprint: string) => {
   );
 };
 
-const handleUnlockClick = (fingerprint: string) => {
+const handleUnlockClick = async (fingerprint: string) => {
   if (registratorStore.isRelayLocked(fingerprint)) {
-    toast.remove('unlock-relays-error');
-    toast.add({
-      id: 'unlock-relays-error',
-      icon: 'i-heroicons-exclamation-triangle',
-      color: 'amber',
-      title: 'Unlock failed',
-      timeout: 0,
-      description: `This relay is currently locked. It unlocks at block: ${registratorStore.getUnlockTime(fingerprint)}`,
-    });
+    const register = useRegistrator();
+    await register?.unlock(fingerprint, BigInt(100 * 1e18));
+    // Refresh the relays
+    await userStore.getVerifiedRelays(true);
+    await userStore.getClaimableRelays(true);
   }
 };
 </script>
@@ -423,6 +433,9 @@ const handleUnlockClick = (fingerprint: string) => {
       </template>
       <template #nickname-data="{ row }">
         {{ userStore?.nickNames?.[row.fingerprint] || '-' }}
+      </template>
+      <template #previousDistribution-data="{ row }">
+        {{ facilitatorStore?.distributionPerRelay?.[row.fingerprint] || '-' }}
       </template>
 
       <template #active-data="{ row }">

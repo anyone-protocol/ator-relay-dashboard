@@ -7,6 +7,44 @@ import Logger from '@/utils/logger';
 import { type DistributionState } from './contract';
 import type { PreviousDistribution } from '@/types/facilitator';
 
+interface DistributionDetail {
+  distributedTokens: BigNumber;
+}
+
+interface DistributionResult {
+  details: {
+    [fingerprint: string]: DistributionDetail;
+  };
+}
+
+interface State {
+  previousDistributions?: {
+    [timestamp: string]: DistributionResult;
+  };
+}
+
+// Type for tempMap
+interface TempMap {
+  [fingerprint: string]: BigNumber;
+}
+
+const state: State = {
+  previousDistributions: {
+    timestamp1: {
+      details: {
+        fingerprint1: { distributedTokens: new BigNumber(100) },
+        fingerprint2: { distributedTokens: new BigNumber(200) },
+      },
+    },
+    timestamp2: {
+      details: {
+        fingerprint1: { distributedTokens: new BigNumber(50) },
+        fingerprint3: { distributedTokens: new BigNumber(300) },
+      },
+    },
+  },
+};
+
 export class Distribution {
   private _refreshing: boolean = false;
   private contract: Contract<DistributionState> | null = null;
@@ -146,6 +184,49 @@ export class Distribution {
     useFacilitatorStore().sumOfTotalDistributions =
       sumOfTotalDistributions.toString();
     useFacilitatorStore().previousDistributions = previousDistributions;
+
+    console.log(state);
+
+    // Initialize tempMap
+    let tempMap: TempMap = {};
+
+    // Iterate through state and populate tempMap
+    if (state?.previousDistributions) {
+      for (const [timestamp, distributionResult] of Object.entries(
+        state.previousDistributions
+      )) {
+        const distResult = distributionResult as DistributionResult;
+        if (distResult?.details) {
+          for (const [fingerprint, previousDistribution] of Object.entries(
+            distResult.details
+          )) {
+            const distributionDetail =
+              previousDistribution as DistributionDetail;
+
+            if (!tempMap[fingerprint]) {
+              tempMap[fingerprint] = BigNumber(
+                distributionDetail.distributedTokens
+              );
+            } else {
+              // add
+              tempMap[fingerprint] = tempMap[fingerprint].plus(
+                distributionDetail.distributedTokens
+              );
+            }
+          }
+        }
+      }
+    }
+
+    for (const [fingerprint, totalDistributed] of Object.entries(tempMap)) {
+      console.log(totalDistributed);
+      // change string to BigNumber
+
+      const toBigNumber = BigNumber(totalDistributed);
+      tempMap[fingerprint] = toBigNumber.dividedBy(1e18).decimalPlaces(2);
+    }
+
+    useFacilitatorStore().distributionPerRelay = tempMap;
 
     return previousDistributions;
   }

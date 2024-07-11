@@ -103,14 +103,9 @@ const isOpen = ref(false);
         </div>
       </div>
       <div
-        class="text-sm text-gray-600 dark:text-gray-300 justify-self-center margin-auto"
+        class="text-sm text-gray-600 dark:text-gray-300 justify-self-center margin-auto w-[50%]"
       >
         Version: {{ version }} | Commit: {{ commitHash }}
-      </div>
-      <div>
-        <div class="lg:hidden flex items-center gap-2">
-          <ButtonThemeToggle />
-        </div>
       </div>
     </div>
   </footer>

@@ -9,20 +9,24 @@ const defaultColumns: {
     label: 'Relay fingerprint',
   },
   {
+    key: 'nickname',
+    label: 'Nickname',
+  },
+  {
     key: 'active',
     label: 'Running',
   },
   {
-    key: 'consensusWeight',
-    label: 'Consensus weight',
+    key: 'observedBandwidth',
+    label: 'Observed Bandwith',
+  },
+  {
+    key: 'previousDistribution',
+    label: 'Previous Distribution',
   },
   {
     key: 'lockStatus',
     label: 'Lock Status',
-  },
-  {
-    key: 'nickname',
-    label: 'Nickname',
   },
   {
     key: 'status',
@@ -52,8 +56,16 @@ export const RELAY_COLUMS: Record<
       label: 'Relay fingerprint',
     },
     {
-      key: 'consensusWeight',
-      label: 'Consensus weight',
+      key: 'nickname',
+      label: 'Nickname',
+    },
+    {
+      key: 'observedBandwidth',
+      label: 'Observed Bandwith',
+    },
+    {
+      key: 'previousDistribution',
+      label: 'Previous Distribution',
     },
     {
       key: 'lockStatus',

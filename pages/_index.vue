@@ -1,9 +1,104 @@
+<script setup lang="ts">
+import { initRelayRegistry } from '@/composables/relay-registry';
+import { initFacilitator } from '@/composables/facilitator';
+import { formatEther } from 'ethers';
+
+import { useAccount } from '@wagmi/vue';
+import { config } from '@/config/wagmi.config';
+import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
+
+import Card from '@/components/ui-kit/Card.vue';
+import Ticker from '@/components/ui-kit/Ticker.vue';
+import Button from '@/components/ui-kit/Button.vue';
+import DataTableMyRelays from '@/components/DataTableMyRelays/DataTableMyRelays.vue';
+import { useFacilitator } from '@/composables/facilitator';
+
+import { getRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
+import { initRegistrator, useRegistrator } from '@/composables/registrator';
+import { initToken } from '@/composables/token';
+import { initDistribution, useDistribution } from '@/composables/distribution';
+import { useRegistratorStore } from '@/stores/useRegistratorStore';
+import type { ClaimProcess } from '@/types/facilitator';
+import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
+import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
+
+const userStore = useUserStore();
+const facilitatorStore = useFacilitatorStore();
+const registratorStore = useRegistratorStore();
+const { isConnected } = useAccount({ config });
+const facilitator = useFacilitator();
+const isRedeemLoading = ref(false);
+const progressLoading = ref(0);
+
+const toast = useToast();
+
+// Get new data every 5 minutes
+onMounted(async () => {
+  facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
+    userStore.userData.address
+  );
+  await userStore.getSerialsRelays();
+});
+
+initRelayRegistry();
+initFacilitator();
+initRegistrator();
+initToken();
+
+// useMetricsStore().refresh();
+
+watch(
+  () => userStore.userData.address,
+  async (newAddress?: string) => {
+    facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
+
+    const facilitator = useFacilitator();
+    await facilitator?.refresh();
+
+    await userStore.getTokenBalance();
+    await userStore.getSerialsRelays();
+
+    const registrator = useRegistrator();
+    await registrator?.refresh();
+
+    await useDistribution().claimable(newAddress as string);
+  }
+);
+
+watch(
+  () => facilitatorStore.pendingClaim,
+  (updatedPendingClaim: ClaimProcess | null) => {
+    progressLoading.value = updatedPendingClaim ? 2 : 0;
+  }
+);
+
+const handleClaimAllRewards = async () => {
+  isRedeemLoading.value = true;
+  progressLoading.value = 1;
+
+  try {
+    const facilitator = useFacilitator();
+    await facilitator?.claim();
+  } catch (error) {
+    toast.add({
+      icon: 'i-heroicons-x-circle',
+      color: 'amber',
+      title: 'Error',
+      description: `Error redeen rewards: ${error}`,
+    });
+  }
+
+  isRedeemLoading.value = false;
+  progressLoading.value = 0;
+};
+</script>
+
 <template>
   <div
     class="relative grid grid-flow-row grid-cols-1 pt-4 lg:pt-0 gap-6 lg:grid-cols-6"
   >
-    <div class="flex w-full flex-col gap-4 lg:col-span-6">
-      <DashboardMobileSection title="account-balance">
+    <div class="flex w-full flex-col gap-4 lg:col-span-6 lg:flex-row-reverse">
+      <DashboardMobileSection class="lg:basis-1/2" title="account-balance">
         <Card title="Account balance" :icon="'eos-icons:master-outlined'">
           <div
             class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
@@ -39,7 +134,7 @@
         </Card>
       </DashboardMobileSection>
 
-      <DashboardMobileSection title="my-rewards">
+      <DashboardMobileSection class="lg:basis-1/2" title="my-rewards">
         <Card>
           <div
             class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
@@ -124,103 +219,17 @@
       </DashboardMobileSection>
     </div>
   </div>
+
+  <DashboardMobileSection title="my-relays">
+    <Card title="Relays" :icon="'eos-icons:product-classes-outlined'">
+      <DataTableMyRelays />
+    </Card>
+  </DashboardMobileSection>
   <ReportIssueDialog />
   <SupportIssueDialog />
 </template>
 
-<script setup lang="ts">
-import { useAccount } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
-import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
-import { useUserStore } from '@/stores/useUserStore';
-import { useRegistratorStore } from '@/stores/useRegistratorStore';
-import { formatEther } from 'ethers';
-import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
-import UserBalance from '@/components/UserBalance.vue';
-import Button from '@/components/ui-kit/Button.vue';
-import Card from '@/components/ui-kit/Card.vue';
-import Ticker from '@/components/ui-kit/Ticker.vue';
-import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
-import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
-import { initRegistrator, useRegistrator } from '@/composables/registrator';
-import { useFacilitator } from '@/composables/facilitator';
-import { initDistribution, useDistribution } from '@/composables/distribution';
-import { initRelayRegistry } from '@/composables/relay-registry';
-import { initFacilitator } from '@/composables/facilitator';
-import { initToken } from '@/composables/token';
-
-const userStore = useUserStore();
-const facilitatorStore = useFacilitatorStore();
-const registratorStore = useRegistratorStore();
-const { isConnected } = useAccount({ config });
-
-const isRedeemLoading = ref(false);
-const progressLoading = ref(0);
-
-const toast = useToast();
-
-onMounted(async () => {
-  await userStore.getTokenBalance();
-
-  facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
-    userStore.userData.address
-  );
-
-  initRelayRegistry();
-  initFacilitator();
-  initRegistrator();
-  initToken();
-  initDistribution();
-});
-
-watch(
-  () => userStore.userData.address,
-  async (newAddress?: string) => {
-    facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
-    await userStore.getTokenBalance();
-    await userStore.getSerialsRelays();
-    await userStore.getNickNames();
-
-    const facilitator = useFacilitator();
-    await facilitator?.refresh();
-
-    const registrator = useRegistrator();
-    await registrator?.refresh();
-
-    await useDistribution().claimable(newAddress as string);
-    await useDistribution().refresh();
-  }
-);
-
-watch(
-  () => facilitatorStore.pendingClaim,
-  (updatedPendingClaim) => {
-    progressLoading.value = updatedPendingClaim ? 2 : 0;
-  }
-);
-
-const handleClaimAllRewards = async () => {
-  isRedeemLoading.value = true;
-  progressLoading.value = 1;
-
-  try {
-    const facilitator = useFacilitator();
-    await facilitator?.claim();
-  } catch (error) {
-    toast.add({
-      icon: 'i-heroicons-x-circle',
-      color: 'amber',
-      title: 'Error',
-      description: `Error redeem rewards: ${error}`,
-    });
-  }
-
-  isRedeemLoading.value = false;
-  progressLoading.value = 0;
-};
-</script>
-
-<style scoped>
+<style scoped lang="scss">
 .divider {
   width: 1px;
   min-height: 64px;

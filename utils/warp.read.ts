@@ -4,7 +4,7 @@ import { responseOutput } from '@/utils/responseOutput';
 
 type FunctionName = 'verified' | 'claimable' | 'serials';
 
-var test = '0x722256e823bCB92D2C9510Bf185149Ef167f3903';
+var test = '0xECc33A2782041fC5D032B214a22a596e1BC6a35b';
 
 // getting the relays, either claimed or verified, by using corresponding function name and user's EVM address.
 export const warpRead = async (

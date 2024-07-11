@@ -26,7 +26,7 @@ const props = defineProps<{
       block
     >
       <div class="text-sm font-medium">Lock</div>
-      <div>Lock 100 $ANON</div>
+      <div>Lock 100 $ANYONE</div>
     </UButton>
     <UButton
       v-else-if="props.row.status === 'claimable' && props.isLocked"
