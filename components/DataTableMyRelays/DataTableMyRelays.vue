@@ -41,42 +41,23 @@ const registerModalOpen = ref(false);
 const unwatch = watchAccount(config, {
   onChange(account) {
     console.log('Account changed!', account);
-    userStore.getVerifiedRelays(true);
-    userStore.getClaimableRelays(true);
-    userStore.getNickNames(true);
   },
 });
 unwatch();
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
-const { error: verifiedRelaysError, pending: verifiedPending } =
-  await useAsyncData('verifiedRelays', () => userStore.getVerifiedRelays(), {
+const { error: allRelaysError, pending: allRelaysPending } =
+  await useAsyncData('verifiedRelays', () => userStore.createRelayCache(), {
     server: false,
     watch: [address],
   });
-const { error: claimableRelaysError, pending: claimablePending } =
-  await useAsyncData('claimableRelays', () => userStore.getClaimableRelays(), {
-    watch: [address],
-  });
-
-// for nicknames
-const { error: nickNamesError, pending: nickNamesPending } = await useAsyncData(
-  'nickNames',
-  () => userStore.getNickNames(),
-  {
-    watch: [address],
-  }
-);
 
 const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
 const fingerPrintRegister = ref<string>('');
 const fingerPrintRegisterError = ref<string | null>(null);
 
-if (
-  (claimableRelaysError as any).value?.cause?.message == 'rate limited' ||
-  (verifiedRelaysError as any).value?.cause?.message == 'rate limited'
-) {
+if ((allRelaysError as any).value?.cause?.message == 'rate limited') {
   toast.add({
     id: 'claimable-relays-error',
     icon: 'i-heroicons-exclamation-triangle',
@@ -85,23 +66,6 @@ if (
     timeout: 0,
     description: 'Please wait...',
   });
-  if (claimableRelaysError.value != null) {
-    userStore
-      .claimRelayRefresh()
-      .then(() => (claimableRelaysError.value = null));
-  } else if (verifiedRelaysError.value != null) {
-    userStore
-      .verifiedRelaysRefresh()
-      .then(() => (verifiedRelaysError.value = null));
-  } else {
-    userStore
-      .claimRelayRefresh()
-      .then(() => (claimableRelaysError.value = null));
-    userStore
-      .verifiedRelaysRefresh()
-      .then(() => (verifiedRelaysError.value = null));
-  }
-  // keep trying to fetch the claimable relays
 }
 
 const timestamp = computed(
@@ -146,8 +110,8 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     }
 
     // Refresh the relays
-    await userStore.getVerifiedRelays(true);
-    await userStore.getClaimableRelays(true);
+    await userStore.getClaimableRelays();
+    await userStore.getVerifiedRelays();
 
     toast.add({
       icon: 'i-heroicons-check-circle',
@@ -302,10 +266,10 @@ const getObservedBandwidth = (fingerprint: string) => {
 const handleUnlockClick = async (fingerprint: string) => {
   if (registratorStore.isRelayLocked(fingerprint)) {
     const register = useRegistrator();
-    await register?.unlock(fingerprint, BigInt(100 * 1e18));
-    // Refresh the relays
-    await userStore.getVerifiedRelays(true);
-    await userStore.getClaimableRelays(true);
+    register?.unlock(fingerprint, BigInt(100 * 1e18)).then(async () => {
+      // Refresh the relays
+      await userStore.createRelayCache();
+    });
   }
 };
 </script>
@@ -380,8 +344,8 @@ const handleUnlockClick = async (fingerprint: string) => {
   <div class="-mx-4 sm:-mx-0">
     <UAlert
       v-if="
-        (verifiedRelaysError as any)?.value ||
-        (claimableRelaysError as any)?.value
+        (allRelaysError as any)?.value ||
+        (allRelaysError as any)?.value
       "
       class="mb-6"
       icon="i-heroicons-exclamation-triangle"
@@ -393,7 +357,7 @@ const handleUnlockClick = async (fingerprint: string) => {
     <Tabs :tabs="TABS" @onChange="handleTabChange" />
 
     <UTable
-      :loading="verifiedPending || claimablePending"
+      :loading="allRelaysPending"
       :columns="RELAY_COLUMS[currentTab]"
       :rows="getTableData(currentTab)"
       :ui="{ td: { base: 'max-w-sm truncate' } }"

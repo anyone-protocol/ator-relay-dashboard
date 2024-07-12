@@ -189,22 +189,50 @@ export class Registrator {
         runtimeConfig.public.registratorContract as string,
         registratorStore.currentLockSize
       );
+      toast.add({
+        icon: 'i-heroicons-clock',
+        color: 'primary',
+        id: 'approve-token',
+        timeout: 0,
+        title: 'Approving token...',
+        closeButton: undefined,
+      });
       await tokenResult?.wait();
+
+      toast.remove('approve-token');
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        id: 'token-approved',
+        color: 'primary',
+        title:
+          'Token approved! Please accept the transaction to lock the relay.',
+      });
 
       const result = await this.contract
         .connect(this.signer)
         // @ts-ignore
         .register(address == '' ? auth.userData.address : address, fingerprint);
 
+      toast.remove('token-approved');
+      toast.add({
+        icon: 'i-heroicons-clock',
+        color: 'primary',
+        id: 'lock-relay',
+        timeout: 0,
+        title: 'Locking relay...',
+        closeButton: undefined,
+      });
       await result.wait();
+      toast.remove('lock-relay');
       await this.refresh();
 
       toast.add({
         icon: 'i-heroicons-check-circle',
         color: 'primary',
         title: 'Success',
+        id: 'relay-locked',
         timeout: 0,
-        description: `Relay locked. We've locked ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE.`,
+        description: `Relay locked. We've locked ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE. Please click the "claim" button to claim your relay on Arweave.`,
       });
 
       return result;

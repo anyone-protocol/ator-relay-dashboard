@@ -4,6 +4,31 @@ import { responseOutput } from '@/utils/responseOutput';
 
 type FunctionName = 'verified' | 'claimable' | 'serials';
 
+type RelayData = {
+  timestamp: number;
+  data: {
+    verified: [
+      {
+        address: string;
+        fingerprint: string;
+        status: string;
+        active: boolean;
+        class: string;
+      },
+    ];
+    claimable: [
+      {
+        address: string;
+        fingerprint: string;
+        status: string;
+        active: boolean;
+        class: string;
+      },
+    ];
+    nicknames: { [key: string]: string };
+  };
+};
+
 var test = '0xECc33A2782041fC5D032B214a22a596e1BC6a35b';
 
 // getting the relays, either claimed or verified, by using corresponding function name and user's EVM address.
@@ -125,5 +150,82 @@ export const warpReadSerials = async (
       message: 'Error',
     });
     return [];
+  }
+};
+
+export const getAllRelays = async (
+  address: `0x${string}`
+): Promise<RelayData | undefined> => {
+  try {
+    const result = await relayRegistryContract.readState();
+    if (!result?.cachedValue?.state) {
+      throw new Error('Invalid state from relayRegistryContract');
+    }
+
+    const verifiedRelays = [];
+    const claimableRelays = [];
+    const nicknames: { [key: string]: any } = {};
+
+    for (const [fingerprint, addressRelay] of Object.entries(
+      result.cachedValue.state.claimable
+    )) {
+      if (address === addressRelay) {
+        claimableRelays.push({
+          address: address,
+          fingerprint: fingerprint,
+          status: 'claimable',
+          active: true,
+          class: '',
+        });
+      }
+    }
+
+    for (const [fingerprint, addressRelay] of Object.entries(
+      result.cachedValue.state.verified
+    )) {
+      if (address === addressRelay) {
+        verifiedRelays.push({
+          address: address,
+          fingerprint: fingerprint,
+          status: 'verified',
+          active: true,
+          class: '',
+        });
+      }
+    }
+
+    for (const [fingerprint, nickname] of Object.entries(
+      result.cachedValue.state.nicknames
+    )) {
+      nicknames[fingerprint] = nickname;
+    }
+
+    return {
+      timestamp: Date.now(),
+      data: {
+        verified: verifiedRelays as [
+          {
+            address: string;
+            fingerprint: string;
+            status: string;
+            active: boolean;
+            class: string;
+          },
+        ],
+        claimable: claimableRelays as [
+          {
+            address: string;
+            fingerprint: string;
+            status: string;
+            active: boolean;
+            class: string;
+          },
+        ],
+        nicknames: nicknames,
+      },
+    };
+  } catch (error) {
+    console.error('Failed to get all relays:', error);
+    return undefined;
   }
 };

@@ -182,8 +182,6 @@ watch(
   async (newAddress?: string) => {
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
     await userStore.getTokenBalance();
-    await userStore.getSerialsRelays();
-    await userStore.getNickNames();
 
     const facilitator = useFacilitator();
     await facilitator?.refresh();

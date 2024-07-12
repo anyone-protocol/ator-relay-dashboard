@@ -88,7 +88,6 @@ onMounted(async () => {
   initToken();
 
   await userStore.getVerifiedRelays();
-  await userStore.getClaimableRelays();
 });
 
 watch(
@@ -96,6 +95,7 @@ watch(
   async (newAddress?: string) => {
     await useDistribution().claimable(newAddress as string);
     await useDistribution().refresh();
+    await userStore.createRelayCache();
   }
 );
 

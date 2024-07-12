@@ -38,6 +38,7 @@
     "bignumber.js": "9.1.2",
     "buffer": "6.0.3",
     "chart.js": "4.4.2",
+    "eos-icons": "^5.4.0",
     "ethers": "6.12.1",
     "lodash": "^4.17.21",
     "moment": "2.30.1",
