@@ -20,6 +20,11 @@ import { useRegistrator } from '@/composables/registrator';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import { ethers } from 'ethers';
 import { watchAccount } from '@wagmi/core';
+import { defineProps } from 'vue';
+
+const props = defineProps<{
+  currentTab: RelayTabType;
+}>();
 
 const toast = useToast();
 const userStore = useUserStore();
@@ -30,7 +35,6 @@ const facilitatorStore = useFacilitatorStore();
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
-const currentTab = ref<RelayTabType>('all');
 const registerModalOpen = ref(false);
 
 const unwatch = watchAccount(config, {
@@ -187,8 +191,10 @@ const rules = {
   required: (value: string) => !!value || 'Required',
 };
 
+const emits = defineEmits(['update:currentTab']);
+
 const handleTabChange = (key: string) => {
-  currentTab.value = key as RelayTabType;
+  emits('update:currentTab', key);
 };
 
 const handleLockRelay = async (fingerprint: string) => {
@@ -383,20 +389,7 @@ const handleUnlockClick = async (fingerprint: string) => {
       color="red"
       variant="subtle"
     />
-
-    <div class="md:flex">
-      <Tabs :tabs="TABS" @onChange="handleTabChange" />
-      <div class="flex justify-center">
-        <UButton
-          @click="registerModalOpen = true"
-          v-if="currentTab === 'locked'"
-          color="green"
-          variant="outline"
-          label="Register Relay"
-          class="mb-[1.7rem]"
-        />
-      </div>
-    </div>
+    <Tabs :tabs="TABS" @onChange="handleTabChange" />
 
     <UTable
       :loading="verifiedPending || claimablePending"

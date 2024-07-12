@@ -1,7 +1,21 @@
 <template>
   <DashboardMobileSection title="my-relays">
-    <Card title="Relays" :icon="'eos-icons:product-classes-outlined'">
-      <DataTableMyRelays />
+    <Card  class="mt-[1rem]">
+      <div class="flex items-center mb-[1rem] justify-between">
+        <div class="flex items-center space-x-2">
+          <Icon name="eos-icons:product-classes-outlined" class="w-[1.8rem] h-[1.8rem]" />
+          <p class="text-[2rem]">Relays</p>
+        </div>
+        <div class="flex justify-center">
+          <UButton
+            @click="registerModalOpen = true"
+            color="green"
+            variant="outline"
+            label="Register Relay"
+          />
+        </div>
+      </div>
+      <DataTableMyRelays :currentTab="currentTab" @update:currentTab="handleTabChange" />
     </Card>
   </DashboardMobileSection>
   <ReportIssueDialog />
@@ -9,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useUserStore } from '@/stores/useUserStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import DataTableMyRelays from '@/components/DataTableMyRelays/DataTableMyRelays.vue';
@@ -20,8 +34,11 @@ import { initDistribution, useDistribution } from '@/composables/distribution';
 import { initRelayRegistry } from '@/composables/relay-registry';
 import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
+import { type RelayRow, type RelayTabType } from '@/types/relay';
 
 const userStore = useUserStore();
+const registerModalOpen = ref(false);
+const currentTab = ref<RelayTabType>('all');
 
 onMounted(async () => {
   initDistribution();
@@ -41,4 +58,8 @@ watch(
     await useDistribution().refresh();
   }
 );
+
+const handleTabChange = (key: RelayTabType) => {
+  currentTab.value = key;
+};
 </script>
