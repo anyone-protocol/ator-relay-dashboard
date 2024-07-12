@@ -11,7 +11,6 @@
             <p class="mb-4 text-sm">
               Current balance for the connected wallet:
             </p>
-            <ReportIssueButton />
           </div>
 
           <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row">
@@ -123,7 +122,6 @@
       </DashboardMobileSection>
     </div>
   </div>
-  <ReportIssueDialog />
   <SupportIssueDialog />
 </template>
 

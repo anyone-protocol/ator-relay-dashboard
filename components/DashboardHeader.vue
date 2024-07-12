@@ -6,6 +6,7 @@ import ButtonMobileMenu from './ui-kit/ButtonMobileMenu.vue';
 import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
 import TitleAndLogo from './ui-kit/TitleAndLogo.vue';
 import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
+import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
 
 const menuStore = useMenuStore();
 </script>
@@ -36,6 +37,9 @@ const menuStore = useMenuStore();
               <UButton variant="outline" class="nav-button">Relays</UButton>
             </RouterLink>
           </li>
+          <div class="lg:flex items-center gap-2 hidden">
+            <ReportIssueButton />
+          </div>
         </ul>
       </nav>
       <div class="flex items-center gap-2">
@@ -44,10 +48,13 @@ const menuStore = useMenuStore();
       <div class="lg:flex items-center hidden ml-auto mr-6">
         <ButtonConnect />
       </div>
+
       <div class="lg:flex items-center gap-2 hidden">
         <ButtonThemeToggle />
       </div>
     </div>
+
+    <ReportIssueDialog />
   </header>
 </template>
 
@@ -62,11 +69,11 @@ nav ul li {
 }
 
 .dark .router-link-active .nav-button {
-  background-color: #000;
-  color: white;
+  background-color: #141313;
+  color: #d6d6d6;
 }
 .router-link-active .nav-button {
-  background-color: #fff;
+  background-color: transparent;
   color: #000;
 }
 </style>
