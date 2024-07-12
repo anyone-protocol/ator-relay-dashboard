@@ -26,15 +26,19 @@ const menuStore = useMenuStore();
         <TitleAndLogo />
       </div>
       <nav class="flex-1">
-        <ul class="flex justify-center items-center space-x-4">
+        <ul class="flex justify-center items-center space-x-2 lg:space-x-4">
           <li>
             <RouterLink to="/">
-              <UButton variant="outline" class="nav-button">Home</UButton>
+              <UButton variant="outline" class="nav-button text-sm lg:text-base"
+                >Home</UButton
+              >
             </RouterLink>
           </li>
           <li>
             <RouterLink to="/relays">
-              <UButton variant="outline" class="nav-button">Relays</UButton>
+              <UButton variant="outline" class="nav-button text-sm lg:text-base"
+                >Relays</UButton
+              >
             </RouterLink>
           </li>
           <div class="lg:flex items-center gap-2 hidden">
