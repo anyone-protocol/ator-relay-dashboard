@@ -5,6 +5,7 @@ import ButtonConnect from './ui-kit/ButtonConnect.vue';
 import ButtonMobileMenu from './ui-kit/ButtonMobileMenu.vue';
 import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
 import TitleAndLogo from './ui-kit/TitleAndLogo.vue';
+import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
 
 const menuStore = useMenuStore();
 </script>

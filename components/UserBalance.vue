@@ -38,16 +38,14 @@ defineProps<{
 
 <template>
   <ClientOnly>
-    <div>
+    <div class="inline-flex items-baseline gap-2">
       <span class="text-4xl font-bold" v-if="isConnected">
         {{ parseFloat(tokenBalance.formatted).toFixed(2) }}
-        <Ticker v-if="showTicker" />
       </span>
-
       <span class="text-4xl font-bold" v-if="!isConnected">
         --
-        <Ticker v-if="showTicker" />
       </span>
+      <Ticker v-if="showTicker" />
       <slot></slot>
     </div>
     <p v-if="balanceUsdError" class="ml-1 mt-1 text-sm">
