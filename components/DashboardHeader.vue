@@ -5,6 +5,7 @@ import ButtonConnect from './ui-kit/ButtonConnect.vue';
 import ButtonMobileMenu from './ui-kit/ButtonMobileMenu.vue';
 import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
 import TitleAndLogo from './ui-kit/TitleAndLogo.vue';
+import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
 
 const menuStore = useMenuStore();
 </script>
@@ -22,7 +23,6 @@ const menuStore = useMenuStore();
     >
       <div class="flex gap-2 items-center">
         <TitleAndLogo />
-        <h1 class="lg:hidden capitalize font-brand tracking-wider">ANyONe</h1>
       </div>
       <nav class="flex-1">
         <ul class="flex justify-center items-center space-x-4">
