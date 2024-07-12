@@ -24,6 +24,7 @@ import { defineProps } from 'vue';
 
 const props = defineProps<{
   currentTab: RelayTabType;
+  registerModalOpen: boolean;
 }>();
 
 const toast = useToast();
