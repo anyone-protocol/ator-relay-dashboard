@@ -100,7 +100,6 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           selectedRow!.isWorking = false;
           return;
         }
-
         break;
       }
 
@@ -110,8 +109,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     }
 
     // Refresh the relays
-    await userStore.getClaimableRelays();
-    await userStore.getVerifiedRelays();
+    await userStore.createRelayCache();
 
     toast.add({
       icon: 'i-heroicons-check-circle',
