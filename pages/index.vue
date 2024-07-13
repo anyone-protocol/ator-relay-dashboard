@@ -19,7 +19,7 @@
               <UserBalance
                 class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
               >
-                <p class="ml-1 mt-2 text-sm"><Ticker /> Account balance</p>
+              <Ticker />
               </UserBalance>
             </div>
             <div class="flex flex-col border-l-4 border-cyan-600 pl-3">
