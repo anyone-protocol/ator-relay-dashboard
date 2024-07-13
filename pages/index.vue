@@ -14,7 +14,7 @@
             <ReportIssueButton />
           </div>
 
-          <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row">
+          <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row my-4">
             <div class="border-l-4 border-cyan-600 pl-3">
               <UserBalance
                 class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
@@ -22,7 +22,7 @@
               <Ticker />
               </UserBalance>
             </div>
-            <div class="flex flex-col border-l-4 border-cyan-600 pl-3">
+            <div class="flex flex-col-reverse border-l-4 border-cyan-600 pl-3">
               <h3>
                 <Icon name="material-symbols:lock" />
                 Locked
