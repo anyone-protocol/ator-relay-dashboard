@@ -3,24 +3,20 @@ import Logger from '@/utils/logger';
 interface RelayData {
   timestamp: number;
   data: {
-    verified: [
-      {
-        address: string;
-        fingerprint: string;
-        status: string;
-        active: boolean;
-        class: string;
-      },
-    ];
-    claimable: [
-      {
-        address: string;
-        fingerprint: string;
-        status: string;
-        active: boolean;
-        class: string;
-      },
-    ];
+    verified: {
+      address: string;
+      fingerprint: string;
+      status: string;
+      active: boolean;
+      class: string;
+    }[];
+    claimable: {
+      address: string;
+      fingerprint: string;
+      status: string;
+      active: boolean;
+      class: string;
+    }[];
     nicknames: { [key: string]: string };
   };
 }
@@ -77,9 +73,15 @@ class RelayCache {
     });
   }
 
-  public async getRelayData<Data = any>(): Promise<Data | null> {
+  public async getRelayData<Data = any>(
+    forceRefresh = false
+  ): Promise<Data | null> {
     try {
       const db = await this.openDB();
+
+      if (forceRefresh) {
+        return null;
+      }
 
       const fromCache = await new Promise<RelayData | null>(
         (resolve, reject) => {
@@ -124,11 +126,12 @@ class RelayCache {
         data,
       };
 
-      this.logger.info(`Saving data in relay cache`, relayData);
+      this.logger.info('Saving data in relay cache', relayData);
 
       return new Promise<void>((resolve, reject) => {
         const transaction = db.transaction(this.objectStoreName, 'readwrite');
         const objectStore = transaction.objectStore(this.objectStoreName);
+        // Use a fixed key 'relays' to ensure that the same entry is overwritten
         const request = objectStore.put(relayData, 'relays');
 
         request.onerror = () => {
@@ -137,7 +140,65 @@ class RelayCache {
         };
 
         request.onsuccess = () => {
-          this.logger.info(`Data saved in relay cache`);
+          this.logger.info('Data saved in relay cache');
+          resolve();
+        };
+      });
+    } catch (error) {
+      this.logger.error('Failed to save relay data', error);
+    }
+  }
+  public async saveRelayDataWithKey(key: string, newData: any): Promise<void> {
+    try {
+      const db = await this.openDB();
+      const timestamp = Date.now();
+
+      const existingData = await this.getRelayData<RelayData>();
+
+      let updatedData: RelayData;
+
+      if (existingData) {
+        // Update the specific part of the data
+        if (key === 'verified') {
+          existingData.data.verified = newData;
+        } else if (key === 'claimable') {
+          existingData.data.claimable = newData;
+        }
+
+        updatedData = {
+          timestamp,
+          data: {
+            ...existingData.data,
+            [key]: newData,
+          },
+        };
+      } else {
+        // Create a new data structure if no existing data is found
+        updatedData = {
+          timestamp,
+          data: {
+            verified: key === 'verified' ? newData : [],
+            claimable: key === 'claimable' ? newData : [],
+            nicknames: {},
+            [key]: newData,
+          },
+        };
+      }
+
+      this.logger.info(`Saving data for key: ${key}`, updatedData);
+
+      return new Promise<void>((resolve, reject) => {
+        const transaction = db.transaction(this.objectStoreName, 'readwrite');
+        const objectStore = transaction.objectStore(this.objectStoreName);
+        const request = objectStore.put(updatedData, 'relays');
+
+        request.onerror = () => {
+          this.logger.error('Failed to save relay data');
+          reject(new Error('Failed to save relay data'));
+        };
+
+        request.onsuccess = () => {
+          this.logger.info(`Data saved for key: ${key}`);
           resolve();
         };
       });

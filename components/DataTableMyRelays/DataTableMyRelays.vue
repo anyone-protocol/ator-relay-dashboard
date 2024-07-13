@@ -41,13 +41,27 @@ const registerModalOpen = ref(false);
 const unwatch = watchAccount(config, {
   onChange(account) {
     console.log('Account changed!', account);
+    userStore.createRelayCache();
   },
 });
 unwatch();
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
-const { error: allRelaysError, pending: allRelaysPending } =
-  await useAsyncData('verifiedRelays', () => userStore.createRelayCache(), {
+const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
+  'verifiedRelays',
+  () => userStore.createRelayCache(),
+  {
+    server: false,
+    watch: [address],
+  }
+);
+const { error: claimableRelaysError, pending: claimablePending } =
+  await useAsyncData('claimableRelays', () => userStore.getClaimableRelays(), {
+    watch: [address],
+  });
+
+const { error: verifiedRelaysError, pending: verifiedPending } =
+  await useAsyncData('verifiedRelays', () => userStore.getVerifiedRelays(), {
     server: false,
     watch: [address],
   });
@@ -91,53 +105,68 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
   selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
+    let actionPromise;
     switch (action) {
-      case 'claim': {
-        const res = await registry.claim(fingerprint);
+      case 'claim':
+        actionPromise = registry.claim(fingerprint);
+        break;
 
+      case 'renounce':
+        actionPromise = registry.renounce(fingerprint);
+        break;
+
+      default:
+        throw new Error('Invalid action');
+    }
+
+    actionPromise
+      .then((res) => {
         if (!res) {
           selectedRow!.class = '';
           selectedRow!.isWorking = false;
           return;
         }
 
-        break;
-      }
+        console.log('Relay action', action, fingerprint);
 
-      case 'renounce':
-        await registry.renounce(fingerprint);
-        break;
-    }
-
-    // Refresh the relays
-    await userStore.getClaimableRelays();
-    await userStore.getVerifiedRelays();
-
-    toast.add({
-      icon: 'i-heroicons-check-circle',
-      color: 'primary',
-      title: 'Success',
-      timeout: 0,
-      description: `Successfully ${
-        VERBS[action].pastTense
-      } relay ${truncatedAddress(fingerprint)}!`,
-    });
-  } catch (error) {
-    // @ts-ignore
-    if (error?.code !== 'ACTION_REJECTED') {
-      toast.add({
-        icon: 'i-heroicons-x-circle',
-        color: 'amber',
-        title: 'Error',
-        description: `Error ${
-          VERBS[action].presentTense
-        } relay ${truncatedAddress(fingerprint)}!`,
+        // Refresh the relays cache
+        return userStore
+          .createRelayCache()
+          .then(() => userStore.getVerifiedRelays())
+          .then(() => userStore.getClaimableRelays())
+          .then(() => {
+            toast.add({
+              icon: 'i-heroicons-check-circle',
+              color: 'primary',
+              title: 'Success',
+              timeout: 0,
+              description: `Successfully ${
+                VERBS[action].pastTense
+              } relay ${truncatedAddress(fingerprint)}!`,
+            });
+          });
+      })
+      .catch((error) => {
+        if (error?.code !== 'ACTION_REJECTED') {
+          toast.add({
+            icon: 'i-heroicons-x-circle',
+            color: 'amber',
+            title: 'Error',
+            description: `Error ${
+              VERBS[action].presentTense
+            } relay ${truncatedAddress(fingerprint)}!`,
+          });
+        }
+      })
+      .finally(() => {
+        selectedRow!.class = '';
+        selectedRow!.isWorking = false;
       });
-    }
+  } catch (error) {
+    selectedRow!.class = '';
+    selectedRow!.isWorking = false;
+    console.error(error);
   }
-
-  selectedRow!.class = '';
-  selectedRow!.isWorking = false;
 };
 
 // Table columns and actions
@@ -215,7 +244,10 @@ const handleLockRemote = async () => {
 
   try {
     const register = useRegistrator();
-    const success = await register?.lock(fingerPrintRegister.value, ethAddress.value);
+    const success = await register?.lock(
+      fingerPrintRegister.value,
+      ethAddress.value
+    );
     if (success != null && typeof success != typeof Error) {
       registerModalOpen.value = false;
     } else {
@@ -233,6 +265,7 @@ const handleLockRemote = async () => {
 
 const filterUniqueRelays = (relays: RelayRow[]) => {
   const seen = new Set();
+
   return relays.filter((relay) => {
     const duplicate = seen.has(relay.fingerprint);
     seen.add(relay.fingerprint);
@@ -241,6 +274,7 @@ const filterUniqueRelays = (relays: RelayRow[]) => {
 };
 
 const getTableData = (tab: RelayTabType) => {
+  // console.log(filterUniqueRelays(allRelays.value));
   switch (tab) {
     case 'all':
       return filterUniqueRelays(allRelays.value);
@@ -343,10 +377,7 @@ const handleUnlockClick = async (fingerprint: string) => {
   </UModal>
   <div class="-mx-4 sm:-mx-0">
     <UAlert
-      v-if="
-        (allRelaysError as any)?.value ||
-        (allRelaysError as any)?.value
-      "
+      v-if="(allRelaysError as any)?.value || (allRelaysError as any)?.value"
       class="mb-6"
       icon="i-heroicons-exclamation-triangle"
       description="There was an error retrieving relays. We'll load what we can."
