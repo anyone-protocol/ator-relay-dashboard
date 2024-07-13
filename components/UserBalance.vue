@@ -1,7 +1,7 @@
 <template>
   <ClientOnly>
     <div class="inline-flex items-baseline gap-2 w-[20rem]">
-      <template v-if="balancePending">
+      <template v-if="balanceUsdPending || balanceUsdPending">
         <USkeleton class="w-[15rem] h-10" />
       </template>
       <template v-else>
@@ -20,7 +20,7 @@
       <span class="text-red-500 ml-1 text-xs">Error retrieving balance</span>
     </p>
     <template v-else>
-      <template v-if="balanceUsdPending">
+      <template v-if="balanceUsdPending || balanceUsdPending">
         <USkeleton class="w-[6rem] h-4" />
       </template>
       <template v-else>
