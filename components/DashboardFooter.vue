@@ -5,8 +5,7 @@ import { ref } from 'vue';
 const config = useRuntimeConfig();
 
 const version = config.public.version;
-// const commitHash = config.public.commitHash || 'dev';
-const commitHash = "c212db9c662690d1dde8ab41566277960998bec7";
+const commitHash = config.public.commitHash || 'dev';
 
 const contractLinks = [
   {
