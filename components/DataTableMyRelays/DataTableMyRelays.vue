@@ -33,10 +33,24 @@ const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
 const facilitatorStore = useFacilitatorStore();
+const registrator = useRegistrator();
+
+const isHovered = ref(false);
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
 const registerModalOpen = ref(false);
+
+onMounted(() => {
+  // refresh the locked relays every minute
+    setInterval(() => {
+      if (registrator) {
+        if (userStore.userData.address) {
+          registrator.getLokedRelaysTokens(userStore.userData.address);
+        }
+      }
+    }, 1000 * 60);
+})
 
 const unwatch = watchAccount(config, {
   onChange(account) {
@@ -229,7 +243,6 @@ const handleLockRemote = async () => {
     return;
   }
 
-  console.log(ethers.isAddress(ethAddress.value));
   if (!ethers.isAddress(ethAddress.value)) {
     toast.remove('invalid-evm-address');
     toast.add({
@@ -530,20 +543,21 @@ const handleUnlockClick = async (fingerprint: string) => {
       </template>
       <template #unlock-data="{ row }">
         <UButton
-          :ui="{ base: 'text-sm' }"
-          :class="
-            registratorStore.isRelayLocked(row.fingerprint)
-              ? 'cursor-not-allowed'
-              : ''
-          "
-          icon="i-heroicons-check-circle-solid"
-          size="xl"
-          color="green"
-          variant="outline"
-          label="Unlock"
-          :trailing="false"
-          @click="handleUnlockClick(row.fingerprint)"
-        />
+        :ui="{ base: 'text-sm' }"
+        :class="{
+          'cursor-not-allowed': !registratorStore.isUnlockable(row.fingerprint) && isHovered,
+          'cursor-pointer': registratorStore.isUnlockable(row.fingerprint) && isHovered,
+        }"
+        icon="i-heroicons-check-circle-solid"
+        size="xl"
+        color="green"
+        variant="outline"
+        label="Unlock"
+        :trailing="false"
+        @click="handleUnlockClick(row.fingerprint)"
+        @mouseover="isHovered = true"
+        @mouseleave="isHovered = false"
+      />
       </template>
       <template #owner-data="{ row }">
         <UBadge
@@ -582,5 +596,9 @@ const handleUnlockClick = async (fingerprint: string) => {
 
 .cursor-not-allowed {
   cursor: not-allowed;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>

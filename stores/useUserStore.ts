@@ -59,6 +59,9 @@ export const useUserStore = defineStore('user', {
     },
     // Get ANON balance in USD using price store
     async getUsdTokenBalance() {
+      if (!this.userData.address) {
+        return 0;
+      }
       const priceStore = usePriceStore();
       await priceStore.fetchPrice();
 

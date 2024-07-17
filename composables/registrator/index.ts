@@ -132,9 +132,14 @@ export class Registrator {
       return acc;
     }, {} as LokedRelaysType);
 
+    // get current block number
+    const provider = this.signer?.provider || useProvider();
+    const currentBlockNumber = await provider.getBlockNumber();
+
     if (address === useUserStore().userData?.address) {
       useRegistratorStore().lokedRelays = lokedRelays;
       useRegistratorStore().totalLockedTokens = totalLockedTokens;
+      useRegistratorStore().blockNumber = currentBlockNumber;
     }
 
     return lokedRelays;
@@ -330,21 +335,46 @@ export class Registrator {
         throw new Error(ERRORS.NOT_INITIALIZED);
       }
 
+      toast.add({
+        icon: 'i-heroicons-clock',
+        color: 'primary',
+        id: 'approve-token',
+        timeout: 0,
+        title: 'Approving token...',
+        closeButton: undefined,
+      });
       const tokenResult = await token.approve(
         runtimeConfig.public.registratorContract as string,
         upto
       );
 
       await tokenResult?.wait();
-
+      toast.remove('approve-token');
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        id: 'token-approved',
+        color: 'primary',
+        title:
+          'Token approved! Please accept the transaction to unlock the relay.',
+      });
       const result = await this.contract
         .connect(this.signer)
         // @ts-ignore
         .unregister(auth.userData.address, upto, fingerprint);
 
+      toast.remove('token-approved');
+      toast.add({
+        icon: 'i-heroicons-clock',
+        color: 'primary',
+        id: 'unlock-relay',
+        timeout: 0,
+        title: 'Unlocking relay...',
+        closeButton: undefined,
+      });
       await result.wait();
       await this.refresh();
 
+      toast.remove('unlock-relay');
       toast.add({
         icon: 'i-heroicons-check-circle',
         color: 'primary',

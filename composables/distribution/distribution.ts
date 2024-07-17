@@ -185,8 +185,6 @@ export class Distribution {
       sumOfTotalDistributions.toString();
     useFacilitatorStore().previousDistributions = previousDistributions;
 
-    console.log(state);
-
     // Initialize tempMap
     let tempMap: TempMap = {};
 
@@ -219,7 +217,6 @@ export class Distribution {
     }
 
     for (const [fingerprint, totalDistributed] of Object.entries(tempMap)) {
-      console.log(totalDistributed);
       // change string to BigNumber
 
       const toBigNumber = BigNumber(totalDistributed);

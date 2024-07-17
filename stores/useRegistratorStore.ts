@@ -8,6 +8,7 @@ export const useRegistratorStore = defineStore('registrator', {
       lokedRelays: {},
       currentLockSize: null,
       totalLockedTokens: 0n,
+      blockNumber: 10e8,
     };
   },
   actions: {
@@ -16,6 +17,9 @@ export const useRegistratorStore = defineStore('registrator', {
     },
     isRelayLocked(fingerprint: string) {
       return this.lokedRelays[fingerprint] !== undefined;
+    },
+    isUnlockable(fingerprint: string) {
+      return this.lokedRelays[fingerprint]?.unlockedAt < this.blockNumber;
     },
     getUnlockTime(fingerprint: string) {
       return this.lokedRelays[fingerprint]?.unlockedAt;
