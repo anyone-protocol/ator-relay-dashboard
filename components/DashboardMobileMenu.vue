@@ -3,6 +3,7 @@ import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 import ButtonConnect from './ui-kit/ButtonConnect.vue';
 import GlowEffect from './ui-kit/GlowEffect.vue';
 import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
+import ReportIssueButton from './ui-kit/ReportIssueButton.vue';
 
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const lgAndLarger = breakpoints.greaterOrEqual('lg');
@@ -28,7 +29,9 @@ router.beforeEach(async () => {
         <ButtonConnect />
         <ButtonThemeToggle />
       </div>
-
+      <div class="items-center gap-2 flex mb-4 ml-auto">
+        <ReportIssueButton />
+      </div>
       <div
         class="w-full bg-gradient-to-r from-gray-600/10 via-cyan-600 to-gray-600/10 h-px"
       ></div>

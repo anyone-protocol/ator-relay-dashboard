@@ -6,12 +6,15 @@ import type { RelayMeta } from '@/types/relay';
 
 import { useNickNameCache } from '~/composables/nicknameCache';
 
-import { warpRead, warpReadSerials, readNickNames } from '@/utils/warp.read';
+import {
+  warpRead,
+  warpReadSerials,
+  readNickNames,
+  getAllRelays,
+} from '@/utils/warp.read';
 import { config } from '@/config/wagmi.config';
 import { getAnonAddress } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
-import { getRelaysInfo } from '@/utils/relays';
-import { toDisplayString } from 'vue';
 import { useRelayCache } from '~/composables/relayCache';
 
 export const useUserStore = defineStore('user', {
@@ -27,6 +30,7 @@ export const useUserStore = defineStore('user', {
     tokenBalanceUsd: 0,
     verifiedRelays: [] as RelayRow[],
     claimableRelays: [] as RelayRow[],
+    registrationCredits: [] as string[],
     relaysMeta: {} as Record<string, RelayMeta>,
     nickNames: {} as Record<string, string>,
     claimableRewards: 0,
@@ -56,6 +60,9 @@ export const useUserStore = defineStore('user', {
     },
     // Get ANON balance in USD using price store
     async getUsdTokenBalance() {
+      if (!this.userData.address) {
+        return 0;
+      }
       const priceStore = usePriceStore();
       await priceStore.fetchPrice();
 
@@ -63,33 +70,7 @@ export const useUserStore = defineStore('user', {
         priceStore.currentPrice.data *
         Number(formatEther(this.tokenBalance?.value ?? BigInt(0)));
     },
-
-    // Get nicknames
-    async getNickNames(forceRefresh = false) {
-      if (!this.userData.address) {
-        return;
-      }
-      const cacheStore = useNickNameCache();
-      if (!forceRefresh) {
-        console.log('Fetching nicknames from cache');
-        const cachedData = await cacheStore.getNickNames('nicknames');
-        if (cachedData) {
-          console.log('Using cached nicknames', cachedData);
-          this.nickNames = JSON.parse(cachedData);
-          return;
-        }
-      }
-
-      const nicknames = await readNickNames();
-      if (nicknames != null) {
-        this.nickNames = nicknames;
-        var serialized = JSON.stringify(nicknames);
-        await cacheStore.saveNickNames('nicknames', serialized);
-      }
-    },
-
-    // Get verified relays using Warp
-    async getVerifiedRelays(forceRefresh = false) {
+    async getVerifiedRelaysOld(forceRefresh = false) {
       if (!this.userData.address) {
         this.verifiedRelays = [];
         return;
@@ -98,10 +79,10 @@ export const useUserStore = defineStore('user', {
       const relayCache = useRelayCache();
       if (!forceRefresh) {
         console.log('Fetching verified relays from cache');
-        const cachedData = await relayCache.getRelayData('verifiedRelays');
+        const cachedData = await relayCache.getRelayData();
         if (cachedData) {
           console.log('Using cached verified relays', cachedData);
-          this.verifiedRelays = cachedData;
+          this.verifiedRelays = cachedData.verified;
           return;
         }
       }
@@ -111,14 +92,14 @@ export const useUserStore = defineStore('user', {
         const relays = await verified.json();
         this.verifiedRelays = relays.relays;
         console.log('Saving verified relays to cache', this.verifiedRelays);
-        await relayCache.saveRelayData('verifiedRelays', this.verifiedRelays);
+        await relayCache.saveRelayDataWithKey('verified', this.verifiedRelays);
       } else if (verified.status === 500) {
         this.verifiedRelays = [];
         throw new Error('rate limited');
       }
     },
-    // Get claimable relays using Warp
-    async getClaimableRelays(forceRefresh = false) {
+
+    async getClaimableRelaysOld(forceRefresh = false) {
       console.log('forcerefresh', forceRefresh);
       if (!this.userData.address) {
         this.claimableRelays = [];
@@ -128,10 +109,10 @@ export const useUserStore = defineStore('user', {
       const relayCache = useRelayCache();
       if (!forceRefresh) {
         console.log('Fetching claimable relays from cache');
-        const cachedData = await relayCache.getRelayData('claimableRelays');
+        const cachedData = await relayCache.getRelayData();
         if (cachedData) {
           console.log('Using cached claimable relays', cachedData);
-          this.claimableRelays = cachedData;
+          this.claimableRelays = cachedData.claimable;
           return;
         }
       }
@@ -141,39 +122,152 @@ export const useUserStore = defineStore('user', {
         const relays = await claimable.json();
         this.claimableRelays = relays.relays;
         console.log('Saving claimable relays to cache', this.claimableRelays);
-        await relayCache.saveRelayData('claimableRelays', this.claimableRelays);
+        await relayCache.saveRelayDataWithKey(
+          'claimable',
+          this.claimableRelays
+        );
       } else if (claimable.status === 500) {
         this.claimableRelays = [];
         throw new Error('rate limited');
       }
     },
-    async claimRelayRefresh(forceRefresh = false) {
-      console.log('forcerefresh', forceRefresh);
+    // Get verified relays using Warp
+    async getVerifiedRelays(forceRefresh = false) {
+      if (!this.userData.address) {
+        this.verifiedRelays = [];
+        return;
+      }
 
-      let error = true;
-      const toast = useToast();
-      while (error) {
-        try {
-          await this.getClaimableRelays(forceRefresh);
-          error = false;
-          toast.remove('claimable-relays-error');
-        } catch (e) {
-          await new Promise((resolve) => setTimeout(resolve, 15000));
-        }
+      const relayCache = useRelayCache();
+      console.log('Fetching verified relays from cache');
+      const cachedData = await relayCache.getRelayData(forceRefresh);
+      if (cachedData) {
+        console.log('Using cached verified relays');
+        this.verifiedRelays = cachedData.verified;
+        return;
+      } else {
+        // build cache
+        await this.createRelayCache();
       }
     },
-    async verifiedRelaysRefresh(forceRefresh = false) {
-      let error = true;
-      const toast = useToast();
-      while (error) {
-        try {
-          await this.getVerifiedRelays(forceRefresh);
-          error = false;
-          toast.remove('verified-relays-error');
-        } catch (e) {
-          await new Promise((resolve) => setTimeout(resolve, 15000));
-        }
+
+    async getClaimableRelays(forceRefresh = false) {
+      if (!this.userData.address) {
+        this.claimableRelays = [];
+        return;
       }
+
+      const relayCache = useRelayCache();
+      console.log('Fetching claimable relays from cache');
+      const cachedData = await relayCache.getRelayData(forceRefresh);
+      if (cachedData) {
+        console.log('Using cached claimable relays');
+        this.claimableRelays = cachedData.claimable;
+        return;
+      } else {
+        // build cache
+        await this.createRelayCache();
+      }
+    },
+    // async claimRelayRefresh(forceRefresh = false) {
+    //   console.log('forcerefresh', forceRefresh);
+
+    //   let error = true;
+    //   const toast = useToast();
+    //   while (error) {
+    //     try {
+    //       await this.getClaimableRelays(forceRefresh);
+    //       error = false;
+    //       toast.remove('claimable-relays-error');
+    //     } catch (e) {
+    //       await new Promise((resolve) => setTimeout(resolve, 15000));
+    //     }
+    //   }
+    // },
+    // async verifiedRelaysRefresh(forceRefresh = false) {
+    //   let error = true;
+    //   const toast = useToast();
+    //   while (error) {
+    //     try {
+    //       await this.getVerifiedRelays(forceRefresh);
+    //       error = false;
+    //       toast.remove('verified-relays-error');
+    //     } catch (e) {
+    //       await new Promise((resolve) => setTimeout(resolve, 15000));
+    //     }
+    //   }
+    // },
+    async createRelayCache() {
+      if (!this.userData.address) {
+        return;
+      }
+
+      const data = await getAllRelays(this.userData.address);
+      if (!data) {
+        console.log('Failed to get relays');
+        return;
+      }
+
+      console.log(data);
+
+      this.nickNames = data.data.nicknames;
+      // refresh the relays
+      this.verifiedRelays = data.data.verified.map((relay) => ({
+        fingerprint: relay.fingerprint,
+        status: relay.status,
+        consensusWeight: 0,
+        observedBandwidth: 0,
+        active: relay.active,
+        class: relay.class,
+        isWorking: false,
+        nickname: '',
+      }));
+
+      this.claimableRelays = data.data.claimable.map((relay) => ({
+        fingerprint: relay.fingerprint,
+        status: relay.status,
+        consensusWeight: 0,
+        observedBandwidth: 0,
+        active: relay.active,
+        class: relay.class,
+        isWorking: false,
+        nickname: '',
+      }));
+
+      this.registrationCredits = data.data.registrationCredits;
+
+      console.log('verified relays', this.verifiedRelays);
+      console.log('claimable relays', this.claimableRelays);
+
+      // save to cache
+      const relayCache = useRelayCache();
+      await relayCache.saveRelayData(data.data);
+    },
+    async hasRegistrationCredit(fingerprint: string, forceRefresh = false) {
+      if (!this.userData.address) {
+        this.registrationCredits = [];
+        return;
+      }
+
+      const relayCache = useRelayCache();
+      console.log('Fetching registration credits from cache');
+      const cachedData = await relayCache.getRelayData(forceRefresh);
+      if (cachedData) {
+        console.log('Using cached verified relays');
+        this.registrationCredits = cachedData.registrationCredits;
+        return this.registrationCredits.includes(fingerprint);
+      } else {
+        // build cache
+        await this.createRelayCache();
+      }
+    },
+    async clearCache() {
+      const relayCache = useRelayCache();
+      this.verifiedRelays = [];
+      this.claimableRelays = [];
+      this.nickNames = {};
+      this.registrationCredits = [];
+      await relayCache.clearCache();
     },
     async getRelaysMeta() {},
     async getSerialsRelays(forceRefresh = false) {
@@ -184,16 +278,14 @@ export const useUserStore = defineStore('user', {
 
       const relayCache = useRelayCache();
       if (!forceRefresh) {
-        const cachedData = await relayCache.getRelayData('serialsRelays');
+        const cachedData = await relayCache.getRelayData();
         if (cachedData) {
-          this.serials = cachedData;
           return;
         }
       }
 
       const serials = await warpReadSerials(this.userData.address);
       this.serials = serials;
-      await relayCache.saveRelayData('serialsRelays', this.serials);
     },
     isHardwareRelay(fingerprint: string) {
       return this.serials.includes(fingerprint);

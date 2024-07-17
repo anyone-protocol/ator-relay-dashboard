@@ -24,9 +24,29 @@ export class RelayRegistry {
 
   async claim(fingerprint: string): Promise<WriteInteractionResponse | null> {
     this.logger.info(`Claiming fingerprint ${fingerprint}`);
+    const toast = useToast();
 
     if (!this.contract) {
       this.logger.error('claim() relay registry contract is null');
+      return null;
+    }
+
+    const auth = useUserStore();
+    if (!auth.userData.address) {
+      this.logger.error('Not logged in.');
+      return null;
+    }
+
+    if (!(await auth.hasRegistrationCredit(fingerprint))) {
+      this.logger.error('No registration credit for this fingerprint.');
+      toast.add({
+        id: 'no-registration-credit',
+        icon: 'i-heroicons-information-circle',
+        title: 'Error',
+        description:
+          'You do not have a registration credit for this fingerprint.',
+        color: 'amber',
+      });
       return null;
     }
 

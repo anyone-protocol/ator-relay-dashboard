@@ -5,6 +5,7 @@ import { config } from '@/config/wagmi.config';
 import Address from './Address.vue';
 import { ref } from 'vue';
 import { getChainId } from '@wagmi/core'
+import { useUserStore } from '@/stores/useUserStore';
 
 
 const { address, status, isDisconnected, isReconnecting, isConnecting } = useAccount({ config });

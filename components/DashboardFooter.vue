@@ -58,46 +58,58 @@ const isOpen = ref(false);
 
 <template>
   <footer
-    class="bg-gradient-to-t from-slate-100 to-teal-50 dark:from-zinc-900 dark:via-gray-900 py-4 px-6 mt-auto flex justify-between lg:justify-center items-center flex-col rounded-xl"
+    class="bg-gradient-to-t from-slate-100 to-teal-50 dark:from-zinc-900 dark:via-gray-900 py-4 px-6 mt-auto flex justify-between lg:justify-end items-end flex-col rounded-xl"
   >
     <UModal v-model="isOpen">
-      <UCard class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-        <template #header>
-          <h4 class="text-lg font-semibold mb-4">Contract Links</h4>
-        </template>
-
-        <div class="space-y-4">
-          <ul
-            class="list-disc flex flex-col lg:grid lg:grid-cols-3 gap-2 text-center"
-          >
-            <li
-              v-for="link in contractLinks"
-              :key="link.address"
-              class="ml-5 text-left"
-            >
-              <a
-                :href="getLink(link.address, link.type)"
-                target="_blank"
-                class="text-sm text-cyan-800 dark:text-cyan-200 hover:underline"
+      <UCard class="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+        <h4
+          class="text-lg font-semibold mb-4 border-b border-b-[rgba(255,255,255,0.1)] pb-4"
+        >
+          View Contracts
+        </h4>
+        <UContainer class="">
+          <div class="mb-6">
+            <div class="space-y-4">
+              <ul
+                class="list-disc flex flex-col lg:grid lg:grid-cols-3 gap-2 text-center"
               >
-                {{ link.name }}
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <template #footer>
-          <UButton variant="outline" class="mt-4 w-full" @click="isOpen = false"
-            >Close</UButton
-          >
-        </template>
+                <li
+                  v-for="link in contractLinks"
+                  :key="link.address"
+                  class="ml-5 text-left"
+                >
+                  <a
+                    :href="getLink(link.address, link.type)"
+                    target="_blank"
+                    class="text-sm text-cyan-800 dark:text-cyan-200 hover:underline"
+                  >
+                    {{ link.name }}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="flex flex-end justify-end">
+            <UButton
+              variant="outline"
+              size="sm"
+              color="red"
+              @click="isOpen = false"
+            >
+              Close
+            </UButton>
+          </div>
+        </UContainer>
       </UCard>
     </UModal>
 
-    <div class="flex justify-between items-center rounded-xl w-full">
+    <div class="flex justify-between items-center rounded-xl w-full mb-2">
       <div class="flex gap-2">
         <div class="font-brand tracking-wider">
-          <UButton variant="outline" @click="isOpen = true"
+          <UButton
+            variant="outline"
+            @click="isOpen = true"
+            class="opacity-55 hover:opacity-100"
             >View Contracts</UButton
           >
         </div>

@@ -104,7 +104,7 @@ const handleClaimAllRewards = async () => {
             class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
           >
             <p class="mb-4 text-sm">
-              The connected wallet shows the following balance:
+              Current balance for the connected wallet:
             </p>
             <ReportIssueButton />
           </div>

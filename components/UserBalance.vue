@@ -1,59 +1,75 @@
+<template>
+  <ClientOnly>
+    <div class="inline-flex items-baseline gap-2 w-[20rem]">
+      <template v-if="balanceUsdPending || balanceUsdPending">
+        <USkeleton class="w-[15rem] h-10" />
+      </template>
+      <template v-else>
+        <span class="text-4xl font-bold" v-if="isConnected">
+          {{ parseFloat(tokenBalance.formatted).toFixed(2) }}
+        </span>
+        <span class="text-4xl font-bold" v-if="!isConnected">
+          --
+        </span>
+        <Ticker v-if="showTicker" />
+        <slot></slot>
+      </template>
+    </div>
+    <p v-if="balanceUsdError" class="ml-1 mt-1 text-sm">
+      <Icon name="iwwa:alert" class="h-4 w-4 text-red-500" />
+      <span class="text-red-500 ml-1 text-xs">Error retrieving balance</span>
+    </p>
+    <template v-else>
+      <template v-if="balanceUsdPending || balanceUsdPending">
+        <USkeleton class="w-[6rem] h-4" />
+      </template>
+      <template v-else>
+        <p class="ml-1 mt-1 text-sm">~ ${{ tokenBalanceUsd.toFixed(2) }} USD</p>
+      </template>
+    </template>
+  </ClientOnly>
+</template>
+
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
+import {ref, onMounted } from 'vue';
 import { useAccount } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import Ticker from './ui-kit/Ticker.vue';
+import { useUserStore } from '@/stores/useUserStore';
 
 const userStore = useUserStore();
 const { address, tokenBalance, tokenBalanceUsd } = storeToRefs(userStore);
 const { isConnected } = useAccount({ config });
 
-const { refresh: balanceRefresh, error: balanceError } = await useAsyncData(
-  'balance',
-  () => userStore.getTokenBalance().then(() => true),
-  { watch: [address] }
-);
-const { refresh: balanceUsdRefresh, error: balanceUsdError } =
-  await useAsyncData(
-    'balanceUsd',
-    () => userStore.getUsdTokenBalance().then(() => true),
-    { watch: [address, tokenBalance] }
-  );
+const balancePending = ref(true);
+const balanceUsdPending = ref(true);
+const balanceError = ref(null as any);
+const balanceUsdError = ref(null as any);
 
-// Get new data every 5 minutes
+const fetchBalances = async () => {
+  try {
+    balancePending.value = true;
+    await userStore.getTokenBalance();
+    balancePending.value = false;
+  } catch (error) {
+    balanceError.value = error;
+  }
+
+  try {
+    balanceUsdPending.value = true;
+    await userStore.getUsdTokenBalance();
+    balanceUsdPending.value = false;
+  } catch (error) {
+    balanceUsdError.value = error;
+  }
+};
+
 onMounted(() => {
-  setInterval(
-    () => {
-      balanceRefresh();
-      balanceUsdRefresh();
-    },
-    1000 * 60 * 5
-  );
+  fetchBalances();
+  setInterval(fetchBalances, 1000 * 60 * 5);
 });
 
 defineProps<{
   showTicker?: boolean;
 }>();
 </script>
-
-<template>
-  <ClientOnly>
-    <div class="inline-flex items-baseline gap-2">
-      <span class="text-4xl font-bold" v-if="isConnected">
-        {{ parseFloat(tokenBalance.formatted).toFixed(2) }}
-      </span>
-      <span class="text-4xl font-bold" v-if="!isConnected">
-        --
-      </span>
-      <Ticker v-if="showTicker" />
-      <slot></slot>
-    </div>
-    <p v-if="balanceUsdError" class="ml-1 mt-1 text-sm">
-      <Icon name="iwwa:alert" class="h-4 w-4 text-red-500" />
-      <span class="text-red-500 ml-1 text-xs">Error retrieving balance</span>
-    </p>
-    <p v-else class="ml-1 mt-1 text-sm">
-      ~ ${{ tokenBalanceUsd.toFixed(2) }} USD
-    </p>
-  </ClientOnly>
-</template>

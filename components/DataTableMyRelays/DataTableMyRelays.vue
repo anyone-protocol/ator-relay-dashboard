@@ -20,6 +20,12 @@ import { useRegistrator } from '@/composables/registrator';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import { ethers } from 'ethers';
 import { watchAccount } from '@wagmi/core';
+import { defineProps } from 'vue';
+
+const props = defineProps<{
+  currentTab: RelayTabType;
+  registerModalOpen: boolean;
+}>();
 
 const toast = useToast();
 const userStore = useUserStore();
@@ -27,51 +33,60 @@ const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
 const facilitatorStore = useFacilitatorStore();
+const registrator = useRegistrator();
+
+const isHovered = ref(false);
+const isUnlocking = ref(false);
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
-const currentTab = ref<RelayTabType>('all');
 const registerModalOpen = ref(false);
+
+onMounted(() => {
+  // refresh the locked relays every minute
+  setInterval(() => {
+    if (registrator) {
+      if (userStore.userData.address) {
+        registrator.getLokedRelaysTokens(userStore.userData.address);
+      }
+    }
+  }, 1000 * 60);
+});
 
 const unwatch = watchAccount(config, {
   onChange(account) {
-    console.log('Account changed!', account);
-    userStore.getVerifiedRelays(true);
-    userStore.getClaimableRelays(true);
-    userStore.getNickNames(true);
+    // account change
+    userStore.createRelayCache();
   },
 });
 unwatch();
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
-const { error: verifiedRelaysError, pending: verifiedPending } =
-  await useAsyncData('verifiedRelays', () => userStore.getVerifiedRelays(), {
+const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
+  'verifiedRelays',
+  () => userStore.createRelayCache(),
+  {
     server: false,
     watch: [address],
-  });
+  }
+);
 const { error: claimableRelaysError, pending: claimablePending } =
   await useAsyncData('claimableRelays', () => userStore.getClaimableRelays(), {
     watch: [address],
   });
 
-// for nicknames
-const { error: nickNamesError, pending: nickNamesPending } = await useAsyncData(
-  'nickNames',
-  () => userStore.getNickNames(),
-  {
+const { error: verifiedRelaysError, pending: verifiedPending } =
+  await useAsyncData('verifiedRelays', () => userStore.getVerifiedRelays(), {
+    server: false,
     watch: [address],
-  }
-);
+  });
 
 const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
 const fingerPrintRegister = ref<string>('');
 const fingerPrintRegisterError = ref<string | null>(null);
 
-if (
-  (claimableRelaysError as any).value?.cause?.message == 'rate limited' ||
-  (verifiedRelaysError as any).value?.cause?.message == 'rate limited'
-) {
+if ((allRelaysError as any).value?.cause?.message == 'rate limited') {
   toast.add({
     id: 'claimable-relays-error',
     icon: 'i-heroicons-exclamation-triangle',
@@ -80,23 +95,6 @@ if (
     timeout: 0,
     description: 'Please wait...',
   });
-  if (claimableRelaysError.value != null) {
-    userStore
-      .claimRelayRefresh()
-      .then(() => (claimableRelaysError.value = null));
-  } else if (verifiedRelaysError.value != null) {
-    userStore
-      .verifiedRelaysRefresh()
-      .then(() => (verifiedRelaysError.value = null));
-  } else {
-    userStore
-      .claimRelayRefresh()
-      .then(() => (claimableRelaysError.value = null));
-    userStore
-      .verifiedRelaysRefresh()
-      .then(() => (verifiedRelaysError.value = null));
-  }
-  // keep trying to fetch the claimable relays
 }
 
 const timestamp = computed(
@@ -122,53 +120,68 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
   selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
+    let actionPromise;
     switch (action) {
-      case 'claim': {
-        const res = await registry.claim(fingerprint);
+      case 'claim':
+        actionPromise = registry.claim(fingerprint);
+        break;
 
+      case 'renounce':
+        actionPromise = registry.renounce(fingerprint);
+        break;
+
+      default:
+        throw new Error('Invalid action');
+    }
+
+    actionPromise
+      .then((res) => {
         if (!res) {
           selectedRow!.class = '';
           selectedRow!.isWorking = false;
           return;
         }
 
-        break;
-      }
+        console.log('Relay action', action, fingerprint);
 
-      case 'renounce':
-        await registry.renounce(fingerprint);
-        break;
-    }
-
-    // Refresh the relays
-    await userStore.getVerifiedRelays(true);
-    await userStore.getClaimableRelays(true);
-
-    toast.add({
-      icon: 'i-heroicons-check-circle',
-      color: 'primary',
-      title: 'Success',
-      timeout: 0,
-      description: `Successfully ${
-        VERBS[action].pastTense
-      } relay ${truncatedAddress(fingerprint)}!`,
-    });
-  } catch (error) {
-    // @ts-ignore
-    if (error?.code !== 'ACTION_REJECTED') {
-      toast.add({
-        icon: 'i-heroicons-x-circle',
-        color: 'amber',
-        title: 'Error',
-        description: `Error ${
-          VERBS[action].presentTense
-        } relay ${truncatedAddress(fingerprint)}!`,
+        // Refresh the relays cache
+        return userStore
+          .createRelayCache()
+          .then(() => userStore.getVerifiedRelays())
+          .then(() => userStore.getClaimableRelays())
+          .then(() => {
+            toast.add({
+              icon: 'i-heroicons-check-circle',
+              color: 'primary',
+              title: 'Success',
+              timeout: 0,
+              description: `Successfully ${
+                VERBS[action].pastTense
+              } relay ${truncatedAddress(fingerprint)}!`,
+            });
+          });
+      })
+      .catch((error) => {
+        if (error?.code !== 'ACTION_REJECTED') {
+          toast.add({
+            icon: 'i-heroicons-x-circle',
+            color: 'amber',
+            title: 'Error',
+            description: `Error ${
+              VERBS[action].presentTense
+            } relay ${truncatedAddress(fingerprint)}!`,
+          });
+        }
+      })
+      .finally(() => {
+        selectedRow!.class = '';
+        selectedRow!.isWorking = false;
       });
-    }
+  } catch (error) {
+    selectedRow!.class = '';
+    selectedRow!.isWorking = false;
+    console.error(error);
   }
-
-  selectedRow!.class = '';
-  selectedRow!.isWorking = false;
 };
 
 // Table columns and actions
@@ -187,8 +200,10 @@ const rules = {
   required: (value: string) => !!value || 'Required',
 };
 
+const emits = defineEmits(['update:currentTab']);
+
 const handleTabChange = (key: string) => {
-  currentTab.value = key as RelayTabType;
+  emits('update:currentTab', key);
 };
 
 const handleLockRelay = async (fingerprint: string) => {
@@ -229,7 +244,6 @@ const handleLockRemote = async () => {
     return;
   }
 
-  console.log(ethers.isAddress(ethAddress.value));
   if (!ethers.isAddress(ethAddress.value)) {
     toast.remove('invalid-evm-address');
     toast.add({
@@ -244,7 +258,10 @@ const handleLockRemote = async () => {
 
   try {
     const register = useRegistrator();
-    const success = await register?.lock(fingerPrintRegister.value, ethAddress.value);
+    const success = await register?.lock(
+      fingerPrintRegister.value,
+      ethAddress.value
+    );
     if (success != null && typeof success != typeof Error) {
       registerModalOpen.value = false;
     } else {
@@ -262,6 +279,7 @@ const handleLockRemote = async () => {
 
 const filterUniqueRelays = (relays: RelayRow[]) => {
   const seen = new Set();
+
   return relays.filter((relay) => {
     const duplicate = seen.has(relay.fingerprint);
     seen.add(relay.fingerprint);
@@ -270,6 +288,7 @@ const filterUniqueRelays = (relays: RelayRow[]) => {
 };
 
 const getTableData = (tab: RelayTabType) => {
+  // console.log(filterUniqueRelays(allRelays.value));
   switch (tab) {
     case 'all':
       return filterUniqueRelays(allRelays.value);
@@ -294,11 +313,17 @@ const getObservedBandwidth = (fingerprint: string) => {
 
 const handleUnlockClick = async (fingerprint: string) => {
   if (registratorStore.isRelayLocked(fingerprint)) {
+    isUnlocking.value = true;
     const register = useRegistrator();
-    await register?.unlock(fingerprint, BigInt(100 * 1e18));
-    // Refresh the relays
-    await userStore.getVerifiedRelays(true);
-    await userStore.getClaimableRelays(true);
+    try {
+      await register?.unlock(fingerprint, BigInt(100 * 1e18));
+      // Refresh the relays
+      await userStore.createRelayCache();
+    } catch (error) {
+      console.error('Error unlocking relay:', error);
+    } finally {
+      isUnlocking.value = false;
+    }
   }
 };
 </script>
@@ -372,10 +397,7 @@ const handleUnlockClick = async (fingerprint: string) => {
   </UModal>
   <div class="-mx-4 sm:-mx-0">
     <UAlert
-      v-if="
-        (verifiedRelaysError as any)?.value ||
-        (claimableRelaysError as any)?.value
-      "
+      v-if="(allRelaysError as any)?.value || (allRelaysError as any)?.value"
       class="mb-6"
       icon="i-heroicons-exclamation-triangle"
       description="There was an error retrieving relays. We'll load what we can."
@@ -383,23 +405,10 @@ const handleUnlockClick = async (fingerprint: string) => {
       color="red"
       variant="subtle"
     />
-
-    <div class="md:flex">
-      <Tabs :tabs="TABS" @onChange="handleTabChange" />
-      <div class="flex justify-center">
-        <UButton
-          @click="registerModalOpen = true"
-          v-if="currentTab === 'locked'"
-          color="green"
-          variant="outline"
-          label="Register Relay"
-          class="mb-[1.7rem]"
-        />
-      </div>
-    </div>
+    <Tabs :tabs="TABS" @onChange="handleTabChange" />
 
     <UTable
-      :loading="verifiedPending || claimablePending"
+      :loading="allRelaysPending"
       :columns="RELAY_COLUMS[currentTab]"
       :rows="getTableData(currentTab)"
       :ui="{ td: { base: 'max-w-sm truncate' } }"
@@ -542,18 +551,21 @@ const handleUnlockClick = async (fingerprint: string) => {
       <template #unlock-data="{ row }">
         <UButton
           :ui="{ base: 'text-sm' }"
-          :class="
-            registratorStore.isRelayLocked(row.fingerprint)
-              ? 'cursor-not-allowed'
-              : ''
-          "
+          :class="{
+            'cursor-not-allowed':
+              (!registratorStore.isUnlockable(row.fingerprint) && isHovered) ||
+              isUnlocking,
+          }"
           icon="i-heroicons-check-circle-solid"
           size="xl"
           color="green"
           variant="outline"
           label="Unlock"
           :trailing="false"
+          :disabled="isUnlocking"
           @click="handleUnlockClick(row.fingerprint)"
+          @mouseover="isHovered = true"
+          @mouseleave="isHovered = false"
         />
       </template>
       <template #owner-data="{ row }">
@@ -591,7 +603,12 @@ const handleUnlockClick = async (fingerprint: string) => {
   background: #fa5858;
 }
 
-.cursor-not-allowed {
+.cursor-not-allowed,
+.disabled {
   cursor: not-allowed;
 }
+
+// .cursor-pointer {
+//   cursor: pointer;
+// }
 </style>

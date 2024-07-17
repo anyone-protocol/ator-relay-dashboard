@@ -132,9 +132,14 @@ export class Registrator {
       return acc;
     }, {} as LokedRelaysType);
 
+    // get current block number
+    const provider = this.signer?.provider || useProvider();
+    const currentBlockNumber = await provider.getBlockNumber();
+
     if (address === useUserStore().userData?.address) {
       useRegistratorStore().lokedRelays = lokedRelays;
       useRegistratorStore().totalLockedTokens = totalLockedTokens;
+      useRegistratorStore().blockNumber = currentBlockNumber;
     }
 
     return lokedRelays;
@@ -157,9 +162,9 @@ export class Registrator {
     fingerprint: string,
     address: string
   ): Promise<TransactionResponse | null> {
+    const toast = useToast();
     const auth = useUserStore();
     const registratorStore = useRegistratorStore();
-
     let signer: JsonRpcSigner | undefined;
     if (auth.userData) {
       const _signer = await useSigner();
@@ -177,8 +182,6 @@ export class Registrator {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
 
-    const toast = useToast();
-
     try {
       const token = useToken();
       if (!token) {
@@ -189,22 +192,50 @@ export class Registrator {
         runtimeConfig.public.registratorContract as string,
         registratorStore.currentLockSize
       );
+      toast.add({
+        icon: 'i-heroicons-clock',
+        color: 'primary',
+        id: 'approve-token',
+        timeout: 0,
+        title: 'Approving token...',
+        closeButton: undefined,
+      });
       await tokenResult?.wait();
+
+      toast.remove('approve-token');
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        id: 'token-approved',
+        color: 'primary',
+        title:
+          'Token approved! Please accept the transaction to lock the relay.',
+      });
 
       const result = await this.contract
         .connect(this.signer)
         // @ts-ignore
         .register(address == '' ? auth.userData.address : address, fingerprint);
 
+      toast.remove('token-approved');
+      toast.add({
+        icon: 'i-heroicons-clock',
+        color: 'primary',
+        id: 'lock-relay',
+        timeout: 0,
+        title: 'Locking relay...',
+        closeButton: undefined,
+      });
       await result.wait();
+      toast.remove('lock-relay');
       await this.refresh();
 
       toast.add({
         icon: 'i-heroicons-check-circle',
         color: 'primary',
         title: 'Success',
+        id: 'relay-locked',
         timeout: 0,
-        description: `Relay locked. We've locked ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE.`,
+        description: `Relay locked. We've locked ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE. Please click the "claim" button to claim your relay on Arweave.`,
       });
 
       return result;
@@ -302,21 +333,46 @@ export class Registrator {
         throw new Error(ERRORS.NOT_INITIALIZED);
       }
 
+      toast.add({
+        icon: 'i-heroicons-clock',
+        color: 'primary',
+        id: 'approve-token',
+        timeout: 0,
+        title: 'Approving token...',
+        closeButton: undefined,
+      });
       const tokenResult = await token.approve(
         runtimeConfig.public.registratorContract as string,
         upto
       );
 
       await tokenResult?.wait();
-
+      toast.remove('approve-token');
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        id: 'token-approved',
+        color: 'primary',
+        title:
+          'Token approved! Please accept the transaction to unlock the relay.',
+      });
       const result = await this.contract
         .connect(this.signer)
         // @ts-ignore
         .unregister(auth.userData.address, upto, fingerprint);
 
+      toast.remove('token-approved');
+      toast.add({
+        icon: 'i-heroicons-clock',
+        color: 'primary',
+        id: 'unlock-relay',
+        timeout: 0,
+        title: 'Unlocking relay...',
+        closeButton: undefined,
+      });
       await result.wait();
       await this.refresh();
 
+      toast.remove('unlock-relay');
       toast.add({
         icon: 'i-heroicons-check-circle',
         color: 'primary',

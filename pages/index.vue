@@ -9,19 +9,24 @@
             class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
           >
             <p class="mb-4 text-sm">
-              Current balance for the connected wallet:
+              The connected wallet shows the following balance:
             </p>
             <ReportIssueButton />
           </div>
 
-          <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row">
-            <div class="border-l-4 border-cyan-600 pl-3 my-4">
+          <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row my-4">
+            <div class="border-l-4 border-cyan-600 pl-3">
               <UserBalance
                 class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
-                showTicker="true"
-              />
+              >
+              <Ticker />
+              </UserBalance>
             </div>
-            <div class="flex flex-col border-l-4 border-cyan-600 pl-3 my-4">
+            <div class="flex flex-col-reverse border-l-4 border-cyan-600 pl-3">
+              <h3>
+                <Icon name="material-symbols:lock" />
+                Locked
+              </h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{ formatEther(registratorStore.totalLockedTokens || '0') }}
@@ -29,10 +34,6 @@
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
               </div>
-              <h3>
-                <Icon name="material-symbols:lock" />
-                Locked
-              </h3>
             </div>
           </div>
         </Card>
@@ -158,7 +159,10 @@ const progressLoading = ref(0);
 
 const toast = useToast();
 
+const isLoading = ref(true);
+
 onMounted(async () => {
+  isLoading.value = false;
   await userStore.getTokenBalance();
 
   facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
@@ -170,6 +174,7 @@ onMounted(async () => {
   initRegistrator();
   initToken();
   initDistribution();
+  isLoading.value = false;
 });
 
 watch(
@@ -177,8 +182,6 @@ watch(
   async (newAddress?: string) => {
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
     await userStore.getTokenBalance();
-    await userStore.getSerialsRelays();
-    await userStore.getNickNames();
 
     const facilitator = useFacilitator();
     await facilitator?.refresh();
