@@ -142,8 +142,6 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           return;
         }
 
-        console.log('Relay action', action, fingerprint);
-
         // Refresh the relays cache
         return userStore
           .createRelayCache()
@@ -180,7 +178,6 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
   } catch (error) {
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
-    console.error(error);
   }
 };
 
@@ -288,7 +285,6 @@ const filterUniqueRelays = (relays: RelayRow[]) => {
 };
 
 const getTableData = (tab: RelayTabType) => {
-  // console.log(filterUniqueRelays(allRelays.value));
   switch (tab) {
     case 'all':
       return filterUniqueRelays(allRelays.value);
@@ -320,7 +316,6 @@ const handleUnlockClick = async (fingerprint: string) => {
       // Refresh the relays
       await userStore.createRelayCache();
     } catch (error) {
-      console.error('Error unlocking relay:', error);
     } finally {
       isUnlocking.value = false;
     }
