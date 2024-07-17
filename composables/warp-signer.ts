@@ -52,7 +52,6 @@ export const useWarpSigner = async () => {
     provider = initializeBrowserProvider();
   }
   if (!(provider instanceof BrowserProvider)) {
-    console.error('Provider is not instanceof BrowserProvider');
     return null;
   }
   try {
@@ -63,7 +62,6 @@ export const useWarpSigner = async () => {
 
     return warpSigner;
   } catch (error) {
-    console.error('Error creating warp signer', error);
     return null;
   }
 };

@@ -7,12 +7,12 @@ const { chainId } = useAccount({ config });
 
 const unwatch = watchAccount(config, {
   onChange(data) {
-    console.log('Account changed!', data);
+    // changed account
   },
 });
 const unwatchChainId = watchChainId(config, {
   onChange(data) {
-    console.log('Chain ID changed!', data);
+    // changed chainID
   },
 });
 unwatch();

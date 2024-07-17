@@ -107,7 +107,6 @@ export const readNickNames = async (): Promise<Record<
 
       resolve(result?.cachedValue?.state?.nicknames);
     } catch (error) {
-      console.log(error);
       resolve(null);
     }
   });
@@ -238,7 +237,6 @@ export const getAllRelays = async (
       },
     };
   } catch (error) {
-    console.error('Failed to get all relays:', error);
     return undefined;
   }
 };

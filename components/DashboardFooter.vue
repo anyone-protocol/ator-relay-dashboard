@@ -5,7 +5,8 @@ import { ref } from 'vue';
 const config = useRuntimeConfig();
 
 const version = config.public.version;
-const commitHash = config.public.commitHash || 'dev';
+// const commitHash = config.public.commitHash || 'dev';
+const commitHash = "c212db9c662690d1dde8ab41566277960998bec7";
 
 const contractLinks = [
   {
@@ -53,12 +54,17 @@ const getLink = (address: string, type: string) => {
   }
 };
 
+const openCommitUrl = () => {
+  const url = `https://github.com/ATOR-Development/ator-relay-dashboard/commit/${commitHash}`;
+  window.open(url, '_blank');
+}
+
 const isOpen = ref(false);
 </script>
 
 <template>
   <footer
-    class="bg-gradient-to-t from-slate-100 to-teal-50 dark:from-zinc-900 dark:via-gray-900 py-4 px-6 mt-auto flex justify-between lg:justify-end items-end flex-col rounded-xl"
+    class="bg-gradient-to-t max-w-[100vw] from-slate-100 to-teal-50 dark:from-zinc-900 dark:via-gray-900 py-4 px-6 mt-auto flex justify-between lg:justify-end items-end flex-col rounded-xl"
   >
     <UModal v-model="isOpen">
       <UCard class="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
@@ -115,9 +121,13 @@ const isOpen = ref(false);
         </div>
       </div>
       <div
-        class="text-sm text-gray-600 dark:text-gray-300 justify-self-center margin-auto w-[50%]"
+        @click="openCommitUrl"
+        class="text-sm text-gray-600 dark:text-gray-300 justify-self-center margin-auto"
       >
-        Version: {{ version }} | Commit: {{ commitHash }}
+        Version: {{ version }} | Commit:
+        <a href="https://github.com/ATOR-Development/ator-relay-dashboard/commit/${{commitHash}}">
+          {{ commitHash.slice(0,7) }}...
+        </a>
       </div>
     </div>
   </footer>
