@@ -26,6 +26,7 @@ type RelayData = {
       },
     ];
     nicknames: { [key: string]: string };
+    registrationCredits: string[];
   };
 };
 
@@ -164,6 +165,7 @@ export const getAllRelays = async (
 
     const verifiedRelays = [];
     const claimableRelays = [];
+    const registrationCredits = [];
     const nicknames: { [key: string]: any } = {};
 
     for (const [fingerprint, addressRelay] of Object.entries(
@@ -200,6 +202,16 @@ export const getAllRelays = async (
       nicknames[fingerprint] = nickname;
     }
 
+    for (const [userAddress, fingerprints] of Object.entries(
+      result.cachedValue.state.registrationCredits
+    )) {
+      if (address === userAddress) {
+        for (const fingerprint of fingerprints as string[]) {
+          registrationCredits.push(fingerprint);
+        }
+      }
+    }
+
     return {
       timestamp: Date.now(),
       data: {
@@ -222,6 +234,7 @@ export const getAllRelays = async (
           },
         ],
         nicknames: nicknames,
+        registrationCredits: registrationCredits,
       },
     };
   } catch (error) {

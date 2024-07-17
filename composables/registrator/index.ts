@@ -162,9 +162,18 @@ export class Registrator {
     fingerprint: string,
     address: string
   ): Promise<TransactionResponse | null> {
+    const toast = useToast();
     const auth = useUserStore();
     const registratorStore = useRegistratorStore();
-
+    if (!(await auth.hasRegistrationCredit(fingerprint))) {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: 'No registration credits found for this relay.',
+      });
+      throw new Error('No registration credits found for this relay.');
+    }
     let signer: JsonRpcSigner | undefined;
     if (auth.userData) {
       const _signer = await useSigner();
@@ -181,8 +190,6 @@ export class Registrator {
     if (!this.contract || !registratorStore.currentLockSize) {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
-
-    const toast = useToast();
 
     try {
       const token = useToken();

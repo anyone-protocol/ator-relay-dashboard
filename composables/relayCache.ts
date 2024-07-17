@@ -18,6 +18,7 @@ interface RelayData {
       class: string;
     }[];
     nicknames: { [key: string]: string };
+    registrationCredits: string[];
   };
 }
 
@@ -180,6 +181,7 @@ class RelayCache {
             verified: key === 'verified' ? newData : [],
             claimable: key === 'claimable' ? newData : [],
             nicknames: {},
+            registrationCredits: [],
             [key]: newData,
           },
         };

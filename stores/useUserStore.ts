@@ -30,6 +30,7 @@ export const useUserStore = defineStore('user', {
     tokenBalanceUsd: 0,
     verifiedRelays: [] as RelayRow[],
     claimableRelays: [] as RelayRow[],
+    registrationCredits: [] as string[],
     relaysMeta: {} as Record<string, RelayMeta>,
     nickNames: {} as Record<string, string>,
     claimableRewards: 0,
@@ -233,6 +234,8 @@ export const useUserStore = defineStore('user', {
         nickname: '',
       }));
 
+      this.registrationCredits = data.data.registrationCredits;
+
       console.log('verified relays', this.verifiedRelays);
       console.log('claimable relays', this.claimableRelays);
 
@@ -240,11 +243,30 @@ export const useUserStore = defineStore('user', {
       const relayCache = useRelayCache();
       await relayCache.saveRelayData(data.data);
     },
+    async hasRegistrationCredit(fingerprint: string, forceRefresh = false) {
+      if (!this.userData.address) {
+        this.registrationCredits = [];
+        return;
+      }
+
+      const relayCache = useRelayCache();
+      console.log('Fetching registration credits from cache');
+      const cachedData = await relayCache.getRelayData(forceRefresh);
+      if (cachedData) {
+        console.log('Using cached verified relays');
+        this.registrationCredits = cachedData.registrationCredits;
+        return this.registrationCredits.includes(fingerprint);
+      } else {
+        // build cache
+        await this.createRelayCache();
+      }
+    },
     async clearCache() {
       const relayCache = useRelayCache();
       this.verifiedRelays = [];
       this.claimableRelays = [];
       this.nickNames = {};
+      this.registrationCredits = [];
       await relayCache.clearCache();
     },
     async getRelaysMeta() {},
