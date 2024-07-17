@@ -29,7 +29,7 @@ createWeb3Modal({
 
 const unwatch = watchAccount(config, {
   onChange(account) { 
-    console.log('Account changed!', account)
+    // changed account
   },
 })
 unwatch()

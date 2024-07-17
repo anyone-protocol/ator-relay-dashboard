@@ -55,7 +55,7 @@ onMounted(() => {
 
 const unwatch = watchAccount(config, {
   onChange(account) {
-    console.log('Account changed!', account);
+    // account change
     userStore.createRelayCache();
   },
 });
