@@ -36,6 +36,7 @@ const facilitatorStore = useFacilitatorStore();
 const registrator = useRegistrator();
 
 const isHovered = ref(false);
+const isUnlocking = ref(false);
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config });
@@ -43,14 +44,14 @@ const registerModalOpen = ref(false);
 
 onMounted(() => {
   // refresh the locked relays every minute
-    setInterval(() => {
-      if (registrator) {
-        if (userStore.userData.address) {
-          registrator.getLokedRelaysTokens(userStore.userData.address);
-        }
+  setInterval(() => {
+    if (registrator) {
+      if (userStore.userData.address) {
+        registrator.getLokedRelaysTokens(userStore.userData.address);
       }
-    }, 1000 * 60);
-})
+    }
+  }, 1000 * 60);
+});
 
 const unwatch = watchAccount(config, {
   onChange(account) {
@@ -312,11 +313,17 @@ const getObservedBandwidth = (fingerprint: string) => {
 
 const handleUnlockClick = async (fingerprint: string) => {
   if (registratorStore.isRelayLocked(fingerprint)) {
+    isUnlocking.value = true;
     const register = useRegistrator();
-    register?.unlock(fingerprint, BigInt(100 * 1e18)).then(async () => {
+    try {
+      await register?.unlock(fingerprint, BigInt(100 * 1e18));
       // Refresh the relays
       await userStore.createRelayCache();
-    });
+    } catch (error) {
+      console.error('Error unlocking relay:', error);
+    } finally {
+      isUnlocking.value = false;
+    }
   }
 };
 </script>
@@ -543,21 +550,23 @@ const handleUnlockClick = async (fingerprint: string) => {
       </template>
       <template #unlock-data="{ row }">
         <UButton
-        :ui="{ base: 'text-sm' }"
-        :class="{
-          'cursor-not-allowed': !registratorStore.isUnlockable(row.fingerprint) && isHovered,
-          'cursor-pointer': registratorStore.isUnlockable(row.fingerprint) && isHovered,
-        }"
-        icon="i-heroicons-check-circle-solid"
-        size="xl"
-        color="green"
-        variant="outline"
-        label="Unlock"
-        :trailing="false"
-        @click="handleUnlockClick(row.fingerprint)"
-        @mouseover="isHovered = true"
-        @mouseleave="isHovered = false"
-      />
+          :ui="{ base: 'text-sm' }"
+          :class="{
+            'cursor-not-allowed':
+              (!registratorStore.isUnlockable(row.fingerprint) && isHovered) ||
+              isUnlocking,
+          }"
+          icon="i-heroicons-check-circle-solid"
+          size="xl"
+          color="green"
+          variant="outline"
+          label="Unlock"
+          :trailing="false"
+          :disabled="isUnlocking"
+          @click="handleUnlockClick(row.fingerprint)"
+          @mouseover="isHovered = true"
+          @mouseleave="isHovered = false"
+        />
       </template>
       <template #owner-data="{ row }">
         <UBadge
@@ -594,11 +603,12 @@ const handleUnlockClick = async (fingerprint: string) => {
   background: #fa5858;
 }
 
-.cursor-not-allowed {
+.cursor-not-allowed,
+.disabled {
   cursor: not-allowed;
 }
 
-.cursor-pointer {
-  cursor: pointer;
-}
+// .cursor-pointer {
+//   cursor: pointer;
+// }
 </style>
