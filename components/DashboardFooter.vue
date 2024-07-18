@@ -108,7 +108,7 @@ const isOpen = ref(false);
       </UCard>
     </UModal>
 
-    <div class="flex justify-between items-center rounded-xl w-full mb-2">
+    <div class="flex justify-between items-center rounded-xl w-full">
       <div class="flex gap-2">
         <div class="font-brand tracking-wider">
           <UButton
@@ -121,12 +121,9 @@ const isOpen = ref(false);
       </div>
       <div
         @click="openCommitUrl"
-        class="text-sm text-gray-600 dark:text-gray-300 justify-self-center margin-auto"
+        class="text-sm text-gray-600 dark:text-gray-300 justify-self-center margin-auto hover:cursor-pointer"
       >
-        Version: {{ version }} | Commit:
-        <a href="https://github.com/ATOR-Development/ator-relay-dashboard/commit/${{commitHash}}">
-          {{ commitHash.slice(0,7) }}...
-        </a>
+        Version: {{ version }} | Commit: {{ commitHash.slice(0,7) }}...
       </div>
     </div>
   </footer>

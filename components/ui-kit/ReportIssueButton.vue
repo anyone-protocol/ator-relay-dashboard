@@ -1,5 +1,5 @@
 <template>
-  <UButton variant="outline" @click="onReportIssueClicked">
+  <UButton class="h-3rem" variant="outline" @click="onReportIssueClicked">
     <UIcon name="i-heroicons-exclamation-circle" />
     <div>
       <span>Report Issue</span>

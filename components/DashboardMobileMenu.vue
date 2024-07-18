@@ -29,8 +29,18 @@ router.beforeEach(async () => {
         <ButtonConnect />
         <ButtonThemeToggle />
       </div>
-      <div class="items-center gap-2 flex mb-4 ml-auto">
-        <ReportIssueButton />
+      <div class="mb-4 flex-col flex space-y-2">
+        <RouterLink to="/">
+          <UButton variant="outline" class="nav-button uniform-height text-sm lg:text-base w-[8rem]"
+            >Home</UButton
+          >
+        </RouterLink>
+        <RouterLink to="/relays">
+          <UButton variant="outline" class="nav-button uniform-height text-sm lg:text-base w-[8rem]"
+            >Relays</UButton
+          >
+        </RouterLink>
+        <ReportIssueButton class="w-[8rem]"/>
       </div>
       <div
         class="w-full bg-gradient-to-r from-gray-600/10 via-cyan-600 to-gray-600/10 h-px"

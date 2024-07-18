@@ -11,7 +11,6 @@
             <p class="mb-4 text-sm">
               The connected wallet shows the following balance:
             </p>
-            <ReportIssueButton />
           </div>
 
           <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row my-4">
