@@ -19,42 +19,39 @@ const menuStore = useMenuStore();
     <div
       class="absolute dark:bg-gradient-to-b dark:from-zinc-900 dark:via-gray-900 bg-gradient-to-b from-slate-100 to-teal-50 w-full inset-0 dark:h-28 h-20 [mask-image:linear-gradient(to_bottom,black_90%,transparent)] lg:hidden"
     ></div>
-    <div
-      class="flex justify-between items-center px-6 pb-4 lg:pt-6 pt-4 relative"
-    >
+    <div class="flex justify-between items-center px-6 pb-4 lg:pt-6 pt-4 relative h-full">
       <div class="flex gap-2 items-center">
         <TitleAndLogo />
       </div>
-      <nav class="flex-1">
+      <nav class="flex-1 h-full">
         <ul class="flex justify-center items-center space-x-2 lg:space-x-4">
           <li>
             <RouterLink to="/">
-              <UButton variant="outline" class="nav-button text-sm lg:text-base"
+              <UButton variant="outline" class="nav-button uniform-height text-sm lg:text-base lg:flex hidden"
                 >Home</UButton
               >
             </RouterLink>
           </li>
           <li>
             <RouterLink to="/relays">
-              <UButton variant="outline" class="nav-button text-sm lg:text-base"
+              <UButton variant="outline" class="nav-button uniform-height text-sm lg:text-base lg:flex hidden"
                 >Relays</UButton
               >
             </RouterLink>
           </li>
-          <div class="lg:flex items-center gap-2 hidden">
-            <ReportIssueButton />
+          <div class="lg:flex items-center gap-2 hidden h-full">
+            <ReportIssueButton class="uniform-height" />
           </div>
         </ul>
       </nav>
       <div class="flex items-center gap-2">
-        <ButtonMobileMenu />
+        <ButtonMobileMenu class="uniform-height" />
       </div>
       <div class="lg:flex items-center hidden ml-auto mr-6">
-        <ButtonConnect />
+        <ButtonConnect class="uniform-height" />
       </div>
-
       <div class="lg:flex items-center gap-2 hidden">
-        <ButtonThemeToggle />
+        <ButtonThemeToggle class="uniform-height" />
       </div>
     </div>
 
@@ -70,6 +67,10 @@ nav ul {
 }
 nav ul li {
   margin: 0;
+}
+
+.uniform-height {
+  height: 2.3rem;
 }
 
 .dark .router-link-active .nav-button {
