@@ -44,7 +44,6 @@ const { address } = useAccount({ config });
 const registerModalOpen = ref(false);
 
 onMounted(() => {
-  // refresh the locked relays every minute
   setInterval(() => {
     if (registrator) {
       if (userStore.userData.address) {
@@ -56,13 +55,11 @@ onMounted(() => {
 
 const unwatch = watchAccount(config, {
   onChange(account) {
-    // account change
     userStore.createRelayCache();
   },
 });
 unwatch();
 
-// Fetching and refreshing the relay data from Warp - stored in Pinia user store
 const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
   'verifiedRelays',
   () => userStore.createRelayCache(),
@@ -102,18 +99,11 @@ const timestamp = computed(
   () => metricsStore.relays.timestamp && new Date(metricsStore.relays.timestamp)
 );
 
-// The user's relays
 const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
-const relayAction = async (action: FunctionName, fingerprint: string) => {
-  //TODO: Sign the message
-  // See: The following resources
-  // https://academy.warp.cc/docs/sdk/advanced/plugins/signature
-  // https://github.com/brewlabs-code/ator/blob/main/composables/warp-signer.ts
-  // https://docs.google.com/document/d/1VLRd2bP96avNZksMwrf8WSDmcAwrcaQpYAd5SUGDhx0/edit?pli=1#heading=h.gtsv79v2cvnl
 
-  // Apply style to the selected row
+const relayAction = async (action: FunctionName, fingerprint: string) => {
   const selectedRow = allRelays.value.find(
     (row) => row.fingerprint === fingerprint
   );
@@ -143,7 +133,6 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           return;
         }
 
-        // Refresh the relays cache
         return userStore
           .createRelayCache()
           .then(() => userStore.getVerifiedRelays())
@@ -181,8 +170,6 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     selectedRow!.isWorking = false;
   }
 };
-
-// Table columns and actions
 
 const getVerifiedItems = (row: RelayRow) => [
   [
@@ -223,13 +210,11 @@ const handleLockRelay = async (fingerprint: string) => {
   }
 };
 
-// for modal
 const handleLockRemote = async () => {
   if (fingerPrintRegisterError.value || ethAddressError.value) {
     return;
   }
 
-  // check for empty
   if (fingerPrintRegister.value == '' || ethAddress.value == '') {
     toast.remove('invalid-evm-address');
     toast.add({
@@ -314,7 +299,6 @@ const handleUnlockClick = async (fingerprint: string) => {
     const register = useRegistrator();
     try {
       await register?.unlock(fingerprint, BigInt(100 * 1e18));
-      // Refresh the relays
       await userStore.createRelayCache();
     } catch (error) {
     } finally {
@@ -402,137 +386,82 @@ const handleUnlockClick = async (fingerprint: string) => {
       variant="subtle"
     />
     <Tabs :tabs="TABS" @onChange="handleTabChange" />
-
-    <UTable
-      :loading="allRelaysPending"
-      :columns="RELAY_COLUMS[currentTab]"
-      :rows="getTableData(currentTab)"
-      :ui="{ td: { base: 'max-w-sm truncate' } }"
-      :empty-state="{
-        icon: 'i-heroicons-circle-stack-20-solid',
-        label:
-          currentTab === 'claimable'
-            ? 'No Claimable relays!'
-            : 'No pending claimable or verified relays!',
-      }"
+    <div
+      v-for="row in getTableData(currentTab)"
+      :key="row.fingerprint"
+      class="mb-4 p-4 border rounded"
     >
-      <template #actions-data="{ row }">
-        <div class="w-8">
-          <Icon
-            v-if="row.isWorking"
-            name="heroicons:arrow-path-20-solid"
-            class="h-6 w-6 animate-spin"
-          />
-          <UDropdown
-            v-if="row.status === 'verified' && !row.isWorking"
-            :items="getVerifiedItems(row)"
-            :popper="{ placement: 'left-end' }"
+      <div class="flex justify-between items-center">
+        <div class="font-semibold">Nickname</div>
+        <div>{{ userStore?.nickNames?.[row.fingerprint] || '-' }}</div>
+      </div>
+      <div class="flex justify-between items-center mt-2">
+        <div class="font-semibold">Running</div>
+        <div class="flex items-center">
+          <span
+            :class="
+              userStore?.relaysMeta?.[row.fingerprint]?.running
+                ? 'status-active'
+                : 'status-inactive'
+            "
+          ></span>
+        </div>
+      </div>
+      <div class="flex justify-between items-center mt-2">
+        <div class="font-semibold">Relay Fingerprint</div>
+        <!-- <div>{{ row.fingerprint }}</div> -->
+        <FingerprintDisplay :fingerprint="row.fingerprint" />
+      </div>
+      <div class="flex justify-between items-center mt-2">
+        <div class="font-semibold">Consensus Weight</div>
+        <div>
+          <span
+            v-if="
+              userStore?.relaysMeta?.[row.fingerprint]?.consensus_weight !==
+              undefined
+            "
           >
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-ellipsis-horizontal-20-solid"
+            {{ userStore?.relaysMeta?.[row.fingerprint]?.consensus_weight }}
+          </span>
+          <span v-else class="text-sm flex items-center gap-2">
+            <Icon
+              name="heroicons:exclamation-circle"
+              class="h-4 w-4 text-red-500"
             />
-          </UDropdown>
+            Unable to fetch
+          </span>
         </div>
-      </template>
-      <template #nickname-data="{ row }">
-        {{ userStore?.nickNames?.[row.fingerprint] || '-' }}
-      </template>
-      <template #previousDistribution-data="{ row }">
-        {{ facilitatorStore?.distributionPerRelay?.[row.fingerprint] || '-' }}
-      </template>
-
-      <template #active-data="{ row }">
-        <div
-          :class="
-            userStore?.relaysMeta?.[row.fingerprint]?.running
-              ? 'status-active'
-              : 'status-inactive'
-          "
-        ></div>
-      </template>
-
-      <template #consensusWeight-data="{ row }">
-        <span
-          v-if="
-            userStore?.relaysMeta?.[row.fingerprint]?.consensus_weight !==
-            undefined
-          "
-        >
-          {{ userStore?.relaysMeta?.[row.fingerprint]?.consensus_weight }}
-        </span>
-        <span v-else class="text-sm flex items-center gap-2">
-          <Icon
-            name="heroicons:exclamation-circle"
-            class="h-4 w-4 text-red-500"
-          />
-          Unable to fetch
-        </span>
-      </template>
-      <template #observedBandwidth-data="{ row }">
-        <span
-          v-if="
-            userStore?.relaysMeta?.[row.fingerprint]?.observed_bandwidth !==
-            undefined
-          "
-        >
-          {{ getObservedBandwidth(row.fingerprint) }}
-        </span>
-        <span v-else class="text-sm flex items-center gap-2">
-          <Icon
-            name="heroicons:exclamation-circle"
-            class="h-4 w-4 text-red-500"
-          />
-          Unable to fetch
-        </span>
-      </template>
-
-      <template #lockStatus-header="{ column }">
-        <div class="flex gap-1 items-center">
-          <span>{{ column.label }}</span>
-          <Tooltip
-            placement="top"
-            arrow
-            text="Shows the current lock status and amount of locked tokens needed for Registration."
+      </div>
+      <div class="flex justify-between items-center mt-2">
+        <div class="font-semibold">Observed Bandwidth</div>
+        <div>
+          <span
+            v-if="
+              userStore?.relaysMeta?.[row.fingerprint]?.observed_bandwidth !==
+              undefined
+            "
           >
-            <Icon name="heroicons:exclamation-circle" class="h-4" />
-          </Tooltip>
+            {{ getObservedBandwidth(row.fingerprint) }}
+          </span>
+          <span v-else class="text-sm flex items-center gap-2">
+            <Icon
+              name="heroicons:exclamation-circle"
+              class="h-4 w-4 text-red-500"
+            />
+            Unable to fetch
+          </span>
         </div>
-      </template>
-      <template #lockStatus-data="{ row }">
+      </div>
+      <div class="flex justify-between items-center mt-2">
+        <div class="font-semibold">Lock Status</div>
         <LockStatusColumn
           :is-locked="registratorStore.isRelayLocked(row.fingerprint)"
           :is-hardware="userStore.isHardwareRelay(row.fingerprint)"
           :is-verified="row.status === 'verified'"
         />
-      </template>
-
-      <template #status-header="{ column }">
-        <div class="relative flex gap-1 items-center">
-          <span>{{ column.label }}</span>
-          <Popover placement="top" :arrow="false">
-            <template #content>
-              <div class="text-sm font-medium text-cyan-500 mb-3">
-                Registration Status
-              </div>
-
-              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
-                <span class="text-gray-800 dark:text-white">Claimable:</span>
-                'Claim Now' button is active
-              </div>
-              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
-                <span class="text-gray-800 dark:text-white">Claimed:</span> This
-                item has already been claimed. No further action is needed.
-              </div>
-            </template>
-            <template #trigger>
-              <div><Icon name="heroicons:exclamation-circle" /></div>
-            </template>
-          </Popover>
-        </div>
-      </template>
-      <template #status-data="{ row }">
+      </div>
+      <div class="flex justify-between items-center mt-2">
+        <div class="font-semibold">Actions</div>
         <RegistrationActionColumn
           :row="row"
           @relay-action="relayAction"
@@ -543,43 +472,8 @@ const handleUnlockClick = async (fingerprint: string) => {
             userStore.isHardwareRelay(row.fingerprint)
           "
         />
-      </template>
-      <template #unlock-data="{ row }">
-        <UButton
-          :ui="{ base: 'text-sm' }"
-          :class="{
-            'cursor-not-allowed':
-              (!registratorStore.isUnlockable(row.fingerprint) && isHovered) ||
-              isUnlocking,
-          }"
-          icon="i-heroicons-check-circle-solid"
-          size="xl"
-          color="green"
-          variant="outline"
-          label="Unlock"
-          :trailing="false"
-          :disabled="isUnlocking"
-          @click="handleUnlockClick(row.fingerprint)"
-          @mouseover="isHovered = true"
-          @mouseleave="isHovered = false"
-        />
-      </template>
-      <template #owner-data="{ row }">
-        <UBadge
-          v-if="
-            registratorStore.isRelayOwner(
-              row.fingerprint,
-              userStore.userData.address!
-            )
-          "
-          color="white"
-          variant="solid"
-        >
-          Owner
-        </UBadge>
-        <UBadge v-else color="cayan" variant="outline"> Others </UBadge>
-      </template>
-    </UTable>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -590,21 +484,14 @@ const handleUnlockClick = async (fingerprint: string) => {
   height: 16px;
   border-radius: 50%;
 }
-// TODO: use variables
 .status-active {
   background: #00ff84;
 }
-
 .status-inactive {
   background: #fa5858;
 }
-
 .cursor-not-allowed,
 .disabled {
   cursor: not-allowed;
 }
-
-// .cursor-pointer {
-//   cursor: pointer;
-// }
 </style>
