@@ -44,6 +44,7 @@ const { address } = useAccount({ config });
 const registerModalOpen = ref(false);
 
 onMounted(() => {
+  // refresh the locked relays every minute
   setInterval(() => {
     if (registrator) {
       if (userStore.userData.address) {
@@ -55,11 +56,13 @@ onMounted(() => {
 
 const unwatch = watchAccount(config, {
   onChange(account) {
+    // account change
     userStore.createRelayCache();
   },
 });
 unwatch();
 
+// Fetching and refreshing the relay data from Warp - stored in Pinia user store
 const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
   'verifiedRelays',
   () => userStore.createRelayCache(),
@@ -99,11 +102,18 @@ const timestamp = computed(
   () => metricsStore.relays.timestamp && new Date(metricsStore.relays.timestamp)
 );
 
+// The user's relays
 const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
-
 const relayAction = async (action: FunctionName, fingerprint: string) => {
+  //TODO: Sign the message
+  // See: The following resources
+  // https://academy.warp.cc/docs/sdk/advanced/plugins/signature
+  // https://github.com/brewlabs-code/ator/blob/main/composables/warp-signer.ts
+  // https://docs.google.com/document/d/1VLRd2bP96avNZksMwrf8WSDmcAwrcaQpYAd5SUGDhx0/edit?pli=1#heading=h.gtsv79v2cvnl
+
+  // Apply style to the selected row
   const selectedRow = allRelays.value.find(
     (row) => row.fingerprint === fingerprint
   );
@@ -133,6 +143,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           return;
         }
 
+        // Refresh the relays cache
         return userStore
           .createRelayCache()
           .then(() => userStore.getVerifiedRelays())
@@ -170,6 +181,8 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     selectedRow!.isWorking = false;
   }
 };
+
+// Table columns and actions
 
 const getVerifiedItems = (row: RelayRow) => [
   [
@@ -210,11 +223,13 @@ const handleLockRelay = async (fingerprint: string) => {
   }
 };
 
+// for modal
 const handleLockRemote = async () => {
   if (fingerPrintRegisterError.value || ethAddressError.value) {
     return;
   }
 
+  // check for empty
   if (fingerPrintRegister.value == '' || ethAddress.value == '') {
     toast.remove('invalid-evm-address');
     toast.add({
@@ -299,6 +314,7 @@ const handleUnlockClick = async (fingerprint: string) => {
     const register = useRegistrator();
     try {
       await register?.unlock(fingerprint, BigInt(100 * 1e18));
+      // Refresh the relays
       await userStore.createRelayCache();
     } catch (error) {
     } finally {
@@ -377,7 +393,9 @@ const handleUnlockClick = async (fingerprint: string) => {
   </UModal>
   <div class="-mx-4 sm:-mx-0">
     <UAlert
-      v-if="(allRelaysError as any)?.value || (allRelaysError as any)?.value"
+      v-if="
+        (allRelaysError as any)?.value || (claimableRelaysError as any)?.value
+      "
       class="mb-6"
       icon="i-heroicons-exclamation-triangle"
       description="There was an error retrieving relays. We'll load what we can."
@@ -409,7 +427,6 @@ const handleUnlockClick = async (fingerprint: string) => {
       </div>
       <div class="flex justify-between items-center mt-2">
         <div class="font-semibold">Relay Fingerprint</div>
-        <!-- <div>{{ row.fingerprint }}</div> -->
         <FingerprintDisplay :fingerprint="row.fingerprint" />
       </div>
       <div class="flex justify-between items-center mt-2">
@@ -453,7 +470,16 @@ const handleUnlockClick = async (fingerprint: string) => {
         </div>
       </div>
       <div class="flex justify-between items-center mt-2">
-        <div class="font-semibold">Lock Status</div>
+        <div class="font-semibold flex gap-1 justify-center content-center">
+          Lock Status
+          <Tooltip
+            placement="top"
+            arrow
+            text="Shows the current lock status and amount of locked tokens needed for Registration."
+          >
+            <Icon name="heroicons:exclamation-circle" class="h-4" />
+          </Tooltip>
+        </div>
         <LockStatusColumn
           :is-locked="registratorStore.isRelayLocked(row.fingerprint)"
           :is-hardware="userStore.isHardwareRelay(row.fingerprint)"
@@ -463,6 +489,7 @@ const handleUnlockClick = async (fingerprint: string) => {
       <div class="flex justify-between items-center mt-2">
         <div class="font-semibold">Actions</div>
         <RegistrationActionColumn
+          v-if="currentTab !== 'locked'"
           :row="row"
           @relay-action="relayAction"
           @on-lock-relay="handleLockRelay"
@@ -472,6 +499,64 @@ const handleUnlockClick = async (fingerprint: string) => {
             userStore.isHardwareRelay(row.fingerprint)
           "
         />
+        <UButton
+          v-if="currentTab === 'locked'"
+          :ui="{ base: 'text-sm' }"
+          :class="{
+            'cursor-not-allowed':
+              (!registratorStore.isUnlockable(row.fingerprint) && isHovered) ||
+              isUnlocking,
+          }"
+          icon="i-heroicons-check-circle-solid"
+          size="xl"
+          color="green"
+          variant="outline"
+          label="Unlock"
+          :trailing="false"
+          :disabled="isUnlocking"
+          @click="handleUnlockClick(row.fingerprint)"
+          @mouseover="isHovered = true"
+          @mouseleave="isHovered = false"
+        />
+      </div>
+      <div
+        class="flex justify-between items-center mt-2"
+        v-if="currentTab === 'locked'"
+      >
+        <div class="font-semibold flex gap-1 justify-center content-center">
+          Owner
+          <Popover placement="top" :arrow="false">
+            <template #content>
+              <div class="text-sm font-medium text-cyan-500 mb-3">
+                Ownership Status
+              </div>
+              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
+                <span class="text-gray-800 dark:text-white">Owner:</span>
+                This relay belongs to you.
+              </div>
+              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
+                <span class="text-gray-800 dark:text-white">Others:</span>
+                This relay is owned by someone else.
+              </div>
+            </template>
+            <template #trigger>
+              <Icon name="heroicons:information-circle" />
+            </template>
+          </Popover>
+        </div>
+        <UBadge
+          v-if="
+            registratorStore.isRelayOwner(
+              row.fingerprint,
+              userStore.userData.address!
+            )
+          "
+          color="white"
+          variant="solid"
+        >
+          Owner
+        </UBadge>
+        <UBadge v-else color="cyan" variant="outline"> Others </UBadge>
       </div>
     </div>
   </div>
