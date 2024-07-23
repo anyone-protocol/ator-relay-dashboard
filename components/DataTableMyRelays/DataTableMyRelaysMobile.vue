@@ -407,7 +407,7 @@ const handleUnlockClick = async (fingerprint: string) => {
     <div
       v-for="row in getTableData(currentTab)"
       :key="row.fingerprint"
-      class="mb-4 p-4 border rounded"
+      class="mb-4 p-4 border rounded border-cyan-500 dark:border-cyan-600"
     >
       <div class="flex justify-between items-center">
         <div class="font-semibold">Nickname</div>
