@@ -10,7 +10,7 @@ export const config = defaultWagmiConfig({
   chains: [/*mainnet,*/ sepolia],
   transports: {
     // [mainnet.id]: http(),
-    [sepolia.id]: http(),
+    [sepolia.id]: http('https://ethereum-sepolia.rpc.subquery.network/public'),
   },
   projectId,
   metadata,

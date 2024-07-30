@@ -45,10 +45,11 @@ const registerModalOpen = ref(false);
 
 onMounted(() => {
   // refresh the locked relays every minute
+
   setInterval(() => {
     if (registrator) {
       if (userStore.userData.address) {
-        registrator.getLokedRelaysTokens(userStore.userData.address);
+        registratorStore.fetchLockedRelays(userStore.userData.address);
       }
     }
   }, 1000 * 60);
@@ -56,7 +57,7 @@ onMounted(() => {
 
 const unwatch = watchAccount(config, {
   onChange(account) {
-    // account change
+    // account changed
     userStore.createRelayCache();
   },
 });
@@ -106,6 +107,7 @@ const timestamp = computed(
 const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
+
 const relayAction = async (action: FunctionName, fingerprint: string) => {
   //TODO: Sign the message
   // See: The following resources
@@ -508,6 +510,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="registratorStore.isRelayLocked(row.fingerprint)"
           :is-hardware="userStore.isHardwareRelay(row.fingerprint)"
           :is-verified="row.status === 'verified'"
+          :is-loading="registratorStore.loading"
         />
       </template>
 
@@ -545,6 +548,7 @@ const handleUnlockClick = async (fingerprint: string) => {
             row.status === 'verified' ||
             userStore.isHardwareRelay(row.fingerprint)
           "
+          :is-loading="registratorStore.loading"
         />
       </template>
       <template #unlock-data="{ row }">

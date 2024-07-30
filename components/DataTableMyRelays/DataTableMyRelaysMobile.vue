@@ -484,6 +484,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="registratorStore.isRelayLocked(row.fingerprint)"
           :is-hardware="userStore.isHardwareRelay(row.fingerprint)"
           :is-verified="row.status === 'verified'"
+          :is-loading="registratorStore.loading"
         />
       </div>
       <div class="flex justify-between items-center mt-2">
@@ -498,6 +499,7 @@ const handleUnlockClick = async (fingerprint: string) => {
             row.status === 'verified' ||
             userStore.isHardwareRelay(row.fingerprint)
           "
+          :is-loading="registratorStore.loading"
         />
         <UButton
           v-if="currentTab === 'locked'"

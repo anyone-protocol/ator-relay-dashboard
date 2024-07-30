@@ -3,21 +3,26 @@ defineProps<{
   isLocked?: boolean;
   isHardware?: boolean;
   isVerified?: boolean;
+  isLoading?: boolean;
 }>();
 </script>
-
 <template>
-  <div v-if="isLocked" class="text-green-300">
-    <Icon name="material-symbols:lock" />
-    Locked
-  </div>
-  <div v-else-if="isHardware" class="text-athena-50">
-    <Icon name="material-symbols:memory" />
-    Hardware Relay
-  </div>
-  <div v-else-if="isVerified" class="text-athena-50">-</div>
-  <div v-else class="text-orange-300">
-    <Icon name="material-symbols:lock" />
-    Lock Required
-  </div>
+  <template v-if="isLoading">
+    <USkeleton class="w-[15rem] h-10" />
+  </template>
+  <template v-else>
+    <div v-if="isLocked" class="text-green-300">
+      <Icon name="material-symbols:lock" />
+      Locked
+    </div>
+    <div v-else-if="isHardware" class="text-athena-50">
+      <Icon name="material-symbols:memory" />
+      Hardware Relay
+    </div>
+    <div v-else-if="isVerified" class="text-athena-50">-</div>
+    <div v-else class="text-orange-300">
+      <Icon name="material-symbols:lock" />
+      Lock Required
+    </div>
+  </template>
 </template>
