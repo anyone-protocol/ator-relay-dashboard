@@ -21,17 +21,28 @@
                 <Ticker />
               </UserBalance>
             </div>
-            <div class="flex flex-col-reverse border-l-4 border-cyan-600 pl-3">
-              <h3>
-                <Icon name="material-symbols:lock" />
-                Locked
-              </h3>
-              <div class="inline-flex items-baseline gap-2">
-                <span v-if="isConnected" class="text-4xl font-bold">
-                  {{ formatEther(registratorStore.totalLockedTokens || '0') }}
-                </span>
-                <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
-                <Ticker />
+            <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
+              <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
+                <h3>
+                  <Icon name="material-symbols:lock" />
+                  Locked
+                </h3>
+                <div class="inline-flex items-baseline gap-2">
+                  <template v-if="lockedPending">
+                    <USkeleton class="w-[15rem] h-10" />
+                  </template>
+                  <template v-else>
+                    <span v-if="isConnected" class="text-4xl font-bold">
+                      {{
+                        formatEther(registratorStore.totalLockedTokens || '0')
+                      }}
+                    </span>
+                    <span v-if="!isConnected" class="text-4xl font-bold">
+                      --
+                    </span>
+                    <Ticker />
+                  </template>
+                </div>
               </div>
             </div>
           </div>
@@ -95,18 +106,22 @@
 
           <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Claimed rewards</h3>
-              <div class="inline-flex items-baseline gap-2">
+              <template v-if="claimedPending">
+                <USkeleton class="w-[15rem] h-10" />
+              </template>
+              <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{ formatEther(facilitatorStore.totalClaimedTokens || '0') }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
-              </div>
+              </template>
             </div>
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Claimable rewards</h3>
-              <div class="inline-flex items-baseline gap-2">
+              <template v-if="claimablePending">
+                <USkeleton class="w-[15rem] h-10" />
+              </template>
+              <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
                     formatEther(
@@ -116,7 +131,7 @@
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
-              </div>
+              </template>
             </div>
           </div>
         </Card>
@@ -155,13 +170,43 @@ const { isConnected } = useAccount({ config });
 
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
+const lockedPending = ref(true);
+const claimedPending = ref(true);
+const claimablePending = ref(true);
 
 const toast = useToast();
 
 const isLoading = ref(true);
 
+const fetchInitialData = async (newAddress) => {
+  try {
+    lockedPending.value = true;
+    claimedPending.value = true;
+    claimablePending.value = true;
+    facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
+
+    await userStore.getTokenBalance();
+
+    const facilitator = useFacilitator();
+    await facilitator?.refresh();
+
+    const registrator = useRegistrator();
+    await registrator?.refresh();
+
+    await useDistribution().claimable(newAddress as string);
+    await useDistribution().refresh();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    lockedPending.value = false;
+    claimedPending.value = false;
+    claimablePending.value = false;
+  }
+};
+
 onMounted(async () => {
   isLoading.value = false;
+
   await userStore.getTokenBalance();
 
   facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
@@ -173,23 +218,14 @@ onMounted(async () => {
   initRegistrator();
   initToken();
   initDistribution();
+  fetchInitialData(userStore.userData.address);
   isLoading.value = false;
 });
 
 watch(
   () => userStore.userData.address,
   async (newAddress?: string) => {
-    facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
-    await userStore.getTokenBalance();
-
-    const facilitator = useFacilitator();
-    await facilitator?.refresh();
-
-    const registrator = useRegistrator();
-    await registrator?.refresh();
-
-    await useDistribution().claimable(newAddress as string);
-    await useDistribution().refresh();
+    await fetchInitialData(newAddress);
   }
 );
 
