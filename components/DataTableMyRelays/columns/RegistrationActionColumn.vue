@@ -10,6 +10,18 @@ const props = defineProps<{
   row: RelayRow | undefined;
   isLocked: boolean;
 }>();
+
+const userStore = useUserStore();
+var hasRegistrationCredit: boolean | undefined;
+
+async function fetchRegistrationCredit() {
+  if (props?.row) {
+    hasRegistrationCredit = await userStore.hasRegistrationCredit(props?.row?.fingerprint);
+  }
+}
+
+fetchRegistrationCredit();
+
 </script>
 
 <template>
@@ -29,7 +41,7 @@ const props = defineProps<{
       <div>Lock 100 $ANYONE</div>
     </UButton>
     <UButton
-      v-else-if="props.row.status === 'claimable' && props.isLocked"
+      v-else-if="props.row.status === 'claimable' && props.isLocked && hasRegistrationCredit"
       size="xl"
       color="green"
       variant="solid"
@@ -39,6 +51,15 @@ const props = defineProps<{
       :disabled="row?.isWorking"
       block
     />
+    <UButton
+      v-else-if="props.row.status === 'claimable' && props.isLocked && !hasRegistrationCredit"
+      size="xl"
+      color="green"
+      variant="outline"
+      label="No Credit"
+      :trailing="false"
+      :disabled="true"
+      block/>
     <UButton
       v-else-if="props.row.status === 'verified' || props.isLocked"
       icon="i-heroicons-check-circle-solid"

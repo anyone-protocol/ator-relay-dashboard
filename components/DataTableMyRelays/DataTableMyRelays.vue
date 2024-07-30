@@ -436,6 +436,9 @@ const handleUnlockClick = async (fingerprint: string) => {
           </UDropdown>
         </div>
       </template>
+      <template  #fingerprint-data="{ row }">
+        <span class="monospace">{{ row.fingerprint }}</span>
+      </template>
       <template #nickname-data="{ row }">
         {{ userStore?.nickNames?.[row.fingerprint] || '-' }}
       </template>
@@ -602,6 +605,10 @@ const handleUnlockClick = async (fingerprint: string) => {
 .cursor-not-allowed,
 .disabled {
   cursor: not-allowed;
+}
+
+.monospace {
+  font-family: 'Courier New', Courier, monospace;
 }
 
 // .cursor-pointer {
