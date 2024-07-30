@@ -13,6 +13,7 @@ export interface RegistratorStoreState {
   totalLockedTokens: bigint;
   blockNumber: number;
   loading: boolean;
+  initialized: boolean;
 }
 
 export type LokedRelaysResponse = Array<{

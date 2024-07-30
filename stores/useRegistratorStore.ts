@@ -10,6 +10,7 @@ export const useRegistratorStore = defineStore('registrator', {
       totalLockedTokens: 0n,
       blockNumber: 10e8,
       loading: true,
+      initialized: false,
     };
   },
   actions: {
@@ -27,6 +28,9 @@ export const useRegistratorStore = defineStore('registrator', {
     },
     setLoading(loading: boolean) {
       this.loading = loading;
+    },
+    setInitialized(initialized: boolean) {
+      this.initialized = initialized;
     },
   },
 });

@@ -103,6 +103,8 @@ export class Registrator {
     await auth.getUsdTokenBalance();
 
     this.setRefreshing(false);
+    useRegistratorStore().setInitialized(true);
+
     this.logger.info('Registrator refreshed', {
       currentLockSize: currentLockSize ? currentLockSize.toString() : null,
     });

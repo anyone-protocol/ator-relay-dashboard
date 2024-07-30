@@ -170,9 +170,9 @@ const { isConnected } = useAccount({ config });
 
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
-const lockedPending = ref(true);
-const claimedPending = ref(true);
-const claimablePending = ref(true);
+const lockedPending = ref(false);
+const claimedPending = ref(false);
+const claimablePending = ref(false);
 
 const toast = useToast();
 
@@ -180,18 +180,27 @@ const isLoading = ref(true);
 
 const fetchInitialData = async (newAddress) => {
   try {
-    lockedPending.value = true;
-    claimedPending.value = true;
-    claimablePending.value = true;
+    if (!facilitatorStore?.initialized) {
+      claimedPending.value = true;
+      claimablePending.value = true;
+    }
+    if (!registratorStore?.initialized) {
+      lockedPending.value = true;
+    }
+
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
 
     await userStore.getTokenBalance();
 
     const facilitator = useFacilitator();
-    await facilitator?.refresh();
+    if (!facilitatorStore?.initialized) {
+      await facilitator?.refresh();
+    }
 
     const registrator = useRegistrator();
-    await registrator?.refresh();
+    if (!registratorStore?.initialized) {
+      await registrator?.refresh();
+    }
 
     await useDistribution().claimable(newAddress as string);
     await useDistribution().refresh();
