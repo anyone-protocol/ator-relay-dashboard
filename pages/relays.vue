@@ -108,17 +108,27 @@ import { type RelayTabType } from '@/types/relay';
 import Card from '~/components/ui-kit/Card.vue';
 
 const userStore = useUserStore();
+const registrator = useRegistrator();
 const registerModalOpen = ref(false);
 const currentTab = ref<RelayTabType>('all');
 
 onMounted(async () => {
-  initDistribution();
   initRelayRegistry();
   initFacilitator();
   initRegistrator();
+  initFacilitator();
+  initDistribution();
   initToken();
 
   await userStore.getVerifiedRelays();
+});
+
+const loadLockedRelays = async () => {
+  await registratorStore.fetchLockedRelays(userStore.userData.address);
+};
+
+onMounted(() => {
+  loadLockedRelays();
 });
 
 watch(
@@ -126,6 +136,8 @@ watch(
   async (newAddress?: string) => {
     await useDistribution().claimable(newAddress as string);
     await useDistribution().refresh();
+    await registrator.getLokedRelaysTokens(userStore.userData.address, true);
+
     await userStore.createRelayCache();
   }
 );

@@ -103,12 +103,17 @@ export class Registrator {
     await auth.getUsdTokenBalance();
 
     this.setRefreshing(false);
+    useRegistratorStore().setInitialized(true);
+
     this.logger.info('Registrator refreshed', {
       currentLockSize: currentLockSize ? currentLockSize.toString() : null,
     });
   }
 
-  async getLokedRelaysTokens(address: string): Promise<LokedRelaysType> {
+  async getLokedRelaysTokens(
+    address: string,
+    initialized?: boolean
+  ): Promise<LokedRelaysType> {
     if (!this.contract) {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
@@ -119,6 +124,9 @@ export class Registrator {
       data: LokedRelaysResponse;
     };
 
+    if (initialized) {
+      useRegistratorStore().setLoading(true);
+    }
     let totalLockedTokens = 0n;
     const lokedRelays = lokedRelaysReponse.data.reduce((acc, item) => {
       if (item[3]) {
@@ -141,6 +149,7 @@ export class Registrator {
       useRegistratorStore().totalLockedTokens = totalLockedTokens;
       useRegistratorStore().blockNumber = currentBlockNumber;
     }
+    useRegistratorStore().setLoading(false);
 
     return lokedRelays;
   }

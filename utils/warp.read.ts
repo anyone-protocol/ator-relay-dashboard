@@ -1,6 +1,7 @@
 import { isAddress } from 'viem';
 import { relayRegistryContract } from '@/config/warp.config';
 import { responseOutput } from '@/utils/responseOutput';
+import { useUserStore } from '#imports';
 
 type FunctionName = 'verified' | 'claimable' | 'serials';
 
@@ -166,20 +167,7 @@ export const getAllRelays = async (
     const claimableRelays = [];
     const registrationCredits = [];
     const nicknames: { [key: string]: any } = {};
-
-    for (const [fingerprint, addressRelay] of Object.entries(
-      result.cachedValue.state.claimable
-    )) {
-      if (address === addressRelay) {
-        claimableRelays.push({
-          address: address,
-          fingerprint: fingerprint,
-          status: 'claimable',
-          active: true,
-          class: '',
-        });
-      }
-    }
+    const userStore = useUserStore();
 
     for (const [fingerprint, addressRelay] of Object.entries(
       result.cachedValue.state.verified
@@ -208,6 +196,20 @@ export const getAllRelays = async (
         for (const fingerprint of fingerprints as string[]) {
           registrationCredits.push(fingerprint);
         }
+      }
+    }
+
+    for (const [fingerprint, addressRelay] of Object.entries(
+      result.cachedValue.state.claimable
+    )) {
+      if (address === addressRelay) {
+        claimableRelays.push({
+          address: address,
+          fingerprint: fingerprint,
+          status: 'claimable',
+          active: true,
+          class: '',
+        });
       }
     }
 

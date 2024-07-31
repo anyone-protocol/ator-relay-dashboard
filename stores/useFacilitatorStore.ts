@@ -22,6 +22,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
       previousDistributions: [],
       claimableAtomicTokens: '',
       distributionPerRelay: {},
+      initialized: false,
     };
   },
   getters: {
@@ -42,6 +43,9 @@ export const useFacilitatorStore = defineStore('facilitator', {
         return BigNumber(state.claimableAtomicTokens).isGreaterThan(0);
       }
       return false;
+    },
+    setInitialized: (state) => (initialized: boolean) => {
+      state.initialized = initialized;
     },
     avaliableAllocatedTokens: (state) => {
       if (state.claimableAtomicTokens) {

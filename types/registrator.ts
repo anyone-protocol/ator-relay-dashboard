@@ -12,6 +12,8 @@ export interface RegistratorStoreState {
   currentLockSize: bigint | null;
   totalLockedTokens: bigint;
   blockNumber: number;
+  loading: boolean;
+  initialized: boolean;
 }
 
 export type LokedRelaysResponse = Array<{

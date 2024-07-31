@@ -244,6 +244,7 @@ export class Facilitator {
       useFacilitatorStore().alocatedTokens = allocatedTokens.toString();
       useFacilitatorStore().availableBudget = availableBudget.toString();
       useFacilitatorStore().usedBudget = usedBudget.toString();
+      useFacilitatorStore().setInitialized(true);
 
       this.logger.timeEnd();
       this.logger.info('Facilitator refreshed', {

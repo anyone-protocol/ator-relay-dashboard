@@ -35,4 +35,5 @@ export interface FacilitatorStoreState {
   claimableAtomicTokens?: string;
   availableBudget?: string;
   usedBudget?: string;
+  initialized: boolean;
 }

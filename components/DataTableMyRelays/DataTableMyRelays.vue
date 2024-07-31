@@ -40,11 +40,12 @@ const isHovered = ref(false);
 const isUnlocking = ref(false);
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
-const { address } = useAccount({ config });
+const { address } = useAccount({ config } as any);
 const registerModalOpen = ref(false);
 
 onMounted(() => {
   // refresh the locked relays every minute
+
   setInterval(() => {
     if (registrator) {
       if (userStore.userData.address) {
@@ -56,7 +57,7 @@ onMounted(() => {
 
 const unwatch = watchAccount(config, {
   onChange(account) {
-    // account change
+    // account changed
     userStore.createRelayCache();
   },
 });
@@ -106,6 +107,7 @@ const timestamp = computed(
 const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
+
 const relayAction = async (action: FunctionName, fingerprint: string) => {
   //TODO: Sign the message
   // See: The following resources
@@ -436,6 +438,9 @@ const handleUnlockClick = async (fingerprint: string) => {
           </UDropdown>
         </div>
       </template>
+      <template #fingerprint-data="{ row }">
+        <span class="monospace">{{ row.fingerprint }}</span>
+      </template>
       <template #nickname-data="{ row }">
         {{ userStore?.nickNames?.[row.fingerprint] || '-' }}
       </template>
@@ -505,6 +510,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="registratorStore.isRelayLocked(row.fingerprint)"
           :is-hardware="userStore.isHardwareRelay(row.fingerprint)"
           :is-verified="row.status === 'verified'"
+          :is-loading="registratorStore.loading"
         />
       </template>
 
@@ -542,6 +548,7 @@ const handleUnlockClick = async (fingerprint: string) => {
             row.status === 'verified' ||
             userStore.isHardwareRelay(row.fingerprint)
           "
+          :is-loading="registratorStore.loading"
         />
       </template>
       <template #unlock-data="{ row }">
@@ -602,6 +609,10 @@ const handleUnlockClick = async (fingerprint: string) => {
 .cursor-not-allowed,
 .disabled {
   cursor: not-allowed;
+}
+
+.monospace {
+  font-family: 'Courier New', Courier, monospace;
 }
 
 // .cursor-pointer {
