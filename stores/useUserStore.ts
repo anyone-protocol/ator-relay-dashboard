@@ -16,11 +16,12 @@ import { config } from '@/config/wagmi.config';
 import { getAnonAddress } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
 import { useRelayCache } from '~/composables/relayCache';
+import Logger from '@/utils/logger';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
     address: null as `0x${string}` | null,
-    userData: useAccount({ config }),
+    userData: useAccount({ config } as any),
     tokenBalance: {
       value: 0n,
       symbol: '',
@@ -36,11 +37,24 @@ export const useUserStore = defineStore('user', {
     claimableRewards: 0,
     claimedRewardsTotal: 0,
     serials: [] as string[],
+    initialized: false,
+    lastFetched: 0,
+    logger: new Logger('userStore'),
   }),
   actions: {
+    setInitialized(initialized: boolean) {
+      this.initialized = initialized;
+    },
     // Get ANON balance
-    async getTokenBalance() {
+    async getTokenBalance(forceRefresh = false) {
       if (!this.userData.address) {
+        return;
+      }
+      const now = Date.now();
+      const cacheTTL = 60 * 1000; // 1 minute in milliseconds
+
+      if (!forceRefresh && now - this.lastFetched < cacheTTL) {
+        this.logger.info('Using cached token balance data');
         return;
       }
       const token = getAnonAddress() as `0x${string}`;
@@ -49,6 +63,8 @@ export const useUserStore = defineStore('user', {
         token,
         address: this.userData.address as `0x${string}`,
       });
+      this.lastFetched = now;
+      this.setInitialized(true);
     },
     // Get ANON balance in USD using price store
     async getUsdTokenBalance() {
@@ -242,4 +258,5 @@ export const useUserStore = defineStore('user', {
     // All relays, verified and claimable
     allRelays: (state) => [...state.verifiedRelays, ...state.claimableRelays],
   },
+  // set initialized state
 });

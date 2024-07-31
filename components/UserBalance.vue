@@ -40,24 +40,43 @@ const userStore = useUserStore();
 const { address, tokenBalance, tokenBalanceUsd } = storeToRefs(userStore);
 const { isConnected } = useAccount({ config });
 
-const balancePending = ref(true);
-const balanceUsdPending = ref(true);
+const balancePending = ref(false);
+const balanceUsdPending = ref(false);
 const balanceError = ref(null as any);
 const balanceUsdError = ref(null as any);
 
 const fetchBalances = async () => {
   try {
-    balancePending.value = true;
-    await userStore.getTokenBalance();
-    balancePending.value = false;
+    console.log(
+      'fetching balances',
+      userStore?.initialized,
+      userStore?.lastFetched
+    );
+
+    if (
+      !userStore?.initialized &&
+      userStore.userData.address &&
+      userStore?.lastFetched < Date.now() - 1000 * 60
+    ) {
+      balancePending.value = true;
+
+      await userStore.getTokenBalance();
+      balancePending.value = false;
+    }
   } catch (error) {
     balanceError.value = error;
   }
 
   try {
-    balanceUsdPending.value = true;
-    await userStore.getUsdTokenBalance();
-    balanceUsdPending.value = false;
+    if (
+      !userStore?.initialized &&
+      userStore.userData.address &&
+      userStore?.lastFetched < Date.now() - 1000 * 60
+    ) {
+      balanceUsdPending.value = true;
+      await userStore.getUsdTokenBalance();
+      balanceUsdPending.value = false;
+    }
   } catch (error) {
     balanceUsdError.value = error;
   }
