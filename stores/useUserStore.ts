@@ -16,7 +16,11 @@ import { config } from '@/config/wagmi.config';
 import { getAnonAddress } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
 import { useRelayCache } from '~/composables/relayCache';
-import Logger from '@/utils/logger';
+
+type CacheData = {
+  tokenBalance: number;
+  tokenBalanceUsd: number;
+};
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -29,6 +33,7 @@ export const useUserStore = defineStore('user', {
       formatted: '0',
     } as GetBalanceReturnType,
     tokenBalanceUsd: 0,
+    cacheTimings: {} as CacheData,
     verifiedRelays: [] as RelayRow[],
     claimableRelays: [] as RelayRow[],
     registrationCredits: [] as string[],
@@ -50,12 +55,12 @@ export const useUserStore = defineStore('user', {
       if (!this.userData.address) {
         return;
       }
-      const now = Date.now();
-      const cacheTTL = 60 * 1000; // 1 minute in milliseconds
 
-      if (!forceRefresh && now - this.lastFetched < cacheTTL) {
-        this.logger.info('Using cached token balance data');
-        return;
+      if (this.cacheTimings.tokenBalance && !forceRefresh) {
+        const now = new Date().getTime();
+        if (now - this.cacheTimings.tokenBalance < 30000) {
+          return;
+        }
       }
       const token = getAnonAddress() as `0x${string}`;
 
@@ -63,13 +68,20 @@ export const useUserStore = defineStore('user', {
         token,
         address: this.userData.address as `0x${string}`,
       });
-      this.lastFetched = now;
-      this.setInitialized(true);
+
+      this.cacheTimings.tokenBalance = new Date().getTime();
     },
     // Get ANON balance in USD using price store
-    async getUsdTokenBalance() {
+    async getUsdTokenBalance(forceRefresh = false) {
       if (!this.userData.address) {
-        return 0;
+        return;
+      }
+
+      if (this.cacheTimings.tokenBalanceUsd && !forceRefresh) {
+        const now = new Date().getTime();
+        if (now - this.cacheTimings.tokenBalanceUsd < 30000) {
+          return;
+        }
       }
       const priceStore = usePriceStore();
       await priceStore.fetchPrice();
@@ -77,6 +89,8 @@ export const useUserStore = defineStore('user', {
       this.tokenBalanceUsd =
         priceStore.currentPrice.data *
         Number(formatEther(this.tokenBalance?.value ?? BigInt(0)));
+
+      this.cacheTimings.tokenBalanceUsd = new Date().getTime();
     },
     async getVerifiedRelaysOld(forceRefresh = false) {
       if (!this.userData.address) {
