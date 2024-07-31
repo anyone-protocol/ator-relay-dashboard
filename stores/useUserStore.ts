@@ -44,7 +44,6 @@ export const useUserStore = defineStore('user', {
     serials: [] as string[],
     initialized: false,
     lastFetched: 0,
-    logger: new Logger('userStore'),
   }),
   actions: {
     setInitialized(initialized: boolean) {

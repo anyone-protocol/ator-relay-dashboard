@@ -38,7 +38,7 @@ import { watchAccount } from '@wagmi/core';
 
 const userStore = useUserStore();
 const { address, tokenBalance, tokenBalanceUsd } = storeToRefs(userStore);
-const { isConnected } = useAccount({ config });
+const { isConnected } = useAccount({ config } as any);
 
 const balancePending = ref(false);
 const balanceUsdPending = ref(false);
