@@ -42,13 +42,8 @@ export const useUserStore = defineStore('user', {
     claimableRewards: 0,
     claimedRewardsTotal: 0,
     serials: [] as string[],
-    initialized: false,
-    lastFetched: 0,
   }),
   actions: {
-    setInitialized(initialized: boolean) {
-      this.initialized = initialized;
-    },
     // Get ANON balance
     async getTokenBalance(forceRefresh = false) {
       if (!this.userData.address) {

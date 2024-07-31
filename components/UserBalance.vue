@@ -45,38 +45,20 @@ const balanceUsdPending = ref(false);
 const balanceError = ref(null as any);
 const balanceUsdError = ref(null as any);
 
-const fetchBalances = async () => {
+const fetchBalances = async (forceRefresh = false) => {
   try {
-    console.log(
-      'fetching balances',
-      userStore?.initialized,
-      userStore?.lastFetched
-    );
+    balancePending.value = true;
 
-    if (
-      !userStore?.initialized &&
-      userStore.userData.address &&
-      userStore?.lastFetched < Date.now() - 1000 * 60
-    ) {
-      balancePending.value = true;
-
-      await userStore.getTokenBalance();
-      balancePending.value = false;
-    }
+    await userStore.getTokenBalance(forceRefresh);
+    balancePending.value = false;
   } catch (error) {
     balanceError.value = error;
   }
 
   try {
-    if (
-      !userStore?.initialized &&
-      userStore.userData.address &&
-      userStore?.lastFetched < Date.now() - 1000 * 60
-    ) {
-      balanceUsdPending.value = true;
-      await userStore.getUsdTokenBalance();
-      balanceUsdPending.value = false;
-    }
+    balanceUsdPending.value = true;
+    await userStore.getUsdTokenBalance(forceRefresh);
+    balanceUsdPending.value = false;
   } catch (error) {
     balanceUsdError.value = error;
   }
@@ -87,7 +69,7 @@ watch(
   async (newAddress?: string) => {
     if (newAddress) {
       console.log('new address', newAddress);
-      fetchBalances();
+      fetchBalances(true);
     }
   }
 );

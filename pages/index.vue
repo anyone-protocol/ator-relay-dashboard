@@ -166,7 +166,7 @@ import { initToken } from '@/composables/token';
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
 const registratorStore = useRegistratorStore();
-const { isConnected } = useAccount({ config });
+const { isConnected } = useAccount({ config } as any);
 
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
@@ -178,13 +178,16 @@ const toast = useToast();
 
 const isLoading = ref(true);
 
-const fetchInitialData = async (newAddress) => {
+const fetchInitialData = async (
+  newAddress: string | undefined,
+  forceRefresh = false
+) => {
   try {
-    if (!facilitatorStore?.initialized) {
+    if (!facilitatorStore?.initialized || forceRefresh) {
       claimedPending.value = true;
       claimablePending.value = true;
     }
-    if (!registratorStore?.initialized) {
+    if (!registratorStore?.initialized || forceRefresh) {
       lockedPending.value = true;
     }
 
@@ -193,12 +196,12 @@ const fetchInitialData = async (newAddress) => {
     await userStore.getTokenBalance();
 
     const facilitator = useFacilitator();
-    if (!facilitatorStore?.initialized) {
+    if (!facilitatorStore?.initialized || forceRefresh) {
       await facilitator?.refresh();
     }
 
     const registrator = useRegistrator();
-    if (!registratorStore?.initialized) {
+    if (!registratorStore?.initialized || forceRefresh) {
       await registrator?.refresh();
     }
 
@@ -234,7 +237,7 @@ onMounted(async () => {
 watch(
   () => userStore.userData.address,
   async (newAddress?: string) => {
-    await fetchInitialData(newAddress);
+    await fetchInitialData(newAddress, true);
   }
 );
 
