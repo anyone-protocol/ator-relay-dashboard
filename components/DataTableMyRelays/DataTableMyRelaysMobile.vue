@@ -40,7 +40,7 @@ const isHovered = ref(false);
 const isUnlocking = ref(false);
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
-const { address } = useAccount({ config });
+const { address } = useAccount({ config } as any);
 const registerModalOpen = ref(false);
 
 onMounted(() => {

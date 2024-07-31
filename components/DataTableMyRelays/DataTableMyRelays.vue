@@ -40,7 +40,7 @@ const isHovered = ref(false);
 const isUnlocking = ref(false);
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
-const { address } = useAccount({ config });
+const { address } = useAccount({ config } as any);
 const registerModalOpen = ref(false);
 
 onMounted(() => {
@@ -49,7 +49,7 @@ onMounted(() => {
   setInterval(() => {
     if (registrator) {
       if (userStore.userData.address) {
-        registratorStore.fetchLockedRelays(userStore.userData.address);
+        registrator.getLokedRelaysTokens(userStore.userData.address);
       }
     }
   }, 1000 * 60);
@@ -438,7 +438,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           </UDropdown>
         </div>
       </template>
-      <template  #fingerprint-data="{ row }">
+      <template #fingerprint-data="{ row }">
         <span class="monospace">{{ row.fingerprint }}</span>
       </template>
       <template #nickname-data="{ row }">
