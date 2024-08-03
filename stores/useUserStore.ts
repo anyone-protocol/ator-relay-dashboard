@@ -37,6 +37,7 @@ export const useUserStore = defineStore('user', {
     verifiedRelays: [] as RelayRow[],
     claimableRelays: [] as RelayRow[],
     registrationCredits: [] as string[],
+    families: {} as Record<string, string[]>,
     relaysMeta: {} as Record<string, RelayMeta>,
     nickNames: {} as Record<string, string>,
     claimableRewards: 0,
@@ -210,6 +211,8 @@ export const useUserStore = defineStore('user', {
 
       this.registrationCredits = data.data.registrationCredits;
 
+      this.families = data.data.families;
+
       // save to cache
       const relayCache = useRelayCache();
       await relayCache.saveRelayData(data.data);
@@ -225,6 +228,32 @@ export const useUserStore = defineStore('user', {
       if (cachedData) {
         this.registrationCredits = cachedData.registrationCredits;
         return this.registrationCredits.includes(fingerprint);
+      } else {
+        // build cache
+        await this.createRelayCache();
+      }
+    },
+    async familyVerified(fingerprint: string) {
+      if (!this.userData.address) {
+        return false;
+      }
+
+      const relayCache = useRelayCache();
+      const cachedData = await relayCache.getRelayData();
+      if (cachedData) {
+        if (cachedData.families[fingerprint]) {
+          var family = cachedData.families[fingerprint] as string[];
+          for (const member of family) {
+            if (
+              this.verifiedRelays.find((relay) => relay.fingerprint === member)
+            ) {
+            } else {
+              return false;
+            }
+          }
+          return true;
+        }
+        return true;
       } else {
         // build cache
         await this.createRelayCache();
