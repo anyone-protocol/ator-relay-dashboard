@@ -99,8 +99,8 @@ export class Registrator {
       currentLockSize = await this.getCurrentLockSize(auth.userData.address);
     }
 
-    await auth.getTokenBalance();
-    await auth.getUsdTokenBalance();
+    await auth.getTokenBalance(true);
+    await auth.getUsdTokenBalance(true);
 
     this.setRefreshing(false);
     useRegistratorStore().setInitialized(true);

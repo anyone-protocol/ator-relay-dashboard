@@ -50,6 +50,18 @@ export class RelayRegistry {
       return null;
     }
 
+    if (!(await auth.familyVerified(fingerprint))) {
+      this.logger.error('Family not verified.');
+      toast.add({
+        id: 'family-not-verified',
+        icon: 'i-heroicons-information-circle',
+        title: 'Error',
+        description: 'Family not verified.',
+        color: 'amber',
+      });
+      return null;
+    }
+
     const warpSigner = await useWarpSigner();
     if (!warpSigner) {
       this.logger.error('claim() relay registry warpSigner is null');
