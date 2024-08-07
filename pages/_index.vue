@@ -147,7 +147,7 @@ const handleClaimAllRewards = async () => {
                 Rewards history
               </h2>
               <p class="mb-4 text-sm mt-4">
-                Earn rewards by contributing relays to the ATOR network.
+                Earn rewards by contributing relays to the ANON network.
               </p>
             </div>
             <div v-if="isConnected" class="redeem flex gap-6 items-center">
