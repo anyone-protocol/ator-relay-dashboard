@@ -22,7 +22,7 @@ export default defineNuxtConfig({
           content: 'ANON Dashboard',
         },
         { property: 'og:site_name', content: 'AnyOne Dashboard' },
-        { name: 'twitter:site', content: '@atorprotocol' },
+        { name: 'twitter:site', content: '@AnyoneFDN' },
       ],
       link: [
         {

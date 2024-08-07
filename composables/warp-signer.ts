@@ -26,7 +26,7 @@ export class WarpSigner extends InjectedEthereumSigner {
 
   async setPublicKey() {
     let message =
-      'Please sign this message to authenticate with the ATOR dashboard.  ' +
+      'Please sign this message to authenticate with the ANON dashboard.  ' +
       'You will only need to do this once per session when interacting with ' +
       'the Relay Registry.';
 
