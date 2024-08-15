@@ -14,12 +14,15 @@ const props = defineProps<{
 
 const userStore = useUserStore();
 var hasRegistrationCredit: boolean | undefined;
+var registrationCreditsRequired: boolean = true;
 
 async function fetchRegistrationCredit() {
   if (props?.row) {
     hasRegistrationCredit = await userStore.hasRegistrationCredit(
       props?.row?.fingerprint
     );
+    await userStore.getRegistrationCreditsRequired(),
+      (registrationCreditsRequired = userStore.registrationCreditsRequired);
   }
 }
 
@@ -65,7 +68,8 @@ fetchRegistrationCredit();
         v-else-if="
           props.row.status === 'claimable' &&
           props.isLocked &&
-          !hasRegistrationCredit
+          !hasRegistrationCredit &&
+          registrationCreditsRequired
         "
         size="xl"
         color="green"

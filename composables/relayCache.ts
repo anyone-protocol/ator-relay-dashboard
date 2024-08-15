@@ -19,6 +19,7 @@ interface RelayData {
     }[];
     nicknames: { [key: string]: string };
     registrationCredits: string[];
+    registrationCreditsRequired: boolean;
   };
 }
 
@@ -164,6 +165,8 @@ class RelayCache {
           existingData.data.verified = newData;
         } else if (key === 'claimable') {
           existingData.data.claimable = newData;
+        } else if (key === 'registrationCreditsRequired') {
+          existingData.data.registrationCreditsRequired = newData;
         }
 
         updatedData = {
@@ -182,6 +185,7 @@ class RelayCache {
             claimable: key === 'claimable' ? newData : [],
             nicknames: {},
             registrationCredits: [],
+            registrationCreditsRequired: true,
             [key]: newData,
           },
         };
