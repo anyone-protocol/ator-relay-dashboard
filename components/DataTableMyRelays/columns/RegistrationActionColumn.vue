@@ -47,7 +47,7 @@ fetchRegistrationCredit();
         block
       >
         <div class="text-sm font-medium">Lock</div>
-        <div>Lock 100 $ANYONE</div>
+        <div>100 $ANYONE</div>
       </UButton>
       <UButton
         v-else-if="

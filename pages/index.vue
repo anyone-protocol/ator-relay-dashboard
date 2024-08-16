@@ -34,7 +34,9 @@
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-bold">
                       {{
-                        formatEther(registratorStore.totalLockedTokens || '0')
+                        formatEtherNoRound(
+                          registratorStore.totalLockedTokens || '0'
+                        )
                       }}
                     </span>
                     <span v-if="!isConnected" class="text-4xl font-bold">
@@ -113,25 +115,31 @@
 
           <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
+              <h3>Claimed rewards</h3>
               <template v-if="claimedPending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{ formatEther(facilitatorStore.totalClaimedTokens || '0') }}
+                  {{
+                    formatEtherNoRound(
+                      facilitatorStore.totalClaimedTokens || '0'
+                    )
+                  }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
               </template>
             </div>
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
+              <h3>Claimable rewards</h3>
               <template v-if="claimablePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                    formatEther(
+                    formatEtherNoRound(
                       facilitatorStore.avaliableAllocatedTokens || '0'
                     )
                   }}
@@ -155,7 +163,6 @@ import { config } from '@/config/wagmi.config';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { useUserStore } from '@/stores/useUserStore';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
-import { formatEther } from 'ethers';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import UserBalance from '@/components/UserBalance.vue';
 import Button from '@/components/ui-kit/Button.vue';
@@ -169,6 +176,7 @@ import { initDistribution, useDistribution } from '@/composables/distribution';
 import { initRelayRegistry } from '@/composables/relay-registry';
 import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
+import { formatEtherNoRound } from '@/utils/format';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
