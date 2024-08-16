@@ -262,6 +262,10 @@ export const useUserStore = defineStore('user', {
             return true;
           }
 
+          if (this.families[fingerprint].includes(fingerprint)) {
+            return true;
+          }
+
           const userFingerprints = this.verifiedRelays;
           // shallow copy
           const familyFingerprints = (this.families[fingerprint] || []).slice(
