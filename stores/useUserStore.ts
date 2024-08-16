@@ -228,6 +228,10 @@ export const useUserStore = defineStore('user', {
         return;
       }
 
+      if (!this.registrationCreditsRequired) {
+        return true;
+      }
+
       const relayCache = useRelayCache();
       const cachedData = await relayCache.getRelayData(forceRefresh);
       if (cachedData) {
@@ -241,6 +245,9 @@ export const useUserStore = defineStore('user', {
     async familyVerified(fingerprint: string) {
       if (!this.userData.address) {
         return false;
+      }
+      if (!this.familyRequired) {
+        return true;
       }
 
       const relayCache = useRelayCache();
@@ -280,9 +287,8 @@ export const useUserStore = defineStore('user', {
 
           return true;
         } else {
-          return true;
+          return false;
         }
-        return true;
       } else {
         // build cache
         await this.createRelayCache();
