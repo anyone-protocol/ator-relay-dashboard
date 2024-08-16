@@ -263,7 +263,9 @@ export const useUserStore = defineStore('user', {
               this.verifiedRelays.find((relay) => relay.fingerprint === member)
             ) {
             } else {
-              return false;
+              if (member !== fingerprint) {
+                return false;
+              }
             }
           }
           return true;
