@@ -44,6 +44,7 @@ export const useUserStore = defineStore('user', {
     claimableRewards: 0,
     claimedRewardsTotal: 0,
     serials: [] as string[],
+    familyRequired: false,
   }),
   actions: {
     // Get ANON balance
@@ -214,6 +215,8 @@ export const useUserStore = defineStore('user', {
 
       this.families = data.data.families;
 
+      this.familyRequired = data.data.familyRequired;
+
       // save to cache
       const relayCache = useRelayCache();
       await relayCache.saveRelayData(data.data);
@@ -257,23 +260,46 @@ export const useUserStore = defineStore('user', {
       const cachedData = await relayCache.getRelayData();
       if (cachedData) {
         if (cachedData.families[fingerprint]) {
-          var family = cachedData.families[fingerprint] as string[];
-          for (const member of family) {
+          if (
+            this.families[fingerprint].length === 0 ||
+            (this.families[fingerprint].length === 1 &&
+              this.families[fingerprint][0] === fingerprint)
+          ) {
+            return true;
+          }
+
+          const userFingerprints = this.verifiedRelays;
+          // shallow copy
+          const familyFingerprints = (this.families[fingerprint] || []).slice(
+            0
+          );
+          const claimingFamilyIncludesAllVerifiedRelays =
+            userFingerprints.every((fp) =>
+              familyFingerprints.includes(fp.fingerprint)
+            );
+          if (!claimingFamilyIncludesAllVerifiedRelays) {
+            return false;
+          }
+
+          for (let i = 0; i < userFingerprints.length; i++) {
             if (
-              this.verifiedRelays.find((relay) => relay.fingerprint === member)
+              !this.families[userFingerprints[i].fingerprint].includes(
+                fingerprint
+              )
             ) {
-            } else {
-              if (member !== fingerprint) {
-                return false;
-              }
+              return false;
             }
           }
+
+          return true;
+        } else {
           return true;
         }
         return true;
       } else {
         // build cache
         await this.createRelayCache();
+        return true;
       }
     },
     async clearCache() {
