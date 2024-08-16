@@ -171,7 +171,7 @@ export const getAllRelays = async (
     const registrationCredits = [];
     const nicknames: { [key: string]: any } = {};
     const families: { [key: string]: string[] } = {};
-    const registrationCreditsRequired: boolean = true;
+    let registrationCreditsRequired: boolean = false;
     var familyRequired: boolean = false;
     const userStore = useUserStore();
 
@@ -227,6 +227,8 @@ export const getAllRelays = async (
     }
 
     familyRequired = result.cachedValue.state.familyRequired;
+    registrationCreditsRequired =
+      result.cachedValue.state.registrationCreditsRequired;
 
     return {
       timestamp: Date.now(),

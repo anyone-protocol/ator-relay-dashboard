@@ -21,8 +21,7 @@ async function fetchRegistrationCredit() {
     hasRegistrationCredit = await userStore.hasRegistrationCredit(
       props?.row?.fingerprint
     );
-    await userStore.getRegistrationCreditsRequired(),
-      (registrationCreditsRequired = userStore.registrationCreditsRequired);
+    registrationCreditsRequired = userStore.registrationCreditsRequired;
   }
 }
 

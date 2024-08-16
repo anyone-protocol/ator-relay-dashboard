@@ -216,24 +216,11 @@ export const useUserStore = defineStore('user', {
       this.families = data.data.families;
 
       this.familyRequired = data.data.familyRequired;
+      this.registrationCreditsRequired = data.data.registrationCreditsRequired;
 
       // save to cache
       const relayCache = useRelayCache();
       await relayCache.saveRelayData(data.data);
-    },
-    async getRegistrationCreditsRequired(forceRefresh = false) {
-      if (!this.userData.address) {
-        return true;
-      }
-
-      const relayCache = useRelayCache();
-      const cachedData = await relayCache.getRelayData(forceRefresh);
-      if (cachedData) {
-        return cachedData.registrationCreditsRequired;
-      } else {
-        // build cache
-        await this.createRelayCache();
-      }
     },
     async hasRegistrationCredit(fingerprint: string, forceRefresh = false) {
       if (!this.userData.address) {
