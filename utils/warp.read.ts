@@ -28,7 +28,9 @@ type RelayData = {
     ];
     nicknames: { [key: string]: string };
     registrationCredits: string[];
+    registrationCreditsRequired: boolean;
     families: { [key: string]: string[] };
+    familyRequired: boolean;
   };
 };
 
@@ -169,6 +171,8 @@ export const getAllRelays = async (
     const registrationCredits = [];
     const nicknames: { [key: string]: any } = {};
     const families: { [key: string]: string[] } = {};
+    let registrationCreditsRequired: boolean = false;
+    var familyRequired: boolean = false;
     const userStore = useUserStore();
 
     for (const [fingerprint, addressRelay] of Object.entries(
@@ -222,6 +226,10 @@ export const getAllRelays = async (
       families[fingerprint] = fingerprintArray;
     }
 
+    familyRequired = result.cachedValue.state.familyRequired;
+    registrationCreditsRequired =
+      result.cachedValue.state.registrationCreditsRequired;
+
     return {
       timestamp: Date.now(),
       data: {
@@ -246,6 +254,8 @@ export const getAllRelays = async (
         nicknames: nicknames,
         registrationCredits: registrationCredits,
         families: families,
+        registrationCreditsRequired: registrationCreditsRequired,
+        familyRequired: familyRequired,
       },
     };
   } catch (error) {

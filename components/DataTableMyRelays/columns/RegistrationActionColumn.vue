@@ -14,12 +14,18 @@ const props = defineProps<{
 
 const userStore = useUserStore();
 var hasRegistrationCredit: boolean | undefined;
+var registrationCreditsRequired: boolean = true;
+var familyRequired: boolean = true;
+var familyVerified: boolean | undefined;
 
 async function fetchRegistrationCredit() {
   if (props?.row) {
     hasRegistrationCredit = await userStore.hasRegistrationCredit(
       props?.row?.fingerprint
     );
+    familyVerified = await userStore.familyVerified(props?.row?.fingerprint);
+    registrationCreditsRequired = userStore.registrationCreditsRequired;
+    familyRequired = userStore.familyRequired;
   }
 }
 
@@ -44,13 +50,14 @@ fetchRegistrationCredit();
         block
       >
         <div class="text-sm font-medium">Lock</div>
-        <div>Lock 100 $ANYONE</div>
+        <div>100 $ANYONE</div>
       </UButton>
       <UButton
         v-else-if="
           props.row.status === 'claimable' &&
           props.isLocked &&
-          hasRegistrationCredit
+          hasRegistrationCredit &&
+          familyVerified
         "
         size="xl"
         color="green"
@@ -65,7 +72,8 @@ fetchRegistrationCredit();
         v-else-if="
           props.row.status === 'claimable' &&
           props.isLocked &&
-          !hasRegistrationCredit
+          !hasRegistrationCredit &&
+          registrationCreditsRequired
         "
         size="xl"
         color="green"
@@ -75,6 +83,26 @@ fetchRegistrationCredit();
         :disabled="true"
         block
       />
+      <UButton
+        v-else-if="
+          props.row.status === 'claimable' &&
+          props.isLocked &&
+          !familyVerified &&
+          familyRequired
+        "
+        size="xl"
+        color="green"
+        variant="outline"
+        label="Family Not Verified"
+        class="flex-col text-xs"
+        :trailing="false"
+        :disabled="true"
+        block
+      >
+        <div class="text-sm font-medium">Family</div>
+        <div>Not Verified</div>
+      </UButton>
+
       <UButton
         v-else-if="props.row.status === 'verified' || props.isLocked"
         icon="i-heroicons-check-circle-solid"
