@@ -240,6 +240,7 @@ export const useUserStore = defineStore('user', {
       } else {
         // build cache
         await this.createRelayCache();
+        return this.registrationCredits.includes(fingerprint);
       }
     },
     async familyVerified(fingerprint: string) {
@@ -259,10 +260,6 @@ export const useUserStore = defineStore('user', {
             (this.families[fingerprint].length === 1 &&
               this.families[fingerprint][0] === fingerprint)
           ) {
-            return true;
-          }
-
-          if (this.families[fingerprint].includes(fingerprint)) {
             return true;
           }
 
@@ -291,7 +288,7 @@ export const useUserStore = defineStore('user', {
 
           return true;
         } else {
-          return false;
+          return true;
         }
       } else {
         // build cache
