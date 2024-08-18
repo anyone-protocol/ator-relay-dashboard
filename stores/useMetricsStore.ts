@@ -143,6 +143,27 @@ export const useMetricsStore = defineStore('metrics', {
             logger.info('Got latest relay/metrics', latestRelayMetrics.length);
             this.relays.latest = latestRelayMetrics;
 
+            const userStore = useUserStore();
+            for (var metric in latestRelayMetrics) {
+              userStore.relaysMeta[
+                latestRelayMetrics[metric].relay.fingerprint
+              ] = {
+                fingerprint: latestRelayMetrics[metric].relay.fingerprint,
+                nickname: latestRelayMetrics[metric].relay.nickname,
+                status: '',
+                anon_address: latestRelayMetrics[metric].relay.anon_address,
+                consensus_weight:
+                  latestRelayMetrics[metric].relay.consensus_weight.toString(),
+                observed_bandwidth:
+                  latestRelayMetrics[metric].relay.observed_bandwidth,
+                consensus_weight_fraction:
+                  latestRelayMetrics[metric].relay.consensus_weight_fraction,
+                running: latestRelayMetrics[metric].relay.running,
+              };
+            }
+
+            console.log('latestRelayMetrics', latestRelayMetrics);
+
             const timestamp = parseTimestampTag(latestTx);
             if (timestamp) {
               this.relays.timestamp = timestamp;
