@@ -190,10 +190,6 @@ export const useUserStore = defineStore('user', {
         return;
       }
 
-      console.log(data);
-
-      await this.verifyFamily2(data.data.claimable[0].fingerprint);
-
       this.nickNames = data.data.nicknames;
       // refresh the relays
       this.verifiedRelays = data.data.verified.map((relay) => ({
@@ -341,8 +337,6 @@ export const useUserStore = defineStore('user', {
       const cachedData = await relayCache.getRelayData();
       if (cachedData) {
         try {
-          console.log(cachedData);
-          console.log(cachedData.state);
           RegistryHandle(cachedData.state, interaction).then((result: any) => {
             return true;
           });

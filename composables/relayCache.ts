@@ -103,11 +103,11 @@ class RelayCache {
       );
 
       if (fromCache) {
-        // this.logger.info(`Cache hit for relayDB`, fromCache);
+        this.logger.info(`Cache hit for relayDB`, fromCache);
       }
 
       if (fromCache && Date.now() - fromCache.timestamp < this.cacheDuration) {
-        // this.logger.info('Returning cached data:', fromCache.data);
+        this.logger.info('Returning cached data:', fromCache.data);
         return fromCache.data as Data;
       }
 
