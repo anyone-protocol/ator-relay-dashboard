@@ -482,8 +482,11 @@ const handleUnlockClick = async (fingerprint: string) => {
       </template>
 
       <template #consensusWeight-data="{ row }">
+        <template v-if="metricsStore.relayMetricsPending">
+          <USkeleton class="w-[15rem] h-10" />
+        </template>
         <span
-          v-if="
+          v-else="
             userStore?.relaysMeta?.[row.fingerprint]?.consensus_weight !==
             undefined
           "
@@ -499,8 +502,11 @@ const handleUnlockClick = async (fingerprint: string) => {
         </span>
       </template>
       <template #observedBandwidth-data="{ row }">
+        <template v-if="metricsStore.relayMetricsPending">
+          <USkeleton class="w-[15rem] h-10" />
+        </template>
         <span
-          v-if="
+          v-else="
             userStore?.relaysMeta?.[row.fingerprint]?.observed_bandwidth !==
             undefined
           "

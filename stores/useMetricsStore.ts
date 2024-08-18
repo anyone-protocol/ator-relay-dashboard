@@ -162,14 +162,13 @@ export const useMetricsStore = defineStore('metrics', {
               };
             }
 
-            console.log('latestRelayMetrics', latestRelayMetrics);
-
             const timestamp = parseTimestampTag(latestTx);
             if (timestamp) {
               this.relays.timestamp = timestamp;
             }
           }
         }
+        this.relayMetricsPending = false;
       } catch (error) {
         logger.error('Error querying relay/metrics', error);
       }
