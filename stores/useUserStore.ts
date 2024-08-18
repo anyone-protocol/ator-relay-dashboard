@@ -38,6 +38,7 @@ export const useUserStore = defineStore('user', {
     claimableRelays: [] as RelayRow[],
     registrationCredits: [] as string[],
     registrationCreditsRequired: true,
+    registrationCreditsCache: {} as Record<string, boolean>,
     families: {} as Record<string, string[]>,
     relaysMeta: {} as Record<string, RelayMeta>,
     nickNames: {} as Record<string, string>,
@@ -45,6 +46,7 @@ export const useUserStore = defineStore('user', {
     claimedRewardsTotal: 0,
     serials: [] as string[],
     familyRequired: false,
+    familyVerifiedCache: {} as Record<string, boolean>,
   }),
   actions: {
     // Get ANON balance
@@ -232,16 +234,29 @@ export const useUserStore = defineStore('user', {
         return true;
       }
 
+      if (
+        !forceRefresh &&
+        this.registrationCreditsCache[fingerprint] !== undefined
+      ) {
+        return this.registrationCreditsCache[fingerprint];
+      }
+
       const relayCache = useRelayCache();
       const cachedData = await relayCache.getRelayData(forceRefresh);
       if (cachedData) {
         this.registrationCredits = cachedData.registrationCredits;
-        return this.registrationCredits.includes(fingerprint);
       } else {
         // build cache
         await this.createRelayCache();
-        return this.registrationCredits.includes(fingerprint);
+        this.registrationCredits = cachedData.registrationCredits;
       }
+      // Check if the fingerprint has registration credits
+      const hasCredit = this.registrationCredits.includes(fingerprint);
+
+      // Cache the result
+      this.registrationCreditsCache[fingerprint] = hasCredit;
+
+      return hasCredit;
     },
     async familyVerified(fingerprint: string) {
       if (!this.userData.address) {
@@ -249,6 +264,10 @@ export const useUserStore = defineStore('user', {
       }
       if (!this.familyRequired) {
         return true;
+      }
+
+      if (this.familyVerifiedCache[fingerprint] !== undefined) {
+        return this.familyVerifiedCache[fingerprint];
       }
 
       const relayCache = useRelayCache();
@@ -260,6 +279,7 @@ export const useUserStore = defineStore('user', {
             (this.families[fingerprint].length === 1 &&
               this.families[fingerprint][0] === fingerprint)
           ) {
+            this.familyVerifiedCache[fingerprint] = true;
             return true;
           }
 
@@ -273,6 +293,7 @@ export const useUserStore = defineStore('user', {
               familyFingerprints.includes(fp.fingerprint)
             );
           if (!claimingFamilyIncludesAllVerifiedRelays) {
+            this.familyVerifiedCache[fingerprint] = false;
             return false;
           }
 
@@ -282,12 +303,15 @@ export const useUserStore = defineStore('user', {
                 fingerprint
               )
             ) {
+              this.familyVerifiedCache[fingerprint] = false;
               return false;
             }
           }
+          this.familyVerifiedCache[fingerprint] = true;
 
           return true;
         } else {
+          this.familyVerifiedCache[fingerprint] = false;
           return true;
         }
       } else {

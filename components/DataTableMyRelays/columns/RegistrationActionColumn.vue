@@ -10,26 +10,11 @@ const props = defineProps<{
   row: RelayRow | undefined;
   isLocked: boolean;
   isLoading?: boolean;
+  hasRegistrationCredit: boolean | undefined;
+  registrationCreditsRequired: boolean;
+  familyVerified: boolean | undefined;
+  familyRequired: boolean;
 }>();
-
-const userStore = useUserStore();
-var hasRegistrationCredit: boolean | undefined;
-var registrationCreditsRequired: boolean = true;
-var familyRequired: boolean = true;
-var familyVerified: boolean | undefined;
-
-async function fetchRegistrationCredit() {
-  if (props?.row) {
-    hasRegistrationCredit = await userStore.hasRegistrationCredit(
-      props?.row?.fingerprint
-    );
-    familyVerified = await userStore.familyVerified(props?.row?.fingerprint);
-    registrationCreditsRequired = userStore.registrationCreditsRequired;
-    familyRequired = userStore.familyRequired;
-  }
-}
-
-fetchRegistrationCredit();
 </script>
 
 <template>
@@ -56,8 +41,8 @@ fetchRegistrationCredit();
         v-else-if="
           props.row.status === 'claimable' &&
           props.isLocked &&
-          hasRegistrationCredit &&
-          familyVerified
+          props.hasRegistrationCredit &&
+          props.familyVerified
         "
         size="xl"
         color="green"
@@ -72,8 +57,8 @@ fetchRegistrationCredit();
         v-else-if="
           props.row.status === 'claimable' &&
           props.isLocked &&
-          !hasRegistrationCredit &&
-          registrationCreditsRequired
+          !props.hasRegistrationCredit &&
+          props.registrationCreditsRequired
         "
         size="xl"
         color="green"
@@ -87,8 +72,8 @@ fetchRegistrationCredit();
         v-else-if="
           props.row.status === 'claimable' &&
           props.isLocked &&
-          !familyVerified &&
-          familyRequired
+          !props.familyVerified &&
+          props.familyRequired
         "
         size="xl"
         color="green"

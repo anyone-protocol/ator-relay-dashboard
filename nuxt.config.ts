@@ -53,7 +53,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
-      relayRegistryAddress: 'ezVJt64LxwHkgZ_bJhe4gbus_IITSFUps2A2HpPaY0Y',
+      relayRegistryAddress: 'XGkNTis1b5z0VzSLNyFwfjtZx-MypfqQ65JqLo9Wwww',
       facilitatorContract: '0x45F6b9757B36697EFd37e98883894e98025E58a6',
       sepoliaAtorTokenContract: '0x3F7D7e1161B4CbC172517a2957A13814f4a657A2',
       tokenContractMain: '0x0f7b3f5a8fed821c5eb60049538a548db2d479ce',
@@ -67,7 +67,7 @@ export default defineNuxtConfig({
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.1.0',
+      version: '1.1.1',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
