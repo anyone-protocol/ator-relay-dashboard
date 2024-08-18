@@ -17,6 +17,7 @@ interface RelayData {
       active: boolean;
       class: string;
     }[];
+    state: any;
     nicknames: { [key: string]: string };
     registrationCredits: string[];
   };
@@ -182,6 +183,7 @@ class RelayCache {
             claimable: key === 'claimable' ? newData : [],
             nicknames: {},
             registrationCredits: [],
+            state: {},
             [key]: newData,
           },
         };

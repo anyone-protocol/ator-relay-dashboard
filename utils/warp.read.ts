@@ -8,6 +8,7 @@ type FunctionName = 'verified' | 'claimable' | 'serials';
 type RelayData = {
   timestamp: number;
   data: {
+    state: any;
     verified: [
       {
         address: string;
@@ -233,6 +234,7 @@ export const getAllRelays = async (
     return {
       timestamp: Date.now(),
       data: {
+        state: result.cachedValue.state,
         verified: verifiedRelays as [
           {
             address: string;

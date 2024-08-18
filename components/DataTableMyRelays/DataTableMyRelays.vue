@@ -88,6 +88,29 @@ const ethAddressError = ref<string | null>(null);
 const fingerPrintRegister = ref<string>('');
 const fingerPrintRegisterError = ref<string | null>(null);
 
+const relayCredits = ref<Record<string, boolean | undefined>>({});
+const familyVerified = ref<Record<string, boolean>>({});
+const registrationCreditsRequired = ref<boolean>(true);
+const familyRequired = ref<boolean>(true);
+
+const fetchRegistrationCredit = async () => {
+  if (allRelays.value) {
+    for (const relay of filterUniqueRelays(allRelays.value)) {
+      relayCredits.value[relay.fingerprint] =
+        await userStore.hasRegistrationCredit(relay.fingerprint);
+      familyVerified.value[relay.fingerprint] = await userStore.familyVerified2(
+        relay.fingerprint
+      );
+    }
+  }
+
+  registrationCreditsRequired.value = userStore.registrationCreditsRequired;
+  familyRequired.value = userStore.familyRequired;
+};
+
+// Fetch the registration credits when the relays are loaded
+watch(allRelays, fetchRegistrationCredit);
+
 if ((allRelaysError as any).value?.cause?.message == 'rate limited') {
   toast.add({
     id: 'claimable-relays-error',
@@ -553,6 +576,10 @@ const handleUnlockClick = async (fingerprint: string) => {
             userStore.isHardwareRelay(row.fingerprint)
           "
           :is-loading="registratorStore.loading"
+          :has-registration-credit="relayCredits[row.fingerprint]"
+          :registration-credits-required="registrationCreditsRequired"
+          :family-verified="familyVerified[row.fingerprint]"
+          :family-required="familyRequired"
         />
       </template>
       <template #unlock-data="{ row }">
