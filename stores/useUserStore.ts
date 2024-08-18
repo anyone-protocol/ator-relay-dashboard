@@ -337,9 +337,8 @@ export const useUserStore = defineStore('user', {
       const cachedData = await relayCache.getRelayData();
       if (cachedData) {
         try {
-          RegistryHandle(cachedData.state, interaction).then((result: any) => {
-            return true;
-          });
+          const result = await RegistryHandle(cachedData.state, interaction);
+          return true;
         } catch (error: any) {
           switch (error.message) {
             case 'Subsequent relay claims require family to be set':

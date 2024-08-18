@@ -50,9 +50,6 @@ export class RelayRegistry {
       return null;
     }
 
-    console.log('EWAAAAA');
-    console.log(await auth.familyVerified2(fingerprint));
-
     if (!(await auth.familyVerified(fingerprint))) {
       this.logger.error('Family not verified.');
       toast.add({
