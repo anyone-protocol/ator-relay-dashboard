@@ -58,9 +58,9 @@ class NickNameCache {
       });
 
       if (fromCache) {
-        this.logger.info(`Cache hit for key: ${key}`, fromCache);
+        // this.logger.info(`Cache hit for key: ${key}`, fromCache);
       } else {
-        this.logger.info(`Cache miss for key: ${key}`);
+        // this.logger.info(`Cache miss for key: ${key}`);
       }
 
       if (fromCache && Date.now() - fromCache.timestamp < this.cacheDuration) {

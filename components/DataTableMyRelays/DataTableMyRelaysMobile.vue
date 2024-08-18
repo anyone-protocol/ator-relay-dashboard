@@ -100,7 +100,7 @@ const fetchRegistrationCredit = async () => {
     for (const relay of filterUniqueRelays(allRelays.value)) {
       relayCredits.value[relay.fingerprint] =
         await userStore.hasRegistrationCredit(relay.fingerprint);
-      familyVerified.value[relay.fingerprint] = await userStore.familyVerified(
+      familyVerified.value[relay.fingerprint] = await userStore.familyVerified2(
         relay.fingerprint
       );
     }

@@ -3,6 +3,7 @@ import { useAccount } from '@wagmi/vue';
 import { getBalance } from '@wagmi/core';
 import { type GetBalanceReturnType } from '@wagmi/core';
 import type { RelayMeta } from '@/types/relay';
+import { handle as RegistryHandle } from '@/contracts/relay-registry';
 
 import { useNickNameCache } from '~/composables/nicknameCache';
 
@@ -189,6 +190,10 @@ export const useUserStore = defineStore('user', {
         return;
       }
 
+      console.log(data);
+
+      await this.verifyFamily2(data.data.claimable[0].fingerprint);
+
       this.nickNames = data.data.nicknames;
       // refresh the relays
       this.verifiedRelays = data.data.verified.map((relay) => ({
@@ -319,6 +324,42 @@ export const useUserStore = defineStore('user', {
         await this.createRelayCache();
         return true;
       }
+    },
+    async familyVerified2(fingerprint: string): Promise<boolean> {
+      const input = {
+        function: 'claim',
+        fingerprint: fingerprint,
+      };
+
+      const interaction = {
+        input,
+        caller: this.userData.address,
+        interactionType: 'write',
+      };
+
+      const relayCache = useRelayCache();
+      const cachedData = await relayCache.getRelayData();
+      if (cachedData) {
+        try {
+          console.log(cachedData);
+          console.log(cachedData.state);
+          RegistryHandle(cachedData.state, interaction).then((result: any) => {
+            return true;
+          });
+        } catch (error: any) {
+          switch (error.message) {
+            case 'Subsequent relay claims require family to be set':
+              return false;
+            default:
+              return true;
+          }
+        }
+      } else {
+        await this.createRelayCache();
+        return true;
+      }
+
+      return false;
     },
     async clearCache() {
       const relayCache = useRelayCache();
