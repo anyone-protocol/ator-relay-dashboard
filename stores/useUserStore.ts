@@ -186,6 +186,7 @@ export const useUserStore = defineStore('user', {
       }
 
       const data = await getAllRelays(this.userData.address);
+
       if (!data) {
         return;
       }
