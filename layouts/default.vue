@@ -22,7 +22,7 @@ onMounted(() => {
 
         <div
           id="scrollArea"
-          class="h-[calc(100svh-62px)] sm:h-full snap-y snap-mandatory scroll-pt-4 overflow-y-auto scroll-smooth px-6 pb-16 [mask-image:linear-gradient(to_bottom,black_90%,transparent)] lg:grid lg:h-auto lg:grid-cols-8 lg:gap-6"
+          class="h-[calc(100svh-62px)] sm:h-full scroll-pt-4 overflow-y-auto scroll-smooth px-6 pb-16 [mask-image:linear-gradient(to_bottom,black_90%,transparent)] lg:grid lg:h-auto lg:grid-cols-8 lg:gap-6"
         >
           <section class="relative flex flex-col gap-6 lg:col-span-8 lg:mt-6">
             <slot></slot>
