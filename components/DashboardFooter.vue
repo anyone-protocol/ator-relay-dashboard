@@ -47,7 +47,7 @@ const getLink = (address: string, type: string) => {
     case 'evm':
       return `https://sepolia.etherscan.io/address/${address}`;
     case 'arweave':
-      return `https://sonar.warp.cc/#/app/contract/${address}`;
+      return `https://sonar.warp.cc/#/app/contract/${address}?network=mainnet`;
     default:
       return '#';
   }
@@ -56,7 +56,7 @@ const getLink = (address: string, type: string) => {
 const openCommitUrl = () => {
   const url = `https://github.com/ATOR-Development/ator-relay-dashboard/commit/${commitHash}`;
   window.open(url, '_blank');
-}
+};
 
 const isOpen = ref(false);
 </script>
@@ -123,7 +123,7 @@ const isOpen = ref(false);
         @click="openCommitUrl"
         class="text-sm text-gray-600 dark:text-gray-300 justify-self-center margin-auto hover:cursor-pointer"
       >
-        Version: {{ version }} | Commit: {{ commitHash.slice(0,7) }}...
+        Version: {{ version }} | Commit: {{ commitHash.slice(0, 7) }}...
       </div>
     </div>
   </footer>
