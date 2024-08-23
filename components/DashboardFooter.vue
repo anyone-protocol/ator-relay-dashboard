@@ -19,7 +19,7 @@ const contractLinks = [
     type: 'evm',
   },
   {
-    name: 'Sepolia ANYONe Token',
+    name: 'Sepolia ANYONE Token',
     address: config.public.sepoliaAtorTokenContract,
     type: 'evm',
   },
