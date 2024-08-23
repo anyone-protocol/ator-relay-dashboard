@@ -79,6 +79,7 @@ export class Distribution {
 
       this.setRefreshing(true);
       const auth = useUserStore();
+
       this.logger.info(
         auth.userData?.address
           ? `Distribution refreshing for ${auth.userData?.address}`

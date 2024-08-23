@@ -48,6 +48,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
       state.initialized = initialized;
     },
     avaliableAllocatedTokens: (state) => {
+      console.log('totalClaimedTokens', state.totalClaimedTokens);
+      console.log('claimableAtomicTokens', state.claimableAtomicTokens);
       if (state.claimableAtomicTokens) {
         if (state.totalClaimedTokens) {
           return BigNumber(state.claimableAtomicTokens)
