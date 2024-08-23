@@ -274,8 +274,6 @@ export class Facilitator {
       useFacilitatorStore().totalClaimedTokens = totalClaimedTokens.toString();
     }
 
-    useFacilitatorStore().totalClaimedTokens = totalClaimedTokens.toString();
-
     return BigNumber(totalClaimedTokens.toString());
   }
 
