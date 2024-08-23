@@ -45,8 +45,6 @@ initFacilitator();
 initRegistrator();
 initToken();
 
-// useMetricsStore().refresh();
-
 watch(
   () => userStore.userData.address,
   async (newAddress?: string) => {

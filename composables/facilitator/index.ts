@@ -142,6 +142,7 @@ export class Facilitator {
 
     this.setRefreshing(true);
     const auth = useUserStore();
+
     this.logger.info(
       auth.userData?.address
         ? `Refreshing Facilitator for ${auth.userData?.address}`
@@ -272,6 +273,8 @@ export class Facilitator {
     if (address === useUserStore().userData?.address) {
       useFacilitatorStore().totalClaimedTokens = totalClaimedTokens.toString();
     }
+
+    useFacilitatorStore().totalClaimedTokens = totalClaimedTokens.toString();
 
     return BigNumber(totalClaimedTokens.toString());
   }
