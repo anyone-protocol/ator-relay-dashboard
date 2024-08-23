@@ -181,7 +181,7 @@ import { formatEtherNoRound } from '@/utils/format';
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
 const registratorStore = useRegistratorStore();
-const { isConnected } = useAccount({ config } as any);
+const { isConnected, address } = useAccount({ config } as any);
 
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
@@ -197,6 +197,8 @@ const fetchInitialData = async (
   newAddress: string | undefined,
   forceRefresh = false
 ) => {
+  if (!isConnected || !newAddress || !address) return;
+
   try {
     if (!facilitatorStore?.initialized || forceRefresh) {
       claimedPending.value = true;
@@ -227,13 +229,9 @@ const fetchInitialData = async (
 };
 
 onMounted(async () => {
-  isLoading.value = true; // Set loading to true at the start
+  isLoading.value = true;
 
   try {
-    facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
-      userStore.userData.address
-    );
-
     initRelayRegistry();
     initFacilitator();
     initRegistrator();
@@ -244,7 +242,7 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error during onMounted execution', error);
   } finally {
-    isLoading.value = false; // Set loading to false when everything is done
+    isLoading.value = false;
   }
 });
 

@@ -233,6 +233,10 @@ export class Distribution {
     if (!this.contract) {
       throw new Error('Distribution Contract not initialized!');
     }
+    if (!address) {
+      console.log('Address is required');
+      return;
+    }
 
     try {
       const { result: claimable } = await this.contract.viewState<

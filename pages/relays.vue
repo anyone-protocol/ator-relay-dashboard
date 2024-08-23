@@ -151,12 +151,9 @@ watch(
   async (newAddress?: string) => {
     try {
       await Promise.all([
-        useDistribution().claimable(newAddress as string),
-        useDistribution().refresh(),
-        registrator?.getLokedRelaysTokens(
-          userStore.userData.address || '',
-          true
-        ),
+        newAddress && useDistribution().claimable(newAddress as string),
+        newAddress && useDistribution().refresh(),
+        newAddress && registrator?.getLokedRelaysTokens(newAddress, true),
         userStore.createRelayCache(),
       ]);
     } catch (error) {

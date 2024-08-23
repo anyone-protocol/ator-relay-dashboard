@@ -117,6 +117,10 @@ export class Registrator {
     if (!this.contract) {
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
+    if (!address) {
+      console.log('No address provided');
+      return {};
+    }
 
     const lokedRelaysReponse = (await this.contract.getRegistration(
       address

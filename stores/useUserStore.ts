@@ -185,10 +185,8 @@ export const useUserStore = defineStore('user', {
         return;
       }
 
-      // const data = await getAllRelays(this.userData.address);
-      const data = await getAllRelays(
-        '0x6D454e61876334ee2Ca473E3b4B66777C931886E'
-      );
+      const data = await getAllRelays(this.userData.address);
+
       if (!data) {
         return;
       }
