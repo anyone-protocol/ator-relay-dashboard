@@ -208,20 +208,15 @@ const fetchInitialData = async (
 
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
 
-    await userStore.getTokenBalance();
-
-    const facilitator = useFacilitator();
-    if (!facilitatorStore?.initialized || forceRefresh) {
-      await facilitator?.refresh();
-    }
-
-    const registrator = useRegistrator();
-    if (!registratorStore?.initialized || forceRefresh) {
-      await registrator?.refresh();
-    }
-
-    await useDistribution().claimable(newAddress as string);
-    await useDistribution().refresh();
+    await Promise.all([
+      userStore.getTokenBalance(),
+      (!facilitatorStore?.initialized || forceRefresh) &&
+        useFacilitator()?.refresh(),
+      (!registratorStore?.initialized || forceRefresh) &&
+        useRegistrator()?.refresh(),
+      useDistribution().claimable(newAddress as string),
+      useDistribution().refresh(),
+    ]);
   } catch (error) {
     console.error(error);
   } finally {
@@ -232,21 +227,25 @@ const fetchInitialData = async (
 };
 
 onMounted(async () => {
-  isLoading.value = false;
+  isLoading.value = true; // Set loading to true at the start
 
-  await userStore.getTokenBalance();
+  try {
+    facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
+      userStore.userData.address
+    );
 
-  facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
-    userStore.userData.address
-  );
+    initRelayRegistry();
+    initFacilitator();
+    initRegistrator();
+    initToken();
+    initDistribution();
 
-  initRelayRegistry();
-  initFacilitator();
-  initRegistrator();
-  initToken();
-  initDistribution();
-  fetchInitialData(userStore.userData.address);
-  isLoading.value = false;
+    await fetchInitialData(userStore.userData.address);
+  } catch (error) {
+    console.error('Error during onMounted execution', error);
+  } finally {
+    isLoading.value = false; // Set loading to false when everything is done
+  }
 });
 
 watch(

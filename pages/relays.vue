@@ -113,35 +113,55 @@ const registrator = useRegistrator();
 const registerModalOpen = ref(false);
 const currentTab = ref<RelayTabType>('all');
 const metricsStore = useMetricsStore();
+const isLoading = ref(true);
 
-onMounted(async () => {
-  initRelayRegistry();
-  initFacilitator();
-  initRegistrator();
-  initFacilitator();
-  initDistribution();
-  initToken();
+const initializeAndFetchData = async () => {
+  try {
+    isLoading.value = true;
 
-  await userStore.getVerifiedRelays();
-  await metricsStore.refreshRelayMetrics();
-});
+    initRelayRegistry();
+    initFacilitator();
+    initRegistrator();
+    initDistribution();
+    initToken();
 
-const loadLockedRelays = async () => {
-  await registratorStore.fetchLockedRelays(userStore.userData.address);
+    await Promise.all([
+      userStore.getVerifiedRelays(),
+      metricsStore.refreshRelayMetrics(),
+    ]);
+
+    // await loadLockedRelays();
+  } catch (error) {
+    console.error('Error during initialization:', error);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
+// const loadLockedRelays = async () => {
+//   await registratorStore?.fetchLockedRelays(userStore.userData.address);
+// };
+
 onMounted(() => {
-  loadLockedRelays();
+  initializeAndFetchData();
 });
 
 watch(
   () => userStore.userData.address,
   async (newAddress?: string) => {
-    await useDistribution().claimable(newAddress as string);
-    await useDistribution().refresh();
-    await registrator.getLokedRelaysTokens(userStore.userData.address, true);
-
-    await userStore.createRelayCache();
+    try {
+      await Promise.all([
+        useDistribution().claimable(newAddress as string),
+        useDistribution().refresh(),
+        registrator?.getLokedRelaysTokens(
+          userStore.userData.address || '',
+          true
+        ),
+        userStore.createRelayCache(),
+      ]);
+    } catch (error) {
+      console.error('Error during address change handling:', error);
+    }
   }
 );
 
