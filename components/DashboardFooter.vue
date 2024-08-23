@@ -31,7 +31,7 @@ const contractLinks = [
   {
     name: 'Metrics Deployer',
     address: config.public.metricsDeployer,
-    type: 'arweave',
+    type: 'viewblock',
   },
   {
     name: 'Registrator',
@@ -48,6 +48,8 @@ const getLink = (address: string, type: string) => {
       return `https://sepolia.etherscan.io/address/${address}`;
     case 'arweave':
       return `https://sonar.warp.cc/#/app/contract/${address}?network=mainnet`;
+    case 'viewblock':
+      return `https://viewblock.io/arweave/address/${address}?network=mainnet`;
     default:
       return '#';
   }
