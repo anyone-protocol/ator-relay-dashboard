@@ -19,12 +19,12 @@ const contractLinks = [
     type: 'evm',
   },
   {
-    name: 'Sepolia ANON Token',
+    name: 'Sepolia ANYONe Token',
     address: config.public.sepoliaAtorTokenContract,
     type: 'evm',
   },
   {
-    name: 'Distribution Contract',
+    name: 'Distribution',
     address: config.public.distributionContract,
     type: 'arweave',
   },
