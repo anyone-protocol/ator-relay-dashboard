@@ -3,7 +3,11 @@ import ArdbTransaction from 'ardb/lib/models/transaction';
 
 import Logger from '@/utils/logger';
 import { parseTimestampTag } from '@/utils/transactions';
-import { useArdb } from '@/composables/ardb';
+import {
+  useArdb,
+  getLatestBlockHeight,
+  calculateBlockHeightOneMonthAgo,
+} from '@/composables/ardb';
 import { useTxCache } from '@/composables/txCache';
 
 export interface ValidationStats {
@@ -66,6 +70,8 @@ export interface MetricsStoreState {
     transactionIds: string[];
   };
   relayMetricsPending: boolean;
+  latestHeight: number | null;
+  oneMonthAgoHeight: number | null;
 }
 
 const logger = new Logger('MetricsStore');
@@ -85,6 +91,8 @@ export const useMetricsStore = defineStore('metrics', {
         transactionIds: [],
       },
       relayMetricsPending: true,
+      latestHeight: null,
+      oneMonthAgoHeight: null,
     };
   },
   getters: {},
@@ -103,18 +111,27 @@ export const useMetricsStore = defineStore('metrics', {
 
       logger.info('Metrics start refreshing');
       logger.time();
-      await this.refreshValidationStats();
-      await this.refreshRelayMetrics();
+      this.refreshValidationStats();
+      this.refreshRelayMetrics();
       logger.timeEnd();
       logger.log('Metrics finished refreshing');
       this._refresh.last = Date.now();
-
       this.relayMetricsPending = false;
     },
 
     async refreshRelayMetrics(limit: number = 5) {
       const ardb = useArdb();
       const runtimeConfig = useRuntimeConfig();
+      if (!this.latestHeight) {
+        this.latestHeight = await getLatestBlockHeight();
+      }
+      if (!this.oneMonthAgoHeight) {
+        this.oneMonthAgoHeight = await calculateBlockHeightOneMonthAgo(
+          this.latestHeight
+        );
+      }
+      console.log('this.latestHeight', this.latestHeight);
+      console.log('this.oneMonthAgoHeight', this.oneMonthAgoHeight);
 
       const txCache = useTxCache();
 
@@ -127,6 +144,8 @@ export const useMetricsStore = defineStore('metrics', {
             { name: 'Entity-Type', values: 'relay/metrics' },
           ])
           .limit(limit)
+          .min(this.oneMonthAgoHeight)
+          .max(this.latestHeight)
           .sort('HEIGHT_DESC')
           .find()) as ArdbTransaction[];
 
@@ -142,6 +161,7 @@ export const useMetricsStore = defineStore('metrics', {
           if (latestRelayMetrics) {
             logger.info('Got latest relay/metrics', latestRelayMetrics.length);
             this.relays.latest = latestRelayMetrics;
+            console.log('latestRelayMetrics', latestRelayMetrics);
 
             const userStore = useUserStore();
             for (var metric in latestRelayMetrics) {
@@ -179,7 +199,14 @@ export const useMetricsStore = defineStore('metrics', {
       const runtimeConfig = useRuntimeConfig();
 
       const txCache = useTxCache();
-
+      if (!this.latestHeight) {
+        this.latestHeight = await getLatestBlockHeight();
+      }
+      if (!this.oneMonthAgoHeight) {
+        this.oneMonthAgoHeight = await calculateBlockHeightOneMonthAgo(
+          this.latestHeight
+        );
+      }
       try {
         const txs = (await ardb
           .search('transactions')
@@ -189,6 +216,8 @@ export const useMetricsStore = defineStore('metrics', {
             { name: 'Entity-Type', values: 'validation/stats' },
           ])
           .limit(limit)
+          .min(this.oneMonthAgoHeight)
+          .max(this.latestHeight)
           .sort('HEIGHT_DESC')
           .find()) as ArdbTransaction[];
 

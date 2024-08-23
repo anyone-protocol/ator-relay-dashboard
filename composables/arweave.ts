@@ -4,7 +4,7 @@ import Arweave from 'arweave';
 const arweaveConfig =
   window.location.hostname === 'localhost'
     ? { protocol: 'https', host: 'arweave.net', port: 443 }
-    : {};
+    : { protocol: 'https', host: 'arweave.net', port: 443 };
 
 const arweave = Arweave.init(arweaveConfig);
 
