@@ -45,8 +45,6 @@ initFacilitator();
 initRegistrator();
 initToken();
 
-// useMetricsStore().refresh();
-
 watch(
   () => userStore.userData.address,
   async (newAddress?: string) => {
@@ -191,7 +189,7 @@ const handleClaimAllRewards = async () => {
 
           <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Claimed rewards</h3>
+              <h3>Redeemed rewards</h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{ formatEther(facilitatorStore.totalClaimedTokens || '0') }}
@@ -201,7 +199,7 @@ const handleClaimAllRewards = async () => {
               </div>
             </div>
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Claimable rewards</h3>
+              <h3>Redeemable rewards</h3>
               <div class="inline-flex items-baseline gap-2">
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{

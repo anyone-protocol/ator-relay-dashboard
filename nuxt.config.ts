@@ -53,13 +53,13 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
-      relayRegistryAddress: '0j02vTVKQv9CERDmK66d4ELF1TvShP70gdlGK1XDsiQ',
+      relayRegistryAddress: 'XGkNTis1b5z0VzSLNyFwfjtZx-MypfqQ65JqLo9Wwww',
       facilitatorContract: '0x45F6b9757B36697EFd37e98883894e98025E58a6',
       sepoliaAtorTokenContract: '0x3F7D7e1161B4CbC172517a2957A13814f4a657A2',
       tokenContractMain: '0x0f7b3f5a8fed821c5eb60049538a548db2d479ce',
-      distributionContract: 'YdrKP-YJFVUBP7ZViDoiE4r5kBz4VkIQsXv1tN6Z0mI',
+      distributionContract: 'VIOG7nxszQveNwhAwQAn-e9wfBmDDxW1_Q3sIaWFPRQ',
       metricsDeployer: 'x0cuVieEDTFjtxI5m5i22u2IMr-WpBiTS-Vir8U3dbw',
-      registratorContract: '0xc66d75C0dF0c93c9E8CD22EcE10Db2B556628872',
+      registratorContract: '0xc148c615b87e63Dcc90e55d53B44172503cCe889',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
       githubNewIssueUrl:
         'https://github.com/ATOR-Development/ator-dashboard/issues/new',
@@ -67,7 +67,7 @@ export default defineNuxtConfig({
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.1.1',
+      version: '1.1.2',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],

@@ -79,6 +79,7 @@ export class Distribution {
 
       this.setRefreshing(true);
       const auth = useUserStore();
+
       this.logger.info(
         auth.userData?.address
           ? `Distribution refreshing for ${auth.userData?.address}`
@@ -231,6 +232,10 @@ export class Distribution {
   async claimable(address: string, humanize = false) {
     if (!this.contract) {
       throw new Error('Distribution Contract not initialized!');
+    }
+    if (!address) {
+      console.log('Address is required');
+      return;
     }
 
     try {

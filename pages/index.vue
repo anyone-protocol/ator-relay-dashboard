@@ -115,7 +115,7 @@
 
           <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Claimed rewards</h3>
+              <h3>Redeemed rewards</h3>
               <template v-if="claimedPending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
@@ -132,7 +132,7 @@
               </template>
             </div>
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Claimable rewards</h3>
+              <h3>Redeemable rewards</h3>
               <template v-if="claimablePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
@@ -181,7 +181,7 @@ import { formatEtherNoRound } from '@/utils/format';
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
 const registratorStore = useRegistratorStore();
-const { isConnected } = useAccount({ config } as any);
+const { isConnected, address } = useAccount({ config } as any);
 
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
@@ -197,6 +197,8 @@ const fetchInitialData = async (
   newAddress: string | undefined,
   forceRefresh = false
 ) => {
+  if (!isConnected || !newAddress || !address) return;
+
   try {
     if (!facilitatorStore?.initialized || forceRefresh) {
       claimedPending.value = true;
@@ -208,20 +210,15 @@ const fetchInitialData = async (
 
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
 
-    await userStore.getTokenBalance();
-
-    const facilitator = useFacilitator();
-    if (!facilitatorStore?.initialized || forceRefresh) {
-      await facilitator?.refresh();
-    }
-
-    const registrator = useRegistrator();
-    if (!registratorStore?.initialized || forceRefresh) {
-      await registrator?.refresh();
-    }
-
-    await useDistribution().claimable(newAddress as string);
-    await useDistribution().refresh();
+    await Promise.all([
+      userStore.getTokenBalance(),
+      (!facilitatorStore?.initialized || forceRefresh) &&
+        useFacilitator()?.refresh(),
+      (!registratorStore?.initialized || forceRefresh) &&
+        useRegistrator()?.refresh(),
+      useDistribution().claimable(newAddress as string),
+      useDistribution().refresh(),
+    ]);
   } catch (error) {
     console.error(error);
   } finally {
@@ -232,21 +229,21 @@ const fetchInitialData = async (
 };
 
 onMounted(async () => {
-  isLoading.value = false;
+  isLoading.value = true;
 
-  await userStore.getTokenBalance();
+  try {
+    initRelayRegistry();
+    initFacilitator();
+    initRegistrator();
+    initToken();
+    initDistribution();
 
-  facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
-    userStore.userData.address
-  );
-
-  initRelayRegistry();
-  initFacilitator();
-  initRegistrator();
-  initToken();
-  initDistribution();
-  fetchInitialData(userStore.userData.address);
-  isLoading.value = false;
+    await fetchInitialData(userStore.userData.address);
+  } catch (error) {
+    console.error('Error during onMounted execution', error);
+  } finally {
+    isLoading.value = false;
+  }
 });
 
 watch(

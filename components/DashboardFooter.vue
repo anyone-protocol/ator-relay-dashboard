@@ -19,19 +19,19 @@ const contractLinks = [
     type: 'evm',
   },
   {
-    name: 'Sepolia ANON Token',
+    name: 'Sepolia ANYONE Token',
     address: config.public.sepoliaAtorTokenContract,
     type: 'evm',
   },
   {
-    name: 'Distribution Contract',
+    name: 'Distribution',
     address: config.public.distributionContract,
     type: 'arweave',
   },
   {
     name: 'Metrics Deployer',
     address: config.public.metricsDeployer,
-    type: 'arweave',
+    type: 'viewblock',
   },
   {
     name: 'Registrator',
@@ -48,6 +48,8 @@ const getLink = (address: string, type: string) => {
       return `https://sepolia.etherscan.io/address/${address}`;
     case 'arweave':
       return `https://sonar.warp.cc/#/app/contract/${address}?network=mainnet`;
+    case 'viewblock':
+      return `https://viewblock.io/arweave/address/${address}?network=mainnet`;
     default:
       return '#';
   }

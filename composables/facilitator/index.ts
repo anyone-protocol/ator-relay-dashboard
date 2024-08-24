@@ -142,6 +142,7 @@ export class Facilitator {
 
     this.setRefreshing(true);
     const auth = useUserStore();
+
     this.logger.info(
       auth.userData?.address
         ? `Refreshing Facilitator for ${auth.userData?.address}`
