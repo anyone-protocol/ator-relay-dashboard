@@ -58,7 +58,6 @@ export class TxCache {
       if (fromCache) {
         return fromCache;
       }
-
       const fetched = await $fetch<Data>(`${gateway}/${txId}`);
       await this.saveTransactionData(txId, fetched);
 

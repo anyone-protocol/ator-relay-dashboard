@@ -437,7 +437,7 @@ const handleUnlockClick = async (fingerprint: string) => {
     >
       <div class="flex justify-between items-center">
         <div class="font-semibold">Nickname</div>
-        <div>{{ userStore?.nickNames?.[row.fingerprint] || '-' }}</div>
+        <div>{{ userStore?.relaysMeta?.[row.fingerprint]?.nickname || '-' }}</div>
       </div>
       <div class="flex justify-between items-center mt-2">
         <div class="font-semibold">Running</div>
