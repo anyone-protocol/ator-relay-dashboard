@@ -465,7 +465,7 @@ const handleUnlockClick = async (fingerprint: string) => {
         <span class="monospace">{{ row.fingerprint }}</span>
       </template>
       <template #nickname-data="{ row }">
-        {{ userStore?.nickNames?.[row.fingerprint] || '-' }}
+        {{ userStore?.relaysMeta?.[row.fingerprint]?.nickname || '-' }}
       </template>
       <template #previousDistribution-data="{ row }">
         {{ facilitatorStore?.distributionPerRelay?.[row.fingerprint] || '-' }}
