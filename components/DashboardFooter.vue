@@ -49,7 +49,7 @@ const getLink = (address: string, type: string) => {
     case 'arweave':
       return `https://sonar.warp.cc/#/app/contract/${address}?network=mainnet`;
     case 'viewblock':
-      return `https://viewblock.io/arweave/address/${address}?network=mainnet`;
+      return `https://viewblock.io/arweave/address/${address}`;
     default:
       return '#';
   }
