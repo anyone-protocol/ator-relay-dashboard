@@ -437,7 +437,9 @@ const handleUnlockClick = async (fingerprint: string) => {
     >
       <div class="flex justify-between items-center">
         <div class="font-semibold">Nickname</div>
-        <div>{{ userStore?.relaysMeta?.[row.fingerprint]?.nickname || '-' }}</div>
+        <div>
+          {{ userStore?.relaysMeta?.[row.fingerprint]?.nickname || '-' }}
+        </div>
       </div>
       <div class="flex justify-between items-center mt-2">
         <div class="font-semibold">Running</div>
@@ -501,7 +503,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           <Tooltip
             placement="top"
             arrow
-            text="Shows the current lock status and amount of locked tokens needed for Registration."
+            text="Shows the current lock status of the Registration."
           >
             <Icon name="heroicons:exclamation-circle" class="h-4" />
           </Tooltip>

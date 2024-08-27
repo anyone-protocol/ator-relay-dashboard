@@ -528,7 +528,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           <Tooltip
             placement="top"
             arrow
-            text="Shows the current lock status and amount of locked tokens needed for Registration."
+            text="Shows the current lock status of the Registration."
           >
             <Icon name="heroicons:exclamation-circle" class="h-4" />
           </Tooltip>
@@ -560,10 +560,10 @@ const handleUnlockClick = async (fingerprint: string) => {
                 <span class="text-gray-800 dark:text-white">Claimed:</span> This
                 item has already been claimed. No further action is needed.
               </div>
-              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
+              <!-- <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
                 <span class="text-gray-800 dark:text-white">Locked:</span> Your
                 lock tx is awaiting Arweave confirmation.
-              </div>
+              </div> -->
             </template>
             <template #trigger>
               <div><Icon name="heroicons:exclamation-circle" /></div>
