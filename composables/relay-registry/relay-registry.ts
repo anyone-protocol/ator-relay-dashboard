@@ -68,12 +68,9 @@ export class RelayRegistry {
       return null;
     }
 
-    return (
-      this.contract
-        /* @ts-expect-error warp types */
-        .connect(warpSigner)
-        .writeInteraction<Claim>({ function: 'claim', fingerprint })
-    );
+    return this.contract
+      .connect(warpSigner)
+      .writeInteraction<Claim>({ function: 'claim', fingerprint });
   }
 
   async renounce(
@@ -92,12 +89,9 @@ export class RelayRegistry {
       return null;
     }
 
-    return (
-      this.contract
-        /* @ts-expect-error warp types */
-        .connect(warpSigner)
-        .writeInteraction<Renounce>({ function: 'renounce', fingerprint })
-    );
+    return this.contract
+      .connect(warpSigner)
+      .writeInteraction<Renounce>({ function: 'renounce', fingerprint });
   }
 }
 

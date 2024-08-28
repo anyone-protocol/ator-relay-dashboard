@@ -17,12 +17,6 @@ export type SupportIssue = {
   phase: string;
 };
 
-export type EncryptedPayload = {
-  encrypted: string;
-  nonce: string;
-  publicKey: string;
-};
-
 interface EventlogStoreState {
   logs: LogMessage[];
   filters: {

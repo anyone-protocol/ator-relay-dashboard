@@ -30,7 +30,11 @@
 
       <UContainer class="pt-0">
         <div class="text-center mb-4">
-
+          <UCheckbox
+            v-model="includeEncryptedLogs"
+            name="includeEncryptedLogs"
+            label="Include encrypted logs?"
+          />
         </div>
         <div class="flex justify-between">
           <UButton variant="outline" size="sm" color="red" @click="onCancelClicked">
@@ -62,12 +66,9 @@ const logger = new Logger('ReportIssueDialog.vue');
 
 const title = ref<string>('');
 const titleError = ref<string | null>(null);
+const includeEncryptedLogs = ref<boolean>(true)
 const desc = ref<string>('');
-const payload = ref<EncryptedPayload>();
 const { isReportIssueOpen } = storeToRefs(eventlog);
-
-const pastedLogs = ref<string>('');
-const privateKey = ref<string>('');
 
 const rules = {
   required: (value: string) => !!value || 'Required',
@@ -75,10 +76,8 @@ const rules = {
 
 watch(isReportIssueOpen, (value) => {
   if (!value) {
-    payload.value = undefined;
     titleError.value = null;
-    pastedLogs.value = '';
-    privateKey.value = '';
+    includeEncryptedLogs.value = true
   }
 });
 
@@ -103,14 +102,32 @@ const onReportIssueClicked = debounce(async () => {
 
   const description = desc.value || '<Enter description here>';
 
-  // TODO -> upload encrypted message to AO process
-  const messageId = 'TODO'//new EncryptedMessages()
-
   try {
     const baseBody = `**Description**\n${description}`;
     let encryptedBody = '';
 
-    if (payload.value) {
+    if (includeEncryptedLogs.value) {
+      const signer = await useWarpSigner()
+      if (!signer) {
+        // TODO -> alert user they don't have a wallet connected
+        return
+      }
+
+      const encryptedMessages = new EncryptedMessages(
+        config.public.encryptedMessagesProcessId,
+        signer
+      )
+      const supportIssue: SupportIssue = {
+        address: auth.userData?.address || 'anonymous',
+        logs: eventlog.logs,
+        host: window.location.host,
+        path: route.path,
+        phase: config.public.phase || 'unknown',
+      }
+      const message = JSON.stringify(supportIssue)
+      const {
+        messageId
+      } = await encryptedMessages.sendEncryptedMessage(message)
       encryptedBody = `\n\n**Logs**\nMessage ID: ${messageId}`;
     }
 
