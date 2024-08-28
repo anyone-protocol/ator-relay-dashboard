@@ -1,5 +1,6 @@
 import Irys from '@irys/sdk'
 import { ANT, ArweaveSigner } from '@ar.io/sdk'
+import { copyFileSync } from 'fs'
 
 const processId = '9UpvN6H7sMo0vkuQeou3Ra0pZguWavtpt_8lfqPQlI8'
 const DEPLOY_FOLDER = './.output/public'
@@ -21,6 +22,10 @@ if (process.env.PHASE === 'stage') {
 }
 
 async function deploy() {
+  // Hack: copy index.html to a file named "*" so it gets added to manifest as
+  //       a wildcard route
+  copyFileSync(DEPLOY_FOLDER + '/index.html', DEPLOY_FOLDER + '*')
+
   const buildArtifact = await irys.uploadFolder(DEPLOY_FOLDER, {
     indexFile: 'index.html'
   })
