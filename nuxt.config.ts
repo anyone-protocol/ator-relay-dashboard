@@ -60,6 +60,7 @@ export default defineNuxtConfig({
       distributionContract: 'VIOG7nxszQveNwhAwQAn-e9wfBmDDxW1_Q3sIaWFPRQ',
       metricsDeployer: 'x0cuVieEDTFjtxI5m5i22u2IMr-WpBiTS-Vir8U3dbw',
       registratorContract: '0xc148c615b87e63Dcc90e55d53B44172503cCe889',
+      distributionDeployer: 'G5tXjZS4SaMJNwOENZYgymvc6Zxp2Wws4Qf8wB0b',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
       githubNewIssueUrl:
         'https://github.com/ATOR-Development/ator-dashboard/issues/new',
