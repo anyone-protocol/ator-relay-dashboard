@@ -224,7 +224,6 @@ const handleClaimAllRewards = async () => {
     </Card>
   </DashboardMobileSection>
   <ReportIssueDialog />
-  <SupportIssueDialog />
 </template>
 
 <style scoped lang="scss">

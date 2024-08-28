@@ -32,7 +32,6 @@ interface EventlogStoreState {
     debug: boolean;
   };
   isReportIssueOpen: boolean;
-  isSupportIssueOpen: boolean;
 }
 
 function replacer(key: string, value: any) {
@@ -50,7 +49,6 @@ export const useEventlogStore = defineStore('eventlog', {
         debug: false,
       },
       isReportIssueOpen: false,
-      isSupportIssueOpen: false,
     };
   },
   getters: {

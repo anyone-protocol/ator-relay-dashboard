@@ -52,6 +52,7 @@ export default defineNuxtConfig({
   // See: https://nuxt.com/docs/guide/going-further/runtime-config
   runtimeConfig: {
     public: {
+      encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
       relayRegistryAddress: 'XGkNTis1b5z0VzSLNyFwfjtZx-MypfqQ65JqLo9Wwww',
       facilitatorContract: '0x45F6b9757B36697EFd37e98883894e98025E58a6',
