@@ -29,7 +29,7 @@ job "deploy-relay-dashboard-stage" {
             NUXT_PUBLIC_DISTRIBUTION_CONTRACT="[[ consulKey "smart-contracts/stage/distribution-address" ]]"
             NUXT_PUBLIC_FACILITATOR_CONTRACT="[[ consulKey "facilitator/sepolia/stage/address" ]]"
             NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/sepolia/stage/address" ]]"
-            NUXT_PUBLIC_WARP_GATEWAY = "https://warp-dre-node-stage.dmz.ator.dev"
+            NUXT_PUBLIC_WARP_GATEWAY = "https://dre-stage.ec.anyone.tech"
             NUXT_PUBLIC_REGISTRATOR_CONTRACT="[[ consulKey "registrator/sepolia/stage/address" ]]"
             {{with secret "kv/dashboard/stage"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
