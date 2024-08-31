@@ -457,26 +457,7 @@ const handleUnlockClick = async (fingerprint: string) => {
         <div class="font-semibold">Relay Fingerprint</div>
         <FingerprintDisplay :fingerprint="row.fingerprint" />
       </div>
-      <div class="flex justify-between items-center mt-2">
-        <div class="font-semibold">Consensus Weight</div>
-        <div>
-          <span
-            v-if="
-              userStore?.relaysMeta?.[row.fingerprint]?.consensus_weight !==
-              undefined
-            "
-          >
-            {{ userStore?.relaysMeta?.[row.fingerprint]?.consensus_weight }}
-          </span>
-          <span v-else class="text-sm flex items-center gap-2">
-            <Icon
-              name="heroicons:exclamation-circle"
-              class="h-4 w-4 text-red-500"
-            />
-            Unable to fetch
-          </span>
-        </div>
-      </div>
+
       <div class="flex justify-between items-center mt-2">
         <div class="font-semibold">Observed Bandwidth</div>
         <div>
@@ -494,6 +475,16 @@ const handleUnlockClick = async (fingerprint: string) => {
               class="h-4 w-4 text-red-500"
             />
             Unable to fetch
+          </span>
+        </div>
+      </div>
+      <div class="flex justify-between items-center mt-2">
+        <div class="font-semibold">Previous Distribution</div>
+        <div>
+          <span>
+            {{
+              facilitatorStore?.distributionPerRelay?.[row.fingerprint] || '-'
+            }}
           </span>
         </div>
       </div>
