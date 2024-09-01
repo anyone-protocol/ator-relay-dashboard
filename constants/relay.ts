@@ -20,10 +20,15 @@ const defaultColumns: {
     key: 'observedBandwidth',
     label: 'Observed Bandwith',
   },
+  // {
+  //   key: 'consensusWeight',
+  //   label: 'Consensus Weight',
+  // },
   {
     key: 'previousDistribution',
     label: 'Previous Distribution',
   },
+
   {
     key: 'lockStatus',
     label: 'Lock Status',

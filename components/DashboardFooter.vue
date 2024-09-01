@@ -38,6 +38,11 @@ const contractLinks = [
     address: config.public.registratorContract,
     type: 'evm',
   },
+  {
+    name: 'Distribution Deployer',
+    address: config.public.distributionDeployer,
+    type: 'viewblock',
+  },
 ];
 
 const getLink = (address: string, type: string) => {
