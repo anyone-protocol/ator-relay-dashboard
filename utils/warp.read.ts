@@ -9,6 +9,7 @@ type RelayData = {
   timestamp: number;
   data: {
     state: any;
+    verifiedHardware: { [key: string]: Number };
     verified: [
       {
         address: string;
@@ -235,6 +236,7 @@ export const getAllRelays = async (
       timestamp: Date.now(),
       data: {
         state: result.cachedValue.state,
+        verifiedHardware: result.cachedValue.state.verifiedHardware,
         verified: verifiedRelays as [
           {
             address: string;

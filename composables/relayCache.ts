@@ -3,6 +3,7 @@ import Logger from '@/utils/logger';
 interface RelayData {
   timestamp: number;
   data: {
+    verifiedHardware: { [key: string]: Number };
     verified: {
       address: string;
       fingerprint: string;

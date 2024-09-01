@@ -252,8 +252,11 @@ export const useUserStore = defineStore('user', {
         await this.createRelayCache();
         this.registrationCredits = cachedData.registrationCredits;
       }
+
       // Check if the fingerprint has registration credits
-      const hasCredit = this.registrationCredits.includes(fingerprint);
+      const hasCredit =
+        this.registrationCredits.includes(fingerprint) ||
+        cachedData.verifiedHardware[fingerprint] !== undefined;
 
       // Cache the result
       this.registrationCreditsCache[fingerprint] = hasCredit;
