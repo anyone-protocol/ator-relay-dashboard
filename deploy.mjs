@@ -2,7 +2,12 @@ import Irys from '@irys/sdk'
 import { ANT, ArweaveSigner } from '@ar.io/sdk'
 import { copyFileSync } from 'fs'
 
-const processId = '9UpvN6H7sMo0vkuQeou3Ra0pZguWavtpt_8lfqPQlI8'
+// ator-dashboard process id
+// const processId = '9UpvN6H7sMo0vkuQeou3Ra0pZguWavtpt_8lfqPQlI8'
+
+// anyone process id
+const processId = 'lZKDfIa5JiWQ8ojjXiRSey_81Bftbib4tLpIJh4UO0g' 
+
 const DEPLOY_FOLDER = './.output/public'
 const IRYS_NODE = 'https://node2.irys.xyz/'
 const jwk = JSON.parse(
