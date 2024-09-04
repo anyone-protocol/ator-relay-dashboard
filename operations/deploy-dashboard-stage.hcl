@@ -11,7 +11,7 @@ job "deploy-relay-dashboard-stage" {
         driver = "docker"
 
         config {
-            image = "ghcr.io/ator-development/ator-relay-dashboard:[[.deploy]]"
+            image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.deploy]]"
             force_pull = true
             entrypoint = ["pnpm"]
             command = "run"
