@@ -6,7 +6,7 @@ import { parseTimestampTag } from '@/utils/transactions';
 import {
   useArdb,
   getLatestBlockHeight,
-  calculateBlockHeightOneMonthAgo,
+  calculateMinimumQueryBlockHeight,
 } from '@/composables/ardb';
 import { useTxCache } from '@/composables/txCache';
 
@@ -71,7 +71,7 @@ export interface MetricsStoreState {
   };
   relayMetricsPending: boolean;
   latestHeight: number | null;
-  oneMonthAgoHeight: number | null;
+  minimumHeight: number | null;
 }
 
 const logger = new Logger('MetricsStore');
@@ -92,7 +92,7 @@ export const useMetricsStore = defineStore('metrics', {
       },
       relayMetricsPending: true,
       latestHeight: null,
-      oneMonthAgoHeight: null,
+      minimumHeight: null,
     };
   },
   getters: {},
@@ -125,13 +125,13 @@ export const useMetricsStore = defineStore('metrics', {
       if (!this.latestHeight) {
         this.latestHeight = await getLatestBlockHeight();
       }
-      if (!this.oneMonthAgoHeight) {
-        this.oneMonthAgoHeight = await calculateBlockHeightOneMonthAgo(
+      if (!this.minimumHeight) {
+        this.minimumHeight = await calculateMinimumQueryBlockHeight(
           this.latestHeight
         );
       }
       console.log('this.latestHeight', this.latestHeight);
-      console.log('this.oneMonthAgoHeight', this.oneMonthAgoHeight);
+      console.log('this.minimumHeight', this.minimumHeight);
 
       const txCache = useTxCache();
 
@@ -140,12 +140,12 @@ export const useMetricsStore = defineStore('metrics', {
           .search('transactions')
           .from(runtimeConfig.public.metricsDeployer as string)
           .tags([
-            { name: 'Protocol', values: 'ator' },
+            // { name: 'Protocol', values: 'ator' },
             { name: 'Entity-Type', values: 'relay/metrics' },
           ])
           .limit(limit)
-          .min(this.oneMonthAgoHeight)
-          .max(this.latestHeight)
+          .min(this.minimumHeight)
+          // .max(this.latestHeight)
           .sort('HEIGHT_DESC')
           .find()) as ArdbTransaction[];
 
@@ -202,8 +202,8 @@ export const useMetricsStore = defineStore('metrics', {
       if (!this.latestHeight) {
         this.latestHeight = await getLatestBlockHeight();
       }
-      if (!this.oneMonthAgoHeight) {
-        this.oneMonthAgoHeight = await calculateBlockHeightOneMonthAgo(
+      if (!this.minimumHeight) {
+        this.minimumHeight = await calculateMinimumQueryBlockHeight(
           this.latestHeight
         );
       }
@@ -212,12 +212,12 @@ export const useMetricsStore = defineStore('metrics', {
           .search('transactions')
           .from(runtimeConfig.public.metricsDeployer as string)
           .tags([
-            { name: 'Protocol', values: 'ator' },
+            // { name: 'Protocol', values: 'ator' },
             { name: 'Entity-Type', values: 'validation/stats' },
           ])
           .limit(limit)
-          .min(this.oneMonthAgoHeight)
-          .max(this.latestHeight)
+          .min(this.minimumHeight)
+          // .max(this.latestHeight)
           .sort('HEIGHT_DESC')
           .find()) as ArdbTransaction[];
 
