@@ -56,4 +56,4 @@ async function deploy() {
   )
 }
 
-deploy().then().catch(err => console.error(err))
+deploy().then().catch(err => { console.error(err); process.exit(1); })
