@@ -61,7 +61,7 @@ const getLink = (address: string, type: string) => {
 };
 
 const openCommitUrl = () => {
-  const url = `https://github.com/ATOR-Development/ator-relay-dashboard/commit/${commitHash}`;
+  const url = `https://github.com/anyone-protocol/ator-relay-dashboard/commit/${commitHash}`;
   window.open(url, '_blank');
 };
 

@@ -11,7 +11,7 @@ job "deploy-relay-dashboard-live" {
         driver = "docker"
 
         config {
-            image = "ghcr.io/ator-development/ator-relay-dashboard:[[.deploy]]"
+            image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.deploy]]"
             entrypoint = ["pnpm"]
             command = "run"
             args = ["deploy"]
@@ -28,7 +28,7 @@ job "deploy-relay-dashboard-live" {
             NUXT_PUBLIC_DISTRIBUTION_CONTRACT="[[ consulKey "smart-contracts/live/distribution-address" ]]"
             NUXT_PUBLIC_FACILITATOR_CONTRACT="[[ consulKey "facilitator/sepolia/live/address" ]]"
             NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/sepolia/live/address" ]]"
-            NUXT_PUBLIC_WARP_GATEWAY = "https://warp-dre-node-live.dmz.ator.dev"
+            NUXT_PUBLIC_WARP_GATEWAY = "https://dre.ec.anyone.tech"
             NUXT_PUBLIC_REGISTRATOR_CONTRACT="[[ consulKey "registrator/sepolia/live/address" ]]"
             {{with secret "kv/dashboard/live"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"

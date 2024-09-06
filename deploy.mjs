@@ -1,7 +1,13 @@
 import Irys from '@irys/sdk'
 import { ANT, ArweaveSigner } from '@ar.io/sdk'
+import { copyFileSync } from 'fs'
 
-const processId = '9UpvN6H7sMo0vkuQeou3Ra0pZguWavtpt_8lfqPQlI8'
+// ator-dashboard process id
+// const processId = '9UpvN6H7sMo0vkuQeou3Ra0pZguWavtpt_8lfqPQlI8'
+
+// anyone process id
+const processId = 'lZKDfIa5JiWQ8ojjXiRSey_81Bftbib4tLpIJh4UO0g' 
+
 const DEPLOY_FOLDER = './.output/public'
 const IRYS_NODE = 'https://node2.irys.xyz/'
 const jwk = JSON.parse(
@@ -21,6 +27,10 @@ if (process.env.PHASE === 'stage') {
 }
 
 async function deploy() {
+  // Hack: copy index.html to a file named "*" so it gets added to manifest as
+  //       a wildcard route
+  copyFileSync(DEPLOY_FOLDER + '/index.html', DEPLOY_FOLDER + '/*')
+
   const buildArtifact = await irys.uploadFolder(DEPLOY_FOLDER, {
     indexFile: 'index.html'
   })
@@ -46,4 +56,4 @@ async function deploy() {
   )
 }
 
-deploy().then().catch(err => console.error(err))
+deploy().then().catch(err => { console.error(err); process.exit(1); })

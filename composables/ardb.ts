@@ -11,9 +11,10 @@ export async function getLatestBlockHeight(): Promise<number> {
   return height;
 }
 
-export async function calculateBlockHeightOneMonthAgo(
+export async function calculateMinimumQueryBlockHeight(
   latestHeight: number
 ): Promise<number> {
   const blocksPerMonth = 60 * 24 * 30;
-  return latestHeight - blocksPerMonth;
+  const twoWeeksAgo = Math.floor(blocksPerMonth / 2);
+  return latestHeight - twoWeeksAgo;
 }
