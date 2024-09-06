@@ -6,7 +6,7 @@ const defaultColumns: {
 }[] = [
   {
     key: 'fingerprint',
-    label: 'Relay fingerprint',
+    label: 'Relay Fingerprint',
   },
   {
     key: 'nickname',
@@ -18,7 +18,7 @@ const defaultColumns: {
   },
   {
     key: 'observedBandwidth',
-    label: 'Observed Bandwith',
+    label: 'Observed Bandwidth',
   },
   // {
   //   key: 'consensusWeight',
