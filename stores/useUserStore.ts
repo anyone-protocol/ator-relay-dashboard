@@ -342,10 +342,14 @@ export const useUserStore = defineStore('user', {
       if (cachedData) {
         try {
           const result = await RegistryHandle(cachedData.state, interaction);
+          console.log('fingerprint', fingerprint);
+          console.log('result', result);
           return true;
         } catch (error: any) {
           switch (error.message) {
             case 'Subsequent relay claims require family to be set':
+              console.log('fingerprint', fingerprint);
+              console.log('error', error.message);
               return false;
             default:
               return true;
@@ -384,8 +388,14 @@ export const useUserStore = defineStore('user', {
       const serials = await warpReadSerials(this.userData.address);
       this.serials = serials;
     },
-    isHardwareRelay(fingerprint: string) {
-      return this.serials.includes(fingerprint);
+    async isHardwareRelay(fingerprint: string) {
+      const cache = useRelayCache();
+      const cachedData = await cache.getRelayData();
+      if (cachedData != null) {
+        return cachedData.verifiedHardware[fingerprint] !== undefined;
+      } else {
+        return false;
+      }
     },
   },
   getters: {
