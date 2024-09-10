@@ -247,16 +247,25 @@ export class Distribution {
         address,
       });
 
+      // Ensure that claimable is a valid number or convertable value
+      const claimableValue = claimable ? claimable : '0';
+
+      if (isNaN(claimableValue)) {
+        this.logger.error(
+          `Invalid claimable value received for ${address}:`,
+          claimable
+        );
+        return humanize ? '0.0000' : '0';
+      }
+
       const auth = useUserStore();
       if (auth.userData && address === auth.userData.address) {
-        useFacilitatorStore().claimableAtomicTokens = claimable;
+        useFacilitatorStore().claimableAtomicTokens = claimableValue;
       }
 
       return humanize
-        ? BigNumber(claimable || 0)
-            .dividedBy(1e18)
-            .toFormat(4)
-        : claimable;
+        ? BigNumber(claimableValue).dividedBy(1e18).toFormat(4)
+        : claimableValue;
     } catch (error) {
       this.logger.error(
         'Error in Distribution when checking claimable tokens for',

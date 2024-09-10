@@ -15,6 +15,6 @@ export async function calculateMinimumQueryBlockHeight(
   latestHeight: number
 ): Promise<number> {
   const blocksPerMonth = 60 * 24 * 30;
-  const twoWeeksAgo = Math.floor(blocksPerMonth / 2);
+  const twoWeeksAgo = Math.floor(blocksPerMonth / 4);
   return latestHeight - twoWeeksAgo;
 }
