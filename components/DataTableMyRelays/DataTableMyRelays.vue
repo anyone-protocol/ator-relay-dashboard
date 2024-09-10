@@ -506,7 +506,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           <USkeleton class="w-[15rem] h-10" />
         </template>
         <span
-          v-else="
+          v-else-if="
             userStore?.relaysMeta?.[row.fingerprint]?.observed_bandwidth !==
             undefined
           "
