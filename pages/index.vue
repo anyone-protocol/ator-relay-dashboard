@@ -177,10 +177,12 @@ import { initRelayRegistry } from '@/composables/relay-registry';
 import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
 import { formatEtherNoRound } from '@/utils/format';
+import { initStores } from '@/composables/useInitStores';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
 const registratorStore = useRegistratorStore();
+const distributionStore = useDistribution();
 const { isConnected, address } = useAccount({ config } as any);
 
 const isRedeemLoading = ref(false);
@@ -194,14 +196,10 @@ const toast = useToast();
 const isLoading = ref(true);
 
 const fetchInitialData = async (
-  newAddress: string | undefined,
+  newAddress: `0x${string}` | undefined,
   forceRefresh = false
 ) => {
   if (!isConnected || !newAddress || !address) return;
-
-  const fetchTimeout = new Promise((resolve, reject) =>
-    setTimeout(() => reject(new Error('Fetch timed out')), 2000)
-  );
 
   try {
     if (!facilitatorStore?.initialized || forceRefresh) {
@@ -215,30 +213,14 @@ const fetchInitialData = async (
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
 
     const fetchData = async () => {
-      // Fetch token balance
-      await Promise.race([userStore.getTokenBalance(), fetchTimeout]);
+      await initToken();
 
-      // Fetch facilitator data
-      if (!facilitatorStore?.initialized || forceRefresh) {
-        await Promise.race([useFacilitator()?.refresh(), fetchTimeout]);
-      }
+      await userStore.getTokenBalance();
 
-      // Fetch registrator data
-      if (!registratorStore?.initialized || forceRefresh) {
-        await Promise.race([useRegistrator()?.refresh(), fetchTimeout]);
-      }
-
-      // Fetch claimable data
-      await Promise.race([
-        useDistribution().claimable(newAddress),
-        fetchTimeout,
-      ]);
-
-      // Fetch distribution data
-      await Promise.race([useDistribution().refresh(), fetchTimeout]);
+      initStores(newAddress, forceRefresh);
     };
 
-    await fetchData();
+    fetchData();
   } catch (error) {
     console.error('Error during fetchInitialData:', error);
   } finally {
@@ -248,16 +230,11 @@ const fetchInitialData = async (
   }
 };
 
-const { data: distributionData, error: distributionError } = await useAsyncData(
-  'distributionData',
-  () => initDistribution(),
-  { immediate: false, server: false } // Fetch data immediately
+const { data: storeData, error: storeDataError } = await useAsyncData(
+  'storeData',
+  () => initStores(userStore.userData.address),
+  { immediate: true, server: false, lazy: true }
 );
-const { data: relayRegistryData, error: relayRegistryError } =
-  await useAsyncData('relayRegistryData', () => initRelayRegistry(), {
-    immediate: false,
-    server: false,
-  });
 
 onMounted(async () => {
   isLoading.value = true;
@@ -266,8 +243,7 @@ onMounted(async () => {
     initFacilitator();
     initRegistrator();
     initToken();
-
-    await fetchInitialData(userStore.userData.address);
+    // await fetchInitialData(userStore.userData.address);
   } catch (error) {
     console.error('Error during onMounted execution', error);
   } finally {
@@ -277,7 +253,7 @@ onMounted(async () => {
 
 watch(
   () => userStore.userData.address,
-  async (newAddress?: string) => {
+  async (newAddress?: `0x${string}`) => {
     await fetchInitialData(newAddress, true);
   }
 );

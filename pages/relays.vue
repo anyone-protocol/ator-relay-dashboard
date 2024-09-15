@@ -107,6 +107,7 @@ import { initToken } from '@/composables/token';
 import { type RelayTabType } from '@/types/relay';
 import Card from '~/components/ui-kit/Card.vue';
 import { useMetricsStore } from '@/stores/useMetricsStore';
+import { initStores } from '@/composables/useInitStores';
 
 const userStore = useUserStore();
 const registrator = useRegistrator();
@@ -115,36 +116,16 @@ const currentTab = ref<RelayTabType>('all');
 const metricsStore = useMetricsStore();
 const isLoading = ref(true);
 
-const { data: distributionData, error: distributionError } = await useAsyncData(
-  'distributionData',
-  () => initDistribution(),
-  { immediate: false, server: false } // Fetch data immediately
-);
-const { data: relayRegistryData, error: relayRegistryError } =
-  await useAsyncData('relayRegistryData', () => initRelayRegistry(), {
-    immediate: false,
-    server: false,
-  });
-
-const initializeAndFetchData = async () => {
+const initializeAndFetchData = async (
+  newAddress: `0x${string}` | undefined
+) => {
   try {
     isLoading.value = true;
-
+    initStores(newAddress);
     initFacilitator();
     initRegistrator();
     initToken();
 
-    const fetchTimeout = new Promise((resolve, reject) =>
-      setTimeout(() => reject(new Error('Fetch timed out')), 2000)
-    );
-
-    const fetchData = async () => {
-      // Fetch verified relays and metrics individually
-      await Promise.race([userStore.getVerifiedRelays(), fetchTimeout]);
-      await Promise.race([metricsStore.refreshRelayMetrics(), fetchTimeout]);
-    };
-
-    await fetchData();
     // await loadLockedRelays();
   } catch (error) {
     console.error('Error during initialization:', error);
@@ -152,19 +133,25 @@ const initializeAndFetchData = async () => {
     isLoading.value = false;
   }
 };
+const { data: storeData, error: storeDataError } = await useAsyncData(
+  'storeData',
+  () => initStores(userStore.userData.address),
+  { immediate: true, server: false, lazy: true }
+);
 
 // const loadLockedRelays = async () => {
 //   await registratorStore?.fetchLockedRelays(userStore.userData.address);
 // };
 
-onMounted(() => {
-  initializeAndFetchData();
-});
+// onMounted(() => {
+//   initializeAndFetchData();
+// });
 
 watch(
   () => userStore.userData.address,
-  async (newAddress?: string) => {
+  async (newAddress?: `0x${string}` | undefined) => {
     try {
+      initializeAndFetchData(newAddress);
       await Promise.all([
         newAddress && useDistribution().claimable(newAddress as string),
         newAddress && useDistribution().refresh(),
