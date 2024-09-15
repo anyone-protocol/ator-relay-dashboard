@@ -90,10 +90,16 @@ export class RelayRegistry {
 }
 
 const relayRegistry = new RelayRegistry();
-export const initRelayRegistry = () => {
-  if (relayRegistry.isInitialized) {
-    return;
-  }
-  relayRegistry.initialize(relayRegistryContract);
+export const initRelayRegistry = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (relayRegistry.isInitialized) {
+      // If already initialized, resolve immediately
+      resolve();
+      return;
+    }
+
+    relayRegistry.initialize(relayRegistryContract);
+    resolve(); // Resolve after initialization
+  });
 };
 export const useRelayRegistry = () => relayRegistry;

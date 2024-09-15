@@ -277,17 +277,22 @@ export class Distribution {
 }
 
 const distribution = new Distribution();
-export const initDistribution = () => {
-  if (distribution.isInitialized) {
-    return;
-  }
+export const initDistribution = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (distribution.isInitialized) {
+      // If already initialized, resolve immediately
+      resolve();
+      return;
+    }
 
-  const config = useRuntimeConfig();
-  const warp = useWarp();
-  const contract = warp.contract<DistributionState>(
-    config.public.distributionContract as string
-  );
+    const config = useRuntimeConfig();
+    const warp = useWarp();
+    const contract = warp.contract<DistributionState>(
+      config.public.distributionContract as string
+    );
 
-  distribution.initialize(contract);
+    distribution.initialize(contract);
+    resolve();
+  });
 };
 export const useDistribution = () => distribution;

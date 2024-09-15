@@ -107,8 +107,6 @@ import { initToken } from '@/composables/token';
 import { type RelayTabType } from '@/types/relay';
 import Card from '~/components/ui-kit/Card.vue';
 import { useMetricsStore } from '@/stores/useMetricsStore';
-import { useAccount } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 
 const userStore = useUserStore();
 const registrator = useRegistrator();
@@ -116,25 +114,37 @@ const registerModalOpen = ref(false);
 const currentTab = ref<RelayTabType>('all');
 const metricsStore = useMetricsStore();
 const isLoading = ref(true);
-const { isConnected, address } = useAccount({ config } as any);
 
-const initializeAndFetchData = async (newAddress: string | undefined) => {
+const { data: distributionData, error: distributionError } = await useAsyncData(
+  'distributionData',
+  () => initDistribution(),
+  { immediate: false, server: false } // Fetch data immediately
+);
+const { data: relayRegistryData, error: relayRegistryError } =
+  await useAsyncData('relayRegistryData', () => initRelayRegistry(), {
+    immediate: false,
+    server: false,
+  });
+
+const initializeAndFetchData = async () => {
   try {
-    if (!isConnected || !newAddress || !address) return;
-
     isLoading.value = true;
 
-    initRelayRegistry();
     initFacilitator();
     initRegistrator();
-    initDistribution();
     initToken();
 
-    await Promise.all([
-      userStore.getVerifiedRelays(),
-      metricsStore.refreshRelayMetrics(),
-    ]);
+    const fetchTimeout = new Promise((resolve, reject) =>
+      setTimeout(() => reject(new Error('Fetch timed out')), 2000)
+    );
 
+    const fetchData = async () => {
+      // Fetch verified relays and metrics individually
+      await Promise.race([userStore.getVerifiedRelays(), fetchTimeout]);
+      await Promise.race([metricsStore.refreshRelayMetrics(), fetchTimeout]);
+    };
+
+    await fetchData();
     // await loadLockedRelays();
   } catch (error) {
     console.error('Error during initialization:', error);
@@ -148,7 +158,7 @@ const initializeAndFetchData = async (newAddress: string | undefined) => {
 // };
 
 onMounted(() => {
-  initializeAndFetchData(userStore.userData.address);
+  initializeAndFetchData();
 });
 
 watch(
