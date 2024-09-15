@@ -228,16 +228,21 @@ const fetchInitialData = async (
   }
 };
 
+const initializeWarpContracts = async (newAddress: string | undefined) => {
+  if (!isConnected || !newAddress || !address) return;
+
+  initRelayRegistry();
+
+  initDistribution();
+};
 onMounted(async () => {
   isLoading.value = true;
 
   try {
-    initRelayRegistry();
     initFacilitator();
     initRegistrator();
     initToken();
-    initDistribution();
-
+    await initializeWarpContracts(userStore.userData.address);
     await fetchInitialData(userStore.userData.address);
   } catch (error) {
     console.error('Error during onMounted execution', error);

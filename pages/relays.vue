@@ -107,6 +107,8 @@ import { initToken } from '@/composables/token';
 import { type RelayTabType } from '@/types/relay';
 import Card from '~/components/ui-kit/Card.vue';
 import { useMetricsStore } from '@/stores/useMetricsStore';
+import { useAccount } from '@wagmi/vue';
+import { config } from '@/config/wagmi.config';
 
 const userStore = useUserStore();
 const registrator = useRegistrator();
@@ -114,9 +116,12 @@ const registerModalOpen = ref(false);
 const currentTab = ref<RelayTabType>('all');
 const metricsStore = useMetricsStore();
 const isLoading = ref(true);
+const { isConnected, address } = useAccount({ config } as any);
 
-const initializeAndFetchData = async () => {
+const initializeAndFetchData = async (newAddress: string | undefined) => {
   try {
+    if (!isConnected || !newAddress || !address) return;
+
     isLoading.value = true;
 
     initRelayRegistry();
@@ -143,7 +148,7 @@ const initializeAndFetchData = async () => {
 // };
 
 onMounted(() => {
-  initializeAndFetchData();
+  initializeAndFetchData(userStore.userData.address);
 });
 
 watch(
