@@ -46,7 +46,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/ui', '@pinia/nuxt'],
+  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/device'],
 
   // This is used instead on env file
   // See: https://nuxt.com/docs/guide/going-further/runtime-config

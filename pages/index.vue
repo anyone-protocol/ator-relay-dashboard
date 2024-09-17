@@ -115,7 +115,7 @@
 
           <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Redeemed rewards</h3>
+              <h3>Claimed rewards</h3>
               <template v-if="claimedPending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
@@ -132,7 +132,7 @@
               </template>
             </div>
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Redeemable rewards</h3>
+              <h3>Claimable rewards</h3>
               <template v-if="claimablePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
@@ -177,12 +177,10 @@ import { initRelayRegistry } from '@/composables/relay-registry';
 import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
 import { formatEtherNoRound } from '@/utils/format';
-import { initStores } from '@/composables/useInitStores';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
 const registratorStore = useRegistratorStore();
-const distributionStore = useDistribution();
 const { isConnected, address } = useAccount({ config } as any);
 
 const isRedeemLoading = ref(false);
@@ -196,7 +194,7 @@ const toast = useToast();
 const isLoading = ref(true);
 
 const fetchInitialData = async (
-  newAddress: `0x${string}` | undefined,
+  newAddress: string | undefined,
   forceRefresh = false
 ) => {
   if (!isConnected || !newAddress || !address) return;
@@ -212,17 +210,18 @@ const fetchInitialData = async (
 
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
 
-    const fetchData = async () => {
-      await initToken();
-
-      await userStore.getTokenBalance();
-
-      initStores(newAddress, forceRefresh);
-    };
-
-    fetchData();
+    await Promise.all([
+      userStore.getTokenBalance(),
+      (!facilitatorStore?.initialized || forceRefresh) &&
+        useFacilitator()?.refresh(),
+      (!registratorStore?.initialized || forceRefresh) &&
+        useRegistrator()?.refresh(),
+      useDistribution().isInitialized &&
+        useDistribution().claimable(newAddress as string),
+      useDistribution().isInitialized && useDistribution().refresh(),
+    ]);
   } catch (error) {
-    console.error('Error during fetchInitialData:', error);
+    console.error(error);
   } finally {
     lockedPending.value = false;
     claimedPending.value = false;
@@ -230,20 +229,20 @@ const fetchInitialData = async (
   }
 };
 
-const { data: storeData, error: storeDataError } = await useAsyncData(
-  'storeData',
-  () => initStores(userStore.userData.address),
-  { immediate: true, server: false, lazy: true }
-);
-
 onMounted(async () => {
   isLoading.value = true;
 
   try {
+    await initDistribution();
+
+    initRelayRegistry();
     initFacilitator();
     initRegistrator();
     initToken();
-    // await fetchInitialData(userStore.userData.address);
+    // add 5 seconds delay
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    await fetchInitialData(userStore.userData.address);
   } catch (error) {
     console.error('Error during onMounted execution', error);
   } finally {
@@ -253,7 +252,7 @@ onMounted(async () => {
 
 watch(
   () => userStore.userData.address,
-  async (newAddress?: `0x${string}`) => {
+  async (newAddress?: string) => {
     await fetchInitialData(newAddress, true);
   }
 );

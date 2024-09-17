@@ -186,14 +186,14 @@ export const useUserStore = defineStore('user', {
       }
 
       const data = await getAllRelays(this.userData.address);
-
+      console.log('data', data);
       if (!data) {
         return;
       }
 
       this.nickNames = data.data.nicknames;
       // refresh the relays
-      this.verifiedRelays = data.data.verified.map((relay) => ({
+      this.verifiedRelays = data.data.verified.map((relay: any) => ({
         fingerprint: relay.fingerprint,
         status: relay.status,
         consensusWeight: 0,
@@ -204,7 +204,7 @@ export const useUserStore = defineStore('user', {
         nickname: '',
       }));
 
-      this.claimableRelays = data.data.claimable.map((relay) => ({
+      this.claimableRelays = data.data.claimable.map((relay: any) => ({
         fingerprint: relay.fingerprint,
         status: relay.status,
         consensusWeight: 0,

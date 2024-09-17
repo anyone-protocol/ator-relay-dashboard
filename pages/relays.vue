@@ -18,20 +18,18 @@
           />
         </div>
       </div>
-      <div class="hidden xl:block">
-        <DataTableMyRelays
-          :currentTab="currentTab"
-          @update:currentTab="handleTabChange"
-          :registerModalOpen="registerModalOpen"
-        />
-      </div>
-      <div class="block xl:hidden">
-        <DataTableMyRelaysMobile
-          :currentTab="currentTab"
-          @update:currentTab="handleTabChange"
-          :registerModalOpen="registerModalOpen"
-        />
-      </div>
+      <DataTableMyRelays
+        v-if="!isMobile"
+        :currentTab="currentTab"
+        @update:currentTab="handleTabChange"
+        :registerModalOpen="registerModalOpen"
+      />
+      <DataTableMyRelaysMobile
+        v-else
+        :currentTab="currentTab"
+        @update:currentTab="handleTabChange"
+        :registerModalOpen="registerModalOpen"
+      />
     </Card>
   </DashboardMobileSection>
   <UModal v-model="registerModalOpen">
@@ -107,7 +105,9 @@ import { initToken } from '@/composables/token';
 import { type RelayTabType } from '@/types/relay';
 import Card from '~/components/ui-kit/Card.vue';
 import { useMetricsStore } from '@/stores/useMetricsStore';
-import { initStores } from '@/composables/useInitStores';
+import { useMediaQuery } from '@vueuse/core';
+
+const isMobile = useMediaQuery('(max-width: 1024px)'); // Adjust screen size breakpoint as needed
 
 const userStore = useUserStore();
 const registrator = useRegistrator();
@@ -116,46 +116,56 @@ const currentTab = ref<RelayTabType>('all');
 const metricsStore = useMetricsStore();
 const isLoading = ref(true);
 
-const initializeAndFetchData = async (
-  newAddress: `0x${string}` | undefined
-) => {
+const initializeAndFetchData = async () => {
   try {
     isLoading.value = true;
-    initStores(newAddress);
+
+    initRelayRegistry();
     initFacilitator();
     initRegistrator();
+    initDistribution();
     initToken();
 
+    await Promise.all([
+      userStore.getVerifiedRelays(),
+      metricsStore.refreshRelayMetrics(),
+    ]);
+
     // await loadLockedRelays();
+    console.log('Data fetching complete');
   } catch (error) {
     console.error('Error during initialization:', error);
   } finally {
     isLoading.value = false;
   }
 };
-const { data: storeData, error: storeDataError } = await useAsyncData(
-  'storeData',
-  () => initStores(userStore.userData.address),
-  { immediate: true, server: false, lazy: true }
-);
 
 // const loadLockedRelays = async () => {
 //   await registratorStore?.fetchLockedRelays(userStore.userData.address);
 // };
 
-// onMounted(() => {
-//   initializeAndFetchData();
-// });
+onMounted(() => {
+  console.log('Mounted - Starting initialization');
+  initializeAndFetchData()
+    .then(() => {
+      console.log('Initialization complete');
+    })
+    .catch((error) => {
+      console.error('Error in initialization:', error);
+    });
+});
 
 watch(
   () => userStore.userData.address,
-  async (newAddress?: `0x${string}` | undefined) => {
+  async (newAddress?: string) => {
     try {
-      initializeAndFetchData(newAddress);
       await Promise.all([
-        newAddress && useDistribution().claimable(newAddress as string),
-        newAddress && useDistribution().refresh(),
-        newAddress && registrator?.getLokedRelaysTokens(newAddress, true),
+        useDistribution().claimable(newAddress as string),
+        useDistribution().refresh(),
+        registrator?.getLokedRelaysTokens(
+          userStore.userData.address || '',
+          true
+        ),
         userStore.createRelayCache(),
       ]);
     } catch (error) {
