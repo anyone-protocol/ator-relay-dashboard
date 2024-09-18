@@ -22,6 +22,7 @@
     "@iconify/json": "^2.2.220",
     "@irys/query": "0.0.6",
     "@irys/sdk": "0.2.0",
+    "@memetic-block/ao-encrypted-messages": "^1.0.1",
     "@nuxt/ui": "2.14.2",
     "@pinia/nuxt": "0.5.1",
     "@tanstack/vue-query": "5.32.1",

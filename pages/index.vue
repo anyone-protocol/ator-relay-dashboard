@@ -154,7 +154,6 @@
     </div>
   </div>
   <ReportIssueDialog />
-  <SupportIssueDialog />
 </template>
 
 <script setup lang="ts">
