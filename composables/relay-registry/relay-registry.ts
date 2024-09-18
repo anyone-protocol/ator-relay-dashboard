@@ -56,12 +56,9 @@ export class RelayRegistry {
       return null;
     }
 
-    return (
-      this.contract
-        /* @ts-expect-error warp types */
-        .connect(warpSigner)
-        .writeInteraction<Claim>({ function: 'claim', fingerprint })
-    );
+    return this.contract
+      .connect(warpSigner)
+      .writeInteraction<Claim>({ function: 'claim', fingerprint });
   }
 
   async renounce(
@@ -80,20 +77,23 @@ export class RelayRegistry {
       return null;
     }
 
-    return (
-      this.contract
-        /* @ts-expect-error warp types */
-        .connect(warpSigner)
-        .writeInteraction<Renounce>({ function: 'renounce', fingerprint })
-    );
+    return this.contract
+      .connect(warpSigner)
+      .writeInteraction<Renounce>({ function: 'renounce', fingerprint });
   }
 }
 
 const relayRegistry = new RelayRegistry();
-export const initRelayRegistry = () => {
-  if (relayRegistry.isInitialized) {
-    return;
-  }
-  relayRegistry.initialize(relayRegistryContract);
+export const initRelayRegistry = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (relayRegistry.isInitialized) {
+      // If already initialized, resolve immediately
+      resolve();
+      return;
+    }
+
+    relayRegistry.initialize(relayRegistryContract);
+    resolve(); // Resolve after initialization
+  });
 };
 export const useRelayRegistry = () => relayRegistry;

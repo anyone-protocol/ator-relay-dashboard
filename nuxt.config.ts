@@ -1,3 +1,6 @@
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import { replaceCodePlugin } from './plugins/vite-plugin-replace';
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
@@ -46,12 +49,13 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/ui', '@pinia/nuxt'],
+  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/device'],
 
   // This is used instead on env file
   // See: https://nuxt.com/docs/guide/going-further/runtime-config
   runtimeConfig: {
     public: {
+      encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
       relayRegistryAddress: 'soNHpTqa2LCXjt-TQ1owmaTMeEJqa3cTyvJtsGyXqv8',
       facilitatorContract: '0xEe65e4C21a9339CDaBC90F52e1e802371001bBd5',
@@ -63,13 +67,36 @@ export default defineNuxtConfig({
       distributionDeployer: 'G5tXjZS4SaMJNwOENZYgymvc6Zxp2Wws4Qf8wB0b',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
       githubNewIssueUrl:
-        'https://github.com/anyone-protocol/ator-dashboard/issues/new',
+        'https://github.com/anyone-protocol/ator-relay-dashboard/issues/new',
       phase: 'dev',
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.1.9',
+      version: '1.2.0',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
+
+  vite: {
+    plugins: [
+      nodePolyfills(),
+      // NB: Fixes "exports not defined" when using arbundles -> crypto libs
+      //     see https://github.com/davidmyersdev/vite-plugin-node-polyfills/issues/92#issuecomment-2228168969
+      replaceCodePlugin({
+        replacements: [
+          {
+            from: `if ((crypto && crypto.getRandomValues) || !process.browser) {
+  exports.randomFill = randomFill
+  exports.randomFillSync = randomFillSync
+} else {
+  exports.randomFill = oldBrowser
+  exports.randomFillSync = oldBrowser
+}`,
+            to: `exports.randomFill = randomFill
+exports.randomFillSync = randomFillSync`,
+          },
+        ],
+      }),
+    ],
+  },
 });

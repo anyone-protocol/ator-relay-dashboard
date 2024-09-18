@@ -115,7 +115,7 @@
 
           <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Redeemed rewards</h3>
+              <h3>Claimed rewards</h3>
               <template v-if="claimedPending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
@@ -132,7 +132,7 @@
               </template>
             </div>
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Redeemable rewards</h3>
+              <h3>Claimable rewards</h3>
               <template v-if="claimablePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
@@ -153,8 +153,6 @@
       </DashboardMobileSection>
     </div>
   </div>
-  <ReportIssueDialog />
-  <SupportIssueDialog />
 </template>
 
 <script setup lang="ts">
@@ -169,7 +167,6 @@ import Button from '@/components/ui-kit/Button.vue';
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
 import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
-import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
 import { initRegistrator, useRegistrator } from '@/composables/registrator';
 import { useFacilitator } from '@/composables/facilitator';
 import { initDistribution, useDistribution } from '@/composables/distribution';
@@ -216,8 +213,9 @@ const fetchInitialData = async (
         useFacilitator()?.refresh(),
       (!registratorStore?.initialized || forceRefresh) &&
         useRegistrator()?.refresh(),
-      useDistribution().claimable(newAddress as string),
-      useDistribution().refresh(),
+      // useDistribution().isInitialized &&
+      //   useDistribution().claimable(newAddress as string),
+      // useDistribution().isInitialized && useDistribution().refresh(),
     ]);
   } catch (error) {
     console.error(error);
@@ -228,21 +226,19 @@ const fetchInitialData = async (
   }
 };
 
-const initializeWarpContracts = async (newAddress: string | undefined) => {
-  if (!isConnected || !newAddress || !address) return;
-
-  initRelayRegistry();
-
-  initDistribution();
-};
 onMounted(async () => {
   isLoading.value = true;
 
   try {
+    await initDistribution();
+
+    initRelayRegistry();
     initFacilitator();
     initRegistrator();
     initToken();
-    await initializeWarpContracts(userStore.userData.address);
+    // add 5 seconds delay
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
     await fetchInitialData(userStore.userData.address);
   } catch (error) {
     console.error('Error during onMounted execution', error);

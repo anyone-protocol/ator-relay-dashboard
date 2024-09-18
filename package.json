@@ -22,13 +22,14 @@
     "@iconify/json": "^2.2.220",
     "@irys/query": "0.0.6",
     "@irys/sdk": "0.2.0",
+    "@memetic-block/ao-encrypted-messages": "^1.0.1",
     "@nuxt/ui": "2.14.2",
     "@pinia/nuxt": "0.5.1",
     "@tanstack/vue-query": "5.32.1",
     "@types/lodash": "^4.17.5",
     "@use-wagmi/nuxt": "2.2.0",
     "@vueuse/components": "10.9.0",
-    "@vueuse/core": "10.9.0",
+    "@vueuse/core": "^11.1.0",
     "@wagmi/connectors": "^5.0.14",
     "@wagmi/core": "^2.11.2",
     "@wagmi/vue": "^0.0.18",
@@ -58,9 +59,11 @@
   },
   "devDependencies": {
     "@iconify-json/uil": "^1.1.8",
+    "@nuxtjs/device": "^3.2.2",
     "husky": "^8.0.3",
     "lint-staged": "15.2.4",
-    "prettier": "3.2.5"
+    "prettier": "3.2.5",
+    "vite-plugin-node-polyfills": "^0.22.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,.vue}": [

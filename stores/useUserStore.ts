@@ -180,20 +180,41 @@ export const useUserStore = defineStore('user', {
         await this.createRelayCache();
       }
     },
+    async getRelayCache(forceRefresh = false) {
+      if (!this.userData.address) {
+        return;
+      }
+
+      const relayCache = useRelayCache();
+      const cachedData = await relayCache.getRelayData(forceRefresh);
+      if (cachedData) {
+        this.verifiedRelays = cachedData.verified;
+        this.claimableRelays = cachedData.claimable;
+        this.nickNames = cachedData.nicknames;
+        this.registrationCredits = cachedData.registrationCredits;
+        this.families = cachedData.families;
+        this.familyRequired = cachedData.familyRequired;
+        this.registrationCreditsRequired =
+          cachedData.registrationCreditsRequired;
+      } else {
+        // build cache
+        await this.createRelayCache();
+      }
+    },
     async createRelayCache() {
       if (!this.userData.address) {
         return;
       }
 
       const data = await getAllRelays(this.userData.address);
-
+      console.log('data', data);
       if (!data) {
         return;
       }
 
       this.nickNames = data.data.nicknames;
       // refresh the relays
-      this.verifiedRelays = data.data.verified.map((relay) => ({
+      this.verifiedRelays = data.data.verified.map((relay: any) => ({
         fingerprint: relay.fingerprint,
         status: relay.status,
         consensusWeight: 0,
@@ -204,7 +225,7 @@ export const useUserStore = defineStore('user', {
         nickname: '',
       }));
 
-      this.claimableRelays = data.data.claimable.map((relay) => ({
+      this.claimableRelays = data.data.claimable.map((relay: any) => ({
         fingerprint: relay.fingerprint,
         status: relay.status,
         consensusWeight: 0,

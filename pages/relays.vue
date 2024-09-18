@@ -18,20 +18,18 @@
           />
         </div>
       </div>
-      <div class="hidden xl:block">
-        <DataTableMyRelays
-          :currentTab="currentTab"
-          @update:currentTab="handleTabChange"
-          :registerModalOpen="registerModalOpen"
-        />
-      </div>
-      <div class="block xl:hidden">
-        <DataTableMyRelaysMobile
-          :currentTab="currentTab"
-          @update:currentTab="handleTabChange"
-          :registerModalOpen="registerModalOpen"
-        />
-      </div>
+      <DataTableMyRelays
+        v-if="!isMobile"
+        :currentTab="currentTab"
+        @update:currentTab="handleTabChange"
+        :registerModalOpen="registerModalOpen"
+      />
+      <DataTableMyRelaysMobile
+        v-else
+        :currentTab="currentTab"
+        @update:currentTab="handleTabChange"
+        :registerModalOpen="registerModalOpen"
+      />
     </Card>
   </DashboardMobileSection>
   <UModal v-model="registerModalOpen">
@@ -107,8 +105,9 @@ import { initToken } from '@/composables/token';
 import { type RelayTabType } from '@/types/relay';
 import Card from '~/components/ui-kit/Card.vue';
 import { useMetricsStore } from '@/stores/useMetricsStore';
-import { useAccount } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
+import { useMediaQuery } from '@vueuse/core';
+
+const isMobile = useMediaQuery('(max-width: 1024px)');
 
 const userStore = useUserStore();
 const registrator = useRegistrator();
@@ -116,18 +115,14 @@ const registerModalOpen = ref(false);
 const currentTab = ref<RelayTabType>('all');
 const metricsStore = useMetricsStore();
 const isLoading = ref(true);
-const { isConnected, address } = useAccount({ config } as any);
 
-const initializeAndFetchData = async (newAddress: string | undefined) => {
+const initializeAndFetchData = async () => {
   try {
-    if (!isConnected || !newAddress || !address) return;
-
     isLoading.value = true;
-
+    initDistribution();
     initRelayRegistry();
     initFacilitator();
     initRegistrator();
-    initDistribution();
     initToken();
 
     await Promise.all([
@@ -136,6 +131,7 @@ const initializeAndFetchData = async (newAddress: string | undefined) => {
     ]);
 
     // await loadLockedRelays();
+    console.log('Data fetching complete');
   } catch (error) {
     console.error('Error during initialization:', error);
   } finally {
@@ -148,7 +144,14 @@ const initializeAndFetchData = async (newAddress: string | undefined) => {
 // };
 
 onMounted(() => {
-  initializeAndFetchData(userStore.userData.address);
+  console.log('Mounted - Starting initialization');
+  initializeAndFetchData()
+    .then(() => {
+      console.log('Initialization complete');
+    })
+    .catch((error) => {
+      console.error('Error in initialization:', error);
+    });
 });
 
 watch(
@@ -156,9 +159,12 @@ watch(
   async (newAddress?: string) => {
     try {
       await Promise.all([
-        newAddress && useDistribution().claimable(newAddress as string),
-        newAddress && useDistribution().refresh(),
-        newAddress && registrator?.getLokedRelaysTokens(newAddress, true),
+        useDistribution().claimable(newAddress as string),
+        useDistribution().refresh(),
+        registrator?.getLokedRelaysTokens(
+          userStore.userData.address || '',
+          true
+        ),
         userStore.createRelayCache(),
       ]);
     } catch (error) {

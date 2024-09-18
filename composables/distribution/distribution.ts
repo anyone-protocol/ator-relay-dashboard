@@ -6,6 +6,8 @@ import { type Claimable } from '@/utils/contracts';
 import Logger from '@/utils/logger';
 import { type DistributionState } from './contract';
 import type { PreviousDistribution } from '@/types/facilitator';
+import { add } from 'lodash';
+const config = useRuntimeConfig();
 
 interface DistributionDetail {
   distributedTokens: BigNumber;
@@ -50,6 +52,8 @@ export class Distribution {
   private contract: Contract<DistributionState> | null = null;
   private _isInitialized: boolean = false;
   private logger = new Logger('Distribution');
+  private warpWorker: Worker | null = null;
+  private readState: any = null;
 
   get isInitialized() {
     return this._isInitialized;
@@ -61,9 +65,20 @@ export class Distribution {
     }
 
     this.contract = contract;
-    this._isInitialized = true;
-    /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
-    this.refresh();
+    this.warpWorker = new Worker(
+      new URL('@/static/warpWorker.js', import.meta.url),
+      {
+        type: 'module',
+      }
+    );
+    this.warpWorker.onmessage = (event) => {
+      const { task } = event.data;
+      if (task === 'workerReady') {
+        this._isInitialized = true;
+        /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
+        this.refresh();
+      }
+    };
   }
 
   private setRefreshing(refreshing: boolean) {
@@ -72,11 +87,15 @@ export class Distribution {
   }
 
   async refresh(): Promise<void> {
-    try {
-      if (this._refreshing) {
-        return;
-      }
+    if (!this._isInitialized) {
+      this.logger.error('Worker is not initialized');
+      return;
+    }
+    if (this._refreshing) {
+      return;
+    }
 
+    try {
       this.setRefreshing(true);
       const auth = useUserStore();
 
@@ -93,29 +112,82 @@ export class Distribution {
           auth.userData.address as string
         );
       }
+      await this.getReadState();
       await this.getPreviousDistributions();
       const distributionRatePerDay = await this.getDistributionRatePer('day');
+
       this.logger.timeEnd();
       this.logger.info('Distribution refreshed', {
         claimableAtomicTokens,
         distributionRatePerDay: distributionRatePerDay.toString(),
       });
-      this.setRefreshing(false);
     } catch (error) {
       this.logger.error('ERROR REFRESHING DISTRIBUTION', error);
+    } finally {
+      this.setRefreshing(false);
     }
   }
 
-  async getDistributionRatePer(period: 'second' | 'hour' | 'day' = 'day') {
-    if (!this.contract) {
+  async getReadState(retries = 3, delay = 1000): Promise<void> {
+    if (!this.warpWorker) {
       throw new Error('Distribution Contract not initialized!');
     }
 
-    const {
-      cachedValue: { state },
-    } = await this.contract.readState();
+    return new Promise((resolve, reject) => {
+      const attemptReadState = (attemptsLeft: number) => {
+        if (attemptsLeft <= 0) {
+          this.logger.error('Max retries reached. Failed to fetch state.');
+          return reject(
+            new Error('Max retries reached. Failed to fetch state.')
+          );
+        }
 
-    const wholeTokensPerSecond = BigNumber(
+        this.warpWorker!.postMessage({
+          task: 'readState',
+          payload: {
+            contractId: config.public.distributionContract as string,
+            contractName: 'distribution',
+          },
+        });
+
+        this.warpWorker!.onmessage = (e) => {
+          const { result, error } = e.data;
+
+          if (error) {
+            this.logger.error('Error reading state from worker:', error);
+            return reject(error);
+          }
+
+          const state = result?.cachedValue?.state;
+          console.log('state', state);
+
+          if (!state) {
+            this.logger.warn(
+              `Empty state received. Retrying... (${retries - attemptsLeft + 1}/${retries})`
+            );
+            setTimeout(() => attemptReadState(attemptsLeft - 1), delay);
+          } else {
+            this.readState = state;
+            resolve();
+          }
+        };
+      };
+
+      attemptReadState(retries);
+    });
+  }
+
+  async getDistributionRatePer(period: 'second' | 'hour' | 'day' = 'day') {
+    if (!this.readState) {
+      await this.getReadState();
+    }
+
+    const state = this.readState;
+    if (!state) {
+      throw new Error('Invalid state from distribution contract');
+    }
+
+    const wholeTokensPerSecond = new BigNumber(
       state.tokensDistributedPerSecond
     ).dividedBy(1e18);
 
@@ -123,7 +195,7 @@ export class Distribution {
       case 'second':
         return wholeTokensPerSecond;
       case 'hour':
-        return wholeTokensPerSecond.times(24 * 60);
+        return wholeTokensPerSecond.times(60 * 60);
       case 'day':
         const rate = wholeTokensPerSecond.times(24 * 60 * 60);
         useFacilitatorStore().distributionRatePerDay = rate.toString();
@@ -132,13 +204,17 @@ export class Distribution {
   }
 
   async getPreviousDistributions(): Promise<PreviousDistribution[]> {
-    if (!this.contract) {
-      throw new Error('Distribution Contract not initialized!');
+    if (!this.readState) {
+      await this.getReadState();
     }
 
-    const {
-      cachedValue: { state },
-    } = await this.contract.readState();
+    const state = this.readState;
+    if (!state) {
+      throw new Error('Invalid state from distribution contract');
+    }
+    // const {
+    //   cachedValue: { state },
+    // } = await this.contract.readState();
 
     let sumOfTotalDistributions = BigNumber(0);
     const previousDistributions = Object.keys(state.previousDistributions)
@@ -230,39 +306,50 @@ export class Distribution {
   }
 
   async claimable(address: string, humanize = false) {
-    if (!this.contract) {
-      throw new Error('Distribution Contract not initialized!');
+    if (!this.warpWorker) {
+      throw new Error('Warp Contract not initialized!');
     }
     if (!address) {
       console.log('Address is required');
       return;
     }
+    this.warpWorker.postMessage({
+      task: 'claimable',
+      payload: {
+        contractId: config.public.distributionContract as string,
+        contractName: 'distribution',
+        address,
+      },
+    });
 
     try {
-      const { result: claimable } = await this.contract.viewState<
-        Claimable,
-        string
-      >({
-        function: 'claimable',
-        address,
-      });
+      let claimableValue = '0';
+      this.warpWorker.onmessage = (e) => {
+        const { result: claimable } = e.data;
+        // const { result: claimable } = await this.contract.viewState<
+        //   Claimable,
+        //   string
+        // >({
+        //   function: 'claimable',
+        //   address,
+        // });
 
-      // Ensure that claimable is a valid number or convertable value
-      const claimableValue = claimable ? claimable : '0';
+        // Ensure that claimable is a valid number or convertable value
+        claimableValue = claimable ? claimable : '0';
 
-      if (isNaN(claimableValue)) {
-        this.logger.error(
-          `Invalid claimable value received for ${address}:`,
-          claimable
-        );
-        return humanize ? '0.0000' : '0';
-      }
+        if (isNaN(parseFloat(claimableValue))) {
+          this.logger.error(
+            `Invalid claimable value received for ${address}:`,
+            claimable
+          );
+          return humanize ? '0.0000' : '0';
+        }
 
-      const auth = useUserStore();
-      if (auth.userData && address === auth.userData.address) {
-        useFacilitatorStore().claimableAtomicTokens = claimableValue;
-      }
-
+        const auth = useUserStore();
+        if (auth.userData && address === auth.userData.address) {
+          useFacilitatorStore().claimableAtomicTokens = claimableValue;
+        }
+      };
       return humanize
         ? BigNumber(claimableValue).dividedBy(1e18).toFormat(4)
         : claimableValue;
@@ -282,11 +369,11 @@ export const initDistribution = () => {
     return;
   }
 
-  const config = useRuntimeConfig();
   const warp = useWarp();
   const contract = warp.contract<DistributionState>(
     config.public.distributionContract as string
   );
+  contract.setEvaluationOptions({ remoteStateSyncEnabled: true });
 
   distribution.initialize(contract);
 };

@@ -17,12 +17,6 @@ export type SupportIssue = {
   phase: string;
 };
 
-export type EncryptedPayload = {
-  encrypted: string;
-  nonce: string;
-  publicKey: string;
-};
-
 interface EventlogStoreState {
   logs: LogMessage[];
   filters: {
@@ -32,7 +26,6 @@ interface EventlogStoreState {
     debug: boolean;
   };
   isReportIssueOpen: boolean;
-  isSupportIssueOpen: boolean;
 }
 
 function replacer(key: string, value: any) {
@@ -50,7 +43,6 @@ export const useEventlogStore = defineStore('eventlog', {
         debug: false,
       },
       isReportIssueOpen: false,
-      isSupportIssueOpen: false,
     };
   },
   getters: {

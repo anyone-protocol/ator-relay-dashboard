@@ -6,6 +6,21 @@ import {
 } from 'ethers';
 import { InjectedEthereumSigner } from 'warp-contracts-plugin-deploy';
 import { Buffer } from 'buffer';
+import { createData } from 'arbundles';
+import Arweave from 'arweave';
+import getSignatureData from 'arbundles/build/web/esm/src/ar-data-base';
+
+async function getSignatureAndId(
+  item: DataItem,
+  signer: WarpSigner
+): Promise<{ signature: Buffer; id: Buffer }> {
+  // @ts-expect-error we know the types are compatible
+  const signatureData = await getSignatureData(item);
+  const signatureBytes = await signer.sign(signatureData);
+  const idBytes = await Arweave.crypto.hash(signatureBytes);
+
+  return { signature: Buffer.from(signatureBytes), id: Buffer.from(idBytes) };
+}
 
 /* @ts-expect-error types */
 export class WarpSigner extends InjectedEthereumSigner {
@@ -24,7 +39,7 @@ export class WarpSigner extends InjectedEthereumSigner {
     return await this.signer.getAddress();
   }
 
-  async setPublicKey() {
+  override async setPublicKey() {
     let message =
       'Please sign this message to authenticate with the ANON dashboard.  ' +
       'You will only need to do this once per session when interacting with ' +
@@ -37,6 +52,14 @@ export class WarpSigner extends InjectedEthereumSigner {
       signed
     );
     this.publicKey = Buffer.from(ethers.getBytes(recoveredPublicKey));
+  }
+
+  async signDataItem({ data, tags, target, anchor }: DataItem) {
+    const item = createData(data, this, { tags, target, anchor });
+    const { signature } = await getSignatureAndId(item, this);
+    item.getRaw().set(signature, 2);
+
+    return item.getRaw();
   }
 }
 
