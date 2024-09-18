@@ -66,7 +66,7 @@ unwatch();
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
 const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
   'verifiedRelays',
-  () => userStore.getRelayCache(),
+  () => userStore.createRelayCache(),
   {
     server: false,
     watch: [address],
@@ -82,6 +82,20 @@ const { error: verifiedRelaysError, pending: verifiedPending } =
     server: false,
     watch: [address],
   });
+
+const isHardwareResolved = reactive<Record<string, boolean>>({});
+
+const resolveIsHardware = async (fingerprints: string[]) => {
+  for (const fingerprint of fingerprints) {
+    // Resolve the hardware relay status for each fingerprint
+    isHardwareResolved[fingerprint] =
+      await userStore.isHardwareRelay(fingerprint);
+  }
+};
+watch(allRelays, (newRelays) => {
+  const fingerprints = newRelays.map((relay) => relay.fingerprint);
+  resolveIsHardware(fingerprints);
+});
 
 const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
@@ -537,7 +551,7 @@ const handleUnlockClick = async (fingerprint: string) => {
       <template #lockStatus-data="{ row }">
         <LockStatusColumn
           :is-locked="registratorStore.isRelayLocked(row.fingerprint)"
-          :is-hardware="userStore.isHardwareRelay(row.fingerprint)"
+          :is-hardware="isHardwareResolved[row.fingerprint]"
           :is-verified="row.status === 'verified'"
           :is-loading="registratorStore.loading"
         />
@@ -579,7 +593,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="
             registratorStore.isRelayLocked(row.fingerprint) ||
             row.status === 'verified' ||
-            userStore.isHardwareRelay(row.fingerprint)
+            isHardwareResolved[row.fingerprint]
           "
           :is-loading="registratorStore.loading"
           :has-registration-credit="relayCredits[row.fingerprint]"
