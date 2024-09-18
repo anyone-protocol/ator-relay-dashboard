@@ -4,7 +4,10 @@
     width="500px"
     :overlay-class="'modal-overlay'"
   >
-    <UCard class="modal-card" name="text-gray-200 dark:text-white">
+    <UCard
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-lg"
+      name="report-card"
+    >
       <template #header>
         <h4>Report Issue</h4>
       </template>
