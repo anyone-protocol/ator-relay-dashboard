@@ -67,7 +67,7 @@ export default defineNuxtConfig({
       distributionDeployer: 'G5tXjZS4SaMJNwOENZYgymvc6Zxp2Wws4Qf8wB0b',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
       githubNewIssueUrl:
-        'https://github.com/anyone-protocol/ator-dashboard/issues/new',
+        'https://github.com/anyone-protocol/ator-relay-dashboard/issues/new',
       phase: 'dev',
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',

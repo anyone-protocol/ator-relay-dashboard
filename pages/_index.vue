@@ -20,7 +20,6 @@ import { initDistribution, useDistribution } from '@/composables/distribution';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import type { ClaimProcess } from '@/types/facilitator';
 import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
-import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -223,7 +222,6 @@ const handleClaimAllRewards = async () => {
       <DataTableMyRelays />
     </Card>
   </DashboardMobileSection>
-  <ReportIssueDialog />
 </template>
 
 <style scoped lang="scss">

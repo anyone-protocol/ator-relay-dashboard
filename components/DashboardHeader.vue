@@ -7,6 +7,11 @@ import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
 import TitleAndLogo from './ui-kit/TitleAndLogo.vue';
 import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
 import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
+import { useAccount } from '@wagmi/vue';
+
+import { config } from '@/config/wagmi.config';
+
+const { isConnected, address } = useAccount({ config } as any);
 
 const menuStore = useMenuStore();
 </script>
@@ -19,7 +24,9 @@ const menuStore = useMenuStore();
     <div
       class="absolute dark:bg-gradient-to-b dark:from-zinc-900 dark:via-gray-900 bg-gradient-to-b from-slate-100 to-teal-50 w-full inset-0 dark:h-28 h-20 [mask-image:linear-gradient(to_bottom,black_90%,transparent)] lg:hidden"
     ></div>
-    <div class="flex justify-between items-center px-6 pb-4 lg:pt-6 pt-4 relative h-full">
+    <div
+      class="flex justify-between items-center px-6 pb-4 lg:pt-6 pt-4 relative h-full"
+    >
       <div class="flex gap-2 items-center">
         <TitleAndLogo />
       </div>
@@ -27,20 +34,24 @@ const menuStore = useMenuStore();
         <ul class="flex justify-center items-center space-x-2 lg:space-x-4">
           <li>
             <RouterLink to="/">
-              <UButton variant="outline" class="nav-button uniform-height text-sm lg:text-base lg:flex hidden"
+              <UButton
+                variant="outline"
+                class="nav-button uniform-height text-sm lg:text-base lg:flex hidden"
                 >Home</UButton
               >
             </RouterLink>
           </li>
           <li>
             <RouterLink to="/relays">
-              <UButton variant="outline" class="nav-button uniform-height text-sm lg:text-base lg:flex hidden"
+              <UButton
+                variant="outline"
+                class="nav-button uniform-height text-sm lg:text-base lg:flex hidden"
                 >Relays</UButton
               >
             </RouterLink>
           </li>
           <div class="lg:flex items-center gap-2 hidden h-full">
-            <ReportIssueButton class="uniform-height" />
+            <ReportIssueButton class="uniform-height" v-if="isConnected" />
           </div>
         </ul>
       </nav>

@@ -153,7 +153,6 @@
       </DashboardMobileSection>
     </div>
   </div>
-  <ReportIssueDialog />
 </template>
 
 <script setup lang="ts">
@@ -168,7 +167,6 @@ import Button from '@/components/ui-kit/Button.vue';
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
 import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
-import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
 import { initRegistrator, useRegistrator } from '@/composables/registrator';
 import { useFacilitator } from '@/composables/facilitator';
 import { initDistribution, useDistribution } from '@/composables/distribution';
