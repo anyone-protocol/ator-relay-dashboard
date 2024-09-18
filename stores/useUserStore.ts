@@ -180,6 +180,27 @@ export const useUserStore = defineStore('user', {
         await this.createRelayCache();
       }
     },
+    async getRelayCache(forceRefresh = false) {
+      if (!this.userData.address) {
+        return;
+      }
+
+      const relayCache = useRelayCache();
+      const cachedData = await relayCache.getRelayData(forceRefresh);
+      if (cachedData) {
+        this.verifiedRelays = cachedData.verified;
+        this.claimableRelays = cachedData.claimable;
+        this.nickNames = cachedData.nicknames;
+        this.registrationCredits = cachedData.registrationCredits;
+        this.families = cachedData.families;
+        this.familyRequired = cachedData.familyRequired;
+        this.registrationCreditsRequired =
+          cachedData.registrationCreditsRequired;
+      } else {
+        // build cache
+        await this.createRelayCache();
+      }
+    },
     async createRelayCache() {
       if (!this.userData.address) {
         return;

@@ -68,7 +68,7 @@ unwatch();
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
 const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
   'verifiedRelays',
-  () => userStore.createRelayCache(),
+  () => userStore.getRelayCache(),
   {
     server: false,
     watch: [address],

@@ -216,9 +216,9 @@ const fetchInitialData = async (
         useFacilitator()?.refresh(),
       (!registratorStore?.initialized || forceRefresh) &&
         useRegistrator()?.refresh(),
-      useDistribution().isInitialized &&
-        useDistribution().claimable(newAddress as string),
-      useDistribution().isInitialized && useDistribution().refresh(),
+      // useDistribution().isInitialized &&
+      //   useDistribution().claimable(newAddress as string),
+      // useDistribution().isInitialized && useDistribution().refresh(),
     ]);
   } catch (error) {
     console.error(error);

@@ -107,7 +107,7 @@ import Card from '~/components/ui-kit/Card.vue';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 import { useMediaQuery } from '@vueuse/core';
 
-const isMobile = useMediaQuery('(max-width: 1024px)'); // Adjust screen size breakpoint as needed
+const isMobile = useMediaQuery('(max-width: 1024px)');
 
 const userStore = useUserStore();
 const registrator = useRegistrator();
@@ -119,11 +119,10 @@ const isLoading = ref(true);
 const initializeAndFetchData = async () => {
   try {
     isLoading.value = true;
-
+    initDistribution();
     initRelayRegistry();
     initFacilitator();
     initRegistrator();
-    initDistribution();
     initToken();
 
     await Promise.all([
