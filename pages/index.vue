@@ -115,7 +115,7 @@
 
           <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Claimed rewards</h3>
+              <h3>Redeemed rewards</h3>
               <template v-if="claimedPending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
@@ -132,7 +132,7 @@
               </template>
             </div>
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Claimable rewards</h3>
+              <h3>Redeemable rewards</h3>
               <template v-if="claimablePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>

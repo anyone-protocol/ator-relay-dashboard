@@ -15,11 +15,13 @@ defineProps<{
       <Icon name="material-symbols:lock" />
       Locked
     </div>
-    <div v-else-if="isHardware" class="text-athena-50">
+    <div v-else-if="isHardware" class="text-athena-600 dark:text-athena-50">
       <Icon name="material-symbols:memory" />
       Hardware
     </div>
-    <div v-else-if="isVerified" class="text-athena-50">-</div>
+    <div v-else-if="isVerified" class="text-athena-600 dark:text-athena-50">
+      -
+    </div>
     <div v-else class="text-orange-600 dark:text-orange-500">
       <Icon name="material-symbols:lock" />
       Lock Required
