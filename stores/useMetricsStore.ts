@@ -119,7 +119,7 @@ export const useMetricsStore = defineStore('metrics', {
       this.relayMetricsPending = false;
     },
 
-    async refreshRelayMetrics(limit: number = 5) {
+    async refreshRelayMetrics(limit: number = 1) {
       const ardb = useArdb();
       const runtimeConfig = useRuntimeConfig();
       if (!this.latestHeight) {
@@ -194,7 +194,7 @@ export const useMetricsStore = defineStore('metrics', {
       }
     },
 
-    async refreshValidationStats(limit: number = 5) {
+    async refreshValidationStats(limit: number = 1) {
       const ardb = useArdb();
       const runtimeConfig = useRuntimeConfig();
 
