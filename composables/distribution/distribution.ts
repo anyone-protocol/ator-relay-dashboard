@@ -109,13 +109,13 @@ export class Distribution {
       let claimableAtomicTokens = null;
       if (auth.userData?.address) {
         claimableAtomicTokens = await this.claimable(
-          auth.userData.address as string
+          auth.userData.address as string,
+          true
         );
       }
       await this.getReadState();
       await this.getPreviousDistributions();
       const distributionRatePerDay = await this.getDistributionRatePer('day');
-
       this.logger.timeEnd();
       this.logger.info('Distribution refreshed', {
         claimableAtomicTokens,
@@ -150,27 +150,32 @@ export class Distribution {
           },
         });
 
-        this.warpWorker!.onmessage = (e) => {
-          const { result, error } = e.data;
+        const handleMessage = (e: MessageEvent) => {
+          const { task, result, error } = e.data;
+          if (task === 'readState') {
+            this.warpWorker!.removeEventListener('message', handleMessage); // Remove listener after it's done
 
-          if (error) {
-            this.logger.error('Error reading state from worker:', error);
-            return reject(error);
-          }
+            if (error) {
+              this.logger.error('Error reading state from worker:', error);
+              return reject(error);
+            }
 
-          const state = result?.cachedValue?.state;
-          console.log('state', state);
+            const state = result?.cachedValue?.state;
+            console.log('state', state);
 
-          if (!state) {
-            this.logger.warn(
-              `Empty state received. Retrying... (${retries - attemptsLeft + 1}/${retries})`
-            );
-            setTimeout(() => attemptReadState(attemptsLeft - 1), delay);
-          } else {
-            this.readState = state;
-            resolve();
+            if (!state) {
+              this.logger.warn(
+                `Empty state received. Retrying... (${retries - attemptsLeft + 1}/${retries})`
+              );
+              setTimeout(() => attemptReadState(attemptsLeft - 1), delay);
+            } else {
+              this.readState = state;
+              resolve();
+            }
           }
         };
+
+        this.warpWorker!.addEventListener('message', handleMessage);
       };
 
       attemptReadState(retries);
@@ -305,61 +310,64 @@ export class Distribution {
     return previousDistributions;
   }
 
-  async claimable(address: string, humanize = false) {
-    if (!this.warpWorker) {
-      throw new Error('Warp Contract not initialized!');
-    }
+  async claimable(
+    address: string,
+    humanize = false
+  ): Promise<string | undefined> {
     if (!address) {
       console.log('Address is required');
       return;
     }
-    this.warpWorker.postMessage({
-      task: 'claimable',
-      payload: {
-        contractId: config.public.distributionContract as string,
-        contractName: 'distribution',
-        address,
-      },
-    });
 
-    try {
-      let claimableValue = '0';
-      this.warpWorker.onmessage = (e) => {
-        const { result: claimable } = e.data;
-        // const { result: claimable } = await this.contract.viewState<
-        //   Claimable,
-        //   string
-        // >({
-        //   function: 'claimable',
-        //   address,
-        // });
+    return new Promise((resolve, reject) => {
+      if (!this.warpWorker) {
+        throw new Error('Warp Contract not initialized!');
+      }
+      this.warpWorker.postMessage({
+        task: 'claimable',
+        payload: {
+          contractId: config.public.distributionContract as string,
+          contractName: 'distribution',
+          address,
+        },
+      });
 
-        // Ensure that claimable is a valid number or convertable value
-        claimableValue = claimable ? claimable : '0';
+      const handleMessage = (e: MessageEvent) => {
+        const { task, result: claimable, error } = e.data;
 
-        if (isNaN(parseFloat(claimableValue))) {
-          this.logger.error(
-            `Invalid claimable value received for ${address}:`,
-            claimable
-          );
-          return humanize ? '0.0000' : '0';
-        }
+        if (task === 'claimable') {
+          this.warpWorker!.removeEventListener('message', handleMessage); // Remove listener after it's done
 
-        const auth = useUserStore();
-        if (auth.userData && address === auth.userData.address) {
-          useFacilitatorStore().claimableAtomicTokens = claimableValue;
+          if (error) {
+            this.logger.error(
+              'Error in Distribution when checking claimable tokens for',
+              address,
+              error
+            );
+            resolve('0');
+          }
+
+          let claimableValue = claimable ? claimable : '0';
+          console.log('claimableValue:', claimableValue);
+
+          // Update store if it's the authenticated user's address
+          const auth = useUserStore();
+          if (auth.userData && address === auth.userData.address) {
+            useFacilitatorStore().claimableAtomicTokens = claimableValue;
+          }
+
+          const result = humanize
+            ? BigNumber(claimableValue).dividedBy(1e18).toFormat(4)
+            : claimableValue;
+          console.log('claimableResult:', result);
+
+          resolve(result);
         }
       };
-      return humanize
-        ? BigNumber(claimableValue).dividedBy(1e18).toFormat(4)
-        : claimableValue;
-    } catch (error) {
-      this.logger.error(
-        'Error in Distribution when checking claimable tokens for',
-        address,
-        error
-      );
-    }
+
+      // Attach the event listener for the 'claimable' task
+      this.warpWorker!.addEventListener('message', handleMessage);
+    });
   }
 }
 
