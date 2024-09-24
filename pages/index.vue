@@ -64,7 +64,7 @@
                 Rewards history
               </h2>
               <p class="mb-4 text-sm mt-4">
-                Earn rewards by contributing relays to the ANON network.
+                Earn rewards by contributing relays to the ANYONE network.
                 <a
                   href="http://docs.anyone.io/"
                   target="_blank"
