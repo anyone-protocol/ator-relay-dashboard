@@ -140,7 +140,7 @@
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
                     formatEtherNoRound(
-                      facilitatorStore.avaliableAllocatedTokens || '0'
+                      facilitatorStore.availableAllocatedTokens || '0'
                     )
                   }}
                 </span>
