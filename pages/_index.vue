@@ -203,7 +203,7 @@ const handleClaimAllRewards = async () => {
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
                     formatEther(
-                      facilitatorStore.avaliableAllocatedTokens || '0'
+                      facilitatorStore.availableAllocatedTokens || '0'
                     )
                   }}
                 </span>

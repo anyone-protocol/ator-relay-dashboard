@@ -50,7 +50,7 @@ export const useUserStore = defineStore('user', {
     familyVerifiedCache: {} as Record<string, boolean>,
   }),
   actions: {
-    // Get ANON balance
+    // Get ANYONE balance
     async getTokenBalance(forceRefresh = false) {
       if (!this.userData.address) {
         return;
@@ -71,7 +71,7 @@ export const useUserStore = defineStore('user', {
 
       this.cacheTimings.tokenBalance = new Date().getTime();
     },
-    // Get ANON balance in USD using price store
+    // Get ANYONE balance in USD using price store
     async getUsdTokenBalance(forceRefresh = false) {
       if (!this.userData.address) {
         return;

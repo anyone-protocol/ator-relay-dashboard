@@ -1,6 +1,6 @@
 # AnyOne Relay Dashboard
 
-This repo houses the code to display the user specific information pertaining to ANON Relays.
+This repo houses the code to display the user specific information pertaining to ANYONE Relays.
 
 ## Tech used
 
@@ -59,4 +59,5 @@ Data is stored on chain using Arweave - this means it's permanent.
 Locally or in the app, the data is stored using Pinia.
 
 ## Resources
+
 - https://cookbook.g8way.io/concepts/index.html
