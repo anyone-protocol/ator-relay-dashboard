@@ -14,7 +14,7 @@
             @click="registerModalOpen = true"
             color="green"
             variant="outline"
-            label="Register Relay"
+            label="Delegate Tokens"
           />
         </div>
       </div>
@@ -41,14 +41,14 @@
       </h4>
       <UContainer>
         <p class="mb-[1rem] text-center">
-          Note: this is for you to register a relay for someone else.
+          Note: This is for you to delegate a token lock for someone else.
         </p>
         <div class="mb-6">
-          <UFormGroup label="EVM Address" class="mb-6">
+          <UFormGroup label="ETH Wallet Address" class="mb-6">
             <UInput
               v-model="ethAddress"
-              hint="EVM address associated with fingerprint"
-              placeholder="EVM Address"
+              hint="The ETH Wallet Address associated with the fingerprint"
+              placeholder="ETH Wallet Address"
               :rules="[rules.required]"
               :error="ethAddressError !== null"
               persistent-hint
@@ -58,7 +58,7 @@
           <UFormGroup label="Relay Fingerprint">
             <UInput
               v-model="fingerPrintRegister"
-              hint="Fingerprint associated with EVM Address"
+              hint="Fingerprint associated with the ETH Wallet Address"
               placeholder="Relay Fingerprint"
               :rules="[rules.required]"
               :error="fingerPrintRegisterError !== null"
@@ -82,6 +82,7 @@
             size="sm"
             color="primary"
             @click="handleLockRemote"
+            :loading="lockRemoteLoading"
           >
             Register
           </UButton>
@@ -106,6 +107,7 @@ import { type RelayTabType } from '@/types/relay';
 import Card from '~/components/ui-kit/Card.vue';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 import { useMediaQuery } from '@vueuse/core';
+import { lock } from 'ethers';
 
 const isMobile = useMediaQuery('(max-width: 1024px)');
 
@@ -182,17 +184,34 @@ const ethAddress = ref('');
 const ethAddressError = ref<string | null>(null);
 const fingerPrintRegister = ref('');
 const fingerPrintRegisterError = ref<string | null>(null);
+const lockRemoteLoading = ref(false);
 
 const rules = {
   required: (value: string) => !!value || 'Required',
 };
+const toast = useToast();
 
 const handleLockRemote = async () => {
+  lockRemoteLoading.value = true;
   if (fingerPrintRegisterError.value || ethAddressError.value) {
+    lockRemoteLoading.value = false;
+    toast.add({
+      title: 'Error',
+      description: 'Please fill in all fields',
+      color: 'red',
+    });
     return;
   }
 
   if (fingerPrintRegister.value == '' || ethAddress.value == '') {
+    lockRemoteLoading.value = false;
+
+    toast.add({
+      title: 'Error',
+      description: 'Please fill in all fields',
+      color: 'red',
+    });
+
     return;
   }
 
@@ -204,11 +223,25 @@ const handleLockRemote = async () => {
     );
     if (success != null && typeof success != typeof Error) {
       registerModalOpen.value = false;
+      toast.add({
+        title: 'Success',
+        description: 'Fingerprint registered successfully',
+        color: 'green',
+      });
+      lockRemoteLoading.value = false;
     } else {
       // handle error
+      toast.add({
+        title: 'Error',
+        description: 'Error registering fingerprint',
+        color: 'red',
+      });
+      lockRemoteLoading.value = false;
     }
   } catch (error: any) {
     // handle error
+
+    lockRemoteLoading.value = false;
   }
 };
 </script>
