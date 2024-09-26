@@ -451,7 +451,7 @@ const handleUnlockClick = async (fingerprint: string) => {
         icon: 'i-heroicons-circle-stack-20-solid',
         label:
           currentTab === 'claimable'
-            ? 'No Claimable relays!'
+            ? 'No claimable relays!'
             : 'No pending claimable or verified relays!',
       }"
     >
@@ -573,6 +573,10 @@ const handleUnlockClick = async (fingerprint: string) => {
               <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
                 <span class="text-gray-800 dark:text-white">Claimed:</span> This
                 item has already been claimed. No further action is needed.
+              </div>
+              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
+                <span class="text-gray-800 dark:text-white">No Credit:</span>
+                Your lock was successful, but is not yet confirmed on Arweave.
               </div>
               <!-- <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
                 <span class="text-gray-800 dark:text-white">Locked:</span> Your

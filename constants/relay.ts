@@ -66,7 +66,7 @@ export const RELAY_COLUMS: Record<
     },
     {
       key: 'observedBandwidth',
-      label: 'Observed Bandwith',
+      label: 'Observed Bandwidth',
     },
     {
       key: 'previousDistribution',
@@ -85,11 +85,11 @@ export const RELAY_COLUMS: Record<
 
 export const TABS = [
   {
-    label: 'All relays',
+    label: 'All Relays',
     key: 'all',
   },
   {
-    label: 'Claimable relays',
+    label: 'Claimable Relays',
     key: 'claimable',
   },
   {
