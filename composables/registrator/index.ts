@@ -260,7 +260,7 @@ export class Registrator {
           icon: 'i-heroicons-x-circle',
           color: 'amber',
           title: 'Error',
-          description: `Error redeem rewards: ${msg}`,
+          description: `Error locking rewards ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE: ${msg}`,
         });
       } else {
         toast.add({

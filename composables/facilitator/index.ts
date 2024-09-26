@@ -407,7 +407,28 @@ export class Facilitator {
       const to = await this.contract.getAddress();
 
       const result = await this.signer.sendTransaction({ to, value });
-      await result.wait();
+
+      const maxRetries = 3;
+      const delay = (ms: number) =>
+        new Promise((resolve) => setTimeout(resolve, ms));
+
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          await result.wait();
+          break;
+        } catch (error) {
+          if (attempt < maxRetries) {
+            this.logger.warn(
+              `Attempt ${attempt} failed, retrying in 2 seconds...`
+            );
+            await delay(2000);
+          } else {
+            throw new Error(
+              `Transaction confirmation failed after ${maxRetries} attempts`
+            );
+          }
+        }
+      }
       const block = await result.getBlock();
       const timestamp = block?.timestamp || Math.floor(Date.now() / 1000);
       useFacilitatorStore().addPendingClaim(result.hash, timestamp);
