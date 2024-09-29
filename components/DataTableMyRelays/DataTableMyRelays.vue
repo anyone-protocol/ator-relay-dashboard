@@ -481,18 +481,36 @@ const handleUnlockClick = async (fingerprint: string) => {
       <template #nickname-data="{ row }">
         {{ userStore?.relaysMeta?.[row.fingerprint]?.nickname || '-' }}
       </template>
+      <template #previousDistribution-header="{ column }">
+        <div class="flex gap-1 items-center">
+          <span>{{ column.label }}</span>
+          <Tooltip
+            placement="top"
+            arrow
+            text="The number of tokens earned by this relay in the last distribution period (typically 1-2 hours)"
+          >
+            <Icon name="heroicons:exclamation-circle" class="h-4" />
+          </Tooltip>
+        </div>
+      </template>
       <template #previousDistribution-data="{ row }">
         {{ facilitatorStore?.distributionPerRelay?.[row.fingerprint] || '-' }}
       </template>
 
       <template #active-data="{ row }">
-        <div
-          :class="
-            userStore?.relaysMeta?.[row.fingerprint]?.running
-              ? 'status-active'
-              : 'status-inactive'
-          "
-        ></div>
+        <div class="flex items-center">
+          <span
+            v-if="userStore?.relaysMeta?.[row.fingerprint]?.running === true"
+            class="status-active"
+          ></span>
+          <span
+            v-else-if="
+              userStore?.relaysMeta?.[row.fingerprint]?.running === false
+            "
+            class="status-inactive"
+          ></span>
+          <span v-else>-</span>
+        </div>
       </template>
 
       <template #consensusWeight-data="{ row }">

@@ -122,76 +122,110 @@ export const useMetricsStore = defineStore('metrics', {
     async refreshRelayMetrics(limit: number = 1) {
       const ardb = useArdb();
       const runtimeConfig = useRuntimeConfig();
+
       if (!this.latestHeight) {
         this.latestHeight = await getLatestBlockHeight();
       }
+
       if (!this.minimumHeight) {
         this.minimumHeight = await calculateMinimumQueryBlockHeight(
           this.latestHeight
         );
       }
+
       console.log('this.latestHeight', this.latestHeight);
       console.log('this.minimumHeight', this.minimumHeight);
 
       const txCache = useTxCache();
 
-      try {
-        const txs = (await ardb
-          .search('transactions')
-          .from(runtimeConfig.public.metricsDeployer as string)
-          .tags([
-            // { name: 'Protocol', values: 'ator' },
-            { name: 'Entity-Type', values: 'relay/metrics' },
-          ])
-          .limit(limit)
-          .min(this.minimumHeight)
-          // .max(this.latestHeight)
-          .sort('HEIGHT_DESC')
-          .find()) as ArdbTransaction[];
+      // Retry mechanism configuration
+      const maxRetries = 3;
+      const retryDelay = (attempt: number) => Math.min(3000 * attempt, 15000); // Exponential backoff (max 15s)
 
-        logger.info(`Got ${txs.length} relay/metrics transactions`);
+      const attemptFetch = async (attempt: number): Promise<void> => {
+        try {
+          if (!this.minimumHeight) {
+            throw new Error('Minimum height not set');
+          }
+          const txs = (await ardb
+            .search('transactions')
+            .from(runtimeConfig.public.metricsDeployer as string)
+            .tags([
+              // { name: 'Protocol', values: 'ator' },
+              { name: 'Entity-Type', values: 'relay/metrics' },
+            ])
+            .limit(limit)
+            .min(this.minimumHeight)
+            // .max(this.latestHeight)
+            .sort('HEIGHT_DESC')
+            .find()) as ArdbTransaction[];
 
-        const latestTx = txs[0];
+          logger.info(`Got ${txs.length} relay/metrics transactions`);
 
-        if (latestTx) {
-          const latestRelayMetrics = await txCache.getTransactionData<
-            VerificationResultDto[]
-          >(latestTx.id);
+          if (txs.length === 0) {
+            throw new Error('No transactions found');
+          }
 
-          if (latestRelayMetrics) {
-            logger.info('Got latest relay/metrics', latestRelayMetrics.length);
-            this.relays.latest = latestRelayMetrics;
-            console.log('latestRelayMetrics', latestRelayMetrics);
+          const latestTx = txs[0];
 
-            const userStore = useUserStore();
-            for (var metric in latestRelayMetrics) {
-              userStore.relaysMeta[
-                latestRelayMetrics[metric].relay.fingerprint
-              ] = {
-                fingerprint: latestRelayMetrics[metric].relay.fingerprint,
-                nickname: latestRelayMetrics[metric].relay.nickname,
-                status: '',
-                anon_address: latestRelayMetrics[metric].relay.anon_address,
-                consensus_weight:
-                  latestRelayMetrics[metric].relay.consensus_weight.toString(),
-                observed_bandwidth:
-                  latestRelayMetrics[metric].relay.observed_bandwidth,
-                consensus_weight_fraction:
-                  latestRelayMetrics[metric].relay.consensus_weight_fraction,
-                running: latestRelayMetrics[metric].relay.running,
-              };
-            }
+          if (latestTx) {
+            const latestRelayMetrics = await txCache.getTransactionData<
+              VerificationResultDto[]
+            >(latestTx.id);
 
-            const timestamp = parseTimestampTag(latestTx);
-            if (timestamp) {
-              this.relays.timestamp = timestamp;
+            if (latestRelayMetrics) {
+              logger.info(
+                'Got latest relay/metrics',
+                latestRelayMetrics.length
+              );
+              this.relays.latest = latestRelayMetrics;
+
+              const userStore = useUserStore();
+              latestRelayMetrics.forEach((metric) => {
+                userStore.relaysMeta[metric.relay.fingerprint] = {
+                  fingerprint: metric.relay.fingerprint,
+                  nickname: metric.relay.nickname,
+                  status: '',
+                  anon_address: metric.relay.anon_address,
+                  consensus_weight: metric.relay.consensus_weight.toString(),
+                  observed_bandwidth: metric.relay.observed_bandwidth,
+                  consensus_weight_fraction:
+                    metric.relay.consensus_weight_fraction,
+                  running: metric.relay.running,
+                };
+              });
+
+              const timestamp = parseTimestampTag(latestTx);
+              if (timestamp) {
+                this.relays.timestamp = timestamp;
+              }
             }
           }
+
+          this.relayMetricsPending = false;
+        } catch (error) {
+          logger.error(
+            `Error querying relay/metrics (attempt ${attempt}/${maxRetries}):`,
+            error
+          );
+
+          if (attempt < maxRetries) {
+            logger.warn(
+              `Retrying in ${retryDelay(attempt)}ms... (attempt ${attempt + 1})`
+            );
+            await new Promise((resolve) =>
+              setTimeout(resolve, retryDelay(attempt))
+            );
+            return attemptFetch(attempt + 1); // Retry after delay
+          } else {
+            logger.error('Max retries reached. Failed to fetch relay metrics.');
+            this.relayMetricsPending = false;
+          }
         }
-        this.relayMetricsPending = false;
-      } catch (error) {
-        logger.error('Error querying relay/metrics', error);
-      }
+      };
+
+      // Start the fetch with retries
+      return attemptFetch(1);
     },
 
     async refreshValidationStats(limit: number = 1) {

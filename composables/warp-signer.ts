@@ -41,7 +41,7 @@ export class WarpSigner extends InjectedEthereumSigner {
 
   override async setPublicKey() {
     let message =
-      'Please sign this message to authenticate with the AnyOne dashboard.  ' +
+      'Please sign this message to authenticate with the Anyone dashboard.  ' +
       'You will only need to do this once per session when interacting with ' +
       'the Relay Registry.';
 

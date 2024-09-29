@@ -459,12 +459,16 @@ const handleUnlockClick = async (fingerprint: string) => {
         <div class="font-semibold">Running</div>
         <div class="flex items-center">
           <span
-            :class="
-              userStore?.relaysMeta?.[row.fingerprint]?.running
-                ? 'status-active'
-                : 'status-inactive'
-            "
+            v-if="userStore?.relaysMeta?.[row.fingerprint]?.running === true"
+            class="status-active"
           ></span>
+          <span
+            v-else-if="
+              userStore?.relaysMeta?.[row.fingerprint]?.running === false
+            "
+            class="status-inactive"
+          ></span>
+          <span v-else>-</span>
         </div>
       </div>
       <div class="flex justify-between items-center mt-2">
@@ -493,7 +497,18 @@ const handleUnlockClick = async (fingerprint: string) => {
         </div>
       </div>
       <div class="flex justify-between items-center mt-2">
-        <div class="font-semibold">Previous Distribution</div>
+        <div class="font-semibold flex gap-1 justify-center content-center">
+          Previous Distribution
+          <div class="flex gap-1 items-center">
+            <Tooltip
+              placement="top"
+              arrow
+              text="The number of tokens earned by this relay in the last distribution period (typically 1-2 hours)"
+            >
+              <Icon name="heroicons:exclamation-circle" class="h-4" />
+            </Tooltip>
+          </div>
+        </div>
         <div>
           <span>
             {{
@@ -505,13 +520,15 @@ const handleUnlockClick = async (fingerprint: string) => {
       <div class="flex justify-between items-center mt-2">
         <div class="font-semibold flex gap-1 justify-center content-center">
           Lock Status
-          <Tooltip
-            placement="top"
-            arrow
-            text="Shows the current lock status of the Registration."
-          >
-            <Icon name="heroicons:exclamation-circle" class="h-4" />
-          </Tooltip>
+          <div class="flex gap-1 items-center">
+            <Tooltip
+              placement="top"
+              arrow
+              text="Shows the current lock status of the Registration."
+            >
+              <Icon name="heroicons:exclamation-circle" class="h-4" />
+            </Tooltip>
+          </div>
         </div>
         <LockStatusColumn
           :is-locked="registratorStore.isRelayLocked(row.fingerprint)"
