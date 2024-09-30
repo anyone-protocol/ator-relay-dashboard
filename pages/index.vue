@@ -240,6 +240,9 @@ onMounted(async () => {
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     await fetchInitialData(userStore.userData.address);
+    if (!facilitatorStore.pendingClaim) {
+      progressLoading.value = 0;
+    }
   } catch (error) {
     console.error('Error during onMounted execution', error);
   } finally {
@@ -294,6 +297,7 @@ const handleClaimAllRewards = async () => {
   }
 
   isRedeemLoading.value = false;
+  facilitatorStore.pendingClaim = null;
   progressLoading.value = 0;
 };
 </script>
