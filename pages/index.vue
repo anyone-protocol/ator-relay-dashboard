@@ -240,6 +240,9 @@ onMounted(async () => {
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     await fetchInitialData(userStore.userData.address);
+    if (!facilitatorStore.pendingClaim) {
+      progressLoading.value = 0;
+    }
   } catch (error) {
     console.error('Error during onMounted execution', error);
   } finally {
@@ -267,7 +270,23 @@ const handleClaimAllRewards = async () => {
 
   try {
     const facilitator = useFacilitator();
-    await facilitator?.claim();
+    const response = await facilitator?.claim();
+    if (response) {
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        color: 'blue',
+        title: 'Success',
+        description:
+          'Rewards redeemed successfully please wait for the transaction to be saved',
+      });
+    } else {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: 'Error redeeming rewards',
+      });
+    }
   } catch (error) {
     toast.add({
       icon: 'i-heroicons-x-circle',
@@ -278,6 +297,7 @@ const handleClaimAllRewards = async () => {
   }
 
   isRedeemLoading.value = false;
+  facilitatorStore.pendingClaim = null;
   progressLoading.value = 0;
 };
 </script>
