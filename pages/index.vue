@@ -267,7 +267,23 @@ const handleClaimAllRewards = async () => {
 
   try {
     const facilitator = useFacilitator();
-    await facilitator?.claim();
+    const response = await facilitator?.claim();
+    if (response) {
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        color: 'blue',
+        title: 'Success',
+        description:
+          'Rewards redeemed successfully please wait for the transaction to be saved',
+      });
+    } else {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: 'Error redeeming rewards',
+      });
+    }
   } catch (error) {
     toast.add({
       icon: 'i-heroicons-x-circle',

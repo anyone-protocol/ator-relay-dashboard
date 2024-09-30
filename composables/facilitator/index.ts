@@ -379,6 +379,8 @@ export class Facilitator {
   }
 
   async claim(): Promise<TransactionResponse | null> {
+    const toast = useToast();
+
     const auth = useUserStore();
 
     let signer: JsonRpcSigner | undefined;
@@ -392,13 +394,23 @@ export class Facilitator {
     await this.setSigner(signer);
 
     if (!this.signer) {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: ERRORS.NO_SIGNER,
+      });
       throw new Error(ERRORS.NO_SIGNER);
     }
     if (!this.contract) {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: ERRORS.NOT_INITIALIZED,
+      });
       throw new Error(ERRORS.NOT_INITIALIZED);
     }
-
-    const toast = useToast();
 
     try {
       const oracleWeiRequired = await this.getOracleWeiRequired();
@@ -415,7 +427,7 @@ export class Facilitator {
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           await result.wait();
-          break;
+          continue;
         } catch (error) {
           if (attempt < maxRetries) {
             this.logger.warn(
