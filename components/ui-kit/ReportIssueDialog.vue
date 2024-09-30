@@ -71,6 +71,7 @@
             color="primary"
             icon="i-heroicons-link"
             @click="onReportIssueClicked"
+            :loading="onReportIssueLoading"
           >
             Open GitHub Issue
           </UButton>
@@ -99,6 +100,8 @@ const titleError = ref<string | null>(null);
 const includeEncryptedLogs = ref<boolean>(true);
 const desc = ref<string>('');
 const { isReportIssueOpen } = storeToRefs(eventlog);
+const onReportIssueLoading = ref<boolean>(false);
+const toast = useToast();
 
 const rules = {
   required: (value: string) => !!value || 'Required',
@@ -126,7 +129,20 @@ const validateTitle = () => {
 };
 
 const onReportIssueClicked = debounce(async () => {
+  onReportIssueLoading.value = true;
+  toast.add({
+    title: 'Opening GitHub Issue...',
+    icon: 'i-heroicons-check-circle',
+    color: 'primary',
+  });
   if (!validateTitle()) {
+    onReportIssueLoading.value = false;
+    toast.remove('Opening GitHub Issue...');
+    toast.add({
+      title: 'Title is required',
+      color: 'red',
+      icon: 'i-heroicons-x-circle',
+    });
     return;
   }
 
@@ -139,7 +155,14 @@ const onReportIssueClicked = debounce(async () => {
     if (includeEncryptedLogs.value) {
       const signer = await useWarpSigner();
       if (!signer) {
-        // TODO -> alert user they don't have a wallet connected
+        onReportIssueLoading.value = false;
+        toast.remove('Opening GitHub Issue...');
+        toast.add({
+          title: 'Error opening GitHub Issue',
+          description: 'Signer not available',
+          color: 'red',
+          icon: 'i-heroicons-x-circle',
+        });
         return;
       }
 
@@ -155,6 +178,14 @@ const onReportIssueClicked = debounce(async () => {
         phase: config.public.phase || 'unknown',
       };
       const message = JSON.stringify(supportIssue);
+      toast.remove('Opening GitHub Issue...');
+      toast.add({
+        title: 'Opening GitHub Issue...',
+        description: 'Generating encrypted logs...',
+        icon: 'i-heroicons-check-circle',
+        color: 'primary',
+      });
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const { messageId } =
         await encryptedMessages.sendEncryptedMessage(message);
       encryptedBody = `\n\n**Logs**\nMessage ID: ${messageId}`;
@@ -163,12 +194,31 @@ const onReportIssueClicked = debounce(async () => {
     const body = encodeURI(baseBody + encryptedBody);
     const urlBase = `${config.public.githubNewIssueUrl}?template=bug_report.md`;
     url = `${urlBase}&title=${encodeURI(title.value)}&body=${body}`;
+    onReportIssueLoading.value = false;
 
     logger.info('creating new issue with url', url);
   } catch (error) {
+    toast.remove('Opening GitHub Issue...');
+    toast.add({
+      title: 'Error opening GitHub Issue',
+      description: 'Please try again later',
+      color: 'red',
+      icon: 'i-heroicons-x-circle',
+    });
+    onReportIssueLoading.value = false;
+
     logger.error('Error reporting issue', error);
   }
   if (url) {
+    toast.remove('Opening GitHub Issue...');
+    toast.add({
+      title: 'Opening GitHub Issue...',
+      description: 'Opening in new tab...',
+      icon: 'i-heroicons-check-circle',
+      color: 'primary',
+    });
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+
     window.open(url, '_blank');
   }
 });

@@ -479,8 +479,11 @@ const handleUnlockClick = async (fingerprint: string) => {
       <div class="flex justify-between items-center mt-2">
         <div class="font-semibold">Observed Bandwidth</div>
         <div>
+          <template v-if="metricsStore.relayMetricsPending">
+            <USkeleton class="w-[15rem] h-10" />
+          </template>
           <span
-            v-if="
+            v-else-if="
               userStore?.relaysMeta?.[row.fingerprint]?.observed_bandwidth !==
               undefined
             "
@@ -500,13 +503,19 @@ const handleUnlockClick = async (fingerprint: string) => {
         <div class="font-semibold flex gap-1 justify-center content-center">
           Previous Distribution
           <div class="flex gap-1 items-center">
-            <Tooltip
-              placement="top"
-              arrow
-              text="The number of tokens earned by this relay in the last distribution period (typically 1-2 hours)"
-            >
-              <Icon name="heroicons:exclamation-circle" class="h-4" />
-            </Tooltip>
+            <Popover placement="top" :arrow="false">
+              <template #content>
+                <div
+                  class="text-xs font-normal text-gray-600 dark:text-gray-300"
+                >
+                  The number of tokens earned by this relay in the last
+                  distribution period (typically 1-2 hours)
+                </div>
+              </template>
+              <template #trigger>
+                <div><Icon name="heroicons:exclamation-circle" /></div>
+              </template>
+            </Popover>
           </div>
         </div>
         <div>

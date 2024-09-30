@@ -484,13 +484,17 @@ const handleUnlockClick = async (fingerprint: string) => {
       <template #previousDistribution-header="{ column }">
         <div class="flex gap-1 items-center">
           <span>{{ column.label }}</span>
-          <Tooltip
-            placement="top"
-            arrow
-            text="The number of tokens earned by this relay in the last distribution period (typically 1-2 hours)"
-          >
-            <Icon name="heroicons:exclamation-circle" class="h-4" />
-          </Tooltip>
+          <Popover placement="top" :arrow="false">
+            <template #content>
+              <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
+                The number of tokens earned by this relay in the last
+                distribution period (typically 1-2 hours)
+              </div>
+            </template>
+            <template #trigger>
+              <div><Icon name="heroicons:exclamation-circle" /></div>
+            </template>
+          </Popover>
         </div>
       </template>
       <template #previousDistribution-data="{ row }">
@@ -518,7 +522,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           <USkeleton class="w-[15rem] h-10" />
         </template>
         <span
-          v-else="
+          v-else-if="
             userStore?.relaysMeta?.[row.fingerprint]?.consensus_weight !==
             undefined
           "
