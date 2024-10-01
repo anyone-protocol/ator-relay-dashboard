@@ -66,7 +66,7 @@
               <p class="mb-4 text-sm mt-4">
                 Earn rewards by contributing relays to the ANYONE network.
                 <a
-                  href="http://docs.anyone.io/"
+                  href="https://docs.anyone.io/relay/rewards"
                   target="_blank"
                   class="dark:text-cyan-200 text-cyan-500 underline"
                 >

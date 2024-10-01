@@ -60,7 +60,7 @@ export default defineNuxtConfig({
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',
       facilitatorContract: '0x21A828Cfa790D972214757d523fD921e2e7318fD',
       sepoliaAtorTokenContract: '0x3F7D7e1161B4CbC172517a2957A13814f4a657A2',
-      tokenContractMain: '0x0f7b3f5a8fed821c5eb60049538a548db2d479ce',
+      tokenContractMain: '0xFeAc2Eae96899709a43E252B6B92971D32F9C0F9',
       distributionContract: 'HV-i0cL-TovWldEDDITqZQsOca2lzk2FkiLcaukq8TM',
       metricsDeployer: '53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q',
       registratorContract: '0x86e55b81cf6a86b9EFb630c0E6Ad91E53a509A35',
@@ -72,7 +72,7 @@ export default defineNuxtConfig({
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.2.8',
+      version: '1.2.9',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
