@@ -92,6 +92,17 @@ export const useFacilitatorStore = defineStore('facilitator', {
         }
       }
     },
+    resetPendingClaim() {
+      const userStore = useUserStore();
+
+      logger.info('resetPendingClaim()');
+      this.pendingClaim = null;
+
+      // Save  pendingClaim to local storage
+      if (userStore.userData.address) {
+        resetPendingClaimSessionStorage(userStore.userData.address);
+      }
+    },
 
     async onAllocationUpdated(
       amount: bigint,

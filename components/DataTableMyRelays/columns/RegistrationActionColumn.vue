@@ -14,6 +14,7 @@ const props = defineProps<{
   registrationCreditsRequired: boolean;
   familyVerified: boolean | undefined;
   familyRequired: boolean;
+  relayActionOngoing: boolean;
 }>();
 </script>
 
@@ -31,7 +32,7 @@ const props = defineProps<{
         label="Claimed"
         class="flex-col text-xs"
         @click="emit('onLockRelay', props.row.fingerprint)"
-        :disabled="row?.isWorking"
+        :disabled="row?.isWorking || props.relayActionOngoing"
         block
       >
         <div class="text-sm font-medium">Lock</div>
@@ -50,7 +51,7 @@ const props = defineProps<{
         label="Claim Now"
         @click="emit('relayAction', 'claim', props.row.fingerprint)"
         :trailing="false"
-        :disabled="row?.isWorking"
+        :disabled="row?.isWorking || props.relayActionOngoing"
         block
       />
       <UButton
