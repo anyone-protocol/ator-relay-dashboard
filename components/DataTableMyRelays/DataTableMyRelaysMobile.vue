@@ -48,6 +48,8 @@ onMounted(() => {
   setInterval(() => {
     if (registrator) {
       if (userStore.userData.address) {
+        // refresh the relays every minute
+        userStore.createRelayCache();
         registrator.getLokedRelaysTokens(userStore.userData.address);
       }
     }
@@ -179,7 +181,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     }
 
     actionPromise
-      .then((res) => {
+      .then(async (res) => {
         if (!res) {
           selectedRow!.class = '';
           selectedRow!.isWorking = false;
@@ -188,11 +190,16 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
         }
 
         // Refresh the relays cache
+        // wait 1s to allow the transaction to be mined
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         return userStore
           .createRelayCache()
           .then(() => userStore.getVerifiedRelays())
           .then(() => userStore.getClaimableRelays())
           .then(() => {
+            if (action !== 'renounce') {
+              selectedRow!.status = 'verified';
+            }
             toast.add({
               icon: 'i-heroicons-check-circle',
               color: 'primary',
@@ -217,11 +224,6 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
         }
       })
       .finally(() => {
-        if (action === 'claim') {
-          // Refresh the relays cache
-          userStore.createRelayCache();
-          selectedRow!.status = 'verified';
-        }
         selectedRow!.class = '';
         selectedRow!.isWorking = false;
         relayActionOngoing.value = false;
