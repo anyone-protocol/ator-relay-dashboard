@@ -28,3 +28,12 @@ export const getRedeemProcessSessionStorage = (
 
   return data?.[address] || null;
 };
+
+export const resetPendingClaimSessionStorage = (address: string) => {
+  const data =
+    JSON.parse(sessionStorage.getItem('pendingClaim') || 'null') || {};
+
+  delete data[address];
+
+  sessionStorage.setItem('pendingClaim', JSON.stringify(data));
+};

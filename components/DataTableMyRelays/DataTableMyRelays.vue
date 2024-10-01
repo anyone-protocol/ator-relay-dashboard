@@ -107,6 +107,8 @@ const familyVerified = ref<Record<string, boolean>>({});
 const registrationCreditsRequired = ref<boolean>(true);
 const familyRequired = ref<boolean>(true);
 
+const relayActionOngoing = ref<boolean>(false);
+
 const fetchRegistrationCredit = async () => {
   if (allRelays.value) {
     for (const relay of filterUniqueRelays(allRelays.value)) {
@@ -157,6 +159,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     (row) => row.fingerprint === fingerprint
   );
   selectedRow!.isWorking = true;
+  relayActionOngoing.value = true;
   selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
@@ -179,6 +182,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
         if (!res) {
           selectedRow!.class = '';
           selectedRow!.isWorking = false;
+          relayActionOngoing.value = false;
           return;
         }
 
@@ -212,12 +216,19 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
         }
       })
       .finally(() => {
+        if (action === 'claim') {
+          // Refresh the relays cache
+          userStore.createRelayCache();
+          selectedRow!.status = 'verified';
+        }
         selectedRow!.class = '';
         selectedRow!.isWorking = false;
+        relayActionOngoing.value = false;
       });
   } catch (error) {
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
+    relayActionOngoing.value = false;
   }
 };
 
@@ -248,6 +259,7 @@ const handleLockRelay = async (fingerprint: string) => {
     (row) => row.fingerprint === fingerprint
   );
   selectedRow!.isWorking = true;
+  relayActionOngoing.value = true;
   selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
@@ -256,9 +268,11 @@ const handleLockRelay = async (fingerprint: string) => {
 
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
+    relayActionOngoing.value = false;
   } catch {
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
+    relayActionOngoing.value = false;
   }
 };
 
@@ -626,6 +640,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           :registration-credits-required="registrationCreditsRequired"
           :family-verified="familyVerified[row.fingerprint]"
           :family-required="familyRequired"
+          :relay-action-ongoing="relayActionOngoing"
         />
       </template>
       <template #unlock-data="{ row }">

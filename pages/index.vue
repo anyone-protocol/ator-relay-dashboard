@@ -206,6 +206,11 @@ const fetchInitialData = async (
     }
 
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
+    // Pending claim is not null on initial load
+    if (facilitatorStore.pendingClaim) {
+      facilitatorStore.resetPendingClaim();
+      facilitatorStore.pendingClaim = null;
+    }
 
     await Promise.all([
       userStore.getTokenBalance(),
