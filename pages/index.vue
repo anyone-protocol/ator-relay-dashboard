@@ -66,7 +66,7 @@
               <p class="mb-4 text-sm mt-4">
                 Earn rewards by contributing relays to the ANYONE network.
                 <a
-                  href="http://docs.anyone.io/"
+                  href="https://docs.anyone.io/relay/rewards"
                   target="_blank"
                   class="dark:text-cyan-200 text-cyan-500 underline"
                 >
@@ -206,6 +206,11 @@ const fetchInitialData = async (
     }
 
     facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
+    // Pending claim is not null on initial load
+    if (facilitatorStore.pendingClaim) {
+      facilitatorStore.resetPendingClaim();
+      facilitatorStore.pendingClaim = null;
+    }
 
     await Promise.all([
       userStore.getTokenBalance(),
@@ -240,6 +245,9 @@ onMounted(async () => {
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     await fetchInitialData(userStore.userData.address);
+    if (!facilitatorStore.pendingClaim) {
+      progressLoading.value = 0;
+    }
   } catch (error) {
     console.error('Error during onMounted execution', error);
   } finally {
@@ -267,7 +275,23 @@ const handleClaimAllRewards = async () => {
 
   try {
     const facilitator = useFacilitator();
-    await facilitator?.claim();
+    const response = await facilitator?.claim();
+    if (response) {
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        color: 'blue',
+        title: 'Success',
+        description:
+          'Rewards redeemed successfully please wait for the transaction to be saved',
+      });
+    } else {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: 'Error redeeming rewards',
+      });
+    }
   } catch (error) {
     toast.add({
       icon: 'i-heroicons-x-circle',
@@ -278,6 +302,7 @@ const handleClaimAllRewards = async () => {
   }
 
   isRedeemLoading.value = false;
+  facilitatorStore.pendingClaim = null;
   progressLoading.value = 0;
 };
 </script>

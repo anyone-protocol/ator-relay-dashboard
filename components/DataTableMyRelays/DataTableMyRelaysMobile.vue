@@ -48,6 +48,8 @@ onMounted(() => {
   setInterval(() => {
     if (registrator) {
       if (userStore.userData.address) {
+        // refresh the relays every minute
+        userStore.createRelayCache();
         registrator.getLokedRelaysTokens(userStore.userData.address);
       }
     }
@@ -109,6 +111,8 @@ const familyVerified = ref<Record<string, boolean>>({});
 const registrationCreditsRequired = ref<boolean>(true);
 const familyRequired = ref<boolean>(true);
 
+const relayActionOngoing = ref<boolean>(false);
+
 const fetchRegistrationCredit = async () => {
   if (allRelays.value) {
     for (const relay of filterUniqueRelays(allRelays.value)) {
@@ -158,6 +162,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     (row) => row.fingerprint === fingerprint
   );
   selectedRow!.isWorking = true;
+  relayActionOngoing.value = true;
   selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
@@ -176,19 +181,25 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     }
 
     actionPromise
-      .then((res) => {
+      .then(async (res) => {
         if (!res) {
           selectedRow!.class = '';
           selectedRow!.isWorking = false;
+          relayActionOngoing.value = false;
           return;
         }
 
         // Refresh the relays cache
+        // wait 1s to allow the transaction to be mined
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         return userStore
           .createRelayCache()
           .then(() => userStore.getVerifiedRelays())
           .then(() => userStore.getClaimableRelays())
           .then(() => {
+            if (action !== 'renounce') {
+              selectedRow!.status = 'verified';
+            }
             toast.add({
               icon: 'i-heroicons-check-circle',
               color: 'primary',
@@ -215,10 +226,12 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
       .finally(() => {
         selectedRow!.class = '';
         selectedRow!.isWorking = false;
+        relayActionOngoing.value = false;
       });
   } catch (error) {
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
+    relayActionOngoing.value = false;
   }
 };
 
@@ -249,6 +262,7 @@ const handleLockRelay = async (fingerprint: string) => {
     (row) => row.fingerprint === fingerprint
   );
   selectedRow!.isWorking = true;
+  relayActionOngoing.value = true;
   selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
@@ -257,9 +271,11 @@ const handleLockRelay = async (fingerprint: string) => {
 
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
+    relayActionOngoing.value = false;
   } catch {
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
+    relayActionOngoing.value = false;
   }
 };
 
@@ -479,8 +495,11 @@ const handleUnlockClick = async (fingerprint: string) => {
       <div class="flex justify-between items-center mt-2">
         <div class="font-semibold">Observed Bandwidth</div>
         <div>
+          <template v-if="metricsStore.relayMetricsPending">
+            <USkeleton class="w-[15rem] h-10" />
+          </template>
           <span
-            v-if="
+            v-else-if="
               userStore?.relaysMeta?.[row.fingerprint]?.observed_bandwidth !==
               undefined
             "
@@ -500,13 +519,19 @@ const handleUnlockClick = async (fingerprint: string) => {
         <div class="font-semibold flex gap-1 justify-center content-center">
           Previous Distribution
           <div class="flex gap-1 items-center">
-            <Tooltip
-              placement="top"
-              arrow
-              text="The number of tokens earned by this relay in the last distribution period (typically 1-2 hours)"
-            >
-              <Icon name="heroicons:exclamation-circle" class="h-4" />
-            </Tooltip>
+            <Popover placement="top" :arrow="false">
+              <template #content>
+                <div
+                  class="text-xs font-normal text-gray-600 dark:text-gray-300"
+                >
+                  The number of tokens earned by this relay in the last
+                  distribution period (typically 1-2 hours)
+                </div>
+              </template>
+              <template #trigger>
+                <div><Icon name="heroicons:exclamation-circle" /></div>
+              </template>
+            </Popover>
           </div>
         </div>
         <div>
@@ -554,6 +579,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           :registration-credits-required="registrationCreditsRequired"
           :family-verified="familyVerified[row.fingerprint]"
           :family-required="familyRequired"
+          :relay-action-ongoing="relayActionOngoing"
         />
         <UButton
           v-if="currentTab === 'locked'"

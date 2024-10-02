@@ -57,13 +57,13 @@ export default defineNuxtConfig({
     public: {
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
-      relayRegistryAddress: 'soNHpTqa2LCXjt-TQ1owmaTMeEJqa3cTyvJtsGyXqv8',
-      facilitatorContract: '0xF248C1ea13a787037E2BCBbAfc42bde920B84D07',
+      relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',
+      facilitatorContract: '0x21A828Cfa790D972214757d523fD921e2e7318fD',
       sepoliaAtorTokenContract: '0x3F7D7e1161B4CbC172517a2957A13814f4a657A2',
-      tokenContractMain: '0x0f7b3f5a8fed821c5eb60049538a548db2d479ce',
-      distributionContract: '3a4pE8sSmmp2MdkOzVS6cc-PgYnwgSSEmFN8MW7_w50',
+      tokenContractMain: '0xFeAc2Eae96899709a43E252B6B92971D32F9C0F9',
+      distributionContract: 'HV-i0cL-TovWldEDDITqZQsOca2lzk2FkiLcaukq8TM',
       metricsDeployer: '53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q',
-      registratorContract: '0xc148c615b87e63Dcc90e55d53B44172503cCe889',
+      registratorContract: '0x86e55b81cf6a86b9EFb630c0E6Ad91E53a509A35',
       distributionDeployer: 'G5tXjZS4SaMJNwOENZYgymvc6Zxp2Wws4Qf8wB0b',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
       githubNewIssueUrl:
@@ -72,7 +72,7 @@ export default defineNuxtConfig({
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.2.6',
+      version: '1.2.9',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
