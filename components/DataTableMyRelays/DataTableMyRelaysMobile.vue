@@ -49,7 +49,6 @@ onMounted(() => {
     if (registrator) {
       if (userStore.userData.address) {
         // refresh the relays every minute
-        userStore.createRelayCache();
         registrator.getLokedRelaysTokens(userStore.userData.address);
       }
     }
@@ -197,8 +196,27 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           .then(() => userStore.getVerifiedRelays())
           .then(() => userStore.getClaimableRelays())
           .then(() => {
-            if (action !== 'renounce') {
-              selectedRow!.status = 'verified';
+            if (action === 'claim') {
+              const index = allRelays.value.findIndex(
+                (row) => row.fingerprint === fingerprint
+              );
+              if (index !== -1) {
+                allRelays.value[index] = {
+                  ...selectedRow,
+                  status: 'verified',
+                  fingerprint: selectedRow!.fingerprint,
+                  consensusWeight: selectedRow!.consensusWeight ?? 0,
+                  observedBandwidth: selectedRow!.observedBandwidth ?? 0,
+                  active: selectedRow!.active ?? false,
+                };
+              }
+            } else if (action === 'renounce') {
+              const index = allRelays.value.findIndex(
+                (row) => row.fingerprint === fingerprint
+              );
+              if (index !== -1) {
+                allRelays.value.splice(index, 1);
+              }
             }
             toast.add({
               icon: 'i-heroicons-check-circle',

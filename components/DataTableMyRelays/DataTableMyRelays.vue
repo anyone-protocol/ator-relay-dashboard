@@ -72,16 +72,6 @@ const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
     watch: [address],
   }
 );
-const { error: claimableRelaysError, pending: claimablePending } =
-  await useAsyncData('claimableRelays', () => userStore.getClaimableRelays(), {
-    watch: [address],
-  });
-
-const { error: verifiedRelaysError, pending: verifiedPending } =
-  await useAsyncData('verifiedRelays', () => userStore.getVerifiedRelays(), {
-    server: false,
-    watch: [address],
-  });
 
 const isHardwareResolved = reactive<Record<string, boolean>>({});
 
@@ -138,23 +128,7 @@ if ((allRelaysError as any).value?.cause?.message == 'rate limited') {
   });
 }
 
-const timestamp = computed(
-  () => metricsStore.relays.timestamp && new Date(metricsStore.relays.timestamp)
-);
-
-// The user's relays
-const fingerprints = computed(() => {
-  return allRelays.value.map((relay) => relay.fingerprint);
-});
-
 const relayAction = async (action: FunctionName, fingerprint: string) => {
-  //TODO: Sign the message
-  // See: The following resources
-  // https://academy.warp.cc/docs/sdk/advanced/plugins/signature
-  // https://github.com/brewlabs-code/ator/blob/main/composables/warp-signer.ts
-  // https://docs.google.com/document/d/1VLRd2bP96avNZksMwrf8WSDmcAwrcaQpYAd5SUGDhx0/edit?pli=1#heading=h.gtsv79v2cvnl
-
-  // Apply style to the selected row
   const selectedRow = allRelays.value.find(
     (row) => row.fingerprint === fingerprint
   );
@@ -185,19 +159,48 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           relayActionOngoing.value = false;
           return;
         }
+        console.log('res', res);
+        console.log(selectedRow);
 
         // Refresh the relays cache
         // wait 1s to allow the transaction to be mined
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 6000));
+        // Refresh the relays
 
         return userStore
           .createRelayCache()
           .then(() => userStore.getVerifiedRelays())
           .then(() => userStore.getClaimableRelays())
           .then(() => {
-            if (action !== 'renounce') {
-              selectedRow!.status = 'verified';
+            if (action === 'claim') {
+              // console.log(allRelays.value, 'all relays');
+              // console.log('claim change');
+              const index = allRelays.value.findIndex(
+                (row) => row.fingerprint === fingerprint
+              );
+              // console.log(index, 'index claim');
+              if (index !== -1) {
+                allRelays.value.splice(index, 1, {
+                  ...selectedRow,
+                  status: 'verified',
+                  fingerprint: selectedRow!.fingerprint,
+                  consensusWeight: selectedRow!.consensusWeight ?? 0,
+                  observedBandwidth: selectedRow!.observedBandwidth ?? 0,
+                  active: selectedRow!.active ?? false,
+                });
+              }
+            } else if (action === 'renounce') {
+              console.log('renounce change...');
+
+              const index = allRelays.value.findIndex(
+                (row) => row.fingerprint === fingerprint
+              );
+              if (index !== -1) {
+                allRelays.value.splice(index, 1);
+              }
             }
+            // console.log(selectedRow, 'selectedRow');
+            // console.log(allRelays.value, 'all relays');
 
             toast.add({
               icon: 'i-heroicons-check-circle',
