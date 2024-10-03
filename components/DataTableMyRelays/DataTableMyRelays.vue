@@ -73,6 +73,16 @@ const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
   }
 );
 
+const { error: claimableRelaysError, pending: claimablePending } =
+  await useAsyncData('claimableRelays', () => userStore.getClaimableRelays(), {
+    watch: [address],
+  });
+const { error: verifiedRelaysError, pending: verifiedPending } =
+  await useAsyncData('verifiedRelays', () => userStore.getVerifiedRelays(), {
+    server: false,
+    watch: [address],
+  });
+
 const isHardwareResolved = reactive<Record<string, boolean>>({});
 
 const resolveIsHardware = async (fingerprints: string[]) => {
@@ -127,6 +137,15 @@ if ((allRelaysError as any).value?.cause?.message == 'rate limited') {
     description: 'Please wait...',
   });
 }
+
+const timestamp = computed(
+  () => metricsStore.relays.timestamp && new Date(metricsStore.relays.timestamp)
+);
+
+// The user's relays
+const fingerprints = computed(() => {
+  return allRelays.value.map((relay) => relay.fingerprint);
+});
 
 const relayAction = async (action: FunctionName, fingerprint: string) => {
   const selectedRow = allRelays.value.find(
