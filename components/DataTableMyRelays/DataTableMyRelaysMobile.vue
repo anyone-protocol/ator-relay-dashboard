@@ -189,8 +189,8 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
         }
 
         // Refresh the relays cache
-        // wait 1s to allow the transaction to be mined
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // wait 6s to allow the transaction to be mined
+        await new Promise((resolve) => setTimeout(resolve, 6000));
         return userStore
           .createRelayCache()
           .then(() => userStore.getVerifiedRelays())
@@ -201,16 +201,18 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
                 (row) => row.fingerprint === fingerprint
               );
               if (index !== -1) {
-                allRelays.value[index] = {
+                allRelays.value.splice(index, 1, {
                   ...selectedRow,
                   status: 'verified',
                   fingerprint: selectedRow!.fingerprint,
                   consensusWeight: selectedRow!.consensusWeight ?? 0,
                   observedBandwidth: selectedRow!.observedBandwidth ?? 0,
                   active: selectedRow!.active ?? false,
-                };
+                });
               }
             } else if (action === 'renounce') {
+              console.log('renounce change...');
+
               const index = allRelays.value.findIndex(
                 (row) => row.fingerprint === fingerprint
               );
@@ -218,6 +220,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
                 allRelays.value.splice(index, 1);
               }
             }
+
             toast.add({
               icon: 'i-heroicons-check-circle',
               color: 'primary',

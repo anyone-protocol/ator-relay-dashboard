@@ -159,11 +159,8 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           relayActionOngoing.value = false;
           return;
         }
-        console.log('res', res);
-        console.log(selectedRow);
 
-        // Refresh the relays cache
-        // wait 1s to allow the transaction to be mined
+        // wait 6s to allow the transaction to be mined
         await new Promise((resolve) => setTimeout(resolve, 6000));
         // Refresh the relays
 
@@ -173,12 +170,9 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           .then(() => userStore.getClaimableRelays())
           .then(() => {
             if (action === 'claim') {
-              // console.log(allRelays.value, 'all relays');
-              // console.log('claim change');
               const index = allRelays.value.findIndex(
                 (row) => row.fingerprint === fingerprint
               );
-              // console.log(index, 'index claim');
               if (index !== -1) {
                 allRelays.value.splice(index, 1, {
                   ...selectedRow,
@@ -199,8 +193,6 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
                 allRelays.value.splice(index, 1);
               }
             }
-            // console.log(selectedRow, 'selectedRow');
-            // console.log(allRelays.value, 'all relays');
 
             toast.add({
               icon: 'i-heroicons-check-circle',
