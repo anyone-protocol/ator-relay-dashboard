@@ -179,50 +179,72 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           return;
         }
 
-        // wait 6s to allow the transaction to be mined
-        await new Promise((resolve) => setTimeout(resolve, 6000));
-        // Refresh the relays
+        const maxRetries = 3;
+        let retryCount = 0;
 
-        return userStore
-          .createRelayCache()
-          .then(() => userStore.getVerifiedRelays())
-          .then(() => userStore.getClaimableRelays())
-          .then(() => {
-            if (action === 'claim') {
-              const index = allRelays.value.findIndex(
-                (row) => row.fingerprint === fingerprint
-              );
-              if (index !== -1) {
-                allRelays.value.splice(index, 1, {
-                  ...selectedRow,
-                  status: 'verified',
-                  fingerprint: selectedRow!.fingerprint,
-                  consensusWeight: selectedRow!.consensusWeight ?? 0,
-                  observedBandwidth: selectedRow!.observedBandwidth ?? 0,
-                  active: selectedRow!.active ?? false,
-                });
-              }
-            } else if (action === 'renounce') {
-              console.log('renounce change...');
+        // Exponential backoff retry function
+        const retryWithBackoff = async (retryDelay: number) => {
+          retryCount++;
 
-              const index = allRelays.value.findIndex(
-                (row) => row.fingerprint === fingerprint
-              );
-              if (index !== -1) {
-                allRelays.value.splice(index, 1);
-              }
+          // Refresh relays after delay
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+
+          await userStore.createRelayCache();
+          await userStore.getVerifiedRelays();
+          await userStore.getClaimableRelays();
+
+          // Check if the relay status has updated
+          const index = allRelays.value.findIndex(
+            (row) => row.fingerprint === fingerprint
+          );
+
+          if (action === 'claim') {
+            if (index !== -1 && allRelays.value[index].status === 'verified') {
+              // Relay is successfully claimed
+              fetchRegistrationCredit();
+              toast.add({
+                icon: 'i-heroicons-check-circle',
+                color: 'primary',
+                title: 'Success',
+                timeout: 0,
+                description: `Successfully ${
+                  VERBS[action].pastTense
+                } relay ${truncatedAddress(fingerprint)}!`,
+              });
+              return; // Exit on success
             }
+          } else if (action === 'renounce') {
+            if (index === -1) {
+              // Relay is successfully removed after renounce
+              toast.add({
+                icon: 'i-heroicons-check-circle',
+                color: 'primary',
+                title: 'Success',
+                timeout: 0,
+                description: `Successfully ${
+                  VERBS[action].pastTense
+                } relay ${truncatedAddress(fingerprint)}!`,
+              });
+              return; // Exit on success
+            }
+          }
 
+          if (retryCount < maxRetries) {
+            const newRetryDelay = retryDelay * 2; // Exponential backoff
+            console.log(`Retrying... (Attempt ${retryCount + 1})`);
+            await retryWithBackoff(newRetryDelay);
+          } else {
+            console.log('Max retries reached. Relay status did not update.');
             toast.add({
-              icon: 'i-heroicons-check-circle',
-              color: 'primary',
-              title: 'Success',
-              timeout: 0,
-              description: `Successfully ${
-                VERBS[action].pastTense
-              } relay ${truncatedAddress(fingerprint)}!`,
+              icon: 'i-heroicons-x-circle',
+              color: 'amber',
+              title: 'Error',
+              description: `Failed to update relay status after multiple attempts.`,
             });
-          });
+          }
+        };
+
+        await retryWithBackoff(5000);
       })
       .catch((error) => {
         if (error?.code !== 'ACTION_REJECTED') {

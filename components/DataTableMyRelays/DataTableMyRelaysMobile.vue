@@ -157,6 +157,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
   // https://docs.google.com/document/d/1VLRd2bP96avNZksMwrf8WSDmcAwrcaQpYAd5SUGDhx0/edit?pli=1#heading=h.gtsv79v2cvnl
 
   // Apply style to the selected row
+
   const selectedRow = allRelays.value.find(
     (row) => row.fingerprint === fingerprint
   );
@@ -188,49 +189,72 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           return;
         }
 
-        // Refresh the relays cache
-        // wait 6s to allow the transaction to be mined
-        await new Promise((resolve) => setTimeout(resolve, 6000));
-        return userStore
-          .createRelayCache()
-          .then(() => userStore.getVerifiedRelays())
-          .then(() => userStore.getClaimableRelays())
-          .then(() => {
-            if (action === 'claim') {
-              const index = allRelays.value.findIndex(
-                (row) => row.fingerprint === fingerprint
-              );
-              if (index !== -1) {
-                allRelays.value.splice(index, 1, {
-                  ...selectedRow,
-                  status: 'verified',
-                  fingerprint: selectedRow!.fingerprint,
-                  consensusWeight: selectedRow!.consensusWeight ?? 0,
-                  observedBandwidth: selectedRow!.observedBandwidth ?? 0,
-                  active: selectedRow!.active ?? false,
-                });
-              }
-            } else if (action === 'renounce') {
-              console.log('renounce change...');
+        const maxRetries = 3;
+        let retryCount = 0;
 
-              const index = allRelays.value.findIndex(
-                (row) => row.fingerprint === fingerprint
-              );
-              if (index !== -1) {
-                allRelays.value.splice(index, 1);
-              }
+        // Exponential backoff retry function
+        const retryWithBackoff = async (retryDelay: number) => {
+          retryCount++;
+
+          // Refresh relays after delay
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+
+          await userStore.createRelayCache();
+          await userStore.getVerifiedRelays();
+          await userStore.getClaimableRelays();
+
+          // Check if the relay status has updated
+          const index = allRelays.value.findIndex(
+            (row) => row.fingerprint === fingerprint
+          );
+
+          if (action === 'claim') {
+            if (index !== -1 && allRelays.value[index].status === 'verified') {
+              // Relay is successfully claimed
+              fetchRegistrationCredit();
+              toast.add({
+                icon: 'i-heroicons-check-circle',
+                color: 'primary',
+                title: 'Success',
+                timeout: 0,
+                description: `Successfully ${
+                  VERBS[action].pastTense
+                } relay ${truncatedAddress(fingerprint)}!`,
+              });
+              return; // Exit on success
             }
+          } else if (action === 'renounce') {
+            if (index === -1) {
+              // Relay is successfully removed after renounce
+              toast.add({
+                icon: 'i-heroicons-check-circle',
+                color: 'primary',
+                title: 'Success',
+                timeout: 0,
+                description: `Successfully ${
+                  VERBS[action].pastTense
+                } relay ${truncatedAddress(fingerprint)}!`,
+              });
+              return; // Exit on success
+            }
+          }
 
+          if (retryCount < maxRetries) {
+            const newRetryDelay = retryDelay * 2; // Exponential backoff
+            console.log(`Retrying... (Attempt ${retryCount + 1})`);
+            await retryWithBackoff(newRetryDelay);
+          } else {
+            console.log('Max retries reached. Relay status did not update.');
             toast.add({
-              icon: 'i-heroicons-check-circle',
-              color: 'primary',
-              title: 'Success',
-              timeout: 0,
-              description: `Successfully ${
-                VERBS[action].pastTense
-              } relay ${truncatedAddress(fingerprint)}!`,
+              icon: 'i-heroicons-x-circle',
+              color: 'amber',
+              title: 'Error',
+              description: `Failed to update relay status after multiple attempts.`,
             });
-          });
+          }
+        };
+
+        await retryWithBackoff(5000);
       })
       .catch((error) => {
         if (error?.code !== 'ACTION_REJECTED') {
@@ -255,7 +279,6 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     relayActionOngoing.value = false;
   }
 };
-
 // Table columns and actions
 
 const getVerifiedItems = (row: RelayRow) => [
