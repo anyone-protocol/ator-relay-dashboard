@@ -179,8 +179,7 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
           return;
         }
 
-        // Retry logic with exponential backoff
-        const maxRetries = 5; // Maximum number of retries
+        const maxRetries = 3;
         let retryCount = 0;
 
         // Exponential backoff retry function
