@@ -123,7 +123,7 @@ const initializeAndFetchData = async () => {
     // isLoading.value = true;
     initDistribution();
     initRelayRegistry();
-    // initFacilitator();
+    initFacilitator();
     initRegistrator();
     initToken();
     metricsStore.refreshRelayMetrics(),

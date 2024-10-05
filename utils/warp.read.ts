@@ -39,7 +39,7 @@ type RelayData = {
 var test = '0xECc33A2782041fC5D032B214a22a596e1BC6a35b';
 
 const warpWorker = new Worker(
-  new URL('@/static/warpWorker.js', import.meta.url),
+  new URL('@/static/warpWorker-registry.js', import.meta.url),
   {
     type: 'module',
   }
@@ -84,10 +84,14 @@ export const warpRead = async (
     });
 
     // Listen for the response from the worker
-    warpWorker.onmessage = (e) => {
-      const { task, result, error } = e.data;
+    const handleMessage = (e: MessageEvent) => {
+      const { task, result, error, contractName, functionName } = e.data;
 
-      if (task === 'viewState') {
+      if (
+        task === 'viewState' &&
+        contractName === 'relayRegistry' &&
+        functionName === functionName
+      ) {
         if (error) {
           resolve(
             responseOutput({
@@ -122,17 +126,10 @@ export const warpRead = async (
           );
         }
       }
+      warpWorker.removeEventListener('message', handleMessage);
     };
 
-    warpWorker.onerror = (error) => {
-      resolve(
-        responseOutput({
-          data: error,
-          status: 500,
-          message: 'Error in warpWorker',
-        })
-      );
-    };
+    warpWorker.addEventListener('message', handleMessage);
   });
 };
 
@@ -170,10 +167,14 @@ export const warpReadSerials = async (
     });
 
     // Listen for the response from the worker
-    warpWorker.onmessage = (e) => {
-      const { task, result, error } = e.data;
+    const handleMessage = (e: MessageEvent) => {
+      const { task, result, error, contractName, functionName } = e.data;
 
-      if (task === 'viewState') {
+      if (
+        task === 'viewState' &&
+        contractName === 'relayRegistry' &&
+        functionName === functionName
+      ) {
         if (error) {
           resolve([]);
         } else {
@@ -184,17 +185,10 @@ export const warpReadSerials = async (
           resolve(serials);
         }
       }
+      warpWorker.removeEventListener('message', handleMessage);
     };
 
-    warpWorker.onerror = (error) => {
-      responseOutput({
-        data: error,
-        status: 500,
-        message: 'Error in warpWorker',
-      });
-
-      resolve([]);
-    };
+    warpWorker.addEventListener('message', handleMessage);
   });
 };
 
@@ -237,123 +231,122 @@ export const getAllRelays = async (
           contractName: 'relayRegistry',
         },
       });
+      const handleMessage = (e: MessageEvent) => {
+        const { task, contractName, result, error } = e.data;
+        console.log('handleMessage', task, contractName, result, error);
 
-      warpWorker.onmessage = (e) => {
-        const { result, error } = e.data;
-
-        if (error) {
-          reject(`Error reading state: ${error}`);
-          resolve(undefined);
-          return;
-        }
-
-        if (!result?.cachedValue?.state) {
-          reject('Invalid state from relayRegistryContract');
-          resolve(undefined);
-          return;
-        }
-        const verifiedRelays = [];
-        const claimableRelays = [];
-        const registrationCredits = [];
-        const nicknames: { [key: string]: any } = {};
-        const families: { [key: string]: string[] } = {};
-        let registrationCreditsRequired: boolean = false;
-        var familyRequired: boolean = false;
-        const userStore = useUserStore();
-
-        for (const [fingerprint, addressRelay] of Object.entries(
-          result.cachedValue.state.verified
-        )) {
-          if (address === addressRelay) {
-            verifiedRelays.push({
-              address: address,
-              fingerprint: fingerprint,
-              status: 'verified',
-              active: true,
-              class: '',
-            });
+        if (task === 'readState' && contractName === 'relayRegistry') {
+          if (error) {
+            reject(`Error reading state: ${error}`);
+            resolve(undefined);
+            return;
           }
-        }
 
-        for (const [fingerprint, nickname] of Object.entries(
-          result.cachedValue.state.nicknames
-        )) {
-          nicknames[fingerprint] = nickname;
-        }
+          if (!result?.cachedValue?.state) {
+            reject('Invalid state from relayRegistryContract');
+            resolve(undefined);
+            return;
+          }
+          const verifiedRelays = [];
+          const claimableRelays = [];
+          const registrationCredits = [];
+          const nicknames: { [key: string]: any } = {};
+          const families: { [key: string]: string[] } = {};
+          let registrationCreditsRequired: boolean = false;
+          var familyRequired: boolean = false;
+          const userStore = useUserStore();
 
-        for (const [userAddress, fingerprints] of Object.entries(
-          result.cachedValue.state.registrationCredits
-        )) {
-          if (address === userAddress) {
-            for (const fingerprint of fingerprints as string[]) {
-              registrationCredits.push(fingerprint);
+          for (const [fingerprint, addressRelay] of Object.entries(
+            result.cachedValue.state.verified
+          )) {
+            if (address === addressRelay) {
+              verifiedRelays.push({
+                address: address,
+                fingerprint: fingerprint,
+                status: 'verified',
+                active: true,
+                class: '',
+              });
             }
           }
-        }
 
-        for (const [fingerprint, addressRelay] of Object.entries(
-          result.cachedValue.state.claimable
-        )) {
-          if (address === addressRelay) {
-            claimableRelays.push({
-              address: address,
-              fingerprint: fingerprint,
-              status: 'claimable',
-              active: true,
-              class: '',
-            });
+          for (const [fingerprint, nickname] of Object.entries(
+            result.cachedValue.state.nicknames
+          )) {
+            nicknames[fingerprint] = nickname;
           }
+
+          for (const [userAddress, fingerprints] of Object.entries(
+            result.cachedValue.state.registrationCredits
+          )) {
+            if (address === userAddress) {
+              for (const fingerprint of fingerprints as string[]) {
+                registrationCredits.push(fingerprint);
+              }
+            }
+          }
+
+          for (const [fingerprint, addressRelay] of Object.entries(
+            result.cachedValue.state.claimable
+          )) {
+            if (address === addressRelay) {
+              claimableRelays.push({
+                address: address,
+                fingerprint: fingerprint,
+                status: 'claimable',
+                active: true,
+                class: '',
+              });
+            }
+          }
+
+          for (const [fingerprint, array] of Object.entries(
+            result.cachedValue.state.families
+          )) {
+            var fingerprintArray = array as string[];
+            families[fingerprint] = fingerprintArray;
+          }
+
+          familyRequired = result.cachedValue.state.familyRequired;
+          registrationCreditsRequired =
+            result.cachedValue.state.registrationCreditsRequired;
+
+          resolve({
+            timestamp: Date.now(),
+            data: {
+              state: result.cachedValue.state,
+              verifiedHardware: result.cachedValue.state.verifiedHardware,
+              verified: verifiedRelays as [
+                {
+                  address: string;
+                  fingerprint: string;
+                  status: string;
+                  active: boolean;
+                  class: string;
+                },
+              ],
+              claimable: claimableRelays as [
+                {
+                  address: string;
+                  fingerprint: string;
+                  status: string;
+                  active: boolean;
+                  class: string;
+                },
+              ],
+              nicknames: nicknames,
+              registrationCredits: registrationCredits,
+              families: families,
+              registrationCreditsRequired: registrationCreditsRequired,
+              familyRequired: familyRequired,
+            },
+          });
+          warpWorker!.removeEventListener('message', handleMessage);
+          return;
         }
-
-        for (const [fingerprint, array] of Object.entries(
-          result.cachedValue.state.families
-        )) {
-          var fingerprintArray = array as string[];
-          families[fingerprint] = fingerprintArray;
-        }
-
-        familyRequired = result.cachedValue.state.familyRequired;
-        registrationCreditsRequired =
-          result.cachedValue.state.registrationCreditsRequired;
-
-        resolve({
-          timestamp: Date.now(),
-          data: {
-            state: result.cachedValue.state,
-            verifiedHardware: result.cachedValue.state.verifiedHardware,
-            verified: verifiedRelays as [
-              {
-                address: string;
-                fingerprint: string;
-                status: string;
-                active: boolean;
-                class: string;
-              },
-            ],
-            claimable: claimableRelays as [
-              {
-                address: string;
-                fingerprint: string;
-                status: string;
-                active: boolean;
-                class: string;
-              },
-            ],
-            nicknames: nicknames,
-            registrationCredits: registrationCredits,
-            families: families,
-            registrationCreditsRequired: registrationCreditsRequired,
-            familyRequired: familyRequired,
-          },
-        });
-        return;
       };
 
-      warpWorker.onerror = (error) => {
-        reject(`Worker error: ${error}`);
-        resolve(undefined);
-        return;
-      };
+      warpWorker!.addEventListener('message', handleMessage);
     } catch (error) {
       console.error('Error in getAllRelays:', error);
       reject('Error in getAllRelays');

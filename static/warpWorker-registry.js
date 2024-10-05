@@ -11,10 +11,9 @@ let contracts = {
 let runningTasks = {
   readState: {},
   viewState: {},
-  claimable: {},
 };
 
-const MAX_TASK_DURATION = 15000; // 15 seconds timeout for each task
+const MAX_TASK_DURATION = 10000; // 10 seconds timeout for each task
 
 self.onmessage = async (event) => {
   const { task, payload } = event.data;
@@ -86,22 +85,6 @@ self.onmessage = async (event) => {
         payload.contractName,
         'viewState',
         payload.functionName
-      );
-      break;
-
-    case 'claimable':
-      if (isTaskRunning('claimable', payload.contractName)) {
-        self.postMessage({
-          task,
-          error: `claimable task is already running for contract ${payload.contractName}`,
-        });
-        return;
-      }
-      await executeTaskWithTimeout(
-        () => runClaimable(contract, payload),
-        task,
-        payload.contractName,
-        'claimable'
       );
       break;
 
@@ -213,26 +196,6 @@ async function runViewState(contract, payload) {
       task: 'viewState',
       contractName: payload.contractName,
       functionName: payload.functionName,
-      error,
-    });
-  }
-}
-
-async function runClaimable(contract, payload) {
-  try {
-    const { result: claimable } = await contract.viewState({
-      function: 'claimable',
-      contractName: payload.contractName,
-      address: payload.address,
-    });
-    const claimableValue = claimable ? claimable : '0';
-    self.postMessage({
-      task: 'claimable',
-      result: claimableValue,
-    });
-  } catch (error) {
-    self.postMessage({
-      task: 'claimable',
       error,
     });
   }
