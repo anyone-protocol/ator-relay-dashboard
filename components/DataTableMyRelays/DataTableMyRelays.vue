@@ -73,15 +73,12 @@ const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
   }
 );
 
-const { error: claimableRelaysError, pending: claimablePending } =
-  await useAsyncData('claimableRelays', () => userStore.getClaimableRelays(), {
-    watch: [address],
-  });
-const { error: verifiedRelaysError, pending: verifiedPending } =
-  await useAsyncData('verifiedRelays', () => userStore.getVerifiedRelays(), {
-    server: false,
-    watch: [address],
-  });
+watch(allRelaysPending, (newPending) => {
+  if (!newPending) {
+    userStore.getClaimableRelays();
+    userStore.getVerifiedRelays();
+  }
+});
 
 const isHardwareResolved = reactive<Record<string, boolean>>({});
 

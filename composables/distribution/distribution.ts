@@ -151,8 +151,8 @@ export class Distribution {
         });
 
         const handleMessage = (e: MessageEvent) => {
-          const { task, result, error } = e.data;
-          if (task === 'readState') {
+          const { task, contractName, result, error } = e.data;
+          if (task === 'readState' && contractName === 'distribution') {
             this.warpWorker!.removeEventListener('message', handleMessage); // Remove listener after it's done
 
             if (error) {
