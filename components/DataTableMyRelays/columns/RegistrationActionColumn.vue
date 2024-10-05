@@ -8,12 +8,12 @@ const emit = defineEmits<{
 
 const props = defineProps<{
   row: RelayRow | undefined;
-  isLocked: boolean;
+  isLocked: boolean | undefined;
   isLoading?: boolean;
   hasRegistrationCredit: boolean | undefined;
   registrationCreditsRequired: boolean;
   familyVerified: boolean | undefined;
-  familyRequired: boolean;
+  familyRequired: boolean | undefined;
   relayActionOngoing: boolean;
 }>();
 </script>

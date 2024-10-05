@@ -184,6 +184,7 @@ class RelayCache {
             claimable: key === 'claimable' ? newData : [],
             nicknames: {},
             registrationCredits: [],
+            verifiedHardware: {},
             state: {},
             [key]: newData,
           },

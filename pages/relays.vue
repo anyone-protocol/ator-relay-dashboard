@@ -151,24 +151,16 @@ onMounted(() => {
     });
 });
 
-watch(
-  () => userStore.userData.address,
-  async (newAddress?: string) => {
-    try {
-      await Promise.all([
-        useDistribution().claimable(newAddress as string),
-        useDistribution().refresh(),
-        registrator?.getLokedRelaysTokens(
-          userStore.userData.address || '',
-          true
-        ),
-        userStore.createRelayCache(),
-      ]);
-    } catch (error) {
-      console.error('Error during address change handling:', error);
-    }
-  }
-);
+// watch(
+//   () => userStore.userData.address,
+//   async (newAddress?: string) => {
+//     try {
+//       await useDistribution().refresh()
+//     } catch (error) {
+//       console.error('Error during address change handling:', error);
+//     }
+//   }
+// );
 
 const handleTabChange = (key: RelayTabType) => {
   currentTab.value = key;
