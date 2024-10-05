@@ -120,20 +120,15 @@ const isLoading = ref(true);
 
 const initializeAndFetchData = async () => {
   try {
-    isLoading.value = true;
+    // isLoading.value = true;
     initDistribution();
     initRelayRegistry();
-    initFacilitator();
+    // initFacilitator();
     initRegistrator();
     initToken();
-
-    await Promise.all([
-      userStore.getVerifiedRelays(),
-      metricsStore.refreshRelayMetrics(),
-    ]);
-
-    // await loadLockedRelays();
-    console.log('Data fetching complete');
+    metricsStore.refreshRelayMetrics(),
+      // await loadLockedRelays();
+      console.log('Data fetching complete');
   } catch (error) {
     console.error('Error during initialization:', error);
   } finally {
