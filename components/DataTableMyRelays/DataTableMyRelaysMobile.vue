@@ -78,27 +78,6 @@ const {
   { watch: [allRelays] }
 );
 
-watch(
-  () => allRelays.value,
-  async () => {
-    if (!registrationPending.value && registrationData.value) {
-      const {
-        relayCredits: fetchedRelayCredits,
-        familyVerified: fetchedFamilyVerified,
-        registrationCreditsRequired: fetchedRegistrationCreditsRequired,
-        familyRequired: fetchedFamilyRequired,
-      } = registrationData.value || {};
-
-      // Update the reactive variables with the fetched data
-      relayCredits.value = fetchedRelayCredits || {};
-      familyVerified.value = fetchedFamilyVerified || {};
-      registrationCreditsRequired.value =
-        fetchedRegistrationCreditsRequired || true;
-      familyRequired.value = fetchedFamilyRequired || true;
-    }
-  }
-);
-
 const { lockedRelays, fetchLockedRelays } = useLockedRelays();
 
 watch(allRelays, async (newRelays) => {
@@ -118,10 +97,10 @@ const ethAddressError = ref<string | null>(null);
 const fingerPrintRegister = ref<string>('');
 const fingerPrintRegisterError = ref<string | null>(null);
 
-const relayCredits = ref<Record<string, boolean | undefined>>({});
-const familyVerified = ref<Record<string, boolean>>({});
-const registrationCreditsRequired = ref<boolean>(true);
-const familyRequired = ref<boolean>(true);
+// const relayCredits = ref<Record<string, boolean | undefined>>({});
+// const familyVerified = ref<Record<string, boolean>>({});
+// const registrationCreditsRequired = ref<boolean>(true);
+// const familyRequired = ref<boolean>(true);
 
 const relayActionOngoing = ref<boolean>(false);
 
@@ -614,10 +593,14 @@ const handleUnlockClick = async (fingerprint: string) => {
             isHardwareResolved[row.fingerprint]
           "
           :is-loading="registratorStore.loading"
-          :has-registration-credit="relayCredits[row.fingerprint]"
-          :registration-credits-required="registrationCreditsRequired"
-          :family-verified="familyVerified[row.fingerprint]"
-          :family-required="familyRequired"
+          :has-registration-credit="
+            registrationData?.relayCredits[row.fingerprint]
+          "
+          :registration-credits-required="
+            registrationData?.registrationCreditsRequired ?? false
+          "
+          :family-verified="registrationData?.familyVerified[row.fingerprint]"
+          :family-required="registrationData?.familyRequired"
           :relay-action-ongoing="relayActionOngoing"
         />
         <UButton
