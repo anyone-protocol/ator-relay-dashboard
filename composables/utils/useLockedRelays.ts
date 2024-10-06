@@ -24,7 +24,6 @@ export const fetchLockedRelays = async (
       const isLocked = lockedRelays[relay.fingerprint] !== undefined;
       lockedRelaysMap[relay.fingerprint] = isLocked;
     }
-    console.log('lockedRelaysMap', lockedRelaysMap);
 
     return lockedRelaysMap;
   } else {
