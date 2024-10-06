@@ -1,24 +1,33 @@
-// useLockedRelays.ts
-import { ref } from 'vue';
 import { useRegistratorStore } from '@/stores/useRegistratorStore';
-import { useUserStore } from '@/stores/useUserStore';
-import { type RelayRow, type RelayTabType } from '@/types/relay';
+import { useRegistrator } from '@/composables/registrator';
+import { type RelayRow } from '@/types/relay';
 
-export const useLockedRelays = () => {
-  const lockedRelays = ref<Record<string, boolean>>({});
+export const fetchLockedRelays = async (
+  allRelays: RelayRow[],
+  address: `0x${string}` | undefined
+) => {
+  if (!allRelays || !allRelays.length || !address) {
+    return {};
+  }
   const registratorStore = useRegistratorStore();
-  const userStore = useUserStore();
 
-  const fetchLockedRelays = async (allRelays: RelayRow[]) => {
+  const registrator = useRegistrator();
+  if (registrator) {
+    console.log('fetchLockedRelays..................');
+    await registrator.getLokedRelaysTokens(address);
+
+    const lockedRelays = registratorStore.lokedRelays;
+
     const lockedRelaysMap: Record<string, boolean> = {};
 
     for (const relay of allRelays) {
-      const isLocked = registratorStore.isRelayLocked(relay.fingerprint);
+      const isLocked = lockedRelays[relay.fingerprint] !== undefined;
       lockedRelaysMap[relay.fingerprint] = isLocked;
     }
+    console.log('lockedRelaysMap', lockedRelaysMap);
 
-    lockedRelays.value = lockedRelaysMap;
-  };
-
-  return { lockedRelays, fetchLockedRelays };
+    return lockedRelaysMap;
+  } else {
+    return {};
+  }
 };

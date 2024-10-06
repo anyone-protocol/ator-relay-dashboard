@@ -23,8 +23,8 @@ import { ethers } from 'ethers';
 import { watchAccount } from '@wagmi/core';
 import { defineProps } from 'vue';
 import { fetchRegistrationCredit } from '@/composables/utils/useRegistrationCredit';
-import { useLockedRelays } from '@/composables/utils/useLockedRelays';
-import { useHardwareStatus } from '@/composables/utils/useHardwareStatus';
+import { fetchLockedRelays } from '@/composables/utils/useLockedRelays';
+import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -48,7 +48,11 @@ const registerModalOpen = ref(false);
 
 onMounted(() => {
   // refresh the locked relays every minute
-
+  if (registrator) {
+    if (userStore.userData.address) {
+      registrator.getLokedRelaysTokens(userStore.userData.address);
+    }
+  }
   setInterval(() => {
     if (registrator) {
       if (userStore.userData.address) {
@@ -57,19 +61,6 @@ onMounted(() => {
     }
   }, 1000 * 60);
 });
-
-watch(
-  () => userStore.userData.address,
-  async (newAddress?: string) => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      registrator?.getLokedRelaysTokens(userStore.userData.address || '', true);
-    } catch (error) {
-      console.error('Error during address change handling:', error);
-    }
-  }
-);
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
 const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
@@ -88,22 +79,39 @@ const {
 } = await useAsyncData(
   'registrationCredit',
   () => fetchRegistrationCredit(allRelays),
-  { watch: [allRelays] }
+  {
+    server: false,
+    watch: [allRelays],
+  }
 );
 
-const { lockedRelays, fetchLockedRelays } = useLockedRelays();
+const lockedRelays = ref<Record<string, boolean | undefined>>({});
 
-watch(allRelays, async (newRelays) => {
-  await fetchLockedRelays(newRelays);
-});
+const lockedRelaysPending = ref<boolean>(true);
+watch(
+  [() => registratorStore.initialized, () => allRelays.value],
+  async ([initialized, relays]) => {
+    if (initialized && relays.length) {
+      lockedRelaysPending.value = true;
 
-const { isHardwareResolved, resolveHardwareStatus } = useHardwareStatus();
-watch(allRelays, async (newRelays) => {
-  // Await 5 seconds before checking the hardware status
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  const fingerprints = newRelays.map((relay) => relay.fingerprint);
-  await resolveHardwareStatus(fingerprints);
-});
+      const data = await fetchLockedRelays(relays, address.value);
+      lockedRelays.value = data;
+
+      lockedRelaysPending.value = false;
+    }
+    lockedRelaysPending.value = false;
+  }
+);
+
+const {
+  data: isHardwareResolved,
+  error: hardwareStatusError,
+  pending: hardwareStatusPending,
+} = await useAsyncData(
+  'hardwareStatus',
+  () => fetchHardwareStatus(allRelays.value.map((relay) => relay.fingerprint)),
+  { watch: [allRelays] }
+);
 
 const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
@@ -613,9 +621,9 @@ const handleUnlockClick = async (fingerprint: string) => {
       <template #lockStatus-data="{ row }">
         <LockStatusColumn
           :is-locked="lockedRelays[row.fingerprint]"
-          :is-hardware="isHardwareResolved[row.fingerprint]"
+          :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
-          :is-loading="registratorStore.loading"
+          :is-loading="registratorStore.loading || lockedRelaysPending"
         />
       </template>
 
@@ -659,7 +667,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="
             lockedRelays[row.fingerprint] ||
             row.status === 'verified' ||
-            isHardwareResolved[row.fingerprint]
+            isHardwareResolved?.[row.fingerprint]
           "
           :is-loading="registratorStore.loading"
           :has-registration-credit="

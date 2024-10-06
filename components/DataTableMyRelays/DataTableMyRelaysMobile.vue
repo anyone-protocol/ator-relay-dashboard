@@ -23,8 +23,8 @@ import { ethers } from 'ethers';
 import { watchAccount } from '@wagmi/core';
 import { defineProps } from 'vue';
 import { fetchRegistrationCredit } from '@/composables/utils/useRegistrationCredit';
-import { useLockedRelays } from '@/composables/utils/useLockedRelays';
-import { useHardwareStatus } from '@/composables/utils/useHardwareStatus';
+import { fetchLockedRelays } from '@/composables/utils/useLockedRelays';
+import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -78,19 +78,33 @@ const {
   { watch: [allRelays] }
 );
 
-const { lockedRelays, fetchLockedRelays } = useLockedRelays();
+const lockedRelays = ref<Record<string, boolean | undefined>>({});
+// change the locked relays to useasync data
+const lockedRelaysPending = ref<boolean>(true);
+watch(
+  [() => registratorStore.initialized, () => allRelays.value],
+  async ([initialized, relays]) => {
+    if (initialized && relays.length) {
+      lockedRelaysPending.value = true;
 
-watch(allRelays, async (newRelays) => {
-  await fetchLockedRelays(newRelays);
-});
+      const data = await fetchLockedRelays(relays, address.value);
+      lockedRelays.value = data;
 
-const { isHardwareResolved, resolveHardwareStatus } = useHardwareStatus();
-watch(allRelays, async (newRelays) => {
-  // Await 5 seconds before checking the hardware status
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  const fingerprints = newRelays.map((relay) => relay.fingerprint);
-  await resolveHardwareStatus(fingerprints);
-});
+      lockedRelaysPending.value = false;
+    }
+    lockedRelaysPending.value = false;
+  }
+);
+
+const {
+  data: isHardwareResolved,
+  error: hardwareStatusError,
+  pending: hardwareStatusPending,
+} = await useAsyncData(
+  'hardwareStatus',
+  () => fetchHardwareStatus(allRelays.value.map((relay) => relay.fingerprint)),
+  { watch: [allRelays] }
+);
 
 const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
@@ -574,8 +588,8 @@ const handleUnlockClick = async (fingerprint: string) => {
           </div>
         </div>
         <LockStatusColumn
-          :is-locked="lockedRelays[row.fingerprint]"
-          :is-hardware="isHardwareResolved[row.fingerprint]"
+          :is-locked="lockedRelays?.[row.fingerprint]"
+          :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
           :is-loading="registratorStore.loading"
         />
@@ -588,9 +602,9 @@ const handleUnlockClick = async (fingerprint: string) => {
           @relay-action="relayAction"
           @on-lock-relay="handleLockRelay"
           :is-locked="
-            lockedRelays[row.fingerprint] ||
+            lockedRelays?.[row.fingerprint] ||
             row.status === 'verified' ||
-            isHardwareResolved[row.fingerprint]
+            isHardwareResolved?.[row.fingerprint]
           "
           :is-loading="registratorStore.loading"
           :has-registration-credit="
