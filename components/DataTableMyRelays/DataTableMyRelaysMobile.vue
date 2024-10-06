@@ -588,7 +588,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           </div>
         </div>
         <LockStatusColumn
-          :is-locked="lockedRelays?.[row.fingerprint]"
+          :is-locked="lockedRelays[row.fingerprint]"
           :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
           :is-loading="registratorStore.loading"
@@ -602,7 +602,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           @relay-action="relayAction"
           @on-lock-relay="handleLockRelay"
           :is-locked="
-            lockedRelays?.[row.fingerprint] ||
+            lockedRelays[row.fingerprint] ||
             row.status === 'verified' ||
             isHardwareResolved?.[row.fingerprint]
           "
