@@ -136,6 +136,17 @@ const initializeAndFetchData = async () => {
   }
 };
 
+watch(
+  () => userStore.userData.address,
+  async (newAddress?: string) => {
+    try {
+      registrator?.getLokedRelaysTokens(userStore.userData.address || '', true);
+    } catch (error) {
+      console.error('Error during address change handling:', error);
+    }
+  }
+);
+
 // const loadLockedRelays = async () => {
 //   await registratorStore?.fetchLockedRelays(userStore.userData.address);
 // };

@@ -23,8 +23,8 @@ import { ethers } from 'ethers';
 import { watchAccount } from '@wagmi/core';
 import { defineProps } from 'vue';
 import { fetchRegistrationCredit } from '@/composables/utils/useRegistrationCredit';
-import { useLockedRelays } from '@/composables/utils/useLockedRelays';
-import { useHardwareStatus } from '@/composables/utils/useHardwareStatus';
+import { fetchLockedRelays } from '@/composables/utils/useLockedRelays';
+import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -78,50 +78,43 @@ const {
   { watch: [allRelays] }
 );
 
+const lockedRelays = ref<Record<string, boolean | undefined>>({});
+// change the locked relays to useasync data
+const lockedRelaysPending = ref<boolean>(true);
 watch(
-  () => allRelays.value,
-  async () => {
-    if (!registrationPending.value && registrationData.value) {
-      const {
-        relayCredits: fetchedRelayCredits,
-        familyVerified: fetchedFamilyVerified,
-        registrationCreditsRequired: fetchedRegistrationCreditsRequired,
-        familyRequired: fetchedFamilyRequired,
-      } = registrationData.value || {};
+  [() => registratorStore.initialized, () => allRelays.value],
+  async ([initialized, relays]) => {
+    if (initialized && relays.length) {
+      lockedRelaysPending.value = true;
 
-      // Update the reactive variables with the fetched data
-      relayCredits.value = fetchedRelayCredits || {};
-      familyVerified.value = fetchedFamilyVerified || {};
-      registrationCreditsRequired.value =
-        fetchedRegistrationCreditsRequired || true;
-      familyRequired.value = fetchedFamilyRequired || true;
+      const data = await fetchLockedRelays(relays, address.value);
+      lockedRelays.value = data;
+
+      lockedRelaysPending.value = false;
     }
+    lockedRelaysPending.value = false;
   }
 );
 
-const { lockedRelays, fetchLockedRelays } = useLockedRelays();
-
-watch(allRelays, async (newRelays) => {
-  await fetchLockedRelays(newRelays);
-});
-
-const { isHardwareResolved, resolveHardwareStatus } = useHardwareStatus();
-watch(allRelays, async (newRelays) => {
-  // Await 5 seconds before checking the hardware status
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  const fingerprints = newRelays.map((relay) => relay.fingerprint);
-  await resolveHardwareStatus(fingerprints);
-});
+const {
+  data: isHardwareResolved,
+  error: hardwareStatusError,
+  pending: hardwareStatusPending,
+} = await useAsyncData(
+  'hardwareStatus',
+  () => fetchHardwareStatus(allRelays.value.map((relay) => relay.fingerprint)),
+  { watch: [allRelays] }
+);
 
 const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
 const fingerPrintRegister = ref<string>('');
 const fingerPrintRegisterError = ref<string | null>(null);
 
-const relayCredits = ref<Record<string, boolean | undefined>>({});
-const familyVerified = ref<Record<string, boolean>>({});
-const registrationCreditsRequired = ref<boolean>(true);
-const familyRequired = ref<boolean>(true);
+// const relayCredits = ref<Record<string, boolean | undefined>>({});
+// const familyVerified = ref<Record<string, boolean>>({});
+// const registrationCreditsRequired = ref<boolean>(true);
+// const familyRequired = ref<boolean>(true);
 
 const relayActionOngoing = ref<boolean>(false);
 
@@ -596,7 +589,7 @@ const handleUnlockClick = async (fingerprint: string) => {
         </div>
         <LockStatusColumn
           :is-locked="lockedRelays[row.fingerprint]"
-          :is-hardware="isHardwareResolved[row.fingerprint]"
+          :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
           :is-loading="registratorStore.loading"
         />
@@ -611,13 +604,17 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="
             lockedRelays[row.fingerprint] ||
             row.status === 'verified' ||
-            isHardwareResolved[row.fingerprint]
+            isHardwareResolved?.[row.fingerprint]
           "
           :is-loading="registratorStore.loading"
-          :has-registration-credit="relayCredits[row.fingerprint]"
-          :registration-credits-required="registrationCreditsRequired"
-          :family-verified="familyVerified[row.fingerprint]"
-          :family-required="familyRequired"
+          :has-registration-credit="
+            registrationData?.relayCredits[row.fingerprint]
+          "
+          :registration-credits-required="
+            registrationData?.registrationCreditsRequired ?? false
+          "
+          :family-verified="registrationData?.familyVerified[row.fingerprint]"
+          :family-required="registrationData?.familyRequired"
           :relay-action-ongoing="relayActionOngoing"
         />
         <UButton
