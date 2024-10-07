@@ -22,9 +22,8 @@ import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import { ethers } from 'ethers';
 import { watchAccount } from '@wagmi/core';
 import { defineProps } from 'vue';
-import { fetchRegistrationCredit } from '@/composables/utils/useRegistrationCredit';
-import { fetchLockedRelays } from '@/composables/utils/useLockedRelays';
 import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
+import type { LokedRelaysResponse, LokedRelaysType } from '~/types/registrator';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -43,16 +42,12 @@ const isHovered = ref(false);
 const isUnlocking = ref(false);
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
+
 const { address } = useAccount({ config } as any);
 const registerModalOpen = ref(false);
 
 onMounted(() => {
   // refresh the locked relays every minute
-  if (registrator) {
-    if (userStore.userData.address) {
-      registrator.getLokedRelaysTokens(userStore.userData.address);
-    }
-  }
   setInterval(() => {
     if (registrator) {
       if (userStore.userData.address) {
@@ -63,7 +58,7 @@ onMounted(() => {
 });
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
-const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
+const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
   'verifiedRelays',
   () => userStore.createRelayCache(),
   {
@@ -72,30 +67,62 @@ const { error: allRelaysError, pending: allRelaysPending } = await useAsyncData(
   }
 );
 
-const {
-  data: registrationData,
-  error: registrationError,
-  pending: registrationPending,
-} = await useAsyncData(
-  'registrationCredit',
-  () => fetchRegistrationCredit(allRelays),
-  {
-    server: false,
-    watch: [allRelays],
+const relayCredits = ref<Record<string, boolean | undefined>>({});
+const familyVerified = ref<Record<string, boolean>>({});
+const registrationCreditsRequired = ref<boolean>(true);
+const familyRequired = ref<boolean>(true);
+
+const fetchRegistrationCredit = async () => {
+  if (allRelays.value) {
+    console.log('fetchRegistrationCredit..................');
+    for (const relay of filterUniqueRelays(allRelays.value)) {
+      relayCredits.value[relay.fingerprint] =
+        await userStore.hasRegistrationCredit(relay.fingerprint);
+      familyVerified.value[relay.fingerprint] = await userStore.familyVerified2(
+        relay.fingerprint
+      );
+    }
+  }
+
+  registrationCreditsRequired.value = userStore.registrationCreditsRequired;
+  familyRequired.value = userStore.familyRequired;
+};
+
+// Fetch the registration credits when the relays are loaded
+watch(
+  () => allRelays.value,
+  async () => {
+    fetchRegistrationCredit();
   }
 );
 
-const lockedRelays = ref<Record<string, boolean | undefined>>({});
+const { lokedRelays: lockedRelays, loading: lockedRelaysPending } =
+  storeToRefs(registratorStore);
 
-const lockedRelaysPending = ref<boolean>(true);
+const lockedRelaysMap = ref<Record<string, boolean | undefined>>({});
+
+// const lockedRelaysPending = ref<boolean>(true);
 watch(
-  [() => registratorStore.initialized, () => allRelays.value],
-  async ([initialized, relays]) => {
-    if (initialized && relays.length) {
-      lockedRelaysPending.value = true;
+  [
+    () => lockedRelays.value,
+    () => allRelays.value,
+    address,
+    lockedRelaysPending,
+  ],
+  async ([lockedRelays, relays, address]) => {
+    if (lockedRelaysPending.value) {
+      return;
+    }
 
-      const data = await fetchLockedRelays(relays, address.value);
-      lockedRelays.value = data;
+    if (lockedRelays && relays.length) {
+      lockedRelaysPending.value = true;
+      let data: Record<string, boolean | undefined> = {};
+      for (const relay of relays) {
+        const isLocked = lockedRelays[relay.fingerprint] !== undefined;
+        data[relay.fingerprint] = isLocked;
+      }
+
+      lockedRelaysMap.value = data;
 
       lockedRelaysPending.value = false;
     }
@@ -110,7 +137,7 @@ const {
 } = await useAsyncData(
   'hardwareStatus',
   () => fetchHardwareStatus(allRelays.value.map((relay) => relay.fingerprint)),
-  { watch: [allRelays] }
+  { watch: [() => allRelays.value] }
 );
 
 const ethAddress = ref<string>('');
@@ -620,7 +647,7 @@ const handleUnlockClick = async (fingerprint: string) => {
       </template>
       <template #lockStatus-data="{ row }">
         <LockStatusColumn
-          :is-locked="lockedRelays[row.fingerprint]"
+          :is-locked="lockedRelaysMap[row.fingerprint]"
           :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
           :is-loading="registratorStore.loading || lockedRelaysPending"
@@ -665,19 +692,15 @@ const handleUnlockClick = async (fingerprint: string) => {
           @relay-action="relayAction"
           @on-lock-relay="handleLockRelay"
           :is-locked="
-            lockedRelays[row.fingerprint] ||
+            lockedRelaysMap[row.fingerprint] ||
             row.status === 'verified' ||
             isHardwareResolved?.[row.fingerprint]
           "
           :is-loading="registratorStore.loading"
-          :has-registration-credit="
-            registrationData?.relayCredits[row.fingerprint] ?? false
-          "
-          :registration-credits-required="
-            registrationData?.registrationCreditsRequired ?? false
-          "
-          :family-verified="registrationData?.familyVerified[row.fingerprint]"
-          :family-required="registrationData?.familyRequired"
+          :has-registration-credit="relayCredits[row.fingerprint]"
+          :registration-credits-required="registrationCreditsRequired ?? false"
+          :family-verified="familyVerified[row.fingerprint]"
+          :family-required="familyRequired"
           :relay-action-ongoing="relayActionOngoing"
         />
       </template>

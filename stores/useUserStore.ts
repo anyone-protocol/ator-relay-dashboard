@@ -347,6 +347,12 @@ export const useUserStore = defineStore('user', {
       }
     },
     async familyVerified2(fingerprint: string): Promise<boolean> {
+      if (!this.userData.address) {
+        return false;
+      }
+      if (!this.familyRequired) {
+        return true;
+      }
       const input = {
         function: 'claim',
         fingerprint: fingerprint,

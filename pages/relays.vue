@@ -107,28 +107,35 @@ import { type RelayTabType } from '@/types/relay';
 import Card from '~/components/ui-kit/Card.vue';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 import { useMediaQuery } from '@vueuse/core';
-import { lock } from 'ethers';
+import { useFacilitator } from '@/composables/facilitator';
 
 const isMobile = useMediaQuery('(max-width: 1024px)');
 
 const userStore = useUserStore();
 const registrator = useRegistrator();
+const registratorStore = useRegistratorStore();
+const facilitatorStore = useFacilitatorStore();
 const registerModalOpen = ref(false);
 const currentTab = ref<RelayTabType>('all');
 const metricsStore = useMetricsStore();
 const isLoading = ref(true);
 
-const initializeAndFetchData = async () => {
+const initializeAndFetchData = async (
+  newAddress: string | undefined,
+  forceRefresh = false
+) => {
   try {
     // isLoading.value = true;
-    initDistribution();
-    initRelayRegistry();
-    initFacilitator();
-    initRegistrator();
-    initToken();
-    metricsStore.refreshRelayMetrics(),
-      // await loadLockedRelays();
-      console.log('Data fetching complete');
+
+    metricsStore.refreshRelayMetrics();
+    await Promise.all([
+      (!facilitatorStore?.initialized || forceRefresh) &&
+        useFacilitator()?.refresh(),
+      (!registratorStore?.initialized || forceRefresh) &&
+        useRegistrator()?.refresh(),
+      ,
+    ]);
+    console.log('Data fetching complete');
   } catch (error) {
     console.error('Error during initialization:', error);
   } finally {
@@ -140,26 +147,41 @@ watch(
   () => userStore.userData.address,
   async (newAddress?: string) => {
     try {
-      registrator?.getLokedRelaysTokens(userStore.userData.address || '', true);
+      await Promise.all([
+        registrator?.getLokedRelaysTokens(
+          userStore.userData.address || '',
+          true
+        ),
+        userStore.createRelayCache(),
+      ]);
     } catch (error) {
       console.error('Error during address change handling:', error);
     }
   }
 );
 
+watch(
+  () => userStore.userData.address,
+  async (newAddress?: string) => {
+    await initializeAndFetchData(newAddress, true);
+  }
+);
+
 // const loadLockedRelays = async () => {
-//   await registratorStore?.fetchLockedRelays(userStore.userData.address);
+//   if (userStore.userData.address) {
+//     await registratorStore?.getLokedRelaysTokens(userStore.userData.address);
+//   }
 // };
 
-onMounted(() => {
+onMounted(async () => {
   console.log('Mounted - Starting initialization');
-  initializeAndFetchData()
-    .then(() => {
-      console.log('Initialization complete');
-    })
-    .catch((error) => {
-      console.error('Error in initialization:', error);
-    });
+  initDistribution();
+  initRelayRegistry();
+  initFacilitator();
+  initRegistrator();
+  initToken();
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  initializeAndFetchData(userStore.userData.address);
 });
 
 // watch(

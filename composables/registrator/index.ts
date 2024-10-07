@@ -144,6 +144,8 @@ export class Registrator {
       return acc;
     }, {} as LokedRelaysType);
 
+    console.log('Locked relays:', lokedRelays);
+
     // get current block number
     const provider = this.signer?.provider || useProvider();
     const currentBlockNumber = await provider.getBlockNumber();
