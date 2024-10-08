@@ -152,7 +152,7 @@ async function executeTaskWithTimeout(
 // Fetch readState from the API endpoint
 async function fetchReadState(contractUrl, contractName) {
   try {
-    console.log('fetchReadState', contractUrl);
+    // console.log('fetchReadState', contractUrl);
     const response = await fetch(contractUrl);
     const data = await response.json();
     let result = {
@@ -161,7 +161,7 @@ async function fetchReadState(contractUrl, contractName) {
 
     if (data.state) {
       result.cachedValue.state = data.state;
-      console.log('result', data.state);
+      // console.log('result', data.state);
       self.postMessage({
         task: 'readState',
         contractName: contractName,

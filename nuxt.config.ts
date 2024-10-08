@@ -67,6 +67,7 @@ export default defineNuxtConfig({
       distributionDeployer: 'G5tXjZS4SaMJNwOENZYgymvc6Zxp2Wws4Qf8wB0b',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
       centralizedMetricsAPI: 'https://api.ec.anyone.tech',
+      dreNodeBaseUrl: 'https://dre.ec.anyone.tech',
       githubNewIssueUrl:
         'https://github.com/anyone-protocol/ator-relay-dashboard/issues/new',
       phase: 'dev',
