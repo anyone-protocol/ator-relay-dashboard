@@ -128,13 +128,21 @@ export const useMetricsStore = defineStore('metrics', {
             reject();
             return;
           }
+          const userStore = useUserStore();
           const allFingerprints = [] as string[];
+
           data.verified.forEach((relay: any) => {
-            allFingerprints.push(relay.fingerprint);
+            const exists = userStore.relaysMeta[relay.fingerprint];
+            if (!exists) {
+              allFingerprints.push(relay.fingerprint);
+            }
           });
 
           data.claimable.forEach((relay: any) => {
-            allFingerprints.push(relay.fingerprint);
+            const exists = userStore.relaysMeta[relay.fingerprint];
+            if (!exists) {
+              allFingerprints.push(relay.fingerprint);
+            }
           });
 
           try {
@@ -150,22 +158,18 @@ export const useMetricsStore = defineStore('metrics', {
             }
 
             const data = await response.json();
-            const userStore = useUserStore();
             data.forEach((metric: any) => {
               const exists = userStore.relaysMeta[metric.fingerprint];
-
-              if (!exists) {
-                userStore.relaysMeta[metric.fingerprint] = {
-                  fingerprint: metric.fingerprint,
-                  nickname: '',
-                  status: '',
-                  anon_address: '',
-                  consensus_weight: metric.consensus_weight.toString(),
-                  observed_bandwidth: metric.observed_bandwidth,
-                  consensus_weight_fraction: 0,
-                  running: metric.running,
-                };
-              }
+              userStore.relaysMeta[metric.fingerprint] = {
+                fingerprint: metric.fingerprint,
+                nickname: '',
+                status: '',
+                anon_address: '',
+                consensus_weight: metric.consensus_weight.toString(),
+                observed_bandwidth: metric.observed_bandwidth,
+                consensus_weight_fraction: 0,
+                running: metric.running,
+              };
             });
             resolve(data);
           } catch (error: any) {
@@ -260,6 +264,8 @@ export const useMetricsStore = defineStore('metrics', {
               }
             }
           }
+
+          await this.centralizedRelayMetrics();
 
           this.relayMetricsPending = false;
         } catch (error) {
