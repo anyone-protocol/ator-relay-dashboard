@@ -125,7 +125,7 @@ export const useMetricsStore = defineStore('metrics', {
         const cachedData = useRelayCache();
         cachedData.getRelayData().then(async (data) => {
           if (!data) {
-            reject();
+            reject('No relays found to check meta');
             return;
           }
           const userStore = useUserStore();
@@ -145,11 +145,18 @@ export const useMetricsStore = defineStore('metrics', {
             }
           });
 
+          if (allFingerprints.length === 0) {
+            resolve(data);
+            return;
+          }
+
           try {
             const endpoint =
               config.public.centralizedMetricsAPI +
               '/relays?fingerprints=' +
               allFingerprints.join(',');
+
+            console.log('endpoint', endpoint);
 
             const response = await fetch(endpoint);
 
@@ -171,6 +178,7 @@ export const useMetricsStore = defineStore('metrics', {
                 running: metric.running,
               };
             });
+            console.log('data', data);
             resolve(data);
           } catch (error: any) {
             // Reject the promise in case of an error
