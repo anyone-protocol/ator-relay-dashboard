@@ -39,7 +39,7 @@ type RelayData = {
 var test = '0xECc33A2782041fC5D032B214a22a596e1BC6a35b';
 
 const warpWorker = new Worker(
-  new URL('@/static/warpWorker-registry.js', import.meta.url),
+  new URL('@/static/warpWorker-registry-DreNode.js', import.meta.url),
   {
     type: 'module',
   }
