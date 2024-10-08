@@ -156,8 +156,6 @@ export const useMetricsStore = defineStore('metrics', {
               '/relays?fingerprints=' +
               allFingerprints.join(',');
 
-            console.log('endpoint', endpoint);
-
             const response = await fetch(endpoint);
 
             if (!response.ok) {
@@ -178,7 +176,6 @@ export const useMetricsStore = defineStore('metrics', {
                 running: metric.running,
               };
             });
-            console.log('data', data);
             resolve(data);
           } catch (error: any) {
             // Reject the promise in case of an error
