@@ -161,7 +161,7 @@ export class Distribution {
             }
 
             const state = result?.cachedValue?.state;
-            console.log('state', state);
+            // console.log('state', state);
 
             if (!state) {
               this.logger.warn(

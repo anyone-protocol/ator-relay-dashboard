@@ -66,13 +66,15 @@ export default defineNuxtConfig({
       registratorContract: '0x86e55b81cf6a86b9EFb630c0E6Ad91E53a509A35',
       distributionDeployer: 'G5tXjZS4SaMJNwOENZYgymvc6Zxp2Wws4Qf8wB0b',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
+      centralizedMetricsAPI: 'https://api.ec.anyone.tech',
+      dreNodeBaseUrl: 'https://dre.ec.anyone.tech',
       githubNewIssueUrl:
         'https://github.com/anyone-protocol/ator-relay-dashboard/issues/new',
       phase: 'dev',
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.3.7',
+      version: '1.3.8',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],

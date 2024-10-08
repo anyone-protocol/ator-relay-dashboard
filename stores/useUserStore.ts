@@ -23,6 +23,8 @@ type CacheData = {
   tokenBalanceUsd: number;
 };
 
+const nuxtConfig = useRuntimeConfig();
+
 export const useUserStore = defineStore('user', {
   state: () => ({
     address: null as `0x${string}` | null,
@@ -242,6 +244,16 @@ export const useUserStore = defineStore('user', {
 
       this.familyRequired = data.data.familyRequired;
       this.registrationCreditsRequired = data.data.registrationCreditsRequired;
+
+      const allFingerprints = [] as string[];
+
+      data.data.claimable.forEach((relay: any) => {
+        allFingerprints.push(relay.fingerprint);
+      });
+
+      data.data.verified.forEach((relay: any) => {
+        allFingerprints.push(relay.fingerprint);
+      });
 
       // save to cache
       const relayCache = useRelayCache();
