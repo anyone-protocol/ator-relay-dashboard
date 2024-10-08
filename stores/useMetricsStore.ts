@@ -10,6 +10,8 @@ import {
 } from '@/composables/ardb';
 import { useTxCache } from '@/composables/txCache';
 
+const config = useRuntimeConfig();
+
 export interface ValidationStats {
   consensus_weight: number;
   consensus_weight_fraction: number;
@@ -118,7 +120,64 @@ export const useMetricsStore = defineStore('metrics', {
       this._refresh.last = Date.now();
       this.relayMetricsPending = false;
     },
+    async centralizedRelayMetrics() {
+      return new Promise(async (resolve, reject) => {
+        const cachedData = useRelayCache();
+        cachedData.getRelayData().then(async (data) => {
+          if (!data) {
+            reject();
+            return;
+          }
+          const allFingerprints = [] as string[];
+          data.verified.forEach((relay: any) => {
+            allFingerprints.push(relay.fingerprint);
+          });
 
+          data.claimable.forEach((relay: any) => {
+            allFingerprints.push(relay.fingerprint);
+          });
+
+          try {
+            const endpoint =
+              config.public.centralizedMetricsAPI +
+              '/relays?fingerprints=' +
+              allFingerprints.join(',');
+
+            const response = await fetch(endpoint);
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const userStore = useUserStore();
+            data.forEach((metric: any) => {
+              const exists = userStore.relaysMeta[metric.fingerprint];
+
+              if (!exists) {
+                userStore.relaysMeta[metric.fingerprint] = {
+                  fingerprint: metric.fingerprint,
+                  nickname: '',
+                  status: '',
+                  anon_address: '',
+                  consensus_weight: metric.consensus_weight.toString(),
+                  observed_bandwidth: metric.observed_bandwidth,
+                  consensus_weight_fraction: 0,
+                  running: metric.running,
+                };
+              }
+            });
+            resolve(data);
+          } catch (error: any) {
+            // Reject the promise in case of an error
+            logger.error(
+              `Error fetching centralized relay metrics: ${error.message}`
+            );
+            reject();
+          }
+        });
+      });
+    },
     async refreshRelayMetrics(limit: number = 1) {
       const ardb = useArdb();
       const runtimeConfig = useRuntimeConfig();
@@ -139,7 +198,7 @@ export const useMetricsStore = defineStore('metrics', {
       const txCache = useTxCache();
 
       // Retry mechanism configuration
-      const maxRetries = 3;
+      const maxRetries = 1;
       const retryDelay = (attempt: number) => Math.min(3000 * attempt, 15000); // Exponential backoff (max 15s)
 
       const attemptFetch = async (attempt: number): Promise<void> => {
@@ -213,12 +272,13 @@ export const useMetricsStore = defineStore('metrics', {
             logger.warn(
               `Retrying in ${retryDelay(attempt)}ms... (attempt ${attempt + 1})`
             );
-            await new Promise((resolve) =>
+            await await new Promise((resolve) =>
               setTimeout(resolve, retryDelay(attempt))
             );
             return attemptFetch(attempt + 1); // Retry after delay
           } else {
             logger.error('Max retries reached. Failed to fetch relay metrics.');
+            await this.centralizedRelayMetrics();
             this.relayMetricsPending = false;
           }
         }
