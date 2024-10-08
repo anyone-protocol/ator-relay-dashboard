@@ -66,7 +66,7 @@ export class Distribution {
 
     this.contract = contract;
     this.warpWorker = new Worker(
-      new URL('@/static/warpWorker.js', import.meta.url),
+      new URL('@/static/warpWoker-DreNode.js', import.meta.url),
       {
         type: 'module',
       }
