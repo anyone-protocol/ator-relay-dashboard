@@ -64,7 +64,7 @@ const props = defineProps<{
         size="xl"
         color="green"
         variant="outline"
-        label="No Credit"
+        label="Waiting..."
         :trailing="false"
         :disabled="true"
         block
