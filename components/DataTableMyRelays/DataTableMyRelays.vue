@@ -657,7 +657,7 @@ const handleUnlockClick = async (fingerprint: string) => {
               </div> -->
             </template>
             <template #trigger>
-              <div class="-mt-6 cursor-context-menu">
+              <div class="-mt-6 cursor-context-menu hover:text-[#24adc3]">
                 <Icon name="heroicons:exclamation-circle" />
               </div>
             </template>
