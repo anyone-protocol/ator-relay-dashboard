@@ -219,7 +219,7 @@ const fetchInitialData = async (
       (!registratorStore?.initialized || forceRefresh) &&
         useRegistrator()?.refresh(),
       // useDistribution().isInitialized &&
-      //   useDistribution().claimable(newAddress as string),
+      useDistribution().claimable(newAddress as string),
       // useDistribution().isInitialized && useDistribution().refresh(),
     ]);
   } catch (error) {

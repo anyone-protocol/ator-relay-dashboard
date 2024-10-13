@@ -11,6 +11,15 @@ const config = useRuntimeConfig();
 
 interface DistributionDetail {
   distributedTokens: BigNumber;
+  bonuses: {
+    hardware: BigNumber;
+    quality: BigNumber;
+  };
+  multipliers: {
+    family: string;
+    region: string;
+  };
+  score: BigNumber;
 }
 
 interface DistributionResult {
@@ -30,18 +39,52 @@ interface TempMap {
   [fingerprint: string]: BigNumber;
 }
 
+interface TempMapBonuses {
+  [fingerprint: string]: {
+    hardware: BigNumber;
+    quality: BigNumber;
+  };
+}
+
+interface TempMapMultipliers {
+  [fingerprint: string]: {
+    family: string;
+    region: string;
+  };
+}
+
 const state: State = {
   previousDistributions: {
     timestamp1: {
       details: {
-        fingerprint1: { distributedTokens: new BigNumber(100) },
-        fingerprint2: { distributedTokens: new BigNumber(200) },
+        fingerprint1: {
+          distributedTokens: new BigNumber(100),
+          bonuses: { hardware: new BigNumber(0), quality: new BigNumber(0) },
+          multipliers: { family: '1', region: '1' },
+          score: new BigNumber(100),
+        },
+        fingerprint2: {
+          distributedTokens: new BigNumber(0),
+          bonuses: { hardware: new BigNumber(0), quality: new BigNumber(0) },
+          multipliers: { family: '1', region: '1' },
+          score: new BigNumber(0),
+        },
       },
     },
     timestamp2: {
       details: {
-        fingerprint1: { distributedTokens: new BigNumber(50) },
-        fingerprint3: { distributedTokens: new BigNumber(300) },
+        fingerprint1: {
+          distributedTokens: new BigNumber(100),
+          bonuses: { hardware: new BigNumber(0), quality: new BigNumber(0) },
+          multipliers: { family: '1', region: '1' },
+          score: new BigNumber(100),
+        },
+        fingerprint2: {
+          distributedTokens: new BigNumber(50),
+          bonuses: { hardware: new BigNumber(0), quality: new BigNumber(0) },
+          multipliers: { family: '1', region: '1' },
+          score: new BigNumber(50),
+        },
       },
     },
   },
@@ -222,6 +265,7 @@ export class Distribution {
     // } = await this.contract.readState();
 
     let sumOfTotalDistributions = BigNumber(0);
+    console.log('state:', state);
     const previousDistributions = Object.keys(state.previousDistributions)
       .reverse()
       .map<PreviousDistribution>((timestamp) => {
@@ -268,7 +312,11 @@ export class Distribution {
     useFacilitatorStore().previousDistributions = previousDistributions;
 
     // Initialize tempMap
-    let tempMap: TempMap = {};
+    let distributionMap: TempMap = {};
+    let hardwareBonusesMap: TempMapBonuses = {};
+    let familyMultipliersMap: TempMapMultipliers = {};
+    let scoreMap: TempMap = {};
+    let lastDistributionTimePerRelay: Record<string, string | null> = {};
 
     // Iterate through state and populate tempMap
     if (state?.previousDistributions) {
@@ -276,6 +324,8 @@ export class Distribution {
         state.previousDistributions
       )) {
         const distResult = distributionResult as DistributionResult;
+        const timestampNumber = Number(timestamp);
+
         if (distResult?.details) {
           for (const [fingerprint, previousDistribution] of Object.entries(
             distResult.details
@@ -283,29 +333,105 @@ export class Distribution {
             const distributionDetail =
               previousDistribution as DistributionDetail;
 
-            if (!tempMap[fingerprint]) {
-              tempMap[fingerprint] = BigNumber(
+            // Handle distribution map
+            if (!distributionMap[fingerprint]) {
+              distributionMap[fingerprint] = BigNumber(
                 distributionDetail.distributedTokens
               );
             } else {
-              // add
-              tempMap[fingerprint] = tempMap[fingerprint].plus(
+              distributionMap[fingerprint] = distributionMap[fingerprint].plus(
                 distributionDetail.distributedTokens
               );
+            }
+
+            // Handle hardware and quality bonuses
+            if (!hardwareBonusesMap[fingerprint]) {
+              hardwareBonusesMap[fingerprint] = {
+                hardware: BigNumber(distributionDetail.bonuses?.hardware || 0),
+                quality: BigNumber(distributionDetail.bonuses?.quality || 0),
+              };
+            } else {
+              hardwareBonusesMap[fingerprint].hardware = hardwareBonusesMap[
+                fingerprint
+              ].hardware.plus(distributionDetail.bonuses?.hardware || 0);
+              hardwareBonusesMap[fingerprint].quality = hardwareBonusesMap[
+                fingerprint
+              ].quality.plus(distributionDetail.bonuses?.quality || 0);
+            }
+
+            // Handle family and region multipliers (stored as strings)
+            if (!familyMultipliersMap[fingerprint]) {
+              familyMultipliersMap[fingerprint] = {
+                family: distributionDetail.multipliers?.family || '1',
+                region: distributionDetail.multipliers?.region || '1',
+              };
+            } else {
+              // Multipliers remain as strings, you can choose to concatenate or update as needed
+              familyMultipliersMap[fingerprint] = {
+                family:
+                  distributionDetail.multipliers?.family ||
+                  familyMultipliersMap[fingerprint].family,
+                region:
+                  distributionDetail.multipliers?.region ||
+                  familyMultipliersMap[fingerprint].region,
+              };
+            }
+
+            // Handle score map
+            if (!scoreMap[fingerprint]) {
+              scoreMap[fingerprint] = BigNumber(distributionDetail.score);
+            } else {
+              scoreMap[fingerprint] = scoreMap[fingerprint].plus(
+                distributionDetail.score
+              );
+            }
+
+            if (
+              !lastDistributionTimePerRelay[fingerprint] ||
+              timestampNumber >
+                Number(lastDistributionTimePerRelay[fingerprint])
+            ) {
+              lastDistributionTimePerRelay[fingerprint] = new Date(
+                timestampNumber
+              ).toLocaleString();
             }
           }
         }
       }
     }
 
-    for (const [fingerprint, totalDistributed] of Object.entries(tempMap)) {
-      // change string to BigNumber
+    console.log('distributionMap:', distributionMap);
+    console.log('hardwareBonusesMap:', hardwareBonusesMap);
+    console.log('familyMultipliersMap:', familyMultipliersMap);
 
-      const toBigNumber = BigNumber(totalDistributed);
-      tempMap[fingerprint] = toBigNumber.dividedBy(1e18).decimalPlaces(2);
+    let baseTokensMap: Record<string, BigNumber> = {};
+
+    for (const [fingerprint, totalDistributed] of Object.entries(
+      distributionMap
+    )) {
+      const totalDistributionBN = BigNumber(totalDistributed).dividedBy(1e18);
+
+      const hardwareBonusBN =
+        hardwareBonusesMap[fingerprint]?.hardware || BigNumber(0);
+      const qualityBonusBN =
+        hardwareBonusesMap[fingerprint]?.quality || BigNumber(0);
+
+      // Subtract hardware and quality bonuses to get base tokens
+      const baseTokens = totalDistributionBN
+        .minus(hardwareBonusBN)
+        .minus(qualityBonusBN);
+
+      baseTokensMap[fingerprint] = baseTokens.decimalPlaces(2);
+      distributionMap[fingerprint] = totalDistributionBN.decimalPlaces(2);
     }
 
-    useFacilitatorStore().distributionPerRelay = tempMap;
+    useFacilitatorStore().distributionPerRelay = distributionMap;
+    useFacilitatorStore().bonusesPerRelay = hardwareBonusesMap;
+    useFacilitatorStore().multipliersPerRelay = familyMultipliersMap;
+    useFacilitatorStore().scorePerRelay = scoreMap;
+    useFacilitatorStore().baseTokensPerRelay = baseTokensMap;
+    useFacilitatorStore().lastDistributionTimePerRelay =
+      lastDistributionTimePerRelay;
 
     return previousDistributions;
   }

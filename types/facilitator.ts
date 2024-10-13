@@ -21,6 +21,21 @@ export type PreviousDistribution = {
 };
 
 export type DistributionPerRelay = Record<string, BigNumber>;
+export type BonusesPerRelay = Record<
+  string,
+  {
+    hardware: BigNumber;
+    quality: BigNumber;
+  }
+>;
+
+export type MultipliersPerRelay = Record<
+  string,
+  {
+    family: string;
+    region: string;
+  }
+>;
 
 export interface FacilitatorStoreState {
   claims: ClaimProcess[];
@@ -31,8 +46,13 @@ export interface FacilitatorStoreState {
   distributionRatePerDay: string;
   sumOfTotalDistributions: string;
   distributionPerRelay: DistributionPerRelay;
+  bonusesPerRelay: BonusesPerRelay;
+  multipliersPerRelay: MultipliersPerRelay;
+  scorePerRelay: Record<string, BigNumber>;
+  baseTokensPerRelay: DistributionPerRelay;
   previousDistributions: PreviousDistribution[];
   claimableAtomicTokens?: string;
+  lastDistributionTimePerRelay: Record<string, string | null>;
   availableBudget?: string;
   usedBudget?: string;
   initialized: boolean;
