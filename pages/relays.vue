@@ -33,64 +33,119 @@
     </Card>
   </DashboardMobileSection>
   <UModal v-model="registerModalOpen">
-    <UCard class="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <h4
-        class="text-lg font-semibold mb-4 border-b border-b-[rgba(255,255,255,0.1)] pb-4"
-      >
-        Register Fingerprint
-      </h4>
+    <UCard class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg relative">
+      <div class="flex gap-2 mb-4 pb-4">
+        <Icon
+          name="material-symbols:lock"
+          color="#24adc3"
+          class="h-6 w-auto"
+        ></Icon>
+
+        <h4 class="text-lg font-semibold">Register Fingerprint</h4>
+      </div>
+
       <UContainer>
         <p class="mb-[1rem] text-center">
           Note: This is for you to delegate a token lock for someone else.
         </p>
         <div class="mb-6">
-          <UFormGroup label="ETH Wallet Address" class="mb-6">
-            <UInput
-              v-model="ethAddress"
-              hint="The ETH Wallet Address associated with the fingerprint"
-              placeholder="ETH Wallet Address"
-              :rules="[rules.required]"
-              :error="ethAddressError !== null"
-              persistent-hint
-              class="mb-1"
-            />
+          <UFormGroup label="Relay Fingerprint" class="relative group">
+            <div
+              class="relative group bg-transparent border-2 border-[#24adc3] rounded-md overflow-hidden focus-within:border-[#24adc3] transition-all duration-300"
+            >
+              <UInput
+                v-model="fingerPrintRegister"
+                placeholder="012382382142349FJSSDFJO31239"
+                class="w-full bg-transparent text-gray-900 dark:text-gray-50 focus:outline-none border-none"
+                :rules="[rules.required]"
+                :error="fingerPrintRegisterError !== null"
+                persistent-hint
+                input-class="text-sm md:text-md"
+                size="xl"
+              >
+                <template #leading>
+                  <Icon
+                    name="mdi:fingerprint"
+                    color="#24adc3"
+                    class="h-6 w-6"
+                  />
+                </template>
+              </UInput>
+            </div>
           </UFormGroup>
           <UFormGroup label="Relay Fingerprint">
-            <UInput
-              v-model="fingerPrintRegister"
-              hint="Fingerprint associated with the ETH Wallet Address"
-              placeholder="Relay Fingerprint"
-              :rules="[rules.required]"
-              :error="fingerPrintRegisterError !== null"
-              persistent-hint
-              class="mb-1"
-            />
+            <div class="relative">
+              <UInput
+                v-model="ethAddress"
+                placeholder="0x2abe87c45e0969a499bc003543ed9c661fa77049"
+                class="border-2 rounded-md w-full text-gray-900 dark:text-gray-50 bg-transparent border-[#24adc3] text-sm"
+                :rules="[rules.required]"
+                :error="ethAddressError !== null"
+                persistent-hint
+                input-class="text-sm md:text-md"
+                size="xl"
+              >
+                <template #leading>
+                  <Icon
+                    name="mdi:wallet"
+                    color="#24adc3"
+                    class="absolute top-1/2 transform -translate-y-1/2 left-4 h-6 w-6"
+                  />
+                </template>
+              </UInput>
+            </div>
           </UFormGroup>
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-end gap-4">
           <UButton
             variant="outline"
             size="sm"
-            color="red"
             @click="registerModalOpen = false"
+            class="cancel-btn"
           >
             Cancel
           </UButton>
-          <UDivider />
           <UButton
-            variant="outline"
+            variant="solid"
             size="sm"
             color="primary"
             @click="handleLockRemote"
             :loading="lockRemoteLoading"
+            class="lock-btn"
           >
-            Register
+            Lock Now
           </UButton>
+          <!-- Ribbon Effect -->
+          <div
+            class="ribbon right-[-10px] md:right-[-5px] top-[90%] sm:top-[89%] w-[40px] h-[4px] sm:w-[60px] md:h-[6px]"
+          ></div>
         </div>
       </UContainer>
     </UCard>
   </UModal>
 </template>
+<style scoped>
+.ribbon {
+  position: absolute;
+  transform: translateY(-50%);
+  background-color: #24adc3;
+  border-radius: 50% 0 0 50%;
+  animation: glow 1.5s infinite;
+}
+
+/* Glow animation */
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 10px #24adc3;
+  }
+  50% {
+    box-shadow: 0 0 20px #24adc3;
+  }
+  100% {
+    box-shadow: 0 0 10px #24adc3;
+  }
+}
+</style>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
