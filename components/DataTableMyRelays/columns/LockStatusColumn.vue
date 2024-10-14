@@ -11,7 +11,14 @@ defineProps<{
     <USkeleton class="w-[15rem] h-10" />
   </template>
   <template v-else>
-    <div v-if="isLocked" class="text-green-600 dark:text-green-300">
+    <div
+      v-if="isLocked && isHardware"
+      class="text-athena-600 dark:text-athena-50"
+    >
+      <Icon name="material-symbols:memory" />
+      Hardware
+    </div>
+    <div v-else-if="isLocked" class="text-green-600 dark:text-green-300">
       <Icon name="material-symbols:lock" />
       Locked
     </div>

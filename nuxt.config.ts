@@ -70,11 +70,13 @@ export default defineNuxtConfig({
       dreNodeBaseUrl: 'https://dre.ec.anyone.tech',
       githubNewIssueUrl:
         'https://github.com/anyone-protocol/ator-relay-dashboard/issues/new',
+      airdropApi:
+        'https://wekxyorpeiwpxmexrwkx.supabase.co/rest/v1/Airdrops?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indla3h5b3JwZWl3cHhtZXhyd2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg1NjExODMsImV4cCI6MjA0NDEzNzE4M30.9VZHP6g5dIwGYtT7LwXAGKGKirA9yhiPPCzPg5nlKug',
       phase: 'dev',
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.3.9',
+      version: '1.4.0',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],

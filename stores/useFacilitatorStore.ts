@@ -21,6 +21,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
       sumOfTotalDistributions: '',
       previousDistributions: [],
       claimableAtomicTokens: '',
+      airDropTokens: '',
       distributionPerRelay: {},
       bonusesPerRelay: {},
       multipliersPerRelay: {},
@@ -65,6 +66,12 @@ export const useFacilitatorStore = defineStore('facilitator', {
             : allocatedTokens.toString(10);
         }
         return state.claimableAtomicTokens;
+      }
+      return '0';
+    },
+    availableAirdropTokens: (state) => {
+      if (state.airDropTokens) {
+        return state.airDropTokens;
       }
       return '0';
     },

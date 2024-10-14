@@ -49,7 +49,10 @@
           Note: This is for you to delegate a token lock for someone else.
         </p>
         <div class="mb-6">
-          <UFormGroup label="Relay Fingerprint" class="relative group">
+          <UFormGroup
+            label="Operator's Relay Fingerprint"
+            class="relative group"
+          >
             <div
               class="relative group bg-transparent border-2 border-[#24adc3] rounded-md overflow-hidden focus-within:border-[#24adc3] transition-all duration-300"
             >
@@ -73,7 +76,7 @@
               </UInput>
             </div>
           </UFormGroup>
-          <UFormGroup label="Relay Fingerprint">
+          <UFormGroup label="Operator's ETH Wallet">
             <div class="relative">
               <UInput
                 v-model="ethAddress"
@@ -116,9 +119,9 @@
             Lock Now
           </UButton>
           <!-- Ribbon Effect -->
-          <div
+          <!-- <div
             class="ribbon right-[-10px] md:right-[-5px] top-[90%] sm:top-[89%] w-[40px] h-[4px] sm:w-[60px] md:h-[6px]"
-          ></div>
+          ></div> -->
         </div>
       </UContainer>
     </UCard>

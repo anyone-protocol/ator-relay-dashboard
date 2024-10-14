@@ -495,6 +495,50 @@ export class Distribution {
       this.warpWorker!.addEventListener('message', handleMessage);
     });
   }
+
+  async airdropTokens(address: string, humanize = false): Promise<string> {
+    if (!address) {
+      console.log('Address is required');
+      return Promise.resolve('0');
+    }
+
+    const AIRDROP_API_URL = config.public.airdropApi as string;
+    try {
+      const response = await fetch(AIRDROP_API_URL);
+      if (!response.ok) {
+        throw new Error('Failed to fetch airdrop data');
+      }
+
+      const airdropData = await response.json();
+
+      const userAirdrop = airdropData.find(
+        (entry: { id: string; airdrop: number }) =>
+          entry.id.toLowerCase() === address.toLowerCase()
+      );
+
+      if (!userAirdrop) {
+        console.log('No airdrop found for this address');
+        return '0';
+      }
+      const auth = useUserStore();
+
+      const airDropValue = userAirdrop.airdrop;
+
+      if (auth.userData && address === auth.userData.address) {
+        useFacilitatorStore().airDropTokens = airDropValue;
+      }
+
+      const result = humanize
+        ? BigNumber(airDropValue).dividedBy(1e18).toFormat(4)
+        : airDropValue.toString();
+
+      console.log('airDropResult:', result);
+      return Promise.resolve(result);
+    } catch (error) {
+      console.error('Error fetching airdrop data:', error);
+      return Promise.resolve('0');
+    }
+  }
 }
 
 const distribution = new Distribution();
