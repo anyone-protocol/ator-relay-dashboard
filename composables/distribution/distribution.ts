@@ -412,9 +412,13 @@ export class Distribution {
       const totalDistributionBN = BigNumber(totalDistributed).dividedBy(1e18);
 
       const hardwareBonusBN =
-        hardwareBonusesMap[fingerprint]?.hardware || BigNumber(0);
+        BigNumber(hardwareBonusesMap[fingerprint]?.hardware ?? 0).dividedBy(
+          1e18
+        ) || BigNumber(0);
       const qualityBonusBN =
-        hardwareBonusesMap[fingerprint]?.quality || BigNumber(0);
+        BigNumber(hardwareBonusesMap[fingerprint]?.quality ?? 0).dividedBy(
+          1e18
+        ) || BigNumber(0);
 
       // Subtract hardware and quality bonuses to get base tokens
       const baseTokens = totalDistributionBN
@@ -423,6 +427,8 @@ export class Distribution {
 
       baseTokensMap[fingerprint] = baseTokens.decimalPlaces(2);
       distributionMap[fingerprint] = totalDistributionBN.decimalPlaces(2);
+      hardwareBonusesMap[fingerprint].hardware =
+        hardwareBonusBN.decimalPlaces(2);
     }
 
     useFacilitatorStore().distributionPerRelay = distributionMap;
