@@ -601,6 +601,94 @@ const handleUnlockClick = async (fingerprint: string) => {
             {{
               facilitatorStore?.distributionPerRelay?.[row.fingerprint] || '-'
             }}
+
+            <Popover placement="left" :arrow="false" mode="hover">
+              <template #content>
+                <div class="p-1 px-4">
+                  <div
+                    class="text-xs font-normal text-green-600 dark:text-green-300 mb-2"
+                  >
+                    <span class="text-gray-800 dark:text-white"
+                      >Base Tokens:</span
+                    >
+
+                    {{
+                      facilitatorStore?.baseTokensPerRelay?.[row.fingerprint] ||
+                      '-'
+                    }}
+                    $ANYONE
+                  </div>
+                  <div
+                    class="text-xs font-normal text-green-600 dark:text-green-300"
+                  >
+                    <span class="text-gray-800 dark:text-white"
+                      >Family Multiplier:</span
+                    >
+                    {{
+                      facilitatorStore?.multipliersPerRelay?.[row.fingerprint]
+                        ?.family || '-'
+                    }}x
+                  </div>
+                  <div
+                    class="text-xs font-normal text-green-600 dark:text-green-300"
+                  >
+                    <span class="text-gray-800 dark:text-white"
+                      >Region Multiplier:</span
+                    >
+                    {{
+                      facilitatorStore?.multipliersPerRelay?.[row.fingerprint]
+                        ?.region || '-'
+                    }}x
+                  </div>
+                  <div
+                    class="text-xs font-normal text-cyan-600 dark:text-cyan-300"
+                  >
+                    <span class="text-gray-800 dark:text-white"
+                      >Hardware Bonus:</span
+                    >
+                    {{
+                      facilitatorStore?.bonusesPerRelay?.[row.fingerprint]
+                        ?.hardware || '-'
+                    }}
+                    $ANYONE
+                  </div>
+                  <div
+                    class="text-xs font-normal text-indigo-700 dark:text-violet-300"
+                  >
+                    <span class="text-gray-800 dark:text-white"
+                      >Uptime Bonus:</span
+                    >
+                    {{
+                      facilitatorStore?.bonusesPerRelay?.[row.fingerprint]
+                        ?.quality || '-'
+                    }}
+                    $ANYONE
+                  </div>
+
+                  <div
+                    class="text-xs font-normal text-stone-700 dark:text-stone-300"
+                  >
+                    <span class="text-gray-800 dark:text-white"
+                      >Last Distribution:</span
+                    >
+                    {{
+                      facilitatorStore?.lastDistributionTimePerRelay?.[
+                        row.fingerprint
+                      ] || '-'
+                    }}
+                  </div>
+                </div>
+                <!-- <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
+                <span class="text-gray-800 dark:text-white">Locked:</span> Your
+                lock tx is awaiting Arweave confirmation.
+              </div> -->
+              </template>
+              <template #trigger>
+                <div class="-mt-6 cursor-context-menu hover:text-[#24adc3]">
+                  <Icon name="heroicons:exclamation-circle" />
+                </div>
+              </template>
+            </Popover>
           </span>
         </div>
       </div>

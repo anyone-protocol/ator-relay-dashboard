@@ -58,10 +58,10 @@ export default defineNuxtConfig({
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: 'f5e29d36441ccd0e2f5e3473d5a2021b',
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',
-      facilitatorContract: '0x21A828Cfa790D972214757d523fD921e2e7318fD',
+      facilitatorContract: '0xd5F13F38b3FeFEc9c3b9F4dE7D951084a3fFB89B',
       sepoliaAtorTokenContract: '0x3F7D7e1161B4CbC172517a2957A13814f4a657A2',
       tokenContractMain: '0xFeAc2Eae96899709a43E252B6B92971D32F9C0F9',
-      distributionContract: 'HV-i0cL-TovWldEDDITqZQsOca2lzk2FkiLcaukq8TM',
+      distributionContract: '22rOD-_0isRZQaw0EBGh6Ko0ri5IPE7cYTaMThhPENk',
       metricsDeployer: '53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q',
       registratorContract: '0x86e55b81cf6a86b9EFb630c0E6Ad91E53a509A35',
       distributionDeployer: 'G5tXjZS4SaMJNwOENZYgymvc6Zxp2Wws4Qf8wB0b',
@@ -70,11 +70,13 @@ export default defineNuxtConfig({
       dreNodeBaseUrl: 'https://dre.ec.anyone.tech',
       githubNewIssueUrl:
         'https://github.com/anyone-protocol/ator-relay-dashboard/issues/new',
+      airdropApi:
+        'https://wekxyorpeiwpxmexrwkx.supabase.co/rest/v1/Airdrops?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indla3h5b3JwZWl3cHhtZXhyd2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg1NjExODMsImV4cCI6MjA0NDEzNzE4M30.9VZHP6g5dIwGYtT7LwXAGKGKirA9yhiPPCzPg5nlKug',
       phase: 'dev',
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.3.8',
+      version: '1.4.0',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],

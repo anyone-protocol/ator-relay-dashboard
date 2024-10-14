@@ -115,7 +115,10 @@
 
           <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>Redeemed rewards</h3>
+              <div class="flex flex-col items-start gap-2">
+                <h3 class="text-red-700 dark:text-red-400">Total</h3>
+                <h3>Redeemed rewards</h3>
+              </div>
               <template v-if="claimedPending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
@@ -131,7 +134,30 @@
                 <Ticker />
               </template>
             </div>
-            <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
+
+            <div
+              class="my-4 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
+            >
+              <h3>Eligible for next airdrop (i)</h3>
+              <template v-if="claimablePending">
+                <USkeleton class="w-[15rem] h-10" />
+              </template>
+              <template v-else>
+                <span v-if="isConnected" class="text-4xl font-bold">
+                  {{
+                    formatEtherNoRound(
+                      facilitatorStore.availableAirdropTokens || '0'
+                    )
+                  }}
+                </span>
+                <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
+                <Ticker />
+              </template>
+            </div>
+
+            <div
+              class="my-4 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
+            >
               <h3>Redeemable rewards</h3>
               <template v-if="claimablePending">
                 <USkeleton class="w-[15rem] h-10" />
@@ -218,8 +244,9 @@ const fetchInitialData = async (
         useFacilitator()?.refresh(),
       (!registratorStore?.initialized || forceRefresh) &&
         useRegistrator()?.refresh(),
-      // useDistribution().isInitialized &&
-      //   useDistribution().claimable(newAddress as string),
+      useDistribution().isInitialized &&
+        useDistribution().claimable(newAddress as string),
+      useDistribution().airdropTokens(newAddress as string),
       // useDistribution().isInitialized && useDistribution().refresh(),
     ]);
   } catch (error) {
