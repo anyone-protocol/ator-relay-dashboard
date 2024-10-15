@@ -7,6 +7,7 @@ import Logger from '@/utils/logger';
 import { type DistributionState } from './contract';
 import type { PreviousDistribution } from '@/types/facilitator';
 import { add } from 'lodash';
+import { Facilitator } from '../facilitator';
 const config = useRuntimeConfig();
 
 interface DistributionDetail {
@@ -400,9 +401,9 @@ export class Distribution {
       }
     }
 
-    console.log('distributionMap:', distributionMap);
-    console.log('hardwareBonusesMap:', hardwareBonusesMap);
-    console.log('familyMultipliersMap:', familyMultipliersMap);
+    // console.log('distributionMap:', distributionMap);
+    // console.log('hardwareBonusesMap:', hardwareBonusesMap);
+    // console.log('familyMultipliersMap:', familyMultipliersMap);
 
     let baseTokensMap: Record<string, BigNumber> = {};
 
@@ -412,9 +413,13 @@ export class Distribution {
       const totalDistributionBN = BigNumber(totalDistributed).dividedBy(1e18);
 
       const hardwareBonusBN =
-        hardwareBonusesMap[fingerprint]?.hardware || BigNumber(0);
+        BigNumber(hardwareBonusesMap[fingerprint]?.hardware ?? 0).dividedBy(
+          1e18
+        ) || BigNumber(0);
       const qualityBonusBN =
-        hardwareBonusesMap[fingerprint]?.quality || BigNumber(0);
+        BigNumber(hardwareBonusesMap[fingerprint]?.quality ?? 0).dividedBy(
+          1e18
+        ) || BigNumber(0);
 
       // Subtract hardware and quality bonuses to get base tokens
       const baseTokens = totalDistributionBN
@@ -423,6 +428,8 @@ export class Distribution {
 
       baseTokensMap[fingerprint] = baseTokens.decimalPlaces(2);
       distributionMap[fingerprint] = totalDistributionBN.decimalPlaces(2);
+      hardwareBonusesMap[fingerprint].hardware =
+        hardwareBonusBN.decimalPlaces(2);
     }
 
     useFacilitatorStore().distributionPerRelay = distributionMap;
@@ -503,6 +510,7 @@ export class Distribution {
     }
 
     const AIRDROP_API_URL = config.public.airdropApi as string;
+    const VARIATION_API_URL = config.public.variationApi as string;
     try {
       const response = await fetch(AIRDROP_API_URL);
       if (!response.ok) {
@@ -516,23 +524,33 @@ export class Distribution {
           entry.id.toLowerCase() === address.toLowerCase()
       );
 
-      if (!userAirdrop) {
+      const variationResponse = await fetch(VARIATION_API_URL);
+      if (!variationResponse.ok) {
+        throw new Error('Failed to fetch variation data');
+      }
+
+      const variationData = await variationResponse.json();
+      const variation = variationData.filter(
+        (entry: { id: string; variation: number }) =>
+          entry.id.toLowerCase() === address.toLowerCase()
+      );
+
+      if (!userAirdrop || !variation) {
         console.log('No airdrop found for this address');
         return '0';
       }
-      const auth = useUserStore();
 
       const airDropValue = userAirdrop.airdrop;
+      const variationValue = BigNumber(variation.variation ?? 0).dividedBy(
+        1e18
+      );
 
-      if (auth.userData && address === auth.userData.address) {
-        useFacilitatorStore().airDropTokens = airDropValue;
-      }
-
-      const result = humanize
-        ? BigNumber(airDropValue).dividedBy(1e18).toFormat(4)
-        : airDropValue.toString();
+      const result = BigNumber(airDropValue).plus(variationValue).toString();
 
       console.log('airDropResult:', result);
+
+      useFacilitatorStore().airDropTokens = result;
+
       return Promise.resolve(result);
     } catch (error) {
       console.error('Error fetching airdrop data:', error);

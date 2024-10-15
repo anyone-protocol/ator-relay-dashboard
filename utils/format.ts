@@ -24,3 +24,19 @@ export function formatEtherNoRound(value: string | bigint): string {
 
   return rounded;
 }
+
+export function calculateAirdrop(
+  totalClaimedTokens: string,
+  airDropTokens: string
+) {
+  const totalClaimed = new BigNumber(totalClaimedTokens);
+  const airDrop = new BigNumber(airDropTokens).multipliedBy(1e18);
+
+  const total = airDrop.minus(totalClaimed).toString(10);
+  // return 0 if the total is negative
+  if (new BigNumber(total).isNegative()) {
+    return '0';
+  }
+
+  return total;
+}
