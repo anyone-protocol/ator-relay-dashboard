@@ -4,7 +4,7 @@
   >
     <div class="flex w-full flex-col gap-4 lg:col-span-6">
       <DashboardMobileSection title="account-balance">
-        <Card title="Account balance" :icon="'eos-icons:master-outlined'">
+        <Card title="Account Balance" :icon="'eos-icons:master-outlined'">
           <div
             class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
           >
@@ -61,7 +61,7 @@
                 class="dark:text-cyan-200 lg:text-3xl text-2xl tracking-wide flex items-center gap-2 font-brand"
               >
                 <Icon name="eos-icons:trusted-organization" />
-                Rewards history
+                Rewards History
               </h2>
               <p class="mb-4 text-sm mt-4">
                 Earn rewards by contributing relays to the ANYONE network.
@@ -116,8 +116,7 @@
           <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
               <div class="flex flex-col items-start gap-2">
-                <h3 class="text-red-700 dark:text-red-400">Total</h3>
-                <h3>Redeemed rewards</h3>
+                <h3>Total redeemed rewards</h3>
               </div>
               <template v-if="claimedPending">
                 <USkeleton class="w-[15rem] h-10" />
@@ -138,7 +137,28 @@
             <div
               class="my-4 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
             >
-              <h3>Eligible for next airdrop (i)</h3>
+              <div class="flex items-start gap-2">
+                <h3>Eligible for next airdrop</h3>
+                <Popover placement="top" :arrow="false">
+                  <template #content>
+                    <div
+                      class="text-xs font-normal text-gray-600 dark:text-gray-300"
+                    >
+                      Total number of redeemed tokens, minus any tokens received
+                      or forfeited from previous airdrops or
+                    </div>
+                  </template>
+                  <template #trigger>
+                    <div>
+                      <div
+                        class="-mt-6 cursor-context-menu hover:text-[#24adc3]"
+                      >
+                        <Icon name="heroicons:exclamation-circle" />
+                      </div>
+                    </div>
+                  </template>
+                </Popover>
+              </div>
               <template v-if="claimablePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
@@ -146,7 +166,10 @@
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
                     formatEtherNoRound(
-                      facilitatorStore.availableAirdropTokens || '0'
+                      calculateAirdrop(
+                        facilitatorStore.totalClaimedTokens || '0',
+                        facilitatorStore.airDropTokens || '0'
+                      )
                     )
                   }}
                 </span>
@@ -199,7 +222,8 @@ import { initDistribution, useDistribution } from '@/composables/distribution';
 import { initRelayRegistry } from '@/composables/relay-registry';
 import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
-import { formatEtherNoRound } from '@/utils/format';
+import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
+import Popover from '../components/ui-kit/Popover.vue';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();

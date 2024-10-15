@@ -527,7 +527,7 @@ const handleUnlockClick = async (fingerprint: string) => {
         label:
           currentTab === 'claimable'
             ? 'No claimable relays!'
-            : 'No pending claimable or verified relays!',
+            : 'No locked or delegated-locked relays!',
       }"
     >
       <template #actions-data="{ row }">
