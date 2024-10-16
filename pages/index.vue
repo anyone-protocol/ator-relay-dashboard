@@ -336,7 +336,6 @@ const handleClaimAllRewards = async () => {
           'Rewards redeemed successfully please wait for the transaction to be saved',
       });
 
-      // add another toast to inform user to wait for the refresh of data that , and the toast will stay for 15 seconds
       toast.add({
         icon: 'i-heroicons-information-circle',
         color: 'blue',
@@ -345,7 +344,7 @@ const handleClaimAllRewards = async () => {
           'Please wait for the data to refresh, this may take a few seconds',
         timeout: 13000,
       });
-      // refresh claimable and airdrop tokens
+
       await new Promise((resolve) => setTimeout(resolve, 10000));
 
       await Promise.all([
@@ -354,7 +353,7 @@ const handleClaimAllRewards = async () => {
       ]);
 
       toast.remove('Please wait');
-      // toast to inform user that the data has been refreshed
+
       toast.add({
         icon: 'i-heroicons-check-circle',
         color: 'blue',

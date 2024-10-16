@@ -563,7 +563,7 @@ const handleUnlockClick = async (fingerprint: string) => {
             <template #content>
               <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
                 The number of tokens earned by this relay in the last
-                distribution period (typically 1-2 hours)
+                distribution period.
               </div>
             </template>
             <template #trigger>
