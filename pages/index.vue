@@ -145,7 +145,7 @@
                       class="text-xs font-normal text-gray-600 dark:text-gray-300"
                     >
                       Total number of redeemed tokens, minus any tokens received
-                      or forfeited from previous airdrops or
+                      or forfeited from previous airdrops.
                     </div>
                   </template>
                   <template #trigger>
