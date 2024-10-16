@@ -426,10 +426,10 @@ export class Distribution {
         .minus(hardwareBonusBN)
         .minus(qualityBonusBN);
 
-      baseTokensMap[fingerprint] = baseTokens.decimalPlaces(2);
-      distributionMap[fingerprint] = totalDistributionBN.decimalPlaces(2);
+      baseTokensMap[fingerprint] = baseTokens.decimalPlaces(3);
+      distributionMap[fingerprint] = totalDistributionBN.decimalPlaces(3);
       hardwareBonusesMap[fingerprint].hardware =
-        hardwareBonusBN.decimalPlaces(2);
+        hardwareBonusBN.decimalPlaces(3);
     }
 
     useFacilitatorStore().distributionPerRelay = distributionMap;
@@ -534,6 +534,8 @@ export class Distribution {
         (entry: { id: string; variation: number }) =>
           entry.id.toLowerCase() === address.toLowerCase()
       );
+      console.log('airDropResult:', userAirdrop);
+      console.log('variationResult:', variation);
 
       if (!userAirdrop || !variation) {
         console.log('No airdrop found for this address');

@@ -579,7 +579,7 @@ const handleUnlockClick = async (fingerprint: string) => {
             <template #content>
               <div class="p-1 px-4">
                 <div
-                  class="text-xs font-normal text-green-600 dark:text-green-300 mb-2"
+                  class="text-xs font-normal text-green-600 dark:text-green-300"
                 >
                   <span class="text-gray-800 dark:text-white"
                     >Base Tokens:</span
@@ -592,7 +592,7 @@ const handleUnlockClick = async (fingerprint: string) => {
                   $ANYONE
                 </div>
                 <div
-                  class="text-xs font-normal text-green-600 dark:text-green-300"
+                  class="text-xs font-normal text-gray-600 dark:text-gray-300"
                 >
                   <span class="text-gray-800 dark:text-white"
                     >Family Multiplier:</span
@@ -603,7 +603,7 @@ const handleUnlockClick = async (fingerprint: string) => {
                   }}x
                 </div>
                 <div
-                  class="text-xs font-normal text-green-600 dark:text-green-300"
+                  class="text-xs font-normal text-gray-600 dark:text-gray-300 mb-2"
                 >
                   <span class="text-gray-800 dark:text-white"
                     >Region Multiplier:</span
@@ -626,7 +626,7 @@ const handleUnlockClick = async (fingerprint: string) => {
                   $ANYONE
                 </div>
                 <div
-                  class="text-xs font-normal text-indigo-700 dark:text-violet-300"
+                  class="text-xs font-normal text-indigo-700 dark:text-violet-300 mb-2"
                 >
                   <span class="text-gray-800 dark:text-white"
                     >Uptime Bonus:</span
