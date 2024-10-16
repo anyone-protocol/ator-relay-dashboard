@@ -158,11 +158,19 @@ export const useMetricsStore = defineStore('metrics', {
 
             const response = await fetch(endpoint);
 
+            if (response.status === 404 || response.status === 204) {
+              resolve([]);
+              return;
+            }
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
+            if (data === 'No relays found') {
+              resolve([]);
+              return;
+            }
             data.forEach((metric: any) => {
               const exists = userStore.relaysMeta[metric.fingerprint];
               userStore.relaysMeta[metric.fingerprint] = {

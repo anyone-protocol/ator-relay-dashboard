@@ -335,6 +335,31 @@ const handleClaimAllRewards = async () => {
         description:
           'Rewards redeemed successfully please wait for the transaction to be saved',
       });
+
+      toast.add({
+        icon: 'i-heroicons-information-circle',
+        color: 'blue',
+        title: 'Please wait',
+        description:
+          'Please wait for the data to refresh, this may take a few seconds',
+        timeout: 13000,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+
+      await Promise.all([
+        useDistribution().claimable(userStore.userData.address as string),
+        useDistribution().airdropTokens(userStore.userData.address as string),
+      ]);
+
+      toast.remove('Please wait');
+
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        color: 'blue',
+        title: 'Data refreshed',
+        description: 'Data has been refreshed',
+      });
     } else {
       toast.add({
         icon: 'i-heroicons-x-circle',
