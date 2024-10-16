@@ -66,7 +66,7 @@
               <p class="mb-4 text-sm mt-4">
                 Earn rewards by contributing relays to the ANYONE network.
                 <a
-                  href="https://docs.anyone.io/relay/rewards"
+                  href="https://docs.anyone.io/rewards"
                   target="_blank"
                   class="dark:text-cyan-200 text-cyan-500 underline"
                 >
@@ -145,7 +145,7 @@
                       class="text-xs font-normal text-gray-600 dark:text-gray-300"
                     >
                       Total number of redeemed tokens, minus any tokens received
-                      or forfeited from previous airdrops or
+                      or forfeited from previous airdrops.
                     </div>
                   </template>
                   <template #trigger>
