@@ -294,7 +294,6 @@ watch(
       lockedRelays,
       tokenBalance.value
     );
-    console.log('hasEnoughBalance', hasEnoughBalance.value);
 
     // add timeout before updating
     await new Promise((resolve) => setTimeout(resolve, 2000));
