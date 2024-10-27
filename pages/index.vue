@@ -279,15 +279,7 @@ watch(
     lockedRelaysPending,
     allRelaysPending,
   ]) => {
-    if (
-      !allRelays ||
-      allRelays.length === 0 ||
-      !lockedRelays ||
-      lockedRelaysPending ||
-      allRelaysPending ||
-      !tokenBalance
-    )
-      return;
+    if (!allRelays || lockedRelaysPending || allRelaysPending) return;
     hasEnoughBalancePending.value = true;
     hasEnoughBalance.value = await calculateBalance(
       allRelays,
