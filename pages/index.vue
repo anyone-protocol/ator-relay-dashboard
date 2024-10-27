@@ -118,7 +118,9 @@
               <div class="flex flex-col items-start gap-2">
                 <h3>Total redeemed rewards</h3>
               </div>
-              <template v-if="claimedPending || hasEnoughBalancePending">
+              <template
+                v-if="claimedPending || (hasEnoughBalancePending && address)"
+              >
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
@@ -159,7 +161,9 @@
                   </template>
                 </Popover>
               </div>
-              <template v-if="claimablePending || hasEnoughBalancePending">
+              <template
+                v-if="claimablePending || (hasEnoughBalancePending && address)"
+              >
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
@@ -189,7 +193,9 @@
               class="my-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
             >
               <h3>Redeemable rewards</h3>
-              <template v-if="claimablePending || hasEnoughBalancePending">
+              <template
+                v-if="claimablePending || (hasEnoughBalancePending && address)"
+              >
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
