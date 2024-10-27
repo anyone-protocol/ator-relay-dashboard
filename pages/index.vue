@@ -118,7 +118,7 @@
               <div class="flex flex-col items-start gap-2">
                 <h3>Total redeemed rewards</h3>
               </div>
-              <template v-if="claimedPending">
+              <template v-if="claimedPending || hasEnoughBalancePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
@@ -159,7 +159,7 @@
                   </template>
                 </Popover>
               </div>
-              <template v-if="claimablePending">
+              <template v-if="claimablePending || hasEnoughBalancePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
@@ -175,14 +175,21 @@
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
+                <div
+                  v-if="!hasEnoughBalancePending && !hasEnoughBalance"
+                  class="flex items-center gap-2 mt-2"
+                >
+                  <span class="w-2 h-2 bg-red-600 rounded-full"></span>
+                  <span class="text-white">Mainnet balance too low</span>
+                </div>
               </template>
             </div>
 
             <div
-              class="my-4 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
+              class="my-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
             >
               <h3>Redeemable rewards</h3>
-              <template v-if="claimablePending">
+              <template v-if="claimablePending || hasEnoughBalancePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
@@ -224,11 +231,13 @@ import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
+import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
 const registratorStore = useRegistratorStore();
 const { isConnected, address } = useAccount({ config } as any);
+const { allRelays, verifiedRelays } = storeToRefs(userStore);
 
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
@@ -239,6 +248,59 @@ const claimablePending = ref(false);
 const toast = useToast();
 
 const isLoading = ref(true);
+
+const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
+  'verifiedRelays',
+  () => userStore.createRelayCache(),
+  {
+    server: false,
+    watch: [address],
+  }
+);
+const { tokenBalance } = storeToRefs(userStore);
+
+const { lokedRelays: lockedRelays, loading: lockedRelaysPending } =
+  storeToRefs(registratorStore);
+const hasEnoughBalance = ref(false);
+const hasEnoughBalancePending = ref(true);
+
+watch(
+  [
+    allRelays,
+    lockedRelays,
+    tokenBalance,
+    lockedRelaysPending,
+    allRelaysPending,
+  ],
+  async ([
+    allRelays,
+    lockedRelays,
+    tokenBalance,
+    lockedRelaysPending,
+    allRelaysPending,
+  ]) => {
+    if (
+      !allRelays ||
+      allRelays.length === 0 ||
+      !lockedRelays ||
+      lockedRelaysPending ||
+      allRelaysPending ||
+      !tokenBalance
+    )
+      return;
+    hasEnoughBalancePending.value = true;
+    hasEnoughBalance.value = await calculateBalance(
+      allRelays,
+      lockedRelays,
+      tokenBalance.value
+    );
+    console.log('hasEnoughBalance', hasEnoughBalance.value);
+
+    // add timeout before updating
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    hasEnoughBalancePending.value = false;
+  }
+);
 
 const fetchInitialData = async (
   newAddress: string | undefined,
