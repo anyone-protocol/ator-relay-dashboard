@@ -534,20 +534,20 @@ export class Distribution {
         (entry: { id: string; variation: number }) =>
           entry.id.toLowerCase() === address.toLowerCase()
       );
-      console.log('airDropResult:', userAirdrop);
-      console.log('variationResult:', variation);
+      // console.log('variationResult:', variation);
 
-      if (!userAirdrop || !variation) {
+      if (!userAirdrop && !variation) {
         console.log('No airdrop found for this address');
         return '0';
       }
 
-      const airDropValue = userAirdrop.airdrop;
-      const variationValue = BigNumber(variation.variation ?? 0).dividedBy(
-        1e18
-      );
+      const airDropValue = userAirdrop?.airdrop ?? '0';
+      // console.log('airDropValue:', airDropValue);
+      // console.log('variation:', variation[0].variation);
+      const variationValue = BigNumber(variation[0]?.variation ?? 0);
+      console.log('variationValue:', variationValue.toString());
 
-      const result = BigNumber(airDropValue).plus(variationValue).toString();
+      const result = BigNumber(airDropValue).minus(variationValue).toString();
 
       console.log('airDropResult:', result);
 

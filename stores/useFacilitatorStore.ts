@@ -22,6 +22,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
       previousDistributions: [],
       claimableAtomicTokens: '',
       airDropTokens: '',
+      calculatedAirdrop: '',
       distributionPerRelay: {},
       bonusesPerRelay: {},
       multipliersPerRelay: {},
