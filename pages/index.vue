@@ -159,17 +159,14 @@
                   </template>
                 </Popover>
               </div>
-              <template v-if="claimablePending">
+              <template v-if="calculatedAirdropPending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
                     formatEtherNoRound(
-                      calculateAirdrop(
-                        facilitatorStore.totalClaimedTokens || '0',
-                        facilitatorStore.airDropTokens || '0'
-                      )
+                      facilitatorStore.calculatedAirdrop || '0'
                     )
                   }}
                 </span>
@@ -314,7 +311,7 @@ const fetchInitialData = async (
     console.error(error);
   } finally {
     //wait 1 second before setting pending to false
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     lockedPending.value = false;
     claimedPending.value = false;
     claimablePending.value = false;
@@ -356,6 +353,23 @@ watch(
   () => facilitatorStore.pendingClaim,
   (updatedPendingClaim) => {
     progressLoading.value = updatedPendingClaim ? 2 : 0;
+  }
+);
+
+const calculatedAirdropPending = ref(false);
+
+//watch and do the calculate airdrop
+watch(
+  () => [facilitatorStore.totalClaimedTokens, facilitatorStore.airDropTokens],
+  ([totalClaimedTokens, airDropTokens]) => {
+    calculatedAirdropPending.value = true;
+    if (totalClaimedTokens && airDropTokens) {
+      facilitatorStore.calculatedAirdrop = calculateAirdrop(
+        totalClaimedTokens,
+        airDropTokens
+      );
+      calculatedAirdropPending.value = false;
+    }
   }
 );
 

@@ -28,7 +28,7 @@ export const calculateBalance = async (
     address,
   });
   console.log('tokenBalance', tokenBalance);
-  if (!tokenBalance || !tokenBalance.value) {
+  if (!tokenBalance) {
     return false;
   }
 

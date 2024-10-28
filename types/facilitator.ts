@@ -53,6 +53,7 @@ export interface FacilitatorStoreState {
   previousDistributions: PreviousDistribution[];
   claimableAtomicTokens?: string;
   airDropTokens?: string;
+  calculatedAirdrop?: string;
   lastDistributionTimePerRelay: Record<string, string | null>;
   availableBudget?: string;
   usedBudget?: string;
