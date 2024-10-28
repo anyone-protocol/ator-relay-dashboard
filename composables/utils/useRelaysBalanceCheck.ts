@@ -1,6 +1,11 @@
 import { fetchHardwareStatus } from './useHardwareStatus';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import BigNumber from 'bignumber.js';
+import { getAnonAddressMain } from '~/config/web3modal.config';
+import { getBalance } from '@wagmi/core';
+import { config } from '@/config/wagmi.config';
+import { mainnet } from 'viem/chains';
+import { ethers } from 'ethers';
 
 type LokedRelaysType = Record<
   string,
@@ -13,20 +18,27 @@ type LokedRelaysType = Record<
 
 export const calculateBalance = async (
   relays: RelayRow[],
-  lockedRelays: LokedRelaysType,
-  balance: bigint
+  address: `0x${string}`
 ) => {
+  const token = getAnonAddressMain() as `0x${string}`;
+
+  const tokenBalance = await getBalance(config, {
+    chainId: mainnet.id,
+    token,
+    address,
+  });
+  console.log('tokenBalance', tokenBalance);
+  if (!tokenBalance || !tokenBalance.value) {
+    return false;
+  }
+
+  const balance = ethers.formatUnits(tokenBalance.value, 18);
+
   //   console.log('relays', relays);
   relays = filterUniqueRelays(relays);
-  //   console.log('lockedRelays', lockedRelays);
-  if (lockedRelays && relays.length) {
-    // remove lockedRelays[relay.fingerprint] !== undefined; from verifiedRelays
-    relays = relays.filter(
-      (relay) => lockedRelays[relay.fingerprint] === undefined
-    );
-  }
-  //   console.log('Filtered verifiedRelays after removing locked relays:', relays);
 
+  //   console.log('Filtered verifiedRelays after removing locked relays:', relays);
+  console.log('balance', balance.toString());
   // Fetch the cached data once
   const cache = useRelayCache();
   const cachedData = await cache.getRelayData();

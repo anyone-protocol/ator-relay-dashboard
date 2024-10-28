@@ -118,7 +118,7 @@
               <div class="flex flex-col items-start gap-2">
                 <h3>Total redeemed rewards</h3>
               </div>
-              <template v-if="claimedPending || hasEnoughBalancePending">
+              <template v-if="claimedPending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
@@ -159,7 +159,7 @@
                   </template>
                 </Popover>
               </div>
-              <template v-if="claimablePending || hasEnoughBalancePending">
+              <template v-if="claimablePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
@@ -189,7 +189,7 @@
               class="my-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
             >
               <h3>Redeemable rewards</h3>
-              <template v-if="claimablePending || hasEnoughBalancePending">
+              <template v-if="claimablePending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
@@ -265,27 +265,11 @@ const hasEnoughBalance = ref(false);
 const hasEnoughBalancePending = ref(true);
 
 watch(
-  [
-    allRelays,
-    lockedRelays,
-    tokenBalance,
-    lockedRelaysPending,
-    allRelaysPending,
-  ],
-  async ([
-    allRelays,
-    lockedRelays,
-    tokenBalance,
-    lockedRelaysPending,
-    allRelaysPending,
-  ]) => {
-    if (!allRelays || lockedRelaysPending || allRelaysPending) return;
+  [allRelays, allRelaysPending, address],
+  async ([allRelays, allRelaysPending, address]) => {
+    if (!allRelays || allRelaysPending || !address) return;
     hasEnoughBalancePending.value = true;
-    hasEnoughBalance.value = await calculateBalance(
-      allRelays,
-      lockedRelays,
-      tokenBalance.value
-    );
+    hasEnoughBalance.value = await calculateBalance(allRelays, address);
 
     // add timeout before updating
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -329,6 +313,8 @@ const fetchInitialData = async (
   } catch (error) {
     console.error(error);
   } finally {
+    //wait 1 second before setting pending to false
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     lockedPending.value = false;
     claimedPending.value = false;
     claimablePending.value = false;
