@@ -14,9 +14,10 @@ import {
   getAllRelays,
 } from '@/utils/warp.read';
 import { config } from '@/config/wagmi.config';
-import { getAnonAddress } from '@/config/web3modal.config';
+import { getAnonAddress, getAnonAddressMain } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
 import { useRelayCache } from '~/composables/relayCache';
+import { mainnet } from 'viem/chains';
 
 type CacheData = {
   tokenBalance: number;
@@ -64,9 +65,11 @@ export const useUserStore = defineStore('user', {
           return;
         }
       }
-      const token = getAnonAddress() as `0x${string}`;
+      // const token = getAnonAddress() as `0x${string}`;
+      const token = getAnonAddressMain() as `0x${string}`;
 
       this.tokenBalance = await getBalance(config, {
+        chainId: mainnet.id,
         token,
         address: this.userData.address as `0x${string}`,
       });
