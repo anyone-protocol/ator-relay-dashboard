@@ -7,10 +7,20 @@ import { http } from '@wagmi/vue';
 const projectId = 'f5e29d36441ccd0e2f5e3473d5a2021b';
 
 export const config = defaultWagmiConfig({
-  chains: [/*mainnet,*/ sepolia],
+  chains: [mainnet, sepolia],
   transports: {
-    // [mainnet.id]: http(),
+    [mainnet.id]: http(),
     [sepolia.id]: http('https://ethereum-sepolia.rpc.subquery.network/public'),
+  },
+  projectId,
+  metadata,
+  ssr: false,
+});
+
+export const mainNetConfig = defaultWagmiConfig({
+  chains: [mainnet],
+  transports: {
+    [mainnet.id]: http(),
   },
   projectId,
   metadata,
