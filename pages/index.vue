@@ -234,7 +234,7 @@ const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
 const registratorStore = useRegistratorStore();
 const { isConnected, address } = useAccount({ config } as any);
-const { allRelays, verifiedRelays } = storeToRefs(userStore);
+const { allRelays } = storeToRefs(userStore);
 
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);

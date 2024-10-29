@@ -37,6 +37,9 @@ export const calculateBalance = async (
   //   console.log('relays', relays);
   relays = filterUniqueRelays(relays);
 
+  // filter remove status verified
+  relays = relays.filter((relay) => relay.status === 'verified');
+
   //   console.log('Filtered verifiedRelays after removing locked relays:', relays);
   console.log('balance', balance.toString());
   // Fetch the cached data once
