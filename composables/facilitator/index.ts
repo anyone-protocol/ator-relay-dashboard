@@ -89,9 +89,18 @@ export class Facilitator {
     provider: BrowserProvider | AbstractProvider,
     multicallAddress: string
   ) {
-    const ethersProvider = new ethers.JsonRpcProvider(
-      'https://rpc2.sepolia.org'
-    );
+    const ethersProvider: AbstractProvider | BrowserProvider =
+      ethers.getDefaultProvider('https://sepolia.drpc.org', {
+        // NB: Required to force fallback provider. Errors with sepolia otherwise.
+        tenderly: 'https://gateway.tenderly.co/public/sepolia',
+        blastapi: 'https://eth-sepolia.public.blastapi.io',
+        onerpc: 'https://1rpc.io/sepolia',
+        alchemy: '-',
+        ankr: '-',
+        cloudflare: '-',
+        etherscan: '-',
+        infura: '-',
+      });
     this.multicallContract = new ethers.Contract(
       '0x25eef291876194aefad0d60dff89e268b90754bb',
       MULTICALL_ABI,

@@ -23,7 +23,7 @@ const props = defineProps<{
     <USkeleton class="w-[15rem] h-10" />
   </template>
   <template v-else>
-    <div class="max-w-32" v-if="props.row">
+    <div class="max-w-34 min-w-[140px]" v-if="props.row">
       <UButton
         v-if="!props.isLocked"
         size="xl"

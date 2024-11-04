@@ -735,7 +735,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           v-if="currentTab === 'locked'"
           :ui="{ base: 'text-sm' }"
           :class="{
-            'cursor-not-allowed':
+            'cursor-not-allowed min-w-[140px]':
               (!registratorStore.isUnlockable(row.fingerprint) && isHovered) ||
               isUnlocking,
           }"
@@ -751,6 +751,24 @@ const handleUnlockClick = async (fingerprint: string) => {
           @mouseleave="isHovered = false"
         />
       </div>
+
+      <div class="flex justify-between items-center mt-2">
+        <div class="font-semibold">Renounce</div>
+        <div>
+          <UButton
+            v-if="row.status === 'verified'"
+            :ui="{ base: 'text-sm' }"
+            class="min-w-[140px]"
+            icon="i-heroicons-trash-20-solid"
+            size="xl"
+            color="red"
+            variant="outline"
+            label="Renounce"
+            @click="relayAction('renounce', row.fingerprint)"
+          />
+        </div>
+      </div>
+
       <div
         class="flex justify-between items-center mt-2"
         v-if="currentTab === 'locked'"
