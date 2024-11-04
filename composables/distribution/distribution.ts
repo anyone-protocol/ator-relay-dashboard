@@ -518,6 +518,7 @@ export class Distribution {
       }
 
       const airdropData = await response.json();
+      console.log('airdropData:', airdropData);
 
       const userAirdrop = airdropData.find(
         (entry: { id: string; airdrop: number }) =>
@@ -540,6 +541,7 @@ export class Distribution {
         console.log('No airdrop found for this address');
         return '0';
       }
+      console.log('userAirdrop:', userAirdrop);
 
       const airDropValue = userAirdrop?.airdrop ?? '0';
       // console.log('airDropValue:', airDropValue);
