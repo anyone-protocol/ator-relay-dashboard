@@ -261,52 +261,58 @@ export class Distribution {
     if (!state) {
       throw new Error('Invalid state from distribution contract');
     }
-    // const {
-    //   cachedValue: { state },
-    // } = await this.contract.readState();
 
     let sumOfTotalDistributions = BigNumber(0);
     console.log('state:', state);
-    const previousDistributions = Object.keys(state.previousDistributions)
-      .reverse()
-      .map<PreviousDistribution>((timestamp) => {
-        const {
-          totalScore,
-          totalDistributed,
-          timeElapsed,
-          tokensDistributedPerSecond,
-        } = state.previousDistributions[timestamp];
 
-        sumOfTotalDistributions =
-          sumOfTotalDistributions.plus(totalDistributed);
+    // Get the latest timestamp entry
+    const latestTimestamp = Object.keys(state.previousDistributions)
+      .map(Number)
+      .sort((a, b) => b - a)[0]; // Sort in descending order and take the first (latest) timestamp
 
-        const date = new Date(Number.parseInt(timestamp));
-        const formatDuration = (elapsed: string) => {
-          const duration = moment.duration(elapsed);
-          const d = duration.days();
-          const h = duration.hours();
-          const m = duration.minutes();
-          const s = duration.seconds();
-          const ms = duration.milliseconds();
+    const distResult = state.previousDistributions[latestTimestamp];
+    if (!distResult) {
+      throw new Error('No distributions found');
+    }
 
-          return `${d}.${h}:${m}:${s}.${ms}`;
-        };
-        return {
-          timestamp,
-          date,
-          fromNowHumanized: moment(date).fromNow(),
-          totalScore: BigNumber(totalScore).toFormat(),
-          timeElapsed: formatDuration(timeElapsed),
-          timeElapsedHumanized: moment.duration(timeElapsed).humanize(),
-          totalDistributed: BigNumber(totalDistributed)
-            .dividedBy(1e18)
-            .toFormat(2),
-          tokensDistributedPerDay: BigNumber(tokensDistributedPerSecond)
-            .dividedBy(1e18)
-            .times(24 * 60 * 60)
-            .toFormat(2),
-        };
-      });
+    const {
+      totalScore,
+      totalDistributed,
+      timeElapsed,
+      tokensDistributedPerSecond,
+    } = distResult;
+
+    sumOfTotalDistributions = sumOfTotalDistributions.plus(totalDistributed);
+
+    const date = new Date(latestTimestamp);
+    const formatDuration = (elapsed: string) => {
+      const duration = moment.duration(elapsed);
+      const d = duration.days();
+      const h = duration.hours();
+      const m = duration.minutes();
+      const s = duration.seconds();
+      const ms = duration.milliseconds();
+
+      return `${d}.${h}:${m}:${s}.${ms}`;
+    };
+
+    const previousDistributions = [
+      {
+        timestamp: latestTimestamp.toString(),
+        date,
+        fromNowHumanized: moment(date).fromNow(),
+        totalScore: BigNumber(totalScore).toFormat(),
+        timeElapsed: formatDuration(timeElapsed),
+        timeElapsedHumanized: moment.duration(timeElapsed).humanize(),
+        totalDistributed: BigNumber(totalDistributed)
+          .dividedBy(1e18)
+          .toFormat(2),
+        tokensDistributedPerDay: BigNumber(tokensDistributedPerSecond)
+          .dividedBy(1e18)
+          .times(24 * 60 * 60)
+          .toFormat(2),
+      },
+    ];
 
     useFacilitatorStore().sumOfTotalDistributions =
       sumOfTotalDistributions.toString();
@@ -318,118 +324,54 @@ export class Distribution {
     let familyMultipliersMap: TempMapMultipliers = {};
     let scoreMap: TempMap = {};
     let lastDistributionTimePerRelay: Record<string, string | null> = {};
-
-    // Iterate through state and populate tempMap
-    if (state?.previousDistributions) {
-      for (const [timestamp, distributionResult] of Object.entries(
-        state.previousDistributions
-      )) {
-        const distResult = distributionResult as DistributionResult;
-        const timestampNumber = Number(timestamp);
-
-        if (distResult?.details) {
-          for (const [fingerprint, previousDistribution] of Object.entries(
-            distResult.details
-          )) {
-            const distributionDetail =
-              previousDistribution as DistributionDetail;
-
-            // Handle distribution map
-            if (!distributionMap[fingerprint]) {
-              distributionMap[fingerprint] = BigNumber(
-                distributionDetail.distributedTokens
-              );
-            } else {
-              distributionMap[fingerprint] = distributionMap[fingerprint].plus(
-                distributionDetail.distributedTokens
-              );
-            }
-
-            // Handle hardware and quality bonuses
-            if (!hardwareBonusesMap[fingerprint]) {
-              hardwareBonusesMap[fingerprint] = {
-                hardware: BigNumber(distributionDetail.bonuses?.hardware || 0),
-                quality: BigNumber(distributionDetail.bonuses?.quality || 0),
-              };
-            } else {
-              hardwareBonusesMap[fingerprint].hardware = hardwareBonusesMap[
-                fingerprint
-              ].hardware.plus(distributionDetail.bonuses?.hardware || 0);
-              hardwareBonusesMap[fingerprint].quality = hardwareBonusesMap[
-                fingerprint
-              ].quality.plus(distributionDetail.bonuses?.quality || 0);
-            }
-
-            // Handle family and region multipliers (stored as strings)
-            if (!familyMultipliersMap[fingerprint]) {
-              familyMultipliersMap[fingerprint] = {
-                family: distributionDetail.multipliers?.family || '1',
-                region: distributionDetail.multipliers?.region || '1',
-              };
-            } else {
-              // Multipliers remain as strings, you can choose to concatenate or update as needed
-              familyMultipliersMap[fingerprint] = {
-                family:
-                  distributionDetail.multipliers?.family ||
-                  familyMultipliersMap[fingerprint].family,
-                region:
-                  distributionDetail.multipliers?.region ||
-                  familyMultipliersMap[fingerprint].region,
-              };
-            }
-
-            // Handle score map
-            if (!scoreMap[fingerprint]) {
-              scoreMap[fingerprint] = BigNumber(distributionDetail.score);
-            } else {
-              scoreMap[fingerprint] = scoreMap[fingerprint].plus(
-                distributionDetail.score
-              );
-            }
-
-            if (
-              !lastDistributionTimePerRelay[fingerprint] ||
-              timestampNumber >
-                Number(lastDistributionTimePerRelay[fingerprint])
-            ) {
-              lastDistributionTimePerRelay[fingerprint] = new Date(
-                timestampNumber
-              ).toLocaleString();
-            }
-          }
-        }
-      }
-    }
-
-    // console.log('distributionMap:', distributionMap);
-    // console.log('hardwareBonusesMap:', hardwareBonusesMap);
-    // console.log('familyMultipliersMap:', familyMultipliersMap);
-
     let baseTokensMap: Record<string, BigNumber> = {};
 
-    for (const [fingerprint, totalDistributed] of Object.entries(
-      distributionMap
-    )) {
-      const totalDistributionBN = BigNumber(totalDistributed).dividedBy(1e18);
+    // Iterate over details in the latest distribution timestamp
+    if (distResult?.details) {
+      for (const [fingerprint, previousDistribution] of Object.entries(
+        distResult.details
+      )) {
+        const distributionDetail = previousDistribution as DistributionDetail;
 
-      const hardwareBonusBN =
-        BigNumber(hardwareBonusesMap[fingerprint]?.hardware ?? 0).dividedBy(
-          1e18
-        ) || BigNumber(0);
-      const qualityBonusBN =
-        BigNumber(hardwareBonusesMap[fingerprint]?.quality ?? 0).dividedBy(
-          1e18
-        ) || BigNumber(0);
+        // Handle distribution map
+        distributionMap[fingerprint] = BigNumber(
+          distributionDetail.distributedTokens
+        )
+          .dividedBy(1e18)
+          .decimalPlaces(3);
 
-      // Subtract hardware and quality bonuses to get base tokens
-      const baseTokens = totalDistributionBN
-        .minus(hardwareBonusBN)
-        .minus(qualityBonusBN);
+        // Handle hardware and quality bonuses
+        hardwareBonusesMap[fingerprint] = {
+          hardware: BigNumber(distributionDetail.bonuses?.hardware || 0)
+            .dividedBy(1e18)
+            .decimalPlaces(3),
+          quality: BigNumber(distributionDetail.bonuses?.quality || 0)
+            .dividedBy(1e18)
+            .decimalPlaces(3),
+        };
 
-      baseTokensMap[fingerprint] = baseTokens.decimalPlaces(3);
-      distributionMap[fingerprint] = totalDistributionBN.decimalPlaces(3);
-      hardwareBonusesMap[fingerprint].hardware =
-        hardwareBonusBN.decimalPlaces(3);
+        // Handle family and region multipliers (stored as strings)
+        familyMultipliersMap[fingerprint] = {
+          family: distributionDetail.multipliers?.family || '1',
+          region: distributionDetail.multipliers?.region || '1',
+        };
+
+        // Handle score map
+        scoreMap[fingerprint] = BigNumber(distributionDetail.score);
+
+        // Update last distribution time per relay
+        lastDistributionTimePerRelay[fingerprint] = new Date(
+          latestTimestamp
+        ).toLocaleString();
+
+        // Calculate base tokens
+        const baseTokens = BigNumber(distributionDetail.distributedTokens)
+          .dividedBy(1e18)
+          .minus(hardwareBonusesMap[fingerprint].hardware)
+          .minus(hardwareBonusesMap[fingerprint].quality)
+          .decimalPlaces(3);
+        baseTokensMap[fingerprint] = baseTokens;
+      }
     }
 
     useFacilitatorStore().distributionPerRelay = distributionMap;
