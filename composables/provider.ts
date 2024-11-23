@@ -12,9 +12,11 @@ export const useSuggestMetaMask = () =>
 export const suggestMetaMask = useSuggestMetaMask();
 
 let provider: AbstractProvider | BrowserProvider = ethers.getDefaultProvider(
-  'https://gateway.tenderly.co/public/sepolia',
+  'https://rpc2.sepolia.org',
   {
     // NB: Required to force fallback provider. Errors with sepolia otherwise.
+    asia: 'https://asia.rpc.sepolia.org',
+    tenderly: 'https://gateway.tenderly.co/public/sepolia',
     first: 'https://sepolia.drpc.org',
     blastapi: 'https://eth-sepolia.public.blastapi.io',
     onerpc: 'https://1rpc.io/sepolia',
