@@ -62,4 +62,4 @@ Locally or in the app, the data is stored using Pinia.
 
 - https://cookbook.g8way.io/concepts/index.html
 
-Hey, you!
+Hey, you!!!
