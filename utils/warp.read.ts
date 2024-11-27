@@ -2,39 +2,9 @@ import { isAddress } from 'viem';
 import { relayRegistryContract } from '@/config/warp.config';
 import { responseOutput } from '@/utils/responseOutput';
 import { useUserStore } from '#imports';
+import type { RelayData } from '~/types/relay';
 
 type FunctionName = 'verified' | 'claimable' | 'serials';
-
-type RelayData = {
-  timestamp: number;
-  data: {
-    state: any;
-    verifiedHardware: { [key: string]: Number };
-    verified: [
-      {
-        address: string;
-        fingerprint: string;
-        status: string;
-        active: boolean;
-        class: string;
-      },
-    ];
-    claimable: [
-      {
-        address: string;
-        fingerprint: string;
-        status: string;
-        active: boolean;
-        class: string;
-      },
-    ];
-    nicknames: { [key: string]: string };
-    registrationCredits: string[];
-    registrationCreditsRequired: boolean;
-    families: { [key: string]: string[] };
-    familyRequired: boolean;
-  };
-};
 
 var test = '0xECc33A2782041fC5D032B214a22a596e1BC6a35b';
 

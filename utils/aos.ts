@@ -5,6 +5,12 @@ import {
   createDataItemSigner,
 } from '@permaweb/aoconnect';
 
+export type AosActionResult = {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+};
+
 export type SendAosBaseOptions = {
   processId: string;
   data?: string;
