@@ -424,7 +424,7 @@ const getObservedBandwidth = (fingerprint: string) => {
   return (
     BigNumber(userStore?.relaysMeta?.[fingerprint]?.observed_bandwidth)
       .dividedBy(Math.pow(1024, 2))
-      .toFormat(3) + ' MiB/s'
+      .toFormat(3) + ' MB/s'
   );
 };
 
