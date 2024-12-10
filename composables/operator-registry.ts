@@ -12,6 +12,11 @@ export type OperatorRegistryState = {
   };
   VerifiedHardwareFingerprints: { [fingerprint: string]: true };
 };
+export type GetRelayInfoResult = {
+  claimable: string[];
+  verified: string[];
+  registrationCredits: string[];
+};
 
 export class OperatorRegistry {
   private readonly logger = new Logger('OperatorRegistry');
@@ -40,6 +45,34 @@ export class OperatorRegistry {
     }
 
     return null;
+  }
+
+  async getRelayInfoForAddress(address: string): Promise<GetRelayInfoResult> {
+    const state = await this.viewState();
+
+    if (!state) {
+      return { claimable: [], verified: [], registrationCredits: [] };
+    }
+
+    const claimable = Object.entries(
+      state.ClaimableFingerprintsToOperatorAddresses
+    )
+      .filter(([_fingerprint, relayAddress]) => relayAddress === address)
+      .map(([fingerprint]) => fingerprint);
+
+    const verified = Object.entries(
+      state.VerifiedFingerprintsToOperatorAddresses
+    )
+      .filter(([_fingerprint, relayAddress]) => relayAddress === address)
+      .map(([fingerprint]) => fingerprint);
+
+    const registrationCredits = Object.entries(
+      state.RegistrationCreditsFingerprintsToOperatorAddresses
+    )
+      .filter(([_fingerprint, relayAddress]) => relayAddress === address)
+      .map(([fingerprint]) => fingerprint);
+
+    return { claimable, verified, registrationCredits };
   }
 
   async claim(

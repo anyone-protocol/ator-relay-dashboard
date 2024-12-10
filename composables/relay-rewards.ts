@@ -26,4 +26,4 @@ export class RelayRewards {
 
 const config = useRuntimeConfig();
 const relayRewards = new RelayRewards(config.public.relayRewardsProcessId);
-export const useOperatorRegistry = () => relayRewards;
+export const useRelayRewards = () => relayRewards;

@@ -211,56 +211,57 @@ export const useUserStore = defineStore('user', {
         return;
       }
 
-      const data = await getAllRelays(this.userData.address);
-      console.log('data', data);
-      if (!data) {
+      const operatorRegistry = useOperatorRegistry();
+      const relayInfo = await operatorRegistry.getRelayInfoForAddress(
+        this.userData.address
+      ); //await getAllRelays(this.userData.address);
+      if (!relayInfo) {
         return;
       }
 
-      this.nickNames = data.data.nicknames;
+      this.nickNames = {}; //data.data.nicknames;
       // refresh the relays
-      this.verifiedRelays = data.data.verified.map((relay: any) => ({
-        fingerprint: relay.fingerprint,
-        status: relay.status,
+      this.verifiedRelays = relayInfo.verified.map((fingerprint) => ({
+        fingerprint,
+        status: 'verified',
         consensusWeight: 0,
         observedBandwidth: 0,
-        active: relay.active,
-        class: relay.class,
+        active: true,
+        class: '',
         isWorking: false,
         nickname: '',
       }));
 
-      this.claimableRelays = data.data.claimable.map((relay: any) => ({
-        fingerprint: relay.fingerprint,
-        status: relay.status,
+      this.claimableRelays = relayInfo.claimable.map((fingerprint) => ({
+        fingerprint,
+        status: 'claimable',
         consensusWeight: 0,
         observedBandwidth: 0,
-        active: relay.active,
-        class: relay.class,
+        active: true,
+        class: '',
         isWorking: false,
         nickname: '',
       }));
 
-      this.registrationCredits = data.data.registrationCredits;
+      this.registrationCredits = relayInfo.registrationCredits;
 
-      this.families = data.data.families;
+      // this.families = data.data.families;
 
-      this.familyRequired = data.data.familyRequired;
-      this.registrationCreditsRequired = data.data.registrationCreditsRequired;
+      this.familyRequired = false; //data.data.familyRequired;
+      this.registrationCreditsRequired = true; //data.data.registrationCreditsRequired;
 
-      const allFingerprints = [] as string[];
+      // const allFingerprints = [] as string[];
+      // data.data.claimable.forEach((relay: any) => {
+      //   allFingerprints.push(relay.fingerprint);
+      // });
 
-      data.data.claimable.forEach((relay: any) => {
-        allFingerprints.push(relay.fingerprint);
-      });
-
-      data.data.verified.forEach((relay: any) => {
-        allFingerprints.push(relay.fingerprint);
-      });
+      // data.data.verified.forEach((relay: any) => {
+      //   allFingerprints.push(relay.fingerprint);
+      // });
 
       // save to cache
       const relayCache = useRelayCache();
-      await relayCache.saveRelayData(data.data);
+      await relayCache.saveRelayData(relayInfo);
     },
     async hasRegistrationCredit(fingerprint: string, forceRefresh = false) {
       if (!this.userData.address) {
