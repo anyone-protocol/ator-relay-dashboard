@@ -464,7 +464,7 @@ export class Facilitator {
           icon: 'i-heroicons-x-circle',
           color: 'amber',
           title: 'Error',
-          description: `Error redeen rewards: ${msg}`,
+          description: `Error redeem rewards: ${msg}`,
         });
       }
 
