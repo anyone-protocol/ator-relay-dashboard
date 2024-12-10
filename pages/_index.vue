@@ -81,7 +81,7 @@ const handleClaimAllRewards = async () => {
       icon: 'i-heroicons-x-circle',
       color: 'amber',
       title: 'Error',
-      description: `Error redeen rewards: ${error}`,
+      description: `Error redeem rewards: ${error}`,
     });
   }
 

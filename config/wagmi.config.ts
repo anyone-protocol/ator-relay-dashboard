@@ -4,7 +4,7 @@ import { metadata } from './web3modal.config';
 import { mainnet, sepolia } from 'viem/chains';
 import { http } from '@wagmi/vue';
 
-const projectId = 'f5e29d36441ccd0e2f5e3473d5a2021b';
+const projectId = '53a5b087ab4cb303a799325360098216';
 
 export const config = defaultWagmiConfig({
   chains: [mainnet, sepolia],
