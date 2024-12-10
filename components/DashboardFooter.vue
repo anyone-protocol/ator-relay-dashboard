@@ -9,9 +9,9 @@ const commitHash = config.public.commitHash || 'dev';
 
 const contractLinks = [
   {
-    name: 'Relay Registry',
-    address: config.public.relayRegistryAddress,
-    type: 'arweave',
+    name: 'Operator Registry',
+    address: config.public.operatorRegistryProcessId,
+    type: 'ao',
   },
   {
     name: 'Facilitator',
@@ -24,9 +24,9 @@ const contractLinks = [
     type: 'evm',
   },
   {
-    name: 'Distribution',
-    address: config.public.distributionContract,
-    type: 'arweave',
+    name: 'Relay Rewards',
+    address: config.public.relayRewardsProcessId,
+    type: 'ao',
   },
   {
     name: 'Metrics Deployer',
@@ -55,6 +55,8 @@ const getLink = (address: string, type: string) => {
       return `https://sonar.warp.cc/#/app/contract/${address}?network=mainnet`;
     case 'viewblock':
       return `https://viewblock.io/arweave/address/${address}`;
+    case 'ao':
+      return `https://ao.link/#/entity/${address}`;
     default:
       return '#';
   }
