@@ -302,8 +302,8 @@ const fetchInitialData = async (
         useFacilitator()?.refresh(),
       (!registratorStore?.initialized || forceRefresh) &&
         useRegistrator()?.refresh(),
-      useDistribution().isInitialized &&
-        useDistribution().claimable(newAddress as string),
+      // useDistribution().isInitialized &&
+      //   useDistribution().claimable(newAddress as string),
       useDistribution().airdropTokens(newAddress as string),
       // useDistribution().isInitialized && useDistribution().refresh(),
     ]);
@@ -322,9 +322,8 @@ onMounted(async () => {
   isLoading.value = true;
 
   try {
-    await initDistribution();
-
-    initRelayRegistry();
+    // await initDistribution();
+    // initRelayRegistry();
     initFacilitator();
     initRegistrator();
     initToken();
