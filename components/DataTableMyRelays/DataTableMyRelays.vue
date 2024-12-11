@@ -83,7 +83,6 @@ const fetchRegistrationCredit = async () => {
         relay.fingerprint
       );
     }
-    console.log('fetchRegistrationCredit() relayCredits', relayCredits.value)
   }
 
   registrationCreditsRequired.value = userStore.registrationCreditsRequired;
@@ -123,7 +122,6 @@ watch(
         const isLocked = lockedRelays[relay.fingerprint] !== undefined;
         data[relay.fingerprint] = isLocked;
       }
-      // console.log('lockedRelaysMap updated', lockedRelaysMap.value)
       // console.log('TODO -> REMOVE THIS!  MODIFYING LOCKED RELAYS MAP INLINE FOR DEV TESTING!')
       // lockedRelaysMap.value = {
       //   ["0000000000000000000000000000000000000000"]: true,

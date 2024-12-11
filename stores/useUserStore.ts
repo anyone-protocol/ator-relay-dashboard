@@ -298,8 +298,6 @@ export const useUserStore = defineStore('user', {
       // Cache the result
       this.registrationCreditsCache[fingerprint] = hasCredit;
 
-      console.log('hasCredit', fingerprint, hasCredit);
-
       return hasCredit;
     },
     async familyVerified(fingerprint: string) {

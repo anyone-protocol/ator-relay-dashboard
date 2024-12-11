@@ -6,11 +6,7 @@ export const fetchHardwareStatus = async (fingerprints: string[]) => {
   // Fetch the cached data once
   const cache = useRelayCache();
   const cachedData = await cache.getRelayData();
-  console.log(
-    'fetchHardwareStatus(fingerprints), cachedData',
-    fingerprints,
-    cachedData
-  );
+
   const hardwareStatusMap: Record<string, boolean> = {};
 
   // Check the cache for hardware verification
@@ -25,8 +21,6 @@ export const fetchHardwareStatus = async (fingerprints: string[]) => {
       hardwareStatusMap[fingerprint] = false;
     });
   }
-
-  console.log('fetchHardwareStatus() hardwareStatusMap', hardwareStatusMap);
 
   return hardwareStatusMap;
 };
