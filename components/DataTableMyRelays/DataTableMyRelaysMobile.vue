@@ -36,6 +36,7 @@ const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
 const facilitatorStore = useFacilitatorStore();
 const registrator = useRegistrator();
+const operatorRegistry = useOperatorRegistry();
 
 const isHovered = ref(false);
 const isUnlocking = ref(false);
@@ -190,11 +191,13 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     let actionPromise;
     switch (action) {
       case 'claim':
-        actionPromise = registry.claim(fingerprint);
+        // actionPromise = registry.claim(fingerprint);
+        actionPromise = operatorRegistry.claim(fingerprint)
         break;
 
       case 'renounce':
-        actionPromise = registry.renounce(fingerprint);
+        // actionPromise = registry.renounce(fingerprint);
+        actionPromise = operatorRegistry.renounce(fingerprint)
         break;
 
       default:
