@@ -233,7 +233,8 @@ watch(
 
 onMounted(async () => {
   console.log('Mounted - Starting initialization');
-  initDistribution();
+  // initDistribution();
+  await useRelayRewards().refresh()
   initRelayRegistry();
   initFacilitator();
   initRegistrator();
