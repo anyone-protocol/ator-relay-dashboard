@@ -13,7 +13,7 @@ export const fetchHardwareStatus = async (fingerprints: string[]) => {
   if (cachedData && cachedData.verifiedHardware) {
     fingerprints.forEach((fingerprint) => {
       hardwareStatusMap[fingerprint] =
-        !!cachedData.verifiedHardware[fingerprint];
+        cachedData.verifiedHardware.includes(fingerprint); // !!cachedData.verifiedHardware[fingerprint];
     });
   } else {
     // If no cache data or hardware verification available, default to false
