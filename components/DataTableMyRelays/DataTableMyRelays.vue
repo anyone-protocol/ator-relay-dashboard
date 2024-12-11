@@ -37,6 +37,7 @@ const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
 const facilitatorStore = useFacilitatorStore();
 const registrator = useRegistrator();
+const operatorRegistry = useOperatorRegistry();
 
 const isHovered = ref(false);
 const isUnlocking = ref(false);
@@ -82,6 +83,7 @@ const fetchRegistrationCredit = async () => {
         relay.fingerprint
       );
     }
+    console.log('fetchRegistrationCredit() relayCredits', relayCredits.value)
   }
 
   registrationCreditsRequired.value = userStore.registrationCreditsRequired;
@@ -121,7 +123,20 @@ watch(
         const isLocked = lockedRelays[relay.fingerprint] !== undefined;
         data[relay.fingerprint] = isLocked;
       }
-
+      // console.log('lockedRelaysMap updated', lockedRelaysMap.value)
+      // console.log('TODO -> REMOVE THIS!  MODIFYING LOCKED RELAYS MAP INLINE FOR DEV TESTING!')
+      // lockedRelaysMap.value = {
+      //   ["0000000000000000000000000000000000000000"]: true,
+      //   ["1111111111111111111111111111111111111111"]: true,
+      //   ["2222222222222222222222222222222222222222"]: true,
+      //   ["3333333333333333333333333333333333333333"]: true,
+      //   ["4444444444444444444444444444444444444444"]: true,
+      //   ["5555555555555555555555555555555555555555"]: true,
+      //   ["6666666666666666666666666666666666666666"]: true,
+      //   ["7777777777777777777777777777777777777777"]: true,
+      //   ["8888888888888888888888888888888888888888"]: true,
+      //   ["9999999999999999999999999999999999999999"]: true
+      // }
       lockedRelaysMap.value = data;
 
       lockedRelaysPending.value = false;
@@ -184,11 +199,13 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     let actionPromise;
     switch (action) {
       case 'claim':
-        actionPromise = registry.claim(fingerprint);
+        // actionPromise = registry.claim(fingerprint);
+        actionPromise = operatorRegistry.claim(fingerprint)
         break;
 
       case 'renounce':
-        actionPromise = registry.renounce(fingerprint);
+        // actionPromise = registry.renounce(fingerprint);
+        actionPromise = operatorRegistry.renounce(fingerprint)
         break;
 
       default:

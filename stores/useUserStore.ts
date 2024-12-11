@@ -293,10 +293,12 @@ export const useUserStore = defineStore('user', {
       // Check if the fingerprint has registration credits
       const hasCredit =
         this.registrationCredits.includes(fingerprint) ||
-        cachedData.verifiedHardware[fingerprint] !== undefined;
+        cachedData.verifiedHardware.includes(fingerprint); //cachedData.verifiedHardware[fingerprint] !== undefined;
 
       // Cache the result
       this.registrationCreditsCache[fingerprint] = hasCredit;
+
+      console.log('hasCredit', fingerprint, hasCredit);
 
       return hasCredit;
     },

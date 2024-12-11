@@ -16,6 +16,7 @@ export type GetRelayInfoResult = {
   claimable: string[];
   verified: string[];
   registrationCredits: string[];
+  verifiedHardware: string[];
 };
 
 export class OperatorRegistry {
@@ -48,31 +49,58 @@ export class OperatorRegistry {
   }
 
   async getRelayInfoForAddress(address: string): Promise<GetRelayInfoResult> {
+    this.logger.info(`getRelayInfoForAddress`, address);
+
     const state = await this.viewState();
 
     if (!state) {
-      return { claimable: [], verified: [], registrationCredits: [] };
+      return {
+        claimable: [],
+        verified: [],
+        registrationCredits: [],
+        verifiedHardware: [],
+      };
     }
+
+    this.logger.info(`Got state`, state);
+
+    const allcapsAddress = '0x' + address.substring(2).toUpperCase();
 
     const claimable = Object.entries(
       state.ClaimableFingerprintsToOperatorAddresses
     )
-      .filter(([_fingerprint, relayAddress]) => relayAddress === address)
+      .filter(([_fingerprint, relayAddress]) => relayAddress === allcapsAddress)
       .map(([fingerprint]) => fingerprint);
 
     const verified = Object.entries(
       state.VerifiedFingerprintsToOperatorAddresses
     )
-      .filter(([_fingerprint, relayAddress]) => relayAddress === address)
+      .filter(([_fingerprint, relayAddress]) => relayAddress === allcapsAddress)
       .map(([fingerprint]) => fingerprint);
 
     const registrationCredits = Object.entries(
       state.RegistrationCreditsFingerprintsToOperatorAddresses
     )
-      .filter(([_fingerprint, relayAddress]) => relayAddress === address)
+      .filter(([_fingerprint, relayAddress]) => relayAddress === allcapsAddress)
       .map(([fingerprint]) => fingerprint);
 
-    return { claimable, verified, registrationCredits };
+    const verifiedHardware = Object.keys(
+      state.VerifiedHardwareFingerprints
+    ).filter(
+      (fingerprint) =>
+        claimable.includes(fingerprint) || verified.includes(fingerprint)
+    );
+
+    const relayInfo = {
+      claimable,
+      verified,
+      registrationCredits,
+      verifiedHardware,
+    };
+
+    this.logger.info(`Relay info for ${address}`, relayInfo);
+
+    return relayInfo;
   }
 
   async claim(

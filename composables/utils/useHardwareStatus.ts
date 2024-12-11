@@ -6,14 +6,18 @@ export const fetchHardwareStatus = async (fingerprints: string[]) => {
   // Fetch the cached data once
   const cache = useRelayCache();
   const cachedData = await cache.getRelayData();
-
+  console.log(
+    'fetchHardwareStatus(fingerprints), cachedData',
+    fingerprints,
+    cachedData
+  );
   const hardwareStatusMap: Record<string, boolean> = {};
 
   // Check the cache for hardware verification
   if (cachedData && cachedData.verifiedHardware) {
     fingerprints.forEach((fingerprint) => {
       hardwareStatusMap[fingerprint] =
-        !!cachedData.verifiedHardware[fingerprint];
+        cachedData.verifiedHardware.includes(fingerprint); // !!cachedData.verifiedHardware[fingerprint];
     });
   } else {
     // If no cache data or hardware verification available, default to false
@@ -21,6 +25,8 @@ export const fetchHardwareStatus = async (fingerprints: string[]) => {
       hardwareStatusMap[fingerprint] = false;
     });
   }
+
+  console.log('fetchHardwareStatus() hardwareStatusMap', hardwareStatusMap);
 
   return hardwareStatusMap;
 };
