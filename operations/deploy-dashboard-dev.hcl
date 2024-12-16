@@ -43,6 +43,7 @@ job "deploy-relay-dashboard-dev" {
         env {
             PHASE="dev"
             DASHBOARD_VERSION="[[.commit_sha]]"
+            BUMP="hi"
         }
 
         restart {
