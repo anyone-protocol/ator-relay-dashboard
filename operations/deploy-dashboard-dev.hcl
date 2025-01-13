@@ -43,7 +43,7 @@ job "deploy-relay-dashboard-dev" {
         env {
             PHASE="dev"
             DASHBOARD_VERSION="[[.commit_sha]]"
-            BUMP="fix-relay-rewards-perms"
+            BUMP="redeploy-rewards-3"
         }
 
         restart {
