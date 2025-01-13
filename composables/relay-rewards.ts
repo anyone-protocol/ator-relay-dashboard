@@ -219,8 +219,8 @@ export class RelayRewards {
         tags: [{ name: 'Action', value: 'Last-Snapshot' }],
       });
 
-      if (result.Messages[0].Error) {
-        throw new Error('Error from AOS: ' + result.Messages[0].Error);
+      if (result.Error) {
+        throw new Error('Error from AOS: ' + result.Error);
       }
 
       return JSON.parse(result.Messages[0].Data) as PreviousRound;
