@@ -35,4 +35,15 @@ export const initializeBrowserProvider = () => {
   return provider;
 };
 
-export const useProvider = () => provider;
+export const getCorrectProvider = () => {
+  if (provider instanceof AbstractProvider) {
+    const browserProvider = initializeBrowserProvider();
+    if (browserProvider instanceof BrowserProvider) {
+      provider = browserProvider;
+    }
+  }
+
+  return provider;
+};
+
+export const useProvider = () => getCorrectProvider();
