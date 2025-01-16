@@ -122,21 +122,7 @@ watch(
         const isLocked = lockedRelays[relay.fingerprint] !== undefined;
         data[relay.fingerprint] = isLocked;
       }
-      // console.log('TODO -> REMOVE THIS!  MODIFYING LOCKED RELAYS MAP INLINE FOR DEV TESTING!')
-      // lockedRelaysMap.value = {
-      //   ["0000000000000000000000000000000000000000"]: true,
-      //   ["1111111111111111111111111111111111111111"]: true,
-      //   ["2222222222222222222222222222222222222222"]: true,
-      //   ["3333333333333333333333333333333333333333"]: true,
-      //   ["4444444444444444444444444444444444444444"]: true,
-      //   ["5555555555555555555555555555555555555555"]: true,
-      //   ["6666666666666666666666666666666666666666"]: true,
-      //   ["7777777777777777777777777777777777777777"]: true,
-      //   ["8888888888888888888888888888888888888888"]: true,
-      //   ["9999999999999999999999999999999999999999"]: true
-      // }
       lockedRelaysMap.value = data;
-
       lockedRelaysPending.value = false;
     }
     lockedRelaysPending.value = false;

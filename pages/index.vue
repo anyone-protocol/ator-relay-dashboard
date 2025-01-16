@@ -229,6 +229,7 @@ import { initToken } from '@/composables/token';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
+import { useRelayRewards } from '@/composables/relay-rewards'
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -302,10 +303,8 @@ const fetchInitialData = async (
         useFacilitator()?.refresh(),
       (!registratorStore?.initialized || forceRefresh) &&
         useRegistrator()?.refresh(),
-      // useDistribution().isInitialized &&
-      //   useDistribution().claimable(newAddress as string),
+      useRelayRewards().refresh(),
       useDistribution().airdropTokens(newAddress as string),
-      // useDistribution().isInitialized && useDistribution().refresh(),
     ]);
   } catch (error) {
     console.error(error);

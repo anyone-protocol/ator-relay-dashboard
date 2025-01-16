@@ -187,6 +187,13 @@ export class RelayRewards {
           new Date(previousDistribution.timestamp).toLocaleString(),
         ])
       );
+
+      // Update store if it's the authenticated user's address
+      const auth = useUserStore();
+      if (auth.userData && auth.userData.address) {
+        useFacilitatorStore().claimableAtomicTokens =
+          (await this.getClaimable(auth.userData.address)) || undefined;
+      }
     } catch (error) {
       this.logger.error('Error refreshing RelayRewards', error);
     } finally {
