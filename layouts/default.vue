@@ -14,6 +14,13 @@ onMounted(() => {
   >
     <div class="xl:p-6">
       <GlowEffect />
+      <div class="w-full py-4 bg-cyan-500 text-center text-black mb-5">
+      <p>Distribution is not live. Currently upgrading to AO.</p>
+      <p>Check out our 
+        <a class="text-white underline underline-offset-2" href="https://t.me/anyonedevelopment">development channel</a>
+        for latest updates.
+      </p>
+      </div>
 
       <div
         class="mx-auto w-full max-w-screen-2xl bg-neutral-200/70 ring-0 dark:bg-cyan-950/10 lg:shadow-2xl lg:shadow-teal-900 lg:ring-4 lg:ring-teal-800/20 dark:lg:shadow-cyan-300 dark:lg:ring-1 dark:lg:ring-cyan-400 xl:rounded-xl h-[calc(100vh-0px)] sm:h-[calc(100vh-50px)] flex flex-col gap-10 lg:gap-0"
