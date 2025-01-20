@@ -44,7 +44,7 @@ job "deploy-relay-dashboard-dev" {
             PHASE="dev"
             DASHBOARD_VERSION="[[.commit_sha]]"
             BUMP="redeploy-rewards-3"
-            BUNDLER="https://ar.anyone.tech/bundler/"
+            # BUNDLER="https://ar.anyone.tech/bundler/"
         }
 
         restart {
