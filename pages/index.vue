@@ -400,7 +400,7 @@ const handleClaimAllRewards = async () => {
 
       await Promise.all([
         // useDistribution().claimable(userStore.userData.address as string),
-        useRelayRewards().refreshAuthedUserClaimableTokens()
+        useRelayRewards().refreshAuthedUserClaimableTokens(),
         useDistribution().airdropTokens(userStore.userData.address as string),
       ]);
 
