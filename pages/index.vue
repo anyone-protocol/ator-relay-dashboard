@@ -399,7 +399,8 @@ const handleClaimAllRewards = async () => {
       await new Promise((resolve) => setTimeout(resolve, 10000));
 
       await Promise.all([
-        useDistribution().claimable(userStore.userData.address as string),
+        // useDistribution().claimable(userStore.userData.address as string),
+        useRelayRewards().refreshAuthedUserClaimableTokens()
         useDistribution().airdropTokens(userStore.userData.address as string),
       ]);
 
@@ -424,7 +425,7 @@ const handleClaimAllRewards = async () => {
       icon: 'i-heroicons-x-circle',
       color: 'amber',
       title: 'Error',
-      description: `Error redeem rewards: ${error}`,
+      description: `Error redeeming rewards: ${error}`,
     });
   }
 

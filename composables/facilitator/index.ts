@@ -377,7 +377,6 @@ export class Facilitator {
 
   async claim(): Promise<TransactionResponse | null> {
     const toast = useToast();
-
     const auth = useUserStore();
 
     let signer: JsonRpcSigner | undefined;
@@ -451,7 +450,7 @@ export class Facilitator {
           icon: 'i-heroicons-x-circle',
           color: 'amber',
           title: 'Error',
-          description: `Error redeem rewards: ${msg}`,
+          description: `Error redeeming rewards: ${msg}`,
         });
       }
 

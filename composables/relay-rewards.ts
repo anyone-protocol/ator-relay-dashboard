@@ -188,18 +188,22 @@ export class RelayRewards {
         ])
       );
 
-      // Update store if it's the authenticated user's address
-      const auth = useUserStore();
-      if (auth.userData && auth.userData.address) {
-        const address = auth.userData.address;
-        const claimable = await this.getClaimable(address);
-        this.logger.log('address', address, 'claimable', claimable);
-        useFacilitatorStore().claimableAtomicTokens = claimable || undefined;
-      }
+      await this.refreshAuthedUserClaimableTokens();
     } catch (error) {
       this.logger.error('Error refreshing RelayRewards', error);
     } finally {
       this.setRefreshing(false);
+    }
+  }
+
+  async refreshAuthedUserClaimableTokens() {
+    // Update store if it's the authenticated user's address
+    const auth = useUserStore();
+    if (auth.userData && auth.userData.address) {
+      const address = auth.userData.address;
+      const claimable = await this.getClaimable(address);
+      this.logger.log('address', address, 'claimable', claimable);
+      useFacilitatorStore().claimableAtomicTokens = claimable || undefined;
     }
   }
 
