@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import { useAccount } from '@wagmi/vue';
-import type { FunctionName } from '@/utils/warp.write';
-import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
@@ -31,7 +29,6 @@ const props = defineProps<{
 
 const toast = useToast();
 const userStore = useUserStore();
-const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
 const facilitatorStore = useFacilitatorStore();
@@ -171,7 +168,7 @@ const timestamp = computed(
 const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
-const relayAction = async (action: FunctionName, fingerprint: string) => {
+const relayAction = async (action: "claim" | "renounce", fingerprint: string) => {
   //TODO: Sign the message
   // See: The following resources
   // https://academy.warp.cc/docs/sdk/advanced/plugins/signature

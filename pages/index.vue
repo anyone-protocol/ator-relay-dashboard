@@ -219,11 +219,9 @@ import UserBalance from '@/components/UserBalance.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
-import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
 import { initRegistrator, useRegistrator } from '@/composables/registrator';
 import { useFacilitator } from '@/composables/facilitator';
-import { initDistribution, useDistribution } from '@/composables/distribution';
-import { initRelayRegistry } from '@/composables/relay-registry';
+import { useDistribution } from '@/composables/distribution';
 import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
@@ -399,7 +397,6 @@ const handleClaimAllRewards = async () => {
       await new Promise((resolve) => setTimeout(resolve, 10000));
 
       await Promise.all([
-        // useDistribution().claimable(userStore.userData.address as string),
         useRelayRewards().refreshAuthedUserClaimableTokens(),
         useDistribution().airdropTokens(userStore.userData.address as string),
       ]);

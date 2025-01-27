@@ -67,7 +67,6 @@ export default defineNuxtConfig({
       metricsDeployer: '53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q',
       registratorContract: '0x86e55b81cf6a86b9EFb630c0E6Ad91E53a509A35',
       distributionDeployer: 'G5tXjZS4SaMJNwOENZYgymvc6Zxp2Wws4Qf8wB0b',
-      warpGateway: 'https://gw.warp.cc/gateway/v2',
       centralizedMetricsAPI: 'https://api.ec.anyone.tech',
       dreNodeBaseUrl: 'https://dre.ec.anyone.tech',
       githubNewIssueUrl:

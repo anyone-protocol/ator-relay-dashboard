@@ -157,8 +157,6 @@ import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import DataTableMyRelays from '@/components/DataTableMyRelays/DataTableMyRelays.vue';
 import DataTableMyRelaysMobile from '@/components/DataTableMyRelays/DataTableMyRelaysMobile.vue';
 import { initRegistrator, useRegistrator } from '@/composables/registrator';
-import { initDistribution, useDistribution } from '@/composables/distribution';
-import { initRelayRegistry } from '@/composables/relay-registry';
 import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
 import { type RelayTabType } from '@/types/relay';
@@ -235,7 +233,6 @@ onMounted(async () => {
   console.log('Mounted - Starting initialization');
   // initDistribution();
   await useRelayRewards().refresh()
-  initRelayRegistry();
   initFacilitator();
   initRegistrator();
   initToken();

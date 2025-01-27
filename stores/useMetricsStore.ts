@@ -1,13 +1,7 @@
 import { defineStore } from 'pinia';
-import ArdbTransaction from 'ardb/lib/models/transaction';
 
 import Logger from '@/utils/logger';
 import { parseTimestampTag } from '@/utils/transactions';
-import {
-  useArdb,
-  getLatestBlockHeight,
-  calculateMinimumQueryBlockHeight,
-} from '@/composables/ardb';
 import { useTxCache } from '@/composables/txCache';
 
 const config = useRuntimeConfig();
@@ -113,7 +107,6 @@ export const useMetricsStore = defineStore('metrics', {
 
       logger.info('Metrics start refreshing');
       logger.time();
-      this.refreshValidationStats();
       this.refreshRelayMetrics();
       logger.timeEnd();
       logger.log('Metrics finished refreshing');
@@ -131,17 +124,19 @@ export const useMetricsStore = defineStore('metrics', {
           const userStore = useUserStore();
           const allFingerprints = [] as string[];
 
+          console.log('relay data', data);
+
           data.verified.forEach((relay: any) => {
             const exists = userStore.relaysMeta[relay.fingerprint];
             if (!exists) {
-              allFingerprints.push(relay.fingerprint);
+              allFingerprints.push(relay);
             }
           });
 
           data.claimable.forEach((relay: any) => {
             const exists = userStore.relaysMeta[relay.fingerprint];
             if (!exists) {
-              allFingerprints.push(relay.fingerprint);
+              allFingerprints.push(relay);
             }
           });
 
@@ -150,12 +145,15 @@ export const useMetricsStore = defineStore('metrics', {
             return;
           }
 
+          console.log('allFingerprints', allFingerprints);
+
           try {
             const endpoint =
               config.public.centralizedMetricsAPI +
               '/relays?fingerprints=' +
               allFingerprints.join(',');
 
+            console.log('endpoint', endpoint);
             const response = await fetch(endpoint);
 
             if (response.status === 404 || response.status === 204) {
@@ -171,11 +169,14 @@ export const useMetricsStore = defineStore('metrics', {
               resolve([]);
               return;
             }
+
+            console.log('data', data);
+
             data.forEach((metric: any) => {
               const exists = userStore.relaysMeta[metric.fingerprint];
               userStore.relaysMeta[metric.fingerprint] = {
                 fingerprint: metric.fingerprint,
-                nickname: '',
+                nickname: metric.nickname,
                 status: '',
                 anon_address: '',
                 consensus_weight: metric.consensus_weight.toString(),
@@ -196,167 +197,9 @@ export const useMetricsStore = defineStore('metrics', {
       });
     },
     async refreshRelayMetrics(limit: number = 1) {
-      const ardb = useArdb();
-      const runtimeConfig = useRuntimeConfig();
-
-      if (!this.latestHeight) {
-        this.latestHeight = await getLatestBlockHeight();
-      }
-
-      if (!this.minimumHeight) {
-        this.minimumHeight = await calculateMinimumQueryBlockHeight(
-          this.latestHeight
-        );
-      }
-
-      console.log('this.latestHeight', this.latestHeight);
-      console.log('this.minimumHeight', this.minimumHeight);
-
-      const txCache = useTxCache();
-
-      // Retry mechanism configuration
-      const maxRetries = 1;
-      const retryDelay = (attempt: number) => Math.min(3000 * attempt, 15000); // Exponential backoff (max 15s)
-
-      const attemptFetch = async (attempt: number): Promise<void> => {
-        try {
-          if (!this.minimumHeight) {
-            throw new Error('Minimum height not set');
-          }
-          const txs = (await ardb
-            .search('transactions')
-            .from(runtimeConfig.public.metricsDeployer as string)
-            .tags([
-              // { name: 'Protocol', values: 'ator' },
-              { name: 'Entity-Type', values: 'relay/metrics' },
-            ])
-            .limit(limit)
-            .min(this.minimumHeight)
-            // .max(this.latestHeight)
-            .sort('HEIGHT_DESC')
-            .find()) as ArdbTransaction[];
-
-          logger.info(`Got ${txs.length} relay/metrics transactions`);
-
-          if (txs.length === 0) {
-            throw new Error('No transactions found');
-          }
-
-          const latestTx = txs[0];
-
-          if (latestTx) {
-            const latestRelayMetrics = await txCache.getTransactionData<
-              VerificationResultDto[]
-            >(latestTx.id);
-
-            if (latestRelayMetrics) {
-              logger.info(
-                'Got latest relay/metrics',
-                latestRelayMetrics.length
-              );
-              this.relays.latest = latestRelayMetrics;
-
-              const userStore = useUserStore();
-              latestRelayMetrics.forEach((metric) => {
-                userStore.relaysMeta[metric.relay.fingerprint] = {
-                  fingerprint: metric.relay.fingerprint,
-                  nickname: metric.relay.nickname,
-                  status: '',
-                  anon_address: metric.relay.anon_address,
-                  consensus_weight: metric.relay.consensus_weight.toString(),
-                  observed_bandwidth: metric.relay.observed_bandwidth,
-                  consensus_weight_fraction:
-                    metric.relay.consensus_weight_fraction,
-                  running: metric.relay.running,
-                };
-              });
-
-              const timestamp = parseTimestampTag(latestTx);
-              if (timestamp) {
-                this.relays.timestamp = timestamp;
-              }
-            }
-          }
-
-          await this.centralizedRelayMetrics();
-
-          this.relayMetricsPending = false;
-        } catch (error) {
-          logger.error(
-            `Error querying relay/metrics (attempt ${attempt}/${maxRetries}):`,
-            error
-          );
-
-          if (attempt < maxRetries) {
-            logger.warn(
-              `Retrying in ${retryDelay(attempt)}ms... (attempt ${attempt + 1})`
-            );
-            await await new Promise((resolve) =>
-              setTimeout(resolve, retryDelay(attempt))
-            );
-            return attemptFetch(attempt + 1); // Retry after delay
-          } else {
-            logger.error('Max retries reached. Failed to fetch relay metrics.');
-            await this.centralizedRelayMetrics();
-            this.relayMetricsPending = false;
-          }
-        }
-      };
-
-      // Start the fetch with retries
-      return attemptFetch(1);
-    },
-
-    async refreshValidationStats(limit: number = 1) {
-      const ardb = useArdb();
-      const runtimeConfig = useRuntimeConfig();
-
-      const txCache = useTxCache();
-      if (!this.latestHeight) {
-        this.latestHeight = await getLatestBlockHeight();
-      }
-      if (!this.minimumHeight) {
-        this.minimumHeight = await calculateMinimumQueryBlockHeight(
-          this.latestHeight
-        );
-      }
-      try {
-        const txs = (await ardb
-          .search('transactions')
-          .from(runtimeConfig.public.metricsDeployer as string)
-          .tags([
-            // { name: 'Protocol', values: 'ator' },
-            { name: 'Entity-Type', values: 'validation/stats' },
-          ])
-          .limit(limit)
-          .min(this.minimumHeight)
-          // .max(this.latestHeight)
-          .sort('HEIGHT_DESC')
-          .find()) as ArdbTransaction[];
-
-        logger.info(`Got ${txs.length} validation/stats transactions`);
-
-        const latestTx = txs[0];
-
-        if (latestTx) {
-          const latestValidationStats =
-            await txCache.getTransactionData<ValidationStats>(latestTx.id);
-
-          if (latestValidationStats) {
-            logger.info('Got latest validation/stats', latestValidationStats);
-            this.validation.latest = latestValidationStats;
-
-            const timestamp = parseTimestampTag(latestTx);
-            if (timestamp) {
-              this.validation.timestamp = timestamp;
-            }
-          }
-        }
-
-        this.validation.transactionIds = txs.map((tx) => tx.id);
-      } catch (error) {
-        logger.error('Error querying validation/stats', error);
-      }
+      this.relayMetricsPending = true;
+      await this.centralizedRelayMetrics();
+      this.relayMetricsPending = false;
     },
   },
 });
