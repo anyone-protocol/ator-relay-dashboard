@@ -25,6 +25,8 @@ if (process.env.PHASE === 'stage') {
   undername = 'stage'
 } else if (process.env.PHASE === 'live') {
   undername = '@'
+} else if (process.env.UNDERNAME) {
+  undername = process.env.UNDERNAME
 }
 
 async function deploy() {
