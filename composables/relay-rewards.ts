@@ -168,7 +168,8 @@ export class RelayRewards {
           fingerprint,
           BigNumber(details.Rating.Network)
             .plus(details.Rating.ExitBonus)
-            .plus(details.Rating.Uptime),
+            .plus(details.Rating.Uptime)
+            .decimalPlaces(4),
         ])
       );
       useFacilitatorStore().baseTokensPerRelay = Object.fromEntries(
@@ -178,14 +179,28 @@ export class RelayRewards {
             .dividedBy(1e18)
             .minus(details.Reward.Hardware)
             .minus(details.Reward.Uptime)
-            .minus(details.Reward.ExitBonus),
+            .minus(details.Reward.ExitBonus)
+            .decimalPlaces(4),
         ])
       );
+      console.log('previousRound', previousRound);
       useFacilitatorStore().lastDistributionTimePerRelay = Object.fromEntries(
         Object.keys(previousRound.Details).map((fingerprint) => [
           fingerprint,
-          new Date(previousDistribution.timestamp).toLocaleString(),
+          new Date(previousRound.Timestamp).toLocaleString('en-US', {
+            month: 'short',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+          }),
         ])
+      );
+
+      console.log(
+        'useFacilitatorStore().lastDistributionTimePerRelay',
+        useFacilitatorStore().lastDistributionTimePerRelay
       );
 
       await this.refreshAuthedUserClaimableTokens();

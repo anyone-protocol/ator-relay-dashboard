@@ -587,7 +587,6 @@ const handleUnlockClick = async (fingerprint: string) => {
                     facilitatorStore?.baseTokensPerRelay?.[row.fingerprint] ||
                     '-'
                   }}
-                  $ANYONE
                 </div>
                 <div
                   class="text-xs font-normal text-gray-600 dark:text-gray-300"
@@ -621,7 +620,6 @@ const handleUnlockClick = async (fingerprint: string) => {
                     facilitatorStore?.bonusesPerRelay?.[row.fingerprint]
                       ?.hardware || '-'
                   }}
-                  $ANYONE
                 </div>
                 <div
                   class="text-xs font-normal text-indigo-700 dark:text-violet-300 mb-2"
@@ -633,7 +631,6 @@ const handleUnlockClick = async (fingerprint: string) => {
                     facilitatorStore?.bonusesPerRelay?.[row.fingerprint]
                       ?.quality || '-'
                   }}
-                  $ANYONE
                 </div>
 
                 <div
