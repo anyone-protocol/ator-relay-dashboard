@@ -1,4 +1,4 @@
-import { TurboFactory } from '@ardrive/turbo-sdk'
+import { EthereumSigner, TurboFactory } from '@ardrive/turbo-sdk'
 
 const bundlerControllerKey = process.env.BUNDLER_CONTROLLER_KEY || 'no key set'
 const bundlerGateway = process.env.BUNDLER_GATEWAY || 'https://ar.anyone.tech'

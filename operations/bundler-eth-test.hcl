@@ -1,4 +1,4 @@
-job "deploy-relay-dashboard-dev" {
+job "bundler-eth-test-dev" {
   datacenters = ["ator-fin"]
   namespace = "ator-network"
   type = "batch"
@@ -7,11 +7,11 @@ job "deploy-relay-dashboard-dev" {
     attempts = 0
   }
 
-    task "deploy-relay-dashboard-task" {
+    task "bundler-eth-test-task" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.commit_sha]]"
+        image = "ghcr.io/anyone-protocol/ator-relay-dashboard:519a3fa4d33928e2bfb0c066010148ef93fb50f3"
         force_pull = true
         entrypoint = ["node"]
         # command = "run"
@@ -19,7 +19,7 @@ job "deploy-relay-dashboard-dev" {
       }
 
       vault {
-        policies = ["dashboard-stage"]
+        policies = ["valid-ator-stage"]
       }
 
       template {
