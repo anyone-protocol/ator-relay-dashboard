@@ -1,4 +1,5 @@
 import { ANT, ArweaveSigner } from '@ar.io/sdk'
+import { TurboFactory } from '@ardrive/turbo-sdk'
 import { copyFileSync } from 'fs'
 
 // ator-dashboard process id
