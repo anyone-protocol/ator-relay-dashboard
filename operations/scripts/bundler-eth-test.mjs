@@ -16,14 +16,14 @@ async function bundlerEthTest() {
   const address = await turbo.signer.getNativeAddress()
   const pk = await turbo.signer.getPublicKey()
   console.log('using signer address', address)
-  console.log('using signer pk', pk)
+  console.log('using signer pk', pk.toString('hex'))
   const signed = await turbo.signer.signDataItem({
     fileSizeFactory: () => data.length,
     fileStreamFactory: () => Buffer.from(data),
     dataItemOpts: { tags: [{ name: 'Content-Type', value: 'text/plain' }] }
   })
   console.log('uploading')
-  const result = await this.bundler.uploadSignedDataItem(signed)
+  const result = await turbo.uploadSignedDataItem(signed)
   console.log('upload result', result)
 }
 
