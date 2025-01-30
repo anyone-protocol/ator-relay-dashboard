@@ -254,8 +254,14 @@ export class Registrator {
       return result;
     } catch (error) {
       const msg = (error as Error)?.message;
-
-      if (!msg.includes('User denied transaction signature.')) {
+      if (msg.includes('transfer amount exceeds balance')) {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: `Error locking rewards ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE: You have insufficient $ANYONE tokens`,
+        });
+      } else if (!msg.includes('User denied transaction signature.')) {
         toast.add({
           icon: 'i-heroicons-x-circle',
           color: 'amber',

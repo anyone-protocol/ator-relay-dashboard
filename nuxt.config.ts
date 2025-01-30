@@ -55,18 +55,19 @@ export default defineNuxtConfig({
   // See: https://nuxt.com/docs/guide/going-further/runtime-config
   runtimeConfig: {
     public: {
-      operatorRegistryProcessId: 'oma22UyGFtlLKMg6sKgAvC3hymOFlW6tPiRRPebCPhs',
+      operatorRegistryProcessId: 'PPSK1GMSaeERTsmqeSMhgm4MqqvrDJ8sYJGc2Rg9wtU',
       relayRewardsProcessId: 'AN4AMyMGUpJLiB6nNP6K6rB8GevpwdjNKNylyUj7bf4',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: '53a5b087ab4cb303a799325360098216',
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',
-      facilitatorContract: '0xd5F13F38b3FeFEc9c3b9F4dE7D951084a3fFB89B',
+      facilitatorContract: '0xba55dfC8E60177e550316CA51711F23AF5161A42',
       sepoliaAtorTokenContract: '0x3F7D7e1161B4CbC172517a2957A13814f4a657A2',
       tokenContractMain: '0xFeAc2Eae96899709a43E252B6B92971D32F9C0F9',
       distributionContract: '22rOD-_0isRZQaw0EBGh6Ko0ri5IPE7cYTaMThhPENk',
       metricsDeployer: '53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q',
-      registratorContract: '0x86e55b81cf6a86b9EFb630c0E6Ad91E53a509A35',
+      registratorContract: '0xa7325b28ED397AC0391529425bB7d5C34dD4FD74',
       distributionDeployer: 'G5tXjZS4SaMJNwOENZYgymvc6Zxp2Wws4Qf8wB0b',
+      warpGateway: 'https://gw.warp.cc/gateway/v2',
       centralizedMetricsAPI: 'https://api.ec.anyone.tech',
       dreNodeBaseUrl: 'https://dre.ec.anyone.tech',
       githubNewIssueUrl:
