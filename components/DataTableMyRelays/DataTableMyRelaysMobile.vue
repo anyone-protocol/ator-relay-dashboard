@@ -329,13 +329,41 @@ const handleLockRelay = async (fingerprint: string) => {
   relayActionOngoing.value = true;
   selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
+  const maxTries = 3;
+
+
+  // retry untill maxRetry or the registrationcredit is removed
+  const searchWithBackoff = async (currentTry: number) => {
+    if (currentTry > maxTries) {
+      return;
+    }
+
+    userStore.createRelayCache().then(async () => {
+      await fetchRegistrationCredit();
+      if (relayCredits.value[fingerprint] === false) {
+        console.log("Registration credit removed at attempt: ", currentTry);
+        return;
+      }
+
+    })
+
+    console.log(`Didn't remove lock yet... (Attempt ${currentTry})`);
+
+    setTimeout(() => {
+      searchWithBackoff(currentTry + 1);
+    }, 5000 * currentTry);
+  }
+
   try {
     const register = useRegistrator();
-    await register?.lock(fingerprint, '');
+    register?.lock(fingerprint, '').then(async (result) => {
 
-    selectedRow!.class = '';
-    selectedRow!.isWorking = false;
-    relayActionOngoing.value = false;
+      searchWithBackoff(0);
+
+      selectedRow!.class = '';
+      selectedRow!.isWorking = false;
+      relayActionOngoing.value = false;
+    })
   } catch {
     selectedRow!.class = '';
     selectedRow!.isWorking = false;

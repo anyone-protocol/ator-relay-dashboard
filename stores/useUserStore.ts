@@ -193,7 +193,7 @@ export const useUserStore = defineStore('user', {
 
       await relayCache.saveRelayData(relayInfo);
     },
-    async hasRegistrationCredit(fingerprint: string, forceRefresh = false) {
+    async hasRegistrationCredit(fingerprint: string) {
       if (!this.userData.address) {
         this.registrationCredits = [];
         return;
@@ -203,15 +203,8 @@ export const useUserStore = defineStore('user', {
         return true;
       }
 
-      if (
-        !forceRefresh &&
-        this.registrationCreditsCache[fingerprint] !== undefined
-      ) {
-        return this.registrationCreditsCache[fingerprint];
-      }
-
       const relayCache = useRelayCache();
-      const cachedData = await relayCache.getRelayData(forceRefresh);
+      const cachedData = await relayCache.getRelayData();
       if (cachedData) {
         this.registrationCredits = cachedData.registrationCredits;
       } else {
