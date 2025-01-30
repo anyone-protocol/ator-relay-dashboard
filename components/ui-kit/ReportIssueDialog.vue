@@ -88,6 +88,7 @@ import { useEventlogStore } from '@/stores/eventlog';
 import { useUserStore } from '@/stores/useUserStore';
 import Logger from '@/utils/logger';
 import { EncryptedMessages } from '@memetic-block/ao-encrypted-messages';
+import { useWarpSigner } from '~/warp/warp-signer';
 
 const config = useRuntimeConfig();
 const eventlog = useEventlogStore();
@@ -186,6 +187,7 @@ const onReportIssueClicked = debounce(async () => {
         color: 'primary',
       });
       await new Promise((resolve) => setTimeout(resolve, 500));
+      console.log("message", message);
       const { messageId } =
         await encryptedMessages.sendEncryptedMessage(message);
       encryptedBody = `\n\n**Logs**\nMessage ID: ${messageId}`;

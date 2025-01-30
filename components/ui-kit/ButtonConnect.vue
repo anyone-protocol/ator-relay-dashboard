@@ -44,12 +44,12 @@ const handleDisconnect = () => {
   </div>
 
   <UModal v-model="isOpen">
-    <UCard class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+    <UCard class="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       <template #header>
-        <h4 class="text-lg font-semibold mb-4">Account Options</h4>
+        <h4 class="text-lg font-semibold">Account Options</h4>
       </template>
 
-      <div class="space-y-4">
+      <div>
         <UButton
           variant="outline"
           color="red"
@@ -58,8 +58,8 @@ const handleDisconnect = () => {
           >Disconnect</UButton
         >
 
-        <div>
-          <h5 class="text-sm font-medium mb-2">Switch Network</h5>
+        <!-- <div>
+          <h5 class="text-sm font-medium mb-2">Current Network</h5>
           <div class="space-y-2">
             <UButton
               v-for="chainItem in chains"
@@ -78,11 +78,11 @@ const handleDisconnect = () => {
               >
             </UButton>
           </div>
-        </div>
+        </div> -->
       </div>
 
       <template #footer>
-        <UButton variant="outline" class="mt-4 w-full" @click="isOpen = false"
+        <UButton variant="outline" class="w-full" @click="isOpen = false"
           >Close</UButton
         >
       </template>

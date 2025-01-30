@@ -1,5 +1,5 @@
-import Irys from '@irys/sdk'
 import { ANT, ArweaveSigner } from '@ar.io/sdk'
+import { TurboFactory } from '@ardrive/turbo-sdk'
 import { copyFileSync } from 'fs'
 
 // ator-dashboard process id
@@ -9,16 +9,19 @@ import { copyFileSync } from 'fs'
 // const processId = 'lZKDfIa5JiWQ8ojjXiRSey_81Bftbib4tLpIJh4UO0g'
 const processId = 'Rglgc93lGIpqHIgNo9rS0gIkG2s7aodCSMoGysi3r6Y'
 
-const DEPLOY_FOLDER = './.output/public'
-const IRYS_NODE = process.env.BUNDLER || 'https://node2.irys.xyz/'
+const DEPLOY_FOLDER = `${process.cwd()}/.output/public`
+const gatewayUrl = process.env.GATEWAY || 'https://ar.anyone.tech'
+const url = process.env.BUNDLER || 'https://ar.anyone.tech/bundler'
 const jwk = JSON.parse(
   Buffer.from(process.env.PERMAWEB_KEY || 'NO_KEY', 'base64').toString('utf-8')
 )
-const irys = new Irys({ url: IRYS_NODE, token: 'arweave', key: jwk })
-const ant = ANT.init({
-  processId,
-  signer: new ArweaveSigner(jwk)
+const signer = new ArweaveSigner(jwk)
+const turbo = TurboFactory.authenticated({
+  signer,
+  gatewayUrl,
+  uploadServiceConfig: { url }
 })
+const ant = ANT.init({ processId, signer })
 
 let undername = 'dev'
 if (process.env.PHASE === 'stage') {
@@ -34,25 +37,25 @@ async function deploy() {
   //       a wildcard route
   copyFileSync(DEPLOY_FOLDER + '/index.html', DEPLOY_FOLDER + '/*')
 
-  const buildArtifact = await irys.uploadFolder(DEPLOY_FOLDER, {
-    indexFile: 'index.html'
-  })
+  const {
+    fileResponses,
+    manifestResponse,
+    manifest,
+    errors
+  } = await turbo.uploadFolder({ folderPath: DEPLOY_FOLDER })
 
-  if (!buildArtifact) {
-    console.error('Irys result error', buildArtifact)
-
-    return
+  if (errors && errors.length > 0) {
+    console.error(errors)
+    throw new Error('Deploy failed, see errors above')
   }
-
-  console.log('Irys result id', buildArtifact.id)
+  console.log(`Manifest id ${manifestResponse?.id}`)
+  console.log('Manifest', manifest)
   console.log('Updating ANT undername', undername)
-
   const { id: deployedTxId } = await ant.setRecord({
     undername,
-    transactionId: buildArtifact.id,
+    transactionId: manifestResponse?.id,
     ttlSeconds: 3600
   })
-
   console.log(
     'Deployed!  Please wait 20 - 30 minutes for ARNS to update!',
     deployedTxId

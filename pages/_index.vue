@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { initRelayRegistry } from '@/composables/relay-registry';
 import { initFacilitator } from '@/composables/facilitator';
 import { formatEther } from 'ethers';
 
@@ -32,14 +31,6 @@ const progressLoading = ref(0);
 const toast = useToast();
 
 // Get new data every 5 minutes
-onMounted(async () => {
-  facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(
-    userStore.userData.address
-  );
-  await userStore.getSerialsRelays();
-});
-
-initRelayRegistry();
 initFacilitator();
 initRegistrator();
 initToken();
@@ -53,8 +44,6 @@ watch(
     await facilitator?.refresh();
 
     await userStore.getTokenBalance();
-    await userStore.getSerialsRelays();
-
     const registrator = useRegistrator();
     await registrator?.refresh();
 

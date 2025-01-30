@@ -1,11 +1,8 @@
-import type { EvolveState } from 'warp-contracts';
-
 export type ContractFunctionInput = {
   function: string;
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   [key: string]: any;
 };
-export type EvolvableState = Partial<EvolveState> & OwnableState;
 export type OwnableState = { owner?: string };
 export type Fingerprint = string;
 export type EvmAddress = string;
