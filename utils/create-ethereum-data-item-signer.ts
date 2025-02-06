@@ -1,22 +1,44 @@
 import { createData, Signer } from './arbundles-lite';
 
-export async function createEthereumDataItemSigner(signer: Signer) {
-  return ({
+export type SignedDataItemsCache = {
+  [key: string]: {
+    id: string;
+    raw: Buffer;
+  };
+};
+
+export function createEthereumDataItemSigner(
+  signer: Signer,
+  useCache: boolean = false,
+  cache: SignedDataItemsCache = {}
+) {
+  return async ({
     data,
     tags,
     target,
     anchor,
   }: {
     data: string | Uint8Array;
-    tags: any[];
+    tags: { name: string; value: string }[];
     target?: string;
     anchor?: string;
   }) => {
-    const dataItem = createData(data, signer, { tags, target, anchor });
+    const cacheKey = tags.find((tag) => tag.name === 'UI-Cache-Key')?.value;
+    if (useCache && cacheKey && cache && cache[cacheKey]) {
+      return cache[cacheKey];
+    }
 
-    return dataItem.sign(signer).then(async () => ({
-      id: await dataItem.id,
-      raw: await dataItem.getRaw(),
-    }));
+    const dataItem = createData(data, signer, { tags, target, anchor });
+    await dataItem.sign(signer);
+    const result = {
+      id: dataItem.id,
+      raw: dataItem.getRaw(),
+    };
+
+    if (useCache && cacheKey && cache) {
+      cache[cacheKey] = result;
+    }
+
+    return result;
   };
 }

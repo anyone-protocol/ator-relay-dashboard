@@ -117,10 +117,11 @@ export class OperatorRegistry {
 
       const { messageId, result } = await sendAosMessage({
         processId: this.processId,
-        signer: (await createEthereumDataItemSigner(signer)) as any,
+        signer: createEthereumDataItemSigner(signer, true) as any,
         tags: [
           { name: 'Action', value: 'Submit-Fingerprint-Certificate' },
           { name: 'Fingerprint-Certificate', value: fingerprint },
+          { name: 'UI-Cache-Key', value: `claim-${Date.now().toString()}` },
         ],
       });
 
@@ -146,10 +147,11 @@ export class OperatorRegistry {
 
       const { messageId, result } = await sendAosMessage({
         processId: this.processId,
-        signer: (await createEthereumDataItemSigner(signer)) as any,
+        signer: createEthereumDataItemSigner(signer, true) as any,
         tags: [
           { name: 'Action', value: 'Renounce-Fingerprint-Certificate' },
           { name: 'Fingerprint', value: fingerprint },
+          { name: 'UI-Cache-Key', value: `renounce-${Date.now().toString()}` },
         ],
       });
 
