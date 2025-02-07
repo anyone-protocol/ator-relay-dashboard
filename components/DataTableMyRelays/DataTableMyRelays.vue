@@ -762,7 +762,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="lockedRelaysMap[row.fingerprint]"
           :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
-          :is-loading="registratorStore.loading || lockedRelaysPending"
+          :is-loading="registratorStore.loading || lockedRelaysPending || allRelaysPending"
         />
       </template>
 
@@ -808,7 +808,7 @@ const handleUnlockClick = async (fingerprint: string) => {
             row.status === 'verified' ||
             isHardwareResolved?.[row.fingerprint]
           "
-          :is-loading="registratorStore.loading"
+          :is-loading="registratorStore.loading || lockedRelaysPending || allRelaysPending"
           :has-registration-credit="relayCredits[row.fingerprint]"
           :registration-credits-required="registrationCreditsRequired ?? false"
           :family-verified="familyVerified[row.fingerprint]"
