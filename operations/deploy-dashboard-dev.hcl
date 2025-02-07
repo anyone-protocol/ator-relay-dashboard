@@ -13,6 +13,7 @@ job "deploy-relay-dashboard-dev" {
     config {
       image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.commit_sha]]"
       force_pull = true
+      image_pull_timeout = "10m"
       entrypoint = ["pnpm"]
       command = "run"
       args = ["deploy"]
@@ -60,7 +61,6 @@ job "deploy-relay-dashboard-dev" {
     driver = "docker"
     config {
       image = "grafana/promtail:2.9.4"
-      image_pull_timeout = "10m"
       args = ["-config.file", "local/config.yaml", "-print-config-stderr", ]
     }
 
