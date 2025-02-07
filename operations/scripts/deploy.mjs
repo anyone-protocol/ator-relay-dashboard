@@ -65,4 +65,4 @@ async function deploy() {
   )
 }
 
-deploy().catch(err => { logger.error(err); process.exit(1); })
+deploy().catch(err => { logger.error('error deploying!', err); process.exit(1); })
