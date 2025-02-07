@@ -8,7 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "deploy": "pnpm run generate && node deploy.mjs",
+    "deploy": "pnpm run generate && node operations/scripts/deploy.mjs",
     "prepare": "husky && husky install",
     "test": "echo \"No tests specified\""
   },
@@ -62,7 +62,8 @@
     "vuetify": "^3.6.8",
     "warp-contracts": "1.4.21",
     "warp-contracts-plugin-deploy": "1.0.13",
-    "warp-contracts-plugin-ethers": "1.0.8"
+    "warp-contracts-plugin-ethers": "1.0.8",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@iconify-json/uil": "^1.1.8",
