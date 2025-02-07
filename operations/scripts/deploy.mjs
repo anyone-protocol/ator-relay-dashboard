@@ -51,15 +51,15 @@ async function deploy() {
     logger.error(errors)
     throw new Error('Deploy failed, see errors above')
   }
-  logger.log(`Manifest id ${manifestResponse?.id}`)
-  logger.log('Manifest', manifest)
-  logger.log('Updating ANT undername', undername)
+  logger.info(`Manifest id ${manifestResponse?.id}`)
+  logger.info('Manifest', manifest)
+  logger.info('Updating ANT undername', undername)
   const { id: deployedTxId } = await ant.setRecord({
     undername,
     transactionId: manifestResponse?.id,
     ttlSeconds: 3600
   })
-  logger.log(
+  logger.info(
     'Deployed!  Please wait 20 - 30 minutes for ARNS to update!',
     deployedTxId
   )
