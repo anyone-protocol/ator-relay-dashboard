@@ -57,60 +57,60 @@ job "deploy-relay-dashboard-dev" {
     }
   }
 
-  task "promtail-task" {
-    driver = "docker"
-    config {
-      image = "grafana/promtail:2.9.4"
-      args = ["-config.file", "local/config.yaml", "-print-config-stderr", ]
-    }
+  # task "promtail-task" {
+  #   driver = "docker"
+  #   config {
+  #     image = "grafana/promtail:2.9.4"
+  #     args = ["-config.file", "local/config.yaml", "-print-config-stderr", ]
+  #   }
 
-    resources {
-      cpu    = 128
-      memory = 256
-    }
+  #   resources {
+  #     cpu    = 128
+  #     memory = 256
+  #   }
 
-    template {
-      data = <<-EOH
-      server:
-        disable: true
+  #   template {
+  #     data = <<-EOH
+  #     server:
+  #       disable: true
 
-      positions:
-        filename: {{ env `NOMAD_ALLOC_DIR` }}/positions.yaml
+  #     positions:
+  #       filename: {{ env `NOMAD_ALLOC_DIR` }}/positions.yaml
 
-      client:
-        url: http://10.1.244.1:3100/loki/api/v1/push
+  #     client:
+  #       url: http://10.1.244.1:3100/loki/api/v1/push
 
-      scrape_configs:
-        - job_name: local
-          static_configs:
-          - targets:
-              - localhost
-            labels:
-              job: nomad
-              __path__: "{{ env `NOMAD_ALLOC_DIR` }}/logs/deploy-relay-dashboard-task.stdout.0"
-          pipeline_stages:
-            # extract the fields from the JSON logs
-            - json:
-                expressions:
-                  alloc_id: alloc_id
-                  job_name: job_name
-                  job_id: job_id
-                  task_name: task_name
-                  datacenter_name: datacenter_name
-                  timestamp: timestamp
-                  stack: stack
-                  level: level
-                  message: message
-                  data: data
-            # the following fields are used as labels and are indexed:
-            - labels:
-                job_name:
-                task_name:
-            - timestamp:
-                source: timestamp
-                format: RFC3339
-      EOH
-      destination = "local/config.yaml"
-    }
-  }
+  #     scrape_configs:
+  #       - job_name: local
+  #         static_configs:
+  #         - targets:
+  #             - localhost
+  #           labels:
+  #             job: nomad
+  #             __path__: "{{ env `NOMAD_ALLOC_DIR` }}/logs/deploy-relay-dashboard-task.stdout.0"
+  #         pipeline_stages:
+  #           # extract the fields from the JSON logs
+  #           - json:
+  #               expressions:
+  #                 alloc_id: alloc_id
+  #                 job_name: job_name
+  #                 job_id: job_id
+  #                 task_name: task_name
+  #                 datacenter_name: datacenter_name
+  #                 timestamp: timestamp
+  #                 stack: stack
+  #                 level: level
+  #                 message: message
+  #                 data: data
+  #           # the following fields are used as labels and are indexed:
+  #           - labels:
+  #               job_name:
+  #               task_name:
+  #           - timestamp:
+  #               source: timestamp
+  #               format: RFC3339
+  #     EOH
+  #     destination = "local/config.yaml"
+  #   }
+  # }
 }
