@@ -7,6 +7,11 @@ job "deploy-relay-dashboard-dev" {
     attempts = 0
   }
 
+  constraint {
+    attribute = "${node.unique.id}"
+    value = "89b957c9-560a-126e-1ae8-13277258fcf1"
+  }
+
   task "deploy-relay-dashboard-task" {
     driver = "docker"
 
@@ -17,6 +22,12 @@ job "deploy-relay-dashboard-dev" {
       entrypoint = ["pnpm"]
       command = "run"
       args = ["deploy"]
+      logging = {
+        type = "loki"
+        config = {
+          loki-url = "http://10.1.244.1:3100/loki/api/v1/push"
+        }
+      }
     }
 
     vault {
