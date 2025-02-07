@@ -79,7 +79,7 @@ job "deploy-relay-dashboard-dev" {
       client:
         url: http://10.1.244.1:3100/loki/api/v1/push
 
-        scrape_configs:
+      scrape_configs:
         - job_name: local
           static_configs:
           - targets:
