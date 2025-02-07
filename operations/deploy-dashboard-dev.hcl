@@ -22,9 +22,9 @@ job "deploy-relay-dashboard-dev" {
       entrypoint = ["pnpm"]
       command = "run"
       args = ["deploy"]
-      logging = {
+      logging {
         type = "loki"
-        config = {
+        config {
           loki-url = "http://10.1.244.1:3100/loki/api/v1/push"
         }
       }
