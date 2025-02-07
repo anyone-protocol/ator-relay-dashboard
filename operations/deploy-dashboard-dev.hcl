@@ -60,6 +60,7 @@ job "deploy-relay-dashboard-dev" {
     driver = "docker"
     config {
       image = "grafana/promtail:2.9.4"
+      image_pull_timeout = "10m"
       args = ["-config.file", "local/config.yaml", "-print-config-stderr", ]
     }
 
