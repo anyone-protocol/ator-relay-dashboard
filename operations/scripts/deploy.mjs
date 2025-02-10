@@ -52,7 +52,7 @@ async function deploy() {
     throw new Error('Deploy failed, see errors above')
   }
   logger.info(`Manifest id ${manifestResponse?.id}`)
-  logger.info('Manifest', manifest)
+  logger.info('Manifest', JSON.stringify(manifest))
   logger.info('Updating ANT undername', undername)
   const { id: deployedTxId } = await ant.setRecord({
     undername,
