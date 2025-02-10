@@ -20,6 +20,9 @@ export const logger = createLogger({
         winston.format.timestamp(),
         winston.format.errors({ stack: true }),
         addNomadFields(),
+        winston.format.printf(({ level, message, context, timestamp, stack }) => {
+          return `${timestamp}|${level}|${context}: ${message}${stack ? '\n' + stack : ''}`
+        }),
         winston.format.json()
       ),
       handleExceptions: true
