@@ -13,8 +13,16 @@ job "deploy-relay-dashboard-live" {
         config {
             image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.commit_sha]]"
             entrypoint = ["pnpm"]
+            image_pull_timeout = "10m"
             command = "run"
             args = ["deploy"]
+            logging {
+                type = "loki"
+                config {
+                loki-url = "http://10.1.244.1:3100/loki/api/v1/push"
+                loki-external-labels = "container_name={{.Name}},job_name=${NOMAD_JOB_NAME}"
+                }
+            }
         }
 
         vault {

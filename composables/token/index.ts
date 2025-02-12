@@ -57,55 +57,62 @@ export class Token {
     address: string,
     amount: bigint
   ): Promise<TransactionResponse | null> {
-    const auth = useUserStore();
+    return new Promise(async (resolve, reject) => {
+      const auth = useUserStore();
 
-    let signer: JsonRpcSigner | undefined;
-    if (auth.userData) {
-      const _signer = await useSigner();
-      if (_signer) {
-        signer = _signer;
+      let signer: JsonRpcSigner | undefined;
+      if (auth.userData) {
+        const _signer = await useSigner();
+        if (_signer) {
+          signer = _signer;
+        }
       }
-    }
 
-    await this.setSigner(signer);
+      await this.setSigner(signer);
 
-    if (!this.signer) {
-      throw new Error(ERRORS.NO_SIGNER);
-    }
-    if (!this.contract) {
-      throw new Error(ERRORS.NOT_INITIALIZED);
-    }
+      if (!this.signer) {
+        throw new Error(ERRORS.NO_SIGNER);
+      }
+      if (!this.contract) {
+        throw new Error(ERRORS.NOT_INITIALIZED);
+      }
 
-    const toast = useToast();
-    try {
-      this.contract.connect(this.signer);
-      const currentAllowance = await this.allowance(
-        this.signer.address,
-        address
-      );
-      if (currentAllowance >= amount) {
+      const toast = useToast();
+      try {
+        this.contract.connect(this.signer);
+        const currentAllowance = await this.allowance(
+          this.signer.address,
+          address
+        );
+
+        if (currentAllowance >= amount) {
+          resolve(null);
+          return null;
+        }
+
+        const result = await this.contract.approve(address, amount);
+
+        await result.wait();
+
+        console.log('result: ', result);
+
+        resolve(result);
         return null;
+      } catch (error) {
+        this.logger.error('Error approving token', error);
+        const msg = (error as Error)?.message;
+        if (!msg.includes('User denied transaction signature.')) {
+          toast.add({
+            icon: 'i-heroicons-x-circle',
+            color: 'amber',
+            title: 'Error',
+            description: `Error redeen rewards: ${msg}`,
+          });
+        }
+
+        reject(error);
       }
-
-      const result = await this.contract.approve(address, amount);
-
-      await result.wait();
-
-      return result;
-    } catch (error) {
-      this.logger.error('Error approving token', error);
-      const msg = (error as Error)?.message;
-      if (!msg.includes('User denied transaction signature.')) {
-        toast.add({
-          icon: 'i-heroicons-x-circle',
-          color: 'amber',
-          title: 'Error',
-          description: `Error redeen rewards: ${msg}`,
-        });
-      }
-    }
-
-    return null;
+    });
   }
 
   async allowance(owner: string, spender: string): Promise<bigint> {

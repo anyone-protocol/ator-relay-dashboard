@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import { useAccount } from '@wagmi/vue';
-import type { FunctionName } from '@/utils/warp.write';
-import { useRelayRegistry } from '@/composables/relay-registry';
 import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
@@ -32,11 +30,11 @@ const props = defineProps<{
 
 const toast = useToast();
 const userStore = useUserStore();
-const registry = useRelayRegistry();
 const metricsStore = useMetricsStore();
 const registratorStore = useRegistratorStore();
 const facilitatorStore = useFacilitatorStore();
 const registrator = useRegistrator();
+const operatorRegistry = useOperatorRegistry();
 
 const isHovered = ref(false);
 const isUnlocking = ref(false);
@@ -121,9 +119,7 @@ watch(
         const isLocked = lockedRelays[relay.fingerprint] !== undefined;
         data[relay.fingerprint] = isLocked;
       }
-
       lockedRelaysMap.value = data;
-
       lockedRelaysPending.value = false;
     }
     lockedRelaysPending.value = false;
@@ -172,7 +168,7 @@ const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
 
-const relayAction = async (action: FunctionName, fingerprint: string) => {
+const relayAction = async (action: "claim" | "renounce", fingerprint: string) => {
   const selectedRow = allRelays.value.find(
     (row) => row.fingerprint === fingerprint
   );
@@ -184,11 +180,13 @@ const relayAction = async (action: FunctionName, fingerprint: string) => {
     let actionPromise;
     switch (action) {
       case 'claim':
-        actionPromise = registry.claim(fingerprint);
+        // actionPromise = registry.claim(fingerprint);
+        actionPromise = operatorRegistry.claim(fingerprint)
         break;
 
       case 'renounce':
-        actionPromise = registry.renounce(fingerprint);
+        // actionPromise = registry.renounce(fingerprint);
+        actionPromise = operatorRegistry.renounce(fingerprint)
         break;
 
       default:
@@ -323,13 +321,41 @@ const handleLockRelay = async (fingerprint: string) => {
   relayActionOngoing.value = true;
   selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
+  const maxTries = 3;
+
+
+  // retry untill maxRetry or the registrationcredit is removed
+  const searchWithBackoff = async (currentTry: number) => {
+    if (currentTry > maxTries) {
+      return;
+    }
+
+    userStore.createRelayCache().then(async () => {
+      await fetchRegistrationCredit();
+      if (relayCredits.value[fingerprint] === false) {
+        console.log("Registration credit removed at attempt: ", currentTry);
+        return;
+      }
+
+    })
+
+    console.log(`Didn't remove lock yet... (Attempt ${currentTry})`);
+
+    setTimeout(() => {
+      searchWithBackoff(currentTry + 1);
+    }, 5000 * currentTry);
+  }
+
   try {
     const register = useRegistrator();
-    await register?.lock(fingerprint, '');
+    register?.lock(fingerprint, '').then(async (result) => {
 
-    selectedRow!.class = '';
-    selectedRow!.isWorking = false;
-    relayActionOngoing.value = false;
+      searchWithBackoff(0);
+
+      selectedRow!.class = '';
+      selectedRow!.isWorking = false;
+      relayActionOngoing.value = false;
+    })
   } catch {
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
@@ -589,7 +615,6 @@ const handleUnlockClick = async (fingerprint: string) => {
                     facilitatorStore?.baseTokensPerRelay?.[row.fingerprint] ||
                     '-'
                   }}
-                  $ANYONE
                 </div>
                 <div
                   class="text-xs font-normal text-gray-600 dark:text-gray-300"
@@ -623,7 +648,6 @@ const handleUnlockClick = async (fingerprint: string) => {
                     facilitatorStore?.bonusesPerRelay?.[row.fingerprint]
                       ?.hardware || '-'
                   }}
-                  $ANYONE
                 </div>
                 <div
                   class="text-xs font-normal text-indigo-700 dark:text-violet-300 mb-2"
@@ -635,7 +659,6 @@ const handleUnlockClick = async (fingerprint: string) => {
                     facilitatorStore?.bonusesPerRelay?.[row.fingerprint]
                       ?.quality || '-'
                   }}
-                  $ANYONE
                 </div>
 
                 <div
@@ -739,7 +762,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="lockedRelaysMap[row.fingerprint]"
           :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
-          :is-loading="registratorStore.loading || lockedRelaysPending"
+          :is-loading="registratorStore.loading || lockedRelaysPending || allRelaysPending"
         />
       </template>
 
@@ -785,7 +808,7 @@ const handleUnlockClick = async (fingerprint: string) => {
             row.status === 'verified' ||
             isHardwareResolved?.[row.fingerprint]
           "
-          :is-loading="registratorStore.loading"
+          :is-loading="registratorStore.loading || lockedRelaysPending || allRelaysPending"
           :has-registration-credit="relayCredits[row.fingerprint]"
           :registration-credits-required="registrationCreditsRequired ?? false"
           :family-verified="familyVerified[row.fingerprint]"

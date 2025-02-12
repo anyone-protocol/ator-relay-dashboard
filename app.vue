@@ -13,6 +13,7 @@ import { reconnect } from '@wagmi/core'
 import { metadata } from '@/config/web3modal.config';
 import {config} from '@/config/wagmi.config'
 import { watchAccount } from '@wagmi/core'
+import {switchChain} from '@wagmi/core'
 
 const nuxtConfig = useRuntimeConfig();
 const projectId = nuxtConfig.public.walletConnectProjectId;
@@ -26,6 +27,11 @@ createWeb3Modal({
   metadata,
   defaultChain: sepolia,
 })
+
+
+// switchChain(config, { chainId: sepolia.id })
+//   .then(() => console.log('Switched chain'))
+//   .catch(err => console.error('Failed to switch chain:', err))
 
 const unwatch = watchAccount(config, {
   onChange(account) { 
