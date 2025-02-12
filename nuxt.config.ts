@@ -56,7 +56,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       operatorRegistryProcessId: 'PPSK1GMSaeERTsmqeSMhgm4MqqvrDJ8sYJGc2Rg9wtU',
-      relayRewardsProcessId: 'AN4AMyMGUpJLiB6nNP6K6rB8GevpwdjNKNylyUj7bf4',
+      relayRewardsProcessId: 'x_4CaH5KsuqOH9TLE1W1S32rK8qOE8HVHS7mLYPnuUg',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: '53a5b087ab4cb303a799325360098216',
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',
