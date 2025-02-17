@@ -183,11 +183,8 @@ export class RelayRewards {
             .minus(details.Reward.ExitBonus)
             .dividedBy(Math.pow(10, 18))
             .decimalPlaces(4),
-
-          console.log('fingerprint', fingerprint, 'details', details),
         ])
       );
-      console.log('previousRound', previousRound);
       useFacilitatorStore().lastDistributionTimePerRelay = Object.fromEntries(
         Object.keys(previousRound.Details).map((fingerprint) => [
           fingerprint,
@@ -200,11 +197,6 @@ export class RelayRewards {
             hour12: false,
           }),
         ])
-      );
-
-      console.log(
-        'useFacilitatorStore().lastDistributionTimePerRelay',
-        useFacilitatorStore().lastDistributionTimePerRelay
       );
 
       await this.refreshAuthedUserClaimableTokens();
@@ -236,7 +228,11 @@ export class RelayRewards {
         ],
       });
 
-      return BigNumber(result.Messages[0].Data).times('10e17').toString();
+      console.log('getClaimable result', result);
+
+      const claimable = result?.Messages[0]?.Data || '0';
+
+      return BigNumber(claimable).times('10e17').toString();
     } catch (error) {
       this.logger.error('Error fetching claimable rewards', error);
     }
