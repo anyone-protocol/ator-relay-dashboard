@@ -55,6 +55,7 @@ export default defineNuxtConfig({
   // See: https://nuxt.com/docs/guide/going-further/runtime-config
   runtimeConfig: {
     public: {
+      aoCuUrl: 'https://cu.ardrive.io',
       operatorRegistryProcessId: 'PPSK1GMSaeERTsmqeSMhgm4MqqvrDJ8sYJGc2Rg9wtU',
       relayRewardsProcessId: 'x_4CaH5KsuqOH9TLE1W1S32rK8qOE8HVHS7mLYPnuUg',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
