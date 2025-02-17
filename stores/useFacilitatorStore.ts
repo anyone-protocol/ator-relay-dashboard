@@ -59,7 +59,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
         if (state.totalClaimedTokens) {
           const allocatedTokens = BigNumber(state.claimableAtomicTokens)
             .minus(state.totalClaimedTokens)
-            .div(1e18);
+            .dividedBy(Math.pow(10, 18));
 
           // Ensure that the value is never negative
           return allocatedTokens.isNegative()
@@ -149,7 +149,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
           allocationClaimed.log.transactionHash;
         pendingClaimCopy.allocationClaimedBlockTimestamp = timestamp;
         pendingClaimCopy.amount = BigNumber(amount.toString())
-          .dividedBy(1e18)
+          .dividedBy(Math.pow(10, 18))
           .toFormat(3);
 
         logger.info(

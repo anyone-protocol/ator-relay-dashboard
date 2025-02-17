@@ -122,12 +122,12 @@ export class RelayRewards {
         tokensDistributedPerDay: BigNumber(
           previousRound.Configuration.TokensPerSecond
         )
-          .dividedBy(1e18)
+          .dividedBy(Math.pow(10, 18))
           .times(24 * 60 * 60)
           .toFormat(2),
         totalScore: BigNumber(previousRound.Summary.Ratings.Network).toFormat(),
         totalDistributed: BigNumber(previousRound.Summary.Rewards.Total)
-          .dividedBy(1e18)
+          .dividedBy(Math.pow(10, 18))
           .toFormat(2),
         fromNowHumanized: moment(date).fromNow(),
       };
@@ -138,7 +138,9 @@ export class RelayRewards {
       useFacilitatorStore().distributionPerRelay = Object.fromEntries(
         Object.entries(previousRound.Details).map(([fingerprint, details]) => [
           fingerprint,
-          BigNumber(details.Reward.Total).dividedBy(1e18).decimalPlaces(3),
+          BigNumber(details.Reward.Total)
+            .dividedBy(Math.pow(10, 18))
+            .decimalPlaces(3),
         ])
       );
       useFacilitatorStore().bonusesPerRelay = Object.fromEntries(
@@ -146,10 +148,10 @@ export class RelayRewards {
           fingerprint,
           {
             hardware: BigNumber(details.Reward.Hardware || 0)
-              .dividedBy(1e18)
+              .dividedBy(Math.pow(10, 18))
               .decimalPlaces(3),
             quality: BigNumber(details.Reward.Uptime || 0)
-              .dividedBy(1e18)
+              .dividedBy(Math.pow(10, 18))
               .decimalPlaces(3),
           },
         ])
@@ -176,11 +178,13 @@ export class RelayRewards {
         Object.entries(previousRound.Details).map(([fingerprint, details]) => [
           fingerprint,
           BigNumber(details.Reward.Total)
-            .dividedBy(1e18)
             .minus(details.Reward.Hardware)
             .minus(details.Reward.Uptime)
             .minus(details.Reward.ExitBonus)
+            .dividedBy(Math.pow(10, 18))
             .decimalPlaces(4),
+
+          console.log('fingerprint', fingerprint, 'details', details),
         ])
       );
       console.log('previousRound', previousRound);
