@@ -219,16 +219,15 @@ import UserBalance from '@/components/UserBalance.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
-import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
 import { initRegistrator, useRegistrator } from '@/composables/registrator';
 import { useFacilitator } from '@/composables/facilitator';
-import { initDistribution, useDistribution } from '@/composables/distribution';
-import { initRelayRegistry } from '@/composables/relay-registry';
+import { useDistribution } from '@/composables/distribution';
 import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
+import { useRelayRewards } from '@/composables/relay-rewards'
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -302,10 +301,8 @@ const fetchInitialData = async (
         useFacilitator()?.refresh(),
       (!registratorStore?.initialized || forceRefresh) &&
         useRegistrator()?.refresh(),
-      useDistribution().isInitialized &&
-        useDistribution().claimable(newAddress as string),
+      useRelayRewards().refresh(),
       useDistribution().airdropTokens(newAddress as string),
-      // useDistribution().isInitialized && useDistribution().refresh(),
     ]);
   } catch (error) {
     console.error(error);
@@ -322,9 +319,8 @@ onMounted(async () => {
   isLoading.value = true;
 
   try {
-    await initDistribution();
-
-    initRelayRegistry();
+    // await initDistribution();
+    // initRelayRegistry();
     initFacilitator();
     initRegistrator();
     initToken();
@@ -401,7 +397,7 @@ const handleClaimAllRewards = async () => {
       await new Promise((resolve) => setTimeout(resolve, 10000));
 
       await Promise.all([
-        useDistribution().claimable(userStore.userData.address as string),
+        useRelayRewards().refreshAuthedUserClaimableTokens(),
         useDistribution().airdropTokens(userStore.userData.address as string),
       ]);
 
@@ -426,7 +422,7 @@ const handleClaimAllRewards = async () => {
       icon: 'i-heroicons-x-circle',
       color: 'amber',
       title: 'Error',
-      description: `Error redeem rewards: ${error}`,
+      description: `Error redeeming rewards: ${error}`,
     });
   }
 

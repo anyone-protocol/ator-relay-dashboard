@@ -30,7 +30,7 @@ export function calculateAirdrop(
   airDropTokens: string
 ) {
   const totalClaimed = new BigNumber(totalClaimedTokens);
-  const airDrop = new BigNumber(airDropTokens).multipliedBy(1e18);
+  const airDrop = new BigNumber(airDropTokens).multipliedBy(Math.pow(10, 18));
 
   const total = totalClaimed.minus(airDrop).toString(10);
   // return 0 if the total is negative

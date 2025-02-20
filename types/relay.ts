@@ -33,3 +33,34 @@ export type RelayRow = {
 };
 
 export type RelayTabType = 'all' | 'claimable' | 'locked';
+
+export type RelayData = {
+  timestamp: number;
+  data: {
+    state: any;
+    verifiedHardware: { [key: string]: Number };
+    verified: [
+      {
+        address: string;
+        fingerprint: string;
+        status: string;
+        active: boolean;
+        class: string;
+      },
+    ];
+    claimable: [
+      {
+        address: string;
+        fingerprint: string;
+        status: string;
+        active: boolean;
+        class: string;
+      },
+    ];
+    nicknames: { [key: string]: string };
+    registrationCredits: string[];
+    registrationCreditsRequired: boolean;
+    families: { [key: string]: string[] };
+    familyRequired: boolean;
+  };
+};

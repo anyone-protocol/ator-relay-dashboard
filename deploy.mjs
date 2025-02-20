@@ -10,7 +10,7 @@ import { copyFileSync } from 'fs'
 const processId = 'Rglgc93lGIpqHIgNo9rS0gIkG2s7aodCSMoGysi3r6Y'
 
 const DEPLOY_FOLDER = './.output/public'
-const IRYS_NODE = 'https://node2.irys.xyz/'
+const IRYS_NODE = process.env.BUNDLER || 'https://node2.irys.xyz/'
 const jwk = JSON.parse(
   Buffer.from(process.env.PERMAWEB_KEY || 'NO_KEY', 'base64').toString('utf-8')
 )
@@ -25,6 +25,8 @@ if (process.env.PHASE === 'stage') {
   undername = 'stage'
 } else if (process.env.PHASE === 'live') {
   undername = '@'
+} else if (process.env.UNDERNAME) {
+  undername = process.env.UNDERNAME
 }
 
 async function deploy() {
