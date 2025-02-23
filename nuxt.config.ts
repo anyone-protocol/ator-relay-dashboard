@@ -55,8 +55,9 @@ export default defineNuxtConfig({
   // See: https://nuxt.com/docs/guide/going-further/runtime-config
   runtimeConfig: {
     public: {
-      operatorRegistryProcessId: '_-JHiTCYy8cG4dsQDm0kHKF0I3rJit1uxbPdNqQBE_Q',
-      relayRewardsProcessId: 'pQ1RUISn_ulJwCXwIKTTZq9yJuAEVdnEN76HTRwCEOA',
+      aoCuUrl: 'https://cu.ardrive.io',
+      operatorRegistryProcessId: 'PPSK1GMSaeERTsmqeSMhgm4MqqvrDJ8sYJGc2Rg9wtU',
+      relayRewardsProcessId: 'x_4CaH5KsuqOH9TLE1W1S32rK8qOE8HVHS7mLYPnuUg',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: '53a5b087ab4cb303a799325360098216',
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',

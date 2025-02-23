@@ -1,9 +1,19 @@
 import {
-  message as aoMessage,
-  result as aoResult,
-  dryrun as aoDryRun,
+  message as ao2Message,
+  result as ao2Result,
+  dryrun as ao2DryRun,
+  connect as aoConnect,
   createDataItemSigner,
 } from '@permaweb/aoconnect';
+
+const {
+  public: { aoCuUrl: CU_URL },
+} = useRuntimeConfig();
+const {
+  message: aoMessage,
+  result: aoResult,
+  dryrun: aoDryRun,
+} = aoConnect({ CU_URL });
 
 export type MessageResult = {
   Output: any;
