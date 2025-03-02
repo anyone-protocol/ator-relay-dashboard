@@ -111,7 +111,6 @@ export class RelayRewards {
       };
 
       const date = new Date(previousRound.Timestamp);
-
       const previousDistribution: PreviousDistribution = {
         timestamp: previousRound.Timestamp.toString(),
         date,
