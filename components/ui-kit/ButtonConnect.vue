@@ -22,6 +22,7 @@ const isOpen = ref(false);
 
 const handleDisconnect = () => {
   disconnect();
+  useUserStore().clearCache();
   isOpen.value = false;
 };
 </script>
@@ -86,7 +87,7 @@ const handleDisconnect = () => {
           >Close</UButton
         >
       </template>
-    </UCard>
+    </UCard> 
   </UModal>
 
   <UButton

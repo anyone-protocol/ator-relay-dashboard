@@ -114,6 +114,7 @@ export class RelayRewards {
       const previousDistribution: PreviousDistribution = {
         timestamp: previousRound.Timestamp.toString(),
         date,
+        period: previousRound.Period,
         timeElapsed: formatDuration(previousRound.Period.toString()),
         timeElapsedHumanized: moment
           .duration(previousRound.Period.toString())

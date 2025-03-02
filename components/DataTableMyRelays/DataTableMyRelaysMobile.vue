@@ -692,7 +692,16 @@ const handleUnlockClick = async (fingerprint: string) => {
                     }}
                     $ANYONE
                   </div>
-
+                  <div
+                    class="text-xs font-normal text-stone-700 dark:text-stone-300"
+                  >
+                    <span class="text-gray-800 dark:text-white"
+                      >Period:</span
+                    >
+                    {{
+                      facilitatorStore?.previousDistributions[0]?.period / 60 + " minutes" || '-'
+                    }}
+                  </div>
                   <div
                     class="text-xs font-normal text-stone-700 dark:text-stone-300"
                   >

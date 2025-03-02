@@ -670,9 +670,7 @@ const handleUnlockClick = async (fingerprint: string) => {
                     >Period</span
                   >
                   {{
-                    facilitatorStore?.lastDistributionTimePerRelay?.[
-                      row.fingerprint
-                    ] || '-'
+                    facilitatorStore?.previousDistributions[0]?.period / 60 + " minutes" || '-'
                   }}
                 </div>
                 <div

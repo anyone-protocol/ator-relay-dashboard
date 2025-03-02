@@ -123,7 +123,6 @@ const isOpen = ref(false);
           <UButton
             variant="outline"
             @click="isOpen = true"
-            class="opacity-55 hover:opacity-100"
             >View Contracts</UButton
           >
         </div>

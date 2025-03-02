@@ -13,6 +13,7 @@ export type PreviousDistribution = {
   timestamp: string;
   date: Date;
   timeElapsed: string;
+  period: number;
   timeElapsedHumanized: string;
   tokensDistributedPerDay: string;
   totalScore: string;
