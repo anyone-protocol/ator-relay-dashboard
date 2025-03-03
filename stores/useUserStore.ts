@@ -232,6 +232,7 @@ export const useUserStore = defineStore('user', {
       this.verifiedRelays = [];
       this.claimableRelays = [];
       this.nickNames = {};
+      this.tokenBalanceUsd = 0;
       this.registrationCredits = [];
       await relayCache.clearCache();
     },
