@@ -192,9 +192,7 @@
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                    formatEtherNoRound(
-                      facilitatorStore.availableAllocatedTokens || '0'
-                    )
+                    formatDecimal(facilitatorStore.availableAllocatedTokens || '0')
                   }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
