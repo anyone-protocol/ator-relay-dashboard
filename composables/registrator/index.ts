@@ -266,7 +266,7 @@ export class Registrator {
           icon: 'i-heroicons-x-circle',
           color: 'amber',
           title: 'Error',
-          description: `Error locking rewards ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE: ${msg}`,
+          description: `Error locking rewards ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE, did you approve the transaction?`,
         });
       } else {
         toast.add({

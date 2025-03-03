@@ -177,7 +177,7 @@
                   class="flex items-center gap-2 mt-2"
                 >
                   <span class="w-2 h-2 bg-red-600 rounded-full"></span>
-                  <span class="text-white">Mainnet balance too low</span>
+                  <span>Mainnet balance too low</span>
                 </div>
               </template>
             </div>
