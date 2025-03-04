@@ -205,6 +205,7 @@ export class Registrator {
         runtimeConfig.public.registratorContract as string,
         registratorStore.currentLockSize
       );
+
       toast.add({
         icon: 'i-heroicons-clock',
         color: 'primary',
@@ -254,19 +255,27 @@ export class Registrator {
       return result;
     } catch (error) {
       const msg = (error as Error)?.message;
+      console.log('msg: ', msg);
       if (msg.includes('transfer amount exceeds balance')) {
         toast.add({
           icon: 'i-heroicons-x-circle',
           color: 'amber',
           title: 'Error',
-          description: `Error locking rewards ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE: You have insufficient $ANYONE tokens`,
+          description: `Error locking ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE: You have insufficient $ANYONE tokens`,
+        });
+      } else if (msg.includes('missing revert data')) {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: `Error locking ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE: You have insufficient $ANYONE tokens`,
         });
       } else if (!msg.includes('User denied transaction signature.')) {
         toast.add({
           icon: 'i-heroicons-x-circle',
           color: 'amber',
           title: 'Error',
-          description: `Error locking rewards ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE, did you approve the transaction?`,
+          description: `Error locking ${formatEther(registratorStore.currentLockSize || '0')} $ANYONE, did you approve the transaction?`,
         });
       } else {
         toast.add({

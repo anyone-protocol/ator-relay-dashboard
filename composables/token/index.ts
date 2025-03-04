@@ -101,14 +101,14 @@ export class Token {
       } catch (error) {
         this.logger.error('Error approving token', error);
         const msg = (error as Error)?.message;
-        if (!msg.includes('User denied transaction signature.')) {
-          toast.add({
-            icon: 'i-heroicons-x-circle',
-            color: 'amber',
-            title: 'Error',
-            description: `Error redeen rewards: ${msg}`,
-          });
-        }
+        // if (!msg.includes('User denied transaction signature.')) {
+        //   toast.add({
+        //     icon: 'i-heroicons-x-circle',
+        //     color: 'amber',
+        //     title: 'Error',
+        //     description: `Error approving token, did you reject the transaction?`,
+        //   });
+        // }
 
         reject(error);
       }
