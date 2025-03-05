@@ -444,15 +444,32 @@ export class Facilitator {
       return result;
     } catch (error) {
       const msg = (error as Error)?.message;
+      console.log('msg', msg);
 
-      if (!msg.includes('User denied transaction signature.')) {
+      if (msg.includes('user rejected action')) {
         toast.add({
           icon: 'i-heroicons-x-circle',
           color: 'amber',
           title: 'Error',
-          description: `Error redeeming rewards: ${msg}`,
+          description: 'User denied transaction signature.',
+        });
+      } else {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: 'Error redeeming rewards',
         });
       }
+
+      // if (!msg.includes('User denied transaction signature.')) {
+      //   toast.add({
+      //     icon: 'i-heroicons-x-circle',
+      //     color: 'amber',
+      //     title: 'Error',
+      //     description: `Error redeeming rewards: ${msg}`,
+      //   });
+      // }
 
       this.logger.error(ERRORS.FUNDING_ORACLE, error);
     }

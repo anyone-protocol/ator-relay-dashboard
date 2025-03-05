@@ -408,12 +408,12 @@ const handleClaimAllRewards = async () => {
         description: 'Data has been refreshed',
       });
     } else {
-      toast.add({
-        icon: 'i-heroicons-x-circle',
-        color: 'amber',
-        title: 'Error',
-        description: 'Error redeeming rewards',
-      });
+      // toast.add({
+      //   icon: 'i-heroicons-x-circle',
+      //   color: 'amber',
+      //   title: 'Error',
+      //   description: 'Error redeeming rewards',
+      // });
     }
   } catch (error) {
     toast.add({
