@@ -45,7 +45,7 @@ async function deploy() {
     manifestResponse,
     manifest,
     errors
-  } = await turbo.uploadFolder({ folderPath: DEPLOY_FOLDER })
+  } = await turbo.uploadFolder({ folderPath: DEPLOY_FOLDER, dataItemOpts: { tags: [{ name: 'Deploy-Nonce', value: Date.now().toString() }] } })
 
   if (errors && errors.length > 0) {
     logger.error(errors)
