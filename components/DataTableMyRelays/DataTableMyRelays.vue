@@ -448,6 +448,8 @@ const getObservedBandwidth = (fingerprint: string) => {
   );
 };
 
+console.log()
+
 const handleUnlockClick = async (fingerprint: string) => {
   if (registratorStore.isRelayLocked(fingerprint)) {
     isUnlocking.value = true;
@@ -661,6 +663,16 @@ const handleUnlockClick = async (fingerprint: string) => {
                   }}
                 </div>
 
+                <div
+                  class="text-xs font-normal text-stone-700 dark:text-stone-300"
+                >
+                  <span class="text-gray-800 dark:text-white"
+                    >Period:</span
+                  >
+                  {{
+                    facilitatorStore?.previousDistributions[0]?.period / 60 + " minutes" || '-'
+                  }}
+                </div>
                 <div
                   class="text-xs font-normal text-stone-700 dark:text-stone-300"
                 >

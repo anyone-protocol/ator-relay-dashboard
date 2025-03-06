@@ -111,10 +111,10 @@ export class RelayRewards {
       };
 
       const date = new Date(previousRound.Timestamp);
-
       const previousDistribution: PreviousDistribution = {
         timestamp: previousRound.Timestamp.toString(),
         date,
+        period: previousRound.Period,
         timeElapsed: formatDuration(previousRound.Period.toString()),
         timeElapsedHumanized: moment
           .duration(previousRound.Period.toString())
@@ -232,7 +232,7 @@ export class RelayRewards {
 
       const claimable = result?.Messages[0]?.Data || '0';
 
-      return BigNumber(claimable).times('10e17').toString();
+      return BigNumber(claimable).toString();
     } catch (error) {
       this.logger.error('Error fetching claimable rewards', error);
     }

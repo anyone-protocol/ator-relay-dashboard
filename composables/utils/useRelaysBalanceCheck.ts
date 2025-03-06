@@ -49,7 +49,7 @@ export const calculateBalance = async (
   if (cachedData && cachedData.verifiedHardware) {
     relays.forEach((relay) => {
       hardwareStatusMap[relay.fingerprint] =
-        !!cachedData.verifiedHardware[relay.fingerprint];
+        cachedData.verifiedHardware.includes(relay.fingerprint);
     });
   } else {
     // If no cache data or hardware verification available, default to false
@@ -57,6 +57,7 @@ export const calculateBalance = async (
       hardwareStatusMap[relay.fingerprint] = false;
     });
   }
+
   // remove hardware from the list
   const relaysWithoutHardware = filterUniqueRelays(
     relays.filter((relay) => !hardwareStatusMap[relay.fingerprint])

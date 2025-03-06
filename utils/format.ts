@@ -25,6 +25,11 @@ export function formatEtherNoRound(value: string | bigint): string {
   return rounded;
 }
 
+export function formatDecimal(value: string): string {
+  // max 2 decimal places
+  return new BigNumber(value).toFixed(2).toString();
+}
+
 export function calculateAirdrop(
   totalClaimedTokens: string,
   airDropTokens: string

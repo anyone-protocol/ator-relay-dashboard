@@ -61,10 +61,12 @@ export const useFacilitatorStore = defineStore('facilitator', {
             .minus(state.totalClaimedTokens)
             .dividedBy(Math.pow(10, 18));
 
+          console.log('allocatedTokens', allocatedTokens);
+          console.log('claimableAtomicTokens', state.claimableAtomicTokens);
+          console.log('totalClaimedTokens', state.totalClaimedTokens);
+
           // Ensure that the value is never negative
-          return allocatedTokens.isNegative()
-            ? '0'
-            : allocatedTokens.toString(10);
+          return allocatedTokens.isNegative() ? '0' : allocatedTokens;
         }
         return state.claimableAtomicTokens;
       }

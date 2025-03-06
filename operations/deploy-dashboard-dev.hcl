@@ -18,7 +18,7 @@ job "deploy-relay-dashboard-dev" {
     config {
       image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.commit_sha]]"
       force_pull = true
-      image_pull_timeout = "10m"
+      image_pull_timeout = "15m"
       entrypoint = ["pnpm"]
       command = "run"
       args = ["deploy"]

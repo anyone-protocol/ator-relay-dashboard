@@ -13,7 +13,7 @@ job "deploy-relay-dashboard-live" {
         config {
             image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.commit_sha]]"
             entrypoint = ["pnpm"]
-            image_pull_timeout = "10m"
+            image_pull_timeout = "15m"
             command = "run"
             args = ["deploy"]
             logging {
@@ -31,6 +31,7 @@ job "deploy-relay-dashboard-live" {
 
         template {
             data = <<-EOH
+            NUXT_PUBLIC_AO_CU_URL="https://cu.ao-testnet.xyz"
             NUXT_PUBLIC_OPERATOR_REGISTRY_PROCESS_ID="[[ consulKey "smart-contracts/live/operator-registry-address" ]]"
             NUXT_PUBLIC_RELAY_REWARDS_PROCESS_ID="[[ consulKey "smart-contracts/live/relay-rewards-address" ]]"
             NUXT_PUBLIC_METRICS_DEPLOYER="[[ consulKey "valid-ator/live/validator-address-base64" ]]"

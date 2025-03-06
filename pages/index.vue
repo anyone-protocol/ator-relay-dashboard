@@ -177,7 +177,7 @@
                   class="flex items-center gap-2 mt-2"
                 >
                   <span class="w-2 h-2 bg-red-600 rounded-full"></span>
-                  <span class="text-white">Mainnet balance too low</span>
+                  <span>Mainnet balance too low</span>
                 </div>
               </template>
             </div>
@@ -192,9 +192,7 @@
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                    formatEtherNoRound(
-                      facilitatorStore.availableAllocatedTokens || '0'
-                    )
+                    formatDecimal(facilitatorStore.availableAllocatedTokens || '0')
                   }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
@@ -410,12 +408,12 @@ const handleClaimAllRewards = async () => {
         description: 'Data has been refreshed',
       });
     } else {
-      toast.add({
-        icon: 'i-heroicons-x-circle',
-        color: 'amber',
-        title: 'Error',
-        description: 'Error redeeming rewards',
-      });
+      // toast.add({
+      //   icon: 'i-heroicons-x-circle',
+      //   color: 'amber',
+      //   title: 'Error',
+      //   description: 'Error redeeming rewards',
+      // });
     }
   } catch (error) {
     toast.add({
