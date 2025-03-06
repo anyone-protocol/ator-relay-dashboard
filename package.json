@@ -13,7 +13,7 @@
     "test": "echo \"No tests specified\""
   },
   "dependencies": {
-    "@ar.io/sdk": "^1.2.1",
+    "@ar.io/sdk": "^3.8.3",
     "@ardrive/turbo-sdk": "^1.22.0",
     "@iconify-json/eos-icons": "^1.1.10",
     "@iconify-json/heroicons": "^1.1.21",
