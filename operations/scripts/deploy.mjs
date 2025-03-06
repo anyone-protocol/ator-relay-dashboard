@@ -54,11 +54,16 @@ async function deploy() {
   logger.info(`Manifest id ${manifestResponse?.id}`)
   logger.info('Manifest', JSON.stringify(manifest))
   logger.info('Updating ANT undername', undername)
-  const { id: deployedTxId } = await ant.setRecord({
-    undername,
-    transactionId: manifestResponse?.id,
-    ttlSeconds: 3600
-  })
+  const { id: deployedTxId } = undername === '@'
+    ? await ant.setBaseNameRecord({
+      transactionId: manifestResponse?.id,
+      ttlSeconds: 3600
+    })
+    : await ant.setUndernameRecord({
+      undername,
+      transactionId: manifestResponse?.id,
+      ttlSeconds: 3600
+    })
   logger.info(
     'Deployed!  Please wait 20 - 30 minutes for ARNS to update!',
     deployedTxId
