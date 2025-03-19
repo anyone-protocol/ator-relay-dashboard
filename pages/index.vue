@@ -192,7 +192,7 @@
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                    formatDecimal(facilitatorStore.availableAllocatedTokens || '0')
+                    parseFloat(formatUnits(facilitatorStore.availableAllocatedTokens, 18)).toFixed(2)
                   }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
@@ -226,6 +226,7 @@ import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
 import { useRelayRewards } from '@/composables/relay-rewards'
+import { formatUnits } from 'viem';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
