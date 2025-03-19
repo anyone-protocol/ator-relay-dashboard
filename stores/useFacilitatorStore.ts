@@ -57,20 +57,22 @@ export const useFacilitatorStore = defineStore('facilitator', {
     availableAllocatedTokens: (state) => {
       if (state.claimableAtomicTokens) {
         if (state.totalClaimedTokens) {
-          const allocatedTokens = BigNumber(state.claimableAtomicTokens)
-            .minus(state.totalClaimedTokens)
-            .dividedBy(Math.pow(10, 18));
+          const allocatedTokens =
+            BigInt(state.claimableAtomicTokens) -
+            BigInt(state.totalClaimedTokens);
 
           console.log('allocatedTokens', allocatedTokens);
           console.log('claimableAtomicTokens', state.claimableAtomicTokens);
           console.log('totalClaimedTokens', state.totalClaimedTokens);
 
           // Ensure that the value is never negative
-          return allocatedTokens.isNegative() ? '0' : allocatedTokens;
+          return allocatedTokens < 0 ? BigInt(0) : allocatedTokens;
         }
-        return state.claimableAtomicTokens;
+        return BigInt(state.claimableAtomicTokens);
+        // return state.claimableAtomicTokens;
       }
-      return '0';
+      return BigInt(0);
+      // return '0';
     },
     availableAirdropTokens: (state) => {
       if (state.airDropTokens) {
