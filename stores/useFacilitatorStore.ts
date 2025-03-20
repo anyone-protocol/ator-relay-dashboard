@@ -57,16 +57,18 @@ export const useFacilitatorStore = defineStore('facilitator', {
     availableAllocatedTokens: (state) => {
       if (state.claimableAtomicTokens) {
         if (state.totalClaimedTokens) {
-          const allocatedTokens =
-            BigInt(state.claimableAtomicTokens) -
-            BigInt(state.totalClaimedTokens);
+          const allocatedTokens = BigNumber(state.claimableAtomicTokens).minus(
+            BigNumber(state.totalClaimedTokens)
+          );
 
           console.log('allocatedTokens', allocatedTokens);
           console.log('claimableAtomicTokens', state.claimableAtomicTokens);
           console.log('totalClaimedTokens', state.totalClaimedTokens);
 
           // Ensure that the value is never negative
-          return allocatedTokens < 0 ? BigInt(0) : allocatedTokens;
+          return allocatedTokens.isNegative()
+            ? BigInt(0)
+            : BigInt(allocatedTokens.integerValue().toString());
         }
         return BigInt(state.claimableAtomicTokens);
         // return state.claimableAtomicTokens;

@@ -57,7 +57,7 @@ export default defineNuxtConfig({
     public: {
       aoCuUrl: 'https://cu.ardrive.io',
       operatorRegistryProcessId: '_-JHiTCYy8cG4dsQDm0kHKF0I3rJit1uxbPdNqQBE_Q',
-      relayRewardsProcessId: 'pQ1RUISn_ulJwCXwIKTTZq9yJuAEVdnEN76HTRwCEOA',
+      relayRewardsProcessId: 'QZJTY63XZtHOHo_qPaEX7VdtemZh4rpj821xcanPGXA',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: '53a5b087ab4cb303a799325360098216',
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',
@@ -81,7 +81,7 @@ export default defineNuxtConfig({
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.8.1',
+      version: '1.8.2',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
