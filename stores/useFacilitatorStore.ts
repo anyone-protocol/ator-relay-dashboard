@@ -68,7 +68,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
           // Ensure that the value is never negative
           return allocatedTokens.isNegative()
             ? BigInt(0)
-            : BigInt(allocatedTokens.integerValue().toString());
+            : BigInt(allocatedTokens.toFixed(0));
         }
         return BigInt(state.claimableAtomicTokens);
         // return state.claimableAtomicTokens;
