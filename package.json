@@ -73,6 +73,9 @@
     "prettier": "3.2.5",
     "vite-plugin-node-polyfills": "^0.22.0"
   },
+  "overrides": {
+    "@dha-team/arbundles": "1.0.1"
+  },
   "lint-staged": {
     "*.{ts,tsx,js,.vue}": [
       "prettier --write"
