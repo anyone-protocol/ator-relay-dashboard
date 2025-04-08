@@ -13,7 +13,7 @@
     "test": "echo \"No tests specified\""
   },
   "dependencies": {
-    "@ar.io/sdk": "^3.8.3",
+    "@ar.io/sdk": "3.9.0",
     "@ardrive/turbo-sdk": "^1.22.0",
     "@iconify-json/eos-icons": "^1.1.10",
     "@iconify-json/heroicons": "^1.1.21",
@@ -38,7 +38,7 @@
     "@wagmi/vue": "^0.0.18",
     "@web3modal/wagmi": "4.1.1",
     "ardb": "1.1.10",
-    "arweave": "1.15.0",
+    "arweave": "1.15.1",
     "base64url": "^3.0.1",
     "bignumber.js": "9.1.2",
     "bn.js": "^5.2.1",
@@ -73,8 +73,11 @@
     "prettier": "3.2.5",
     "vite-plugin-node-polyfills": "^0.22.0"
   },
-  "overrides": {
-    "@dha-team/arbundles": "1.0.1"
+  "pnpm": {
+    "overrides": {
+      "@dha-team/arbundles": "1.0.1",
+      "arweave": "1.15.1"
+    }
   },
   "lint-staged": {
     "*.{ts,tsx,js,.vue}": [

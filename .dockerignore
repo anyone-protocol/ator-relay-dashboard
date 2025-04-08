@@ -1,4 +1,4 @@
-/node_modules
-/.output
-/.nuxt
-/dist
+node_modules
+.output
+.nuxt
+dist

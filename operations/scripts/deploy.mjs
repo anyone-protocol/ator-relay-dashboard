@@ -14,7 +14,6 @@ const DEPLOY_FOLDER = `${process.cwd()}/.output/public`
 const gatewayUrl = process.env.GATEWAY || 'https://ar.anyone.tech'
 const url = process.env.BUNDLER || 'https://ar.anyone.tech/bundler'
 
-
 let undername = 'dev'
 if (process.env.PHASE === 'stage') {
   undername = 'stage'
