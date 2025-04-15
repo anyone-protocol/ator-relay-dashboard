@@ -160,8 +160,8 @@ export class RelayRewards {
         Object.entries(previousRound.Details).map(([fingerprint, details]) => [
           fingerprint,
           {
-            family: details.Variables.FamilyMultiplier.toString(),
-            region: details.Variables.LocationMultiplier.toString(),
+            family: details.Variables.FamilyMultiplier.toFixed(4).toString(),
+            region: details.Variables.LocationMultiplier.toFixed(4).toString(),
           },
         ])
       );
@@ -202,7 +202,10 @@ export class RelayRewards {
       useFacilitatorStore().exitBonusPerRelay = Object.fromEntries(
         Object.entries(previousRound.Details).map(([fingerprint, details]) => [
           fingerprint,
-          BigNumber(details.Rating.ExitBonus).decimalPlaces(4).toString(),
+          BigNumber(details.Reward.ExitBonus)
+            .dividedBy(Math.pow(10, 18))
+            .decimalPlaces(4)
+            .toString(),
         ])
       );
 
