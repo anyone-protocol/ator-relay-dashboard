@@ -199,6 +199,13 @@ export class RelayRewards {
         ])
       );
 
+      useFacilitatorStore().exitBonusPerRelay = Object.fromEntries(
+        Object.entries(previousRound.Details).map(([fingerprint, details]) => [
+          fingerprint,
+          BigNumber(details.Rating.ExitBonus).decimalPlaces(4).toString(),
+        ])
+      );
+
       await this.refreshAuthedUserClaimableTokens();
     } catch (error) {
       this.logger.error('Error refreshing RelayRewards', error);

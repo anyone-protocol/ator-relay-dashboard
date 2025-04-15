@@ -29,6 +29,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
       scorePerRelay: {},
       baseTokensPerRelay: {},
       lastDistributionTimePerRelay: {},
+      exitBonusPerRelay: {},
       initialized: false,
     };
   },

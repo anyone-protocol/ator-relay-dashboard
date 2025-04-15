@@ -714,6 +714,17 @@ const handleUnlockClick = async (fingerprint: string) => {
                       ] || '-'
                     }}
                   </div>
+                  <div
+                    class="text-xs font-normal text-stone-700 dark:text-stone-300"
+                  >
+                    <span class="text-gray-800 dark:text-white"
+                      >Exit Bonus:</span
+                    >
+                    {{
+                        facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
+                        '-'
+                    }}
+                  </div>
                 </div>
                 <!-- <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
                 <span class="text-gray-800 dark:text-white">Locked:</span> Your

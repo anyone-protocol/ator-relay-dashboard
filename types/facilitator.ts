@@ -52,6 +52,7 @@ export interface FacilitatorStoreState {
   scorePerRelay: Record<string, BigNumber>;
   baseTokensPerRelay: DistributionPerRelay;
   previousDistributions: PreviousDistribution[];
+  exitBonusPerRelay: Record<string, string>;
   claimableAtomicTokens?: string;
   airDropTokens?: string;
   calculatedAirdrop?: string;
