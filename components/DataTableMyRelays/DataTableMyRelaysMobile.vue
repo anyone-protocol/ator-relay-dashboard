@@ -681,7 +681,7 @@ const handleUnlockClick = async (fingerprint: string) => {
                     $ANYONE
                   </div>
                   <div
-                    class="text-xs font-normal text-indigo-700 dark:text-violet-300 mb-2"
+                    class="text-xs font-normal text-indigo-700 dark:text-violet-300"
                   >
                     <span class="text-gray-800 dark:text-white"
                       >Uptime Bonus:</span
@@ -691,6 +691,17 @@ const handleUnlockClick = async (fingerprint: string) => {
                         ?.quality || '-'
                     }}
                     $ANYONE
+                  </div>
+                  <div
+                    class="text-xs font-normal text-red-400 dark:text-red mb-2"
+                  >
+                    <span class="text-gray-800 dark:text-white"
+                      >Exit Bonus:</span
+                    >
+                    {{
+                        facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
+                        '-'
+                    }}
                   </div>
                   <div
                     class="text-xs font-normal text-stone-700 dark:text-stone-300"
@@ -712,17 +723,6 @@ const handleUnlockClick = async (fingerprint: string) => {
                       facilitatorStore?.lastDistributionTimePerRelay?.[
                         row.fingerprint
                       ] || '-'
-                    }}
-                  </div>
-                  <div
-                    class="text-xs font-normal text-stone-700 dark:text-stone-300"
-                  >
-                    <span class="text-gray-800 dark:text-white"
-                      >Exit Bonus:</span
-                    >
-                    {{
-                        facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
-                        '-'
                     }}
                   </div>
                 </div>
