@@ -16,6 +16,7 @@ export const useHolderStore = defineStore('hodler', {
       vaults: [],
       locks: {},
       lockSize: null,
+      loading: false,
     };
   },
   getters: {
@@ -27,5 +28,12 @@ export const useHolderStore = defineStore('hodler', {
       (fingerprint: string): boolean => {
         return state.locks[fingerprint] !== undefined;
       },
+    isRelayOwner: (
+      state
+    ): ((fingerprint: string, address: string) => boolean) => {
+      return (fingerprint: string, address: string): boolean => {
+        return state.locks[fingerprint]?.operator === address;
+      };
+    },
   },
 });

@@ -86,7 +86,7 @@ export class Hodler {
   private contract!: Contract;
   private multicallContract!: Contract;
   private signer: JsonRpcSigner | null = null;
-  private readonly logger = new Logger('Facilitator');
+  private readonly logger = new Logger('Hodler');
 
   constructor(
     private contractAddress: string,
@@ -136,12 +136,25 @@ export class Hodler {
   }
 
   async refresh(): Promise<void> {
+    this.logger.info('Refreshing Hodler');
     if (this._refreshing) {
       return;
     }
 
     this.setRefreshing(true);
     const auth = useUserStore();
+
+    const locks = await this.getLocks(auth.userData?.address || '');
+
+    const vaults = await this.getVaults(auth.userData?.address || '');
+
+    const lockSize = await this.getLockSize();
+    console.log('lockSize: ', lockSize.toString());
+
+    const hodlerStore = useHolderStore();
+    hodlerStore.locks = locks;
+    hodlerStore.vaults = vaults;
+    hodlerStore.lockSize = lockSize;
 
     this.logger.info(
       auth.userData?.address
@@ -427,6 +440,20 @@ export class Hodler {
         this.logger.error(ERRORS.FUNDING_ORACLE, error);
       }
       resolve(null);
+    });
+  }
+
+  async getLockSize(): Promise<bigint> {
+    return new Promise(async (resolve, reject) => {
+      if (!this.contract) {
+        reject(ERRORS.NOT_INITIALIZED);
+        return;
+      }
+
+      const lockSize = (await this.contract.LOCK_SIZE()) as BigNumber;
+      this.logger.info('getLockSize', lockSize);
+
+      resolve(BigInt(lockSize.toString()));
     });
   }
 }

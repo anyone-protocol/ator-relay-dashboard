@@ -227,6 +227,7 @@ import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
 import { useRelayRewards } from '@/composables/relay-rewards'
 import { formatUnits } from 'viem';
+import { initHodler, useHodler } from '~/composables/hodler';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
@@ -293,7 +294,6 @@ const fetchInitialData = async (
       facilitatorStore.resetPendingClaim();
       facilitatorStore.pendingClaim = null;
     }
-
     await Promise.all([
       userStore.getTokenBalance(),
       (!facilitatorStore?.initialized || forceRefresh) &&
@@ -301,6 +301,7 @@ const fetchInitialData = async (
       (!registratorStore?.initialized || forceRefresh) &&
         useRegistrator()?.refresh(),
       useRelayRewards().refresh(),
+      useHodler()?.refresh(),
       useDistribution().airdropTokens(newAddress as string),
     ]);
   } catch (error) {
@@ -322,6 +323,7 @@ onMounted(async () => {
     // initRelayRegistry();
     initFacilitator();
     initRegistrator();
+    initHodler();
     initToken();
     // add 5 seconds delay
     await new Promise((resolve) => setTimeout(resolve, 5000));

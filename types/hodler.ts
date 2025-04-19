@@ -23,4 +23,5 @@ export type HolderStoreState = {
   vaults: Vault[];
   locks: Record<string, Lock>;
   lockSize: bigint | null;
+  loading: boolean;
 };
