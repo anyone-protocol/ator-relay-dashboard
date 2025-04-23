@@ -11,7 +11,6 @@ import {
 import BigNumber from 'bignumber.js';
 
 import abi from './Hodler.json';
-import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { saveRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 import Logger from '~/utils/logger';
 import type { ClaimData, Lock, Vault } from '~/types/hodler';
@@ -30,18 +29,16 @@ export const HODLER_EVENTS = {
 export type HodlerEvent = keyof typeof HODLER_EVENTS;
 
 const ERRORS = {
-  NOT_INITIALIZED: 'Facilitator is not initialized!',
-  CONNECTING_CONTRACT:
-    'There was an error connecting to the Facilitator Contract',
+  NOT_INITIALIZED: 'Hodler is not initialized!',
+  CONNECTING_CONTRACT: 'There was an error connecting to the Hodler Contract',
   CLAIMING_TOKENS: 'Error claiming tokens',
   COULD_NOT_FUND_ORACLE: 'Could not fund Oracle',
   FUNDING_ORACLE: 'Error funding Oracle',
-  REQUESTING_UPDATE: 'Error requesting update from Facilitator',
+  REQUESTING_UPDATE: 'Error requesting update from Hodler',
   REQUESTING_UPDATE_NOT_SUCCESSFUL:
-    'Requesting update from Facilitator was not successful',
-  RECEIVE_AND_REQUEST_UPDATE:
-    'Error funding & requesting update from Facilitator',
-  NO_PROVIDER: 'No Provider to initialize Facilitator',
+    'Requesting update from Hodler was not successful',
+  RECEIVE_AND_REQUEST_UPDATE: 'Error funding & requesting update from Hodler',
+  NO_PROVIDER: 'No Provider to initialize Hodler',
   NO_SIGNER: 'No Signer connected',
 };
 
@@ -506,7 +503,10 @@ export class Hodler {
           `Error fetching HodlerData for ${userAddress}:`,
           error
         );
-        reject(`Error fetching claim data: ${error}`);
+        resolve({
+          totalClaimable: '0',
+          totalClaimed: '0',
+        });
       }
     });
   }
