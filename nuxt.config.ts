@@ -56,6 +56,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       aoCuUrl: 'https://cu.anyone.permaweb.services',
+      aoCuUrlFallback: 'https://cu123.ao-testnet.xyz',
       operatorRegistryProcessId: '_-JHiTCYy8cG4dsQDm0kHKF0I3rJit1uxbPdNqQBE_Q',
       relayRewardsProcessId: 'QZJTY63XZtHOHo_qPaEX7VdtemZh4rpj821xcanPGXA',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
