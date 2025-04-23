@@ -211,7 +211,7 @@ import { useAccount } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { useUserStore } from '@/stores/useUserStore';
-import { useRegistratorStore } from '@/stores/useRegistratorStore';
+// import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import UserBalance from '@/components/UserBalance.vue';
 import Button from '@/components/ui-kit/Button.vue';
@@ -231,7 +231,8 @@ import { initHodler, useHodler } from '~/composables/hodler';
 
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
-const registratorStore = useRegistratorStore();
+// const registratorStore = useRegistratorStore();
+const hodlerStore = useHolderStore();
 const { isConnected, address } = useAccount({ config } as any);
 const { allRelays } = storeToRefs(userStore);
 
@@ -255,8 +256,8 @@ const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
 );
 const { tokenBalance } = storeToRefs(userStore);
 
-const { lokedRelays: lockedRelays, loading: lockedRelaysPending } =
-  storeToRefs(registratorStore);
+const { locks: lockedRelays, loading: lockedRelaysPending } =
+  storeToRefs(hodlerStore);
 const hasEnoughBalance = ref(false);
 const hasEnoughBalancePending = ref(true);
 
@@ -280,28 +281,17 @@ const fetchInitialData = async (
   if (!isConnected || !newAddress || !address) return;
 
   try {
-    if (!facilitatorStore?.initialized || forceRefresh) {
+    if (!hodlerStore?.initialized || forceRefresh) {
+      lockedPending.value = true;
       claimedPending.value = true;
       claimablePending.value = true;
     }
-    if (!registratorStore?.initialized || forceRefresh) {
-      lockedPending.value = true;
-    }
 
-    facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
-    // Pending claim is not null on initial load
-    if (facilitatorStore.pendingClaim) {
-      facilitatorStore.resetPendingClaim();
-      facilitatorStore.pendingClaim = null;
-    }
     await Promise.all([
       userStore.getTokenBalance(),
-      (!facilitatorStore?.initialized || forceRefresh) &&
-        useFacilitator()?.refresh(),
-      (!registratorStore?.initialized || forceRefresh) &&
-        useRegistrator()?.refresh(),
+      (!hodlerStore?.initialized || forceRefresh) &&
+        useHodler()?.refresh(),
       useRelayRewards().refresh(),
-      useHodler()?.refresh(),
       useDistribution().airdropTokens(newAddress as string),
     ]);
   } catch (error) {
@@ -321,10 +311,7 @@ onMounted(async () => {
   try {
     // await initDistribution();
     // initRelayRegistry();
-    initFacilitator();
-    initRegistrator();
     initHodler();
-    initToken();
     // add 5 seconds delay
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
@@ -357,11 +344,11 @@ const calculatedAirdropPending = ref(false);
 
 //watch and do the calculate airdrop
 watch(
-  () => [facilitatorStore.totalClaimedTokens, facilitatorStore.airDropTokens],
+  () => [hodlerStore.claimData.totalClaimed, facilitatorStore.airDropTokens],
   ([totalClaimedTokens, airDropTokens]) => {
     calculatedAirdropPending.value = true;
     if (totalClaimedTokens && airDropTokens) {
-      facilitatorStore.calculatedAirdrop = calculateAirdrop(
+      hodlerStore.calculatedAirdrop = calculateAirdrop(
         totalClaimedTokens,
         airDropTokens
       );

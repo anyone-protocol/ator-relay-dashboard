@@ -14,7 +14,7 @@ import abi from './Hodler.json';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { saveRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 import Logger from '~/utils/logger';
-import type { Lock, Vault } from '~/types/hodler';
+import type { ClaimData, Lock, Vault } from '~/types/hodler';
 import { useHolderStore } from '~/stores/useHodlerStore';
 import { useToken } from '../token';
 // first round
@@ -151,10 +151,22 @@ export class Hodler {
     const lockSize = await this.getLockSize();
     console.log('lockSize: ', lockSize.toString());
 
+    const claimData = await this.getClaimData();
+
+    // get total locked tokens from reducing locks
+    const totalLockedTokens = Object.values(locks).reduce((acc, lock) => {
+      const amount = BigNumber(lock.amount.toString()).dividedBy(
+        Math.pow(10, 18)
+      );
+      return acc.plus(amount);
+    }, BigNumber(0));
+
     const hodlerStore = useHolderStore();
     hodlerStore.locks = locks;
     hodlerStore.vaults = vaults;
     hodlerStore.lockSize = lockSize;
+    hodlerStore.lockedTokens = BigInt(totalLockedTokens.toString());
+    hodlerStore.claimData = claimData;
 
     this.logger.info(
       auth.userData?.address
@@ -162,6 +174,7 @@ export class Hodler {
         : 'Refreshing Hodler'
     );
     this.setRefreshing(false);
+    useHolderStore().setInitialized(true);
   }
 
   async getLocks(address: string): Promise<Record<string, Lock>> {
@@ -454,6 +467,47 @@ export class Hodler {
       this.logger.info('getLockSize', lockSize);
 
       resolve(BigInt(lockSize.toString()));
+    });
+  }
+
+  async getClaimData(): Promise<ClaimData> {
+    return new Promise(async (resolve, reject) => {
+      if (!this.contract) {
+        reject(ERRORS.NOT_INITIALIZED);
+        return;
+      }
+
+      const auth = useUserStore();
+      const userAddress = auth?.userData?.address;
+
+      if (!userAddress) {
+        reject('User address not found.');
+        return;
+      }
+
+      try {
+        this.logger.info(`Fetching HodlerData for address: ${userAddress}`);
+
+        const hodlerDataResult = await this.contract.hodlers(userAddress);
+        this.logger.info('Fetched HodlerData:', hodlerDataResult);
+
+        const claimData: ClaimData = {
+          totalClaimable: BigNumber(hodlerDataResult.available)
+            .dividedBy(Math.pow(10, 18).toFixed(4))
+            .toString(),
+          totalClaimed: BigNumber(hodlerDataResult.claimedRelayRewards)
+            .dividedBy(Math.pow(10, 18).toFixed(4))
+            .toString(),
+        };
+
+        resolve(claimData); // Resolve with the structured data
+      } catch (error) {
+        this.logger.error(
+          `Error fetching HodlerData for ${userAddress}:`,
+          error
+        );
+        reject(`Error fetching claim data: ${error}`);
+      }
     });
   }
 }

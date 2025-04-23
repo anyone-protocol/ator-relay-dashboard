@@ -1,5 +1,3 @@
-import type BigNumber from 'bignumber.js';
-
 export type Vault = {
   amount: string;
   availableAt: number;
@@ -24,4 +22,13 @@ export type HolderStoreState = {
   locks: Record<string, Lock>;
   lockSize: bigint | null;
   loading: boolean;
+  lockedTokens: bigint;
+  claimData: ClaimData;
+  initialized: boolean;
+  calculatedAirdrop: string;
+};
+
+export type ClaimData = {
+  totalClaimed: string;
+  totalClaimable: string;
 };

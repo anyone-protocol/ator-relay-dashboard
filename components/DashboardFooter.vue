@@ -19,6 +19,11 @@ const contractLinks = [
     type: 'evm',
   },
   {
+    name: 'Hodler',
+    address: config.public.hodlerContract,
+    type: 'evm',
+  },
+  {
     name: 'Sepolia ANYONE Token',
     address: config.public.sepoliaAtorTokenContract,
     type: 'evm',
@@ -32,11 +37,6 @@ const contractLinks = [
     name: 'Metrics Deployer',
     address: config.public.metricsDeployer,
     type: 'viewblock',
-  },
-  {
-    name: 'Registrator',
-    address: config.public.registratorContract,
-    type: 'evm',
   },
   {
     name: 'Distribution Deployer',

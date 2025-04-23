@@ -5,7 +5,6 @@ import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
-import FingerprintDisplay from './FingerprintDisplay.vue';
 
 import Tabs from '../ui-kit/Tabs.vue';
 import Tooltip from '../ui-kit/Tooltip.vue';
@@ -15,13 +14,9 @@ import BigNumber from 'bignumber.js';
 
 import LockStatusColumn from './columns/LockStatusColumn.vue';
 import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
-import { useRegistrator } from '@/composables/registrator';
-import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import { ethers } from 'ethers';
-import { watchAccount } from '@wagmi/core';
 import { defineProps } from 'vue';
 import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
-import type { LokedRelaysResponse, LokedRelaysType } from '~/types/registrator';
 import { useHodler } from '~/composables/hodler';
 
 const props = defineProps<{
@@ -34,8 +29,8 @@ const userStore = useUserStore();
 const metricsStore = useMetricsStore();
 const hodlerStore = useHolderStore();
 const facilitatorStore = useFacilitatorStore();
-const registrator = useRegistrator();
 const operatorRegistry = useOperatorRegistry();
+const hodler = useHodler();
 
 const isHovered = ref(false);
 const isUnlocking = ref(false);
@@ -46,11 +41,11 @@ const { address } = useAccount({ config } as any);
 const registerModalOpen = ref(false);
 
 onMounted(() => {
-  // refresh the locked relays every minute
+  // refresh everything every 60 seconds
   setInterval(() => {
-    if (registrator) {
+    if (hodler) {
       if (userStore.userData.address) {
-        registrator.getLokedRelaysTokens(userStore.userData.address);
+        hodler.refresh();
       }
     }
   }, 1000 * 60);
@@ -348,9 +343,8 @@ const handleLockRelay = async (fingerprint: string) => {
   }
 
   try {
-    const register = useRegistrator();
-    register?.lock(fingerprint, '').then(async (result) => {
-
+    const hodler = useHodler();
+    hodler?.lock(fingerprint, '').then(async (result) => {
       searchWithBackoff(0);
 
       selectedRow!.class = '';
@@ -396,8 +390,8 @@ const handleLockRemote = async () => {
   }
 
   try {
-    const register = useRegistrator();
-    const success = await register?.lock(
+    const hodler = useHodler();
+    const success = await hodler?.lock(
       fingerPrintRegister.value,
       ethAddress.value
     );
