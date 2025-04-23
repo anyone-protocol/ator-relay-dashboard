@@ -108,7 +108,7 @@ export class Distribution {
   }
 
   private setRefreshing(refreshing: boolean) {
-    useFacilitatorStore().distributionRefreshing = refreshing;
+    useHolderStore().distributionRefreshing = refreshing;
     this._refreshing = refreshing;
   }
 
@@ -188,7 +188,7 @@ export class Distribution {
 
       console.log('airDropResult:', result);
 
-      useFacilitatorStore().airDropTokens = result;
+      useHolderStore().airDropTokens = result;
 
       return Promise.resolve(result);
     } catch (error) {

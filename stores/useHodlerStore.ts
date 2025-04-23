@@ -24,6 +24,8 @@ export const useHolderStore = defineStore('hodler', {
       },
       initialized: false,
       calculatedAirdrop: '0',
+      distributionRefreshing: false,
+      airDropTokens: '0',
     };
   },
   getters: {
@@ -41,6 +43,12 @@ export const useHolderStore = defineStore('hodler', {
       return (fingerprint: string, address: string): boolean => {
         return state.locks[fingerprint]?.operator === address;
       };
+    },
+    hasClaimableRewards: (state): boolean => {
+      return (
+        state.claimData.totalClaimable !== '0' &&
+        state.claimData.totalClaimed !== state.claimData.totalClaimable
+      );
     },
   },
   actions: {

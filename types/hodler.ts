@@ -26,6 +26,8 @@ export type HolderStoreState = {
   claimData: ClaimData;
   initialized: boolean;
   calculatedAirdrop: string;
+  distributionRefreshing: boolean;
+  airDropTokens: string;
 };
 
 export type ClaimData = {

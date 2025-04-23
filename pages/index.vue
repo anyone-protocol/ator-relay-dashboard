@@ -35,7 +35,7 @@
                     <span v-if="isConnected" class="text-4xl font-bold">
                       {{
                         formatEtherNoRound(
-                          registratorStore.totalLockedTokens || '0'
+                          hodlerStore.lockedTokens || '0'
                         )
                       }}
                     </span>
@@ -79,18 +79,17 @@
               <div>
                 <Button
                   :disabled="
-                    !facilitatorStore.hasClaimableRewards ||
-                    isRedeemLoading ||
-                    !!facilitatorStore.pendingClaim
+                    !hodlerStore.hasClaimableRewards ||
+                    isRedeemLoading
                   "
                   @onClick="handleClaimAllRewards"
                   class="mb-2"
                 >
                   <span
-                    v-if="isRedeemLoading || !!facilitatorStore.pendingClaim"
+                    v-if="isRedeemLoading"
                     >Processing...</span
                   >
-                  <span v-else-if="facilitatorStore.hasClaimableRewards"
+                  <span v-else-if="hodlerStore.hasClaimableRewards"
                     >Redeem Rewards</span
                   >
                   <span v-else>Nothing to Redeem</span>
@@ -125,7 +124,7 @@
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
                     formatEtherNoRound(
-                      facilitatorStore.totalClaimedTokens || '0'
+                      hodlerStore?.claimData?.totalClaimed || '0'
                     )
                   }}
                 </span>
@@ -166,7 +165,7 @@
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
                     formatEtherNoRound(
-                      facilitatorStore.calculatedAirdrop || '0'
+                      hodlerStore.calculatedAirdrop || '0'
                     )
                   }}
                 </span>
@@ -192,7 +191,9 @@
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                    parseFloat(formatUnits(facilitatorStore.availableAllocatedTokens, 18)).toFixed(2)
+                    formatEtherNoRound(
+                      hodlerStore.claimData?.totalClaimable || '0'
+                    ) 
                   }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
@@ -209,7 +210,6 @@
 <script setup lang="ts">
 import { useAccount } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
-import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { useUserStore } from '@/stores/useUserStore';
 // import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
@@ -230,7 +230,6 @@ import { formatUnits } from 'viem';
 import { initHodler, useHodler } from '~/composables/hodler';
 
 const userStore = useUserStore();
-const facilitatorStore = useFacilitatorStore();
 // const registratorStore = useRegistratorStore();
 const hodlerStore = useHolderStore();
 const { isConnected, address } = useAccount({ config } as any);
@@ -316,9 +315,6 @@ onMounted(async () => {
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     await fetchInitialData(userStore.userData.address);
-    if (!facilitatorStore.pendingClaim) {
-      progressLoading.value = 0;
-    }
   } catch (error) {
     console.error('Error during onMounted execution', error);
   } finally {
@@ -333,18 +329,18 @@ watch(
   }
 );
 
-watch(
-  () => facilitatorStore.pendingClaim,
-  (updatedPendingClaim) => {
-    progressLoading.value = updatedPendingClaim ? 2 : 0;
-  }
-);
+// watch(
+//   () => facilitatorStore.pendingClaim,
+//   (updatedPendingClaim) => {
+//     progressLoading.value = updatedPendingClaim ? 2 : 0;
+//   }
+// );
 
 const calculatedAirdropPending = ref(false);
 
 //watch and do the calculate airdrop
 watch(
-  () => [hodlerStore.claimData.totalClaimed, facilitatorStore.airDropTokens],
+  () => [hodlerStore.claimData.totalClaimed, hodlerStore.airDropTokens],
   ([totalClaimedTokens, airDropTokens]) => {
     calculatedAirdropPending.value = true;
     if (totalClaimedTokens && airDropTokens) {
@@ -415,7 +411,7 @@ const handleClaimAllRewards = async () => {
   }
 
   isRedeemLoading.value = false;
-  facilitatorStore.pendingClaim = null;
+  // facilitatorStore.pendingClaim = null;
   progressLoading.value = 0;
 };
 </script>
