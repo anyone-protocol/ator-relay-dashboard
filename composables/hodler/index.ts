@@ -412,21 +412,21 @@ export class Hodler {
             icon: 'i-heroicons-x-circle',
             color: 'amber',
             title: 'Error',
-            description: `Error unlocking ${formatEther(hodlerStore.lockSize || '0')} $ANYONE: You have insufficient $ANYONE tokens`,
+            description: `Error unlocking relay: You have insufficient $ANYONE tokens`,
           });
         } else if (msg.includes('missing revert data')) {
           toast.add({
             icon: 'i-heroicons-x-circle',
             color: 'amber',
             title: 'Error',
-            description: `Error unlocking ${formatEther(hodlerStore.lockSize || '0')} $ANYONE: You have insufficient $ANYONE tokens`,
+            description: `Error unlocking relay: You have insufficient $ANYONE tokens`,
           });
         } else if (!msg.includes('User denied transaction signature.')) {
           toast.add({
             icon: 'i-heroicons-x-circle',
             color: 'amber',
             title: 'Error',
-            description: `Error unlocking ${formatEther(hodlerStore.lockSize || '0')} $ANYONE, did you approve the transaction?`,
+            description: `Error unlocking relay, did you approve the transaction?`,
           });
         } else {
           toast.add({

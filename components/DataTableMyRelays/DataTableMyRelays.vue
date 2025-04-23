@@ -852,6 +852,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           @mouseover="isHovered = true"
           @mouseleave="isHovered = false"
         />
+        <p>ewa</p>
       </template>
       <template #owner-data="{ row }">
         <UBadge
