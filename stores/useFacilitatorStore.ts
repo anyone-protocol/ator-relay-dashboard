@@ -169,6 +169,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
           color: 'primary',
           title: 'Success',
           description: `Rewards redeemed successfully. You've redeemed ${pendingClaimCopy.amount} $ANYONE.`,
+          timeout: 0,
           actions: [
             {
               label: 'View transaction',
