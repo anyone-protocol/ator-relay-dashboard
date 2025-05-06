@@ -164,7 +164,10 @@ const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
 
-const relayAction = async (action: "claim" | "renounce", fingerprint: string) => {
+const relayAction = async (
+  action: 'claim' | 'renounce',
+  fingerprint: string
+) => {
   const selectedRow = allRelays.value.find(
     (row) => row.fingerprint === fingerprint
   );
@@ -177,12 +180,12 @@ const relayAction = async (action: "claim" | "renounce", fingerprint: string) =>
     switch (action) {
       case 'claim':
         // actionPromise = registry.claim(fingerprint);
-        actionPromise = operatorRegistry.claim(fingerprint)
+        actionPromise = operatorRegistry.claim(fingerprint);
         break;
 
       case 'renounce':
         // actionPromise = registry.renounce(fingerprint);
-        actionPromise = operatorRegistry.renounce(fingerprint)
+        actionPromise = operatorRegistry.renounce(fingerprint);
         break;
 
       default:
@@ -289,15 +292,39 @@ const relayAction = async (action: "claim" | "renounce", fingerprint: string) =>
 
 // Table columns and actions
 
-const getVerifiedItems = (row: RelayRow) => [
-  [
-    {
-      label: 'Renounce',
-      icon: 'i-heroicons-trash-20-solid',
-      click: () => relayAction('renounce', row.fingerprint),
-    },
-  ],
-];
+const getVerifiedItems = (row: RelayRow) => {
+  // if locked, show unlock and claimed, else show renounce
+
+  const isLocked = hodlerStore.relayIsLocked(row.fingerprint);
+  const isClaimed = row.status === 'verified';
+  if (isLocked) {
+    return [
+      [
+        {
+          label: 'Renounce',
+          icon: 'i-heroicons-trash-20-solid',
+          click: () => relayAction('renounce', row.fingerprint),
+        },
+        {
+          // unlock relay
+          label: 'Unlock',
+          icon: 'i-heroicons-lock-open-20-solid',
+          click: () => handleUnlockClick(row.fingerprint),
+        },
+      ],
+    ];
+  } else {
+    return [
+      [
+        {
+          label: 'Renounce',
+          icon: 'i-heroicons-trash-20-solid',
+          click: () => relayAction('renounce', row.fingerprint),
+        },
+      ],
+    ];
+  }
+};
 
 const rules = {
   required: (value: string) => !!value || 'Required',
@@ -319,7 +346,6 @@ const handleLockRelay = async (fingerprint: string) => {
 
   const maxTries = 3;
 
-
   // retry untill maxRetry or the registrationcredit is removed
   const searchWithBackoff = async (currentTry: number) => {
     if (currentTry > maxTries) {
@@ -329,18 +355,17 @@ const handleLockRelay = async (fingerprint: string) => {
     userStore.createRelayCache().then(async () => {
       await fetchRegistrationCredit();
       if (relayCredits.value[fingerprint] === false) {
-        console.log("Registration credit removed at attempt: ", currentTry);
+        console.log('Registration credit removed at attempt: ', currentTry);
         return;
       }
-
-    })
+    });
 
     console.log(`Didn't remove lock yet... (Attempt ${currentTry})`);
 
     setTimeout(() => {
       searchWithBackoff(currentTry + 1);
     }, 5000 * currentTry);
-  }
+  };
 
   try {
     const hodler = useHodler();
@@ -350,7 +375,7 @@ const handleLockRelay = async (fingerprint: string) => {
       selectedRow!.class = '';
       selectedRow!.isWorking = false;
       relayActionOngoing.value = false;
-    })
+    });
   } catch {
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
@@ -443,19 +468,19 @@ const getObservedBandwidth = (fingerprint: string) => {
   );
 };
 
-console.log()
+console.log();
 
 const handleUnlockClick = async (fingerprint: string) => {
-    isUnlocking.value = true;
-    const hodler = useHodler();
-    try {
-      await hodler?.unlock(fingerprint, userStore.userData.address!);
-      // Refresh the relays
-      await userStore.createRelayCache();
-    } catch (error) {
-    } finally {
-      isUnlocking.value = false;
-    }
+  isUnlocking.value = true;
+  const hodler = useHodler();
+  try {
+    await hodler?.unlock(fingerprint, userStore.userData.address!);
+    // Refresh the relays
+    await userStore.createRelayCache();
+  } catch (error) {
+  } finally {
+    isUnlocking.value = false;
+  }
 };
 </script>
 
@@ -658,9 +683,7 @@ const handleUnlockClick = async (fingerprint: string) => {
                 <div
                   class="text-xs font-normal text-red-400 dark:text-red-400 mb-2"
                 >
-                  <span class="text-gray-800 dark:text-white"
-                    >Exit Bonus:</span
-                  >
+                  <span class="text-gray-800 dark:text-white">Exit Bonus:</span>
                   {{
                     facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
                     '-'
@@ -670,11 +693,10 @@ const handleUnlockClick = async (fingerprint: string) => {
                 <div
                   class="text-xs font-normal text-stone-700 dark:text-stone-300"
                 >
-                  <span class="text-gray-800 dark:text-white"
-                    >Period:</span
-                  >
+                  <span class="text-gray-800 dark:text-white">Period:</span>
                   {{
-                    facilitatorStore?.previousDistributions[0]?.period / 60 + " minutes" || '-'
+                    facilitatorStore?.previousDistributions[0]?.period / 60 +
+                      ' minutes' || '-'
                   }}
                 </div>
                 <div
@@ -778,7 +800,9 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="lockedRelaysMap[row.fingerprint]"
           :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
-          :is-loading="hodlerStore.loading || lockedRelaysPending || allRelaysPending"
+          :is-loading="
+            hodlerStore.loading || lockedRelaysPending || allRelaysPending
+          "
         />
       </template>
 
@@ -824,7 +848,9 @@ const handleUnlockClick = async (fingerprint: string) => {
             row.status === 'verified' ||
             isHardwareResolved?.[row.fingerprint]
           "
-          :is-loading="hodlerStore.loading || lockedRelaysPending || allRelaysPending"
+          :is-loading="
+            hodlerStore.loading || lockedRelaysPending || allRelaysPending
+          "
           :has-registration-credit="relayCredits[row.fingerprint]"
           :registration-credits-required="registrationCreditsRequired ?? false"
           :family-verified="familyVerified[row.fingerprint]"

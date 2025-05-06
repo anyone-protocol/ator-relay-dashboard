@@ -168,7 +168,10 @@ const timestamp = computed(
 const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
-const relayAction = async (action: "claim" | "renounce", fingerprint: string) => {
+const relayAction = async (
+  action: 'claim' | 'renounce',
+  fingerprint: string
+) => {
   //TODO: Sign the message
   // See: The following resources
   // https://academy.warp.cc/docs/sdk/advanced/plugins/signature
@@ -189,12 +192,12 @@ const relayAction = async (action: "claim" | "renounce", fingerprint: string) =>
     switch (action) {
       case 'claim':
         // actionPromise = registry.claim(fingerprint);
-        actionPromise = operatorRegistry.claim(fingerprint)
+        actionPromise = operatorRegistry.claim(fingerprint);
         break;
 
       case 'renounce':
         // actionPromise = registry.renounce(fingerprint);
-        actionPromise = operatorRegistry.renounce(fingerprint)
+        actionPromise = operatorRegistry.renounce(fingerprint);
         break;
 
       default:
@@ -331,7 +334,6 @@ const handleLockRelay = async (fingerprint: string) => {
 
   const maxTries = 3;
 
-
   // retry untill maxRetry or the registrationcredit is removed
   const searchWithBackoff = async (currentTry: number) => {
     if (currentTry > maxTries) {
@@ -341,29 +343,27 @@ const handleLockRelay = async (fingerprint: string) => {
     userStore.createRelayCache().then(async () => {
       await fetchRegistrationCredit();
       if (relayCredits.value[fingerprint] === false) {
-        console.log("Registration credit removed at attempt: ", currentTry);
+        console.log('Registration credit removed at attempt: ', currentTry);
         return;
       }
-
-    })
+    });
 
     console.log(`Didn't remove lock yet... (Attempt ${currentTry})`);
 
     setTimeout(() => {
       searchWithBackoff(currentTry + 1);
     }, 5000 * currentTry);
-  }
+  };
 
   try {
     const register = useRegistrator();
     register?.lock(fingerprint, '').then(async (result) => {
-
       searchWithBackoff(0);
 
       selectedRow!.class = '';
       selectedRow!.isWorking = false;
       relayActionOngoing.value = false;
-    })
+    });
   } catch {
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
@@ -699,18 +699,17 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Exit Bonus:</span
                     >
                     {{
-                        facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
-                        '-'
+                      facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
+                      '-'
                     }}
                   </div>
                   <div
                     class="text-xs font-normal text-stone-700 dark:text-stone-300"
                   >
-                    <span class="text-gray-800 dark:text-white"
-                      >Period:</span
-                    >
+                    <span class="text-gray-800 dark:text-white">Period:</span>
                     {{
-                      facilitatorStore?.previousDistributions[0]?.period / 60 + " minutes" || '-'
+                      facilitatorStore?.previousDistributions[0]?.period / 60 +
+                        ' minutes' || '-'
                     }}
                   </div>
                   <div
@@ -757,7 +756,9 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="lockedRelaysMap[row.fingerprint]"
           :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
-          :is-loading="registratorStore.loading || lockedRelaysPending || allRelaysPending"
+          :is-loading="
+            registratorStore.loading || lockedRelaysPending || allRelaysPending
+          "
         />
       </div>
       <div class="flex justify-between items-center mt-2">
@@ -772,7 +773,9 @@ const handleUnlockClick = async (fingerprint: string) => {
             row.status === 'verified' ||
             isHardwareResolved?.[row.fingerprint]
           "
-          :is-loading="registratorStore.loading || lockedRelaysPending || allRelaysPending"
+          :is-loading="
+            registratorStore.loading || lockedRelaysPending || allRelaysPending
+          "
           :has-registration-credit="relayCredits[row.fingerprint]"
           :registration-credits-required="registrationCreditsRequired ?? false"
           :family-verified="familyVerified[row.fingerprint]"

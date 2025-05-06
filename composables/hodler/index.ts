@@ -112,6 +112,8 @@ export class Hodler {
       this.contractAddress,
       providerOrSigner
     );
+
+    console.log('this.contract: ', this.contract);
     /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
   }
 
@@ -150,6 +152,8 @@ export class Hodler {
 
     const claimData = await this.getClaimData();
 
+    console.log('locks: ', locks);
+
     // get total locked tokens from reducing locks
     const totalLockedTokens = Object.values(locks).reduce((acc, lock) => {
       const amount = BigNumber(lock.amount.toString()).dividedBy(
@@ -171,6 +175,7 @@ export class Hodler {
         : 'Refreshing Hodler'
     );
     this.setRefreshing(false);
+    console.log('Setting hodlerStore initialized to true');
     useHolderStore().setInitialized(true);
   }
 
@@ -258,13 +263,14 @@ export class Hodler {
       if (!this.signer) {
         throw new Error(ERRORS.NO_SIGNER);
       }
-      if (!this.contract || !hodlerStore.lockSize) {
+      if (!this.contract || hodlerStore.lockSize == null) {
         throw new Error(ERRORS.NOT_INITIALIZED);
       }
 
       try {
         const token = useToken();
         if (!token) {
+          console.log('Token not found');
           throw new Error(ERRORS.NOT_INITIALIZED);
         }
 
@@ -319,7 +325,7 @@ export class Hodler {
           description: `We've locked ${formatEther(hodlerStore.lockSize || '0')} $ANYONE.  Once picked up on Arweave, you can click the 'claim' button to claim your relay.`,
         });
 
-        resolve(result);
+        resolve(null);
       } catch (error) {
         const msg = (error as Error)?.message;
         console.log('msg: ', msg);
@@ -516,12 +522,15 @@ let hodler: Hodler | null = null;
 export const initHodler = async () => {
   const provider = useProvider();
 
+  console.log('initHodler provider: ', provider);
+
   if (!hodler) {
     hodler = new Hodler(
       runtimeConfig.public.hodlerContract as string,
       provider,
       runtimeConfig.public.multicallContract as string // Add your multicall contract address here
     );
+
     await hodler.refresh();
   }
 };
