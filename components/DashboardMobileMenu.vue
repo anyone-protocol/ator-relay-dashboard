@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 import ButtonConnect from './ui-kit/ButtonConnect.vue';
-import GlowEffect from './ui-kit/GlowEffect.vue';
 import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
 import ReportIssueButton from './ui-kit/ReportIssueButton.vue';
 
@@ -22,8 +21,6 @@ router.beforeEach(async () => {
     v-if="!lgAndLarger && menuStore.isOpen"
     class="fixed inset-0 w-full h-full dark:bg-gray-900/90 from-teal-50 to-slate-200 bg-gradient-to-br backdrop-blur dark:bg-none overflow-hidden z-10"
   >
-    <GlowEffect />
-
     <div class="px-8 pb-12 pt-24 flex flex-col h-full">
       <div class="flex justify-between py-6 gap-4">
         <ButtonConnect />
@@ -31,16 +28,20 @@ router.beforeEach(async () => {
       </div>
       <div class="mb-4 flex-col flex space-y-2">
         <RouterLink to="/">
-          <UButton variant="outline" class="nav-button uniform-height text-sm lg:text-base w-[8rem]"
+          <UButton
+            variant="outline"
+            class="nav-button uniform-height text-sm lg:text-base w-[8rem]"
             >Home</UButton
           >
         </RouterLink>
         <RouterLink to="/relays">
-          <UButton variant="outline" class="nav-button uniform-height text-sm lg:text-base w-[8rem]"
+          <UButton
+            variant="outline"
+            class="nav-button uniform-height text-sm lg:text-base w-[8rem]"
             >Relays</UButton
           >
         </RouterLink>
-        <ReportIssueButton class="w-[8rem]"/>
+        <ReportIssueButton class="w-[8rem]" />
       </div>
       <div
         class="w-full bg-gradient-to-r from-gray-600/10 via-cyan-600 to-gray-600/10 h-px"
