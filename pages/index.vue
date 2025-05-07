@@ -33,11 +33,7 @@
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-bold">
-                      {{
-                        formatEtherNoRound(
-                          hodlerStore.lockedTokens || '0'
-                        )
-                      }}
+                      {{ Number(hodlerStore.lockedTokens).toFixed(2) }}
                     </span>
                     <span v-if="!isConnected" class="text-4xl font-bold">
                       --
@@ -79,16 +75,12 @@
               <div>
                 <Button
                   :disabled="
-                    !hodlerStore.hasClaimableRewards ||
-                    isRedeemLoading
+                    !hodlerStore.hasClaimableRewards || isRedeemLoading
                   "
                   @onClick="handleClaimAllRewards"
                   class="mb-2"
                 >
-                  <span
-                    v-if="isRedeemLoading"
-                    >Processing...</span
-                  >
+                  <span v-if="isRedeemLoading">Processing...</span>
                   <span v-else-if="hodlerStore.hasClaimableRewards"
                     >Redeem Rewards</span
                   >
@@ -163,11 +155,7 @@
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{
-                    formatEtherNoRound(
-                      hodlerStore.calculatedAirdrop || '0'
-                    )
-                  }}
+                  {{ formatEtherNoRound(hodlerStore.calculatedAirdrop || '0') }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
@@ -193,7 +181,7 @@
                   {{
                     formatEtherNoRound(
                       hodlerStore.claimData?.totalClaimable || '0'
-                    ) 
+                    )
                   }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
@@ -225,7 +213,7 @@ import { initToken } from '@/composables/token';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
-import { useRelayRewards } from '@/composables/relay-rewards'
+import { useRelayRewards } from '@/composables/relay-rewards';
 import { formatUnits } from 'viem';
 import { initHodler, useHodler } from '~/composables/hodler';
 
@@ -255,8 +243,11 @@ const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
 );
 const { tokenBalance } = storeToRefs(userStore);
 
-const { locks: lockedRelays, loading: lockedRelaysPending } =
-  storeToRefs(hodlerStore);
+const {
+  locks: lockedRelays,
+  loading: lockedRelaysPending,
+  lockedTokens,
+} = storeToRefs(hodlerStore);
 const hasEnoughBalance = ref(false);
 const hasEnoughBalancePending = ref(true);
 
@@ -288,8 +279,7 @@ const fetchInitialData = async (
 
     await Promise.all([
       userStore.getTokenBalance(),
-      (!hodlerStore?.initialized || forceRefresh) &&
-        useHodler()?.refresh(),
+      (!hodlerStore?.initialized || forceRefresh) && useHodler()?.refresh(),
       useRelayRewards().refresh(),
       useDistribution().airdropTokens(newAddress as string),
     ]);

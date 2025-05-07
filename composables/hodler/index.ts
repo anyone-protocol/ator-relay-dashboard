@@ -148,25 +148,23 @@ export class Hodler {
     const vaults = await this.getVaults(auth.userData?.address || '');
 
     const lockSize = await this.getLockSize();
-    console.log('lockSize: ', lockSize.toString());
 
     const claimData = await this.getClaimData();
 
-    console.log('locks: ', locks);
-
     // get total locked tokens from reducing locks
     const totalLockedTokens = Object.values(locks).reduce((acc, lock) => {
-      const amount = BigNumber(lock.amount.toString()).dividedBy(
-        Math.pow(10, 18)
-      );
-      return acc.plus(amount);
+      return acc.plus(lock.amount.toString());
     }, BigNumber(0));
 
     const hodlerStore = useHolderStore();
     hodlerStore.locks = locks;
     hodlerStore.vaults = vaults;
     hodlerStore.lockSize = lockSize;
-    hodlerStore.lockedTokens = BigInt(totalLockedTokens.toString());
+    console.log(
+      'hodlerStore.lockedTokens: ',
+      BigInt(totalLockedTokens.toString())
+    );
+    useHolderStore().setLockedTokens(BigInt(totalLockedTokens.toString()));
     hodlerStore.claimData = claimData;
 
     this.logger.info(
