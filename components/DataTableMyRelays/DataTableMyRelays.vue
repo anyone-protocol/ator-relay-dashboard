@@ -295,35 +295,41 @@ const relayAction = async (
 const getVerifiedItems = (row: RelayRow) => {
   // if locked, show unlock and claimed, else show renounce
 
+  const isHardware = isHardwareResolved.value?.[row.fingerprint];
   const isLocked = hodlerStore.relayIsLocked(row.fingerprint);
   const isClaimed = row.status === 'verified';
-  if (isLocked) {
-    return [
-      [
-        {
-          label: 'Renounce',
-          icon: 'i-heroicons-trash-20-solid',
-          click: () => relayAction('renounce', row.fingerprint),
-        },
-        {
-          // unlock relay
-          label: 'Unlock',
-          icon: 'i-heroicons-lock-open-20-solid',
-          click: () => handleUnlockClick(row.fingerprint),
-        },
-      ],
-    ];
-  } else {
-    return [
-      [
-        {
-          label: 'Renounce',
-          icon: 'i-heroicons-trash-20-solid',
-          click: () => relayAction('renounce', row.fingerprint),
-        },
-      ],
-    ];
+  const skipSideMenu = !isClaimed && !isLocked && !isHardware;
+
+  const items = [];
+
+  if (skipSideMenu) {
+    return [[]];
   }
+
+  if (isLocked) {
+    items.push({
+      // unlock relay
+      label: 'Unlock',
+      icon: 'i-heroicons-lock-open-20-solid',
+      click: () => handleUnlockClick(row.fingerprint),
+    });
+  } else if (!isHardware) {
+    items.push({
+      label: 'Lock',
+      icon: 'i-heroicons-lock-closed-20-solid',
+      click: () => handleLockRelay(row.fingerprint),
+    });
+  }
+
+  if (isClaimed) {
+    items.push({
+      label: 'Renounce',
+      icon: 'i-heroicons-trash-20-solid',
+      click: () => relayAction('renounce', row.fingerprint),
+    });
+  }
+
+  return [items];
 };
 
 const rules = {
@@ -584,7 +590,12 @@ const handleUnlockClick = async (fingerprint: string) => {
             class="h-6 w-6 animate-spin"
           />
           <UDropdown
-            v-if="row.status === 'verified' && !row.isWorking"
+            v-if="
+              !row.isWorking &&
+              (row.status === 'verified' ||
+                hodlerStore.relayIsLocked(row.fingerprint) ||
+                isHardwareResolved?.[row.fingerprint])
+            "
             :items="getVerifiedItems(row)"
             :popper="{ placement: 'left-end' }"
           >
@@ -872,7 +883,6 @@ const handleUnlockClick = async (fingerprint: string) => {
           @mouseover="isHovered = true"
           @mouseleave="isHovered = false"
         />
-        <p>ewa</p>
       </template>
       <template #owner-data="{ row }">
         <UBadge

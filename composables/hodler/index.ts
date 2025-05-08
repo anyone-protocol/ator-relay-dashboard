@@ -141,6 +141,7 @@ export class Hodler {
     }
 
     this.setRefreshing(true);
+    useHolderStore().setLoading(true);
     const auth = useUserStore();
 
     const locks = await this.getLocks(auth.userData?.address || '');
@@ -175,6 +176,7 @@ export class Hodler {
     this.setRefreshing(false);
     console.log('Setting hodlerStore initialized to true');
     useHolderStore().setInitialized(true);
+    useHolderStore().setLoading(false);
   }
 
   async getLocks(address: string): Promise<Record<string, Lock>> {
