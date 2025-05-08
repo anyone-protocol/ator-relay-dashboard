@@ -52,28 +52,20 @@
       </DashboardMobileSection>
 
       <DashboardMobileSection title="my-rewards">
-        <Card>
+        <Card title="Rewards History" icon="eos-icons:trusted-organization">
           <div
             class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
           >
-            <div>
-              <h2
-                class="dark:text-cyan-200 lg:text-3xl text-2xl tracking-wide flex items-center gap-2 font-brand"
+            <p class="mb-4 text-sm">
+              Earn rewards by contributing relays to the ANYONE network.
+              <a
+                href="https://docs.anyone.io/rewards"
+                target="_blank"
+                class="dark:text-cyan-200 text-cyan-500 underline"
               >
-                <Icon name="eos-icons:trusted-organization" />
-                Rewards History
-              </h2>
-              <p class="mb-4 text-sm mt-4">
-                Earn rewards by contributing relays to the ANYONE network.
-                <a
-                  href="https://docs.anyone.io/rewards"
-                  target="_blank"
-                  class="dark:text-cyan-200 text-cyan-500 underline"
-                >
-                  Find Out More
-                </a>
-              </p>
-            </div>
+                Find Out More
+              </a>
+            </p>
             <div v-if="isConnected" class="redeem flex gap-6 items-center">
               <div class="divider hidden lg:visible"></div>
               <div>
@@ -192,7 +184,9 @@
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                    parseFloat(formatUnits(facilitatorStore.availableAllocatedTokens, 18)).toFixed(2)
+                    parseFloat(
+                      formatUnits(facilitatorStore.availableAllocatedTokens, 18)
+                    ).toFixed(2)
                   }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
@@ -225,7 +219,7 @@ import { initToken } from '@/composables/token';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
-import { useRelayRewards } from '@/composables/relay-rewards'
+import { useRelayRewards } from '@/composables/relay-rewards';
 import { formatUnits } from 'viem';
 
 const userStore = useUserStore();

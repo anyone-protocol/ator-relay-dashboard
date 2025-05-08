@@ -72,7 +72,7 @@ const isOpen = ref(false);
 
 <template>
   <footer
-    class="bg-gradient-to-t max-w-[100vw] from-slate-100 to-teal-50 dark:from-zinc-900 dark:via-gray-900 py-4 px-6 mt-auto flex justify-between lg:justify-end items-end flex-col rounded-xl"
+    class="max-w-[100vw] py-4 px-6 mt-auto flex justify-between lg:justify-end items-end flex-col rounded-xl"
   >
     <UModal v-model="isOpen">
       <UCard class="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
@@ -120,9 +120,7 @@ const isOpen = ref(false);
     <div class="flex justify-between items-center rounded-xl w-full">
       <div class="flex gap-2">
         <div class="font-brand tracking-wider">
-          <UButton
-            variant="outline"
-            @click="isOpen = true"
+          <UButton variant="outline" @click="isOpen = true"
             >View Contracts</UButton
           >
         </div>

@@ -87,12 +87,13 @@ const handleDisconnect = () => {
           >Close</UButton
         >
       </template>
-    </UCard> 
+    </UCard>
   </UModal>
 
   <UButton
     v-if="isDisconnected"
     variant="outline"
+    class="lg:text-base ring-gray-300 text-gray-950 hover:bg-gray-100/50 dark:ring-gray-700 dark:text-gray-50 dark:hover:bg-gray-800/50"
     @click="open({ view: 'Connect' })"
   >
     Connect wallet
