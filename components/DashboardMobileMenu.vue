@@ -19,7 +19,7 @@ router.beforeEach(async () => {
 <template>
   <div
     v-if="!lgAndLarger && menuStore.isOpen"
-    class="fixed inset-0 w-full h-full dark:bg-gray-900/90 from-teal-50 to-slate-200 bg-gradient-to-br backdrop-blur dark:bg-none overflow-hidden z-10"
+    class="fixed inset-0 w-full h-full bg-gray-50 dark:bg-gray-900 backdrop-blur dark:bg-none overflow-hidden z-10"
   >
     <div class="px-8 pb-12 pt-24 flex flex-col h-full">
       <div class="flex justify-between py-6 gap-4">

@@ -8,12 +8,12 @@ const { toggle } = menuStore;
     <Icon
       v-if="!menuStore.isOpen"
       name="heroicons:bars-3"
-      class="w-6 h-6 dark:text-cyan-500"
+      class="w-6 h-6 text-gray-900 dark:text-gray-100"
     />
     <Icon
       v-if="menuStore.isOpen"
       name="heroicons:x-mark"
-      class="w-6 h-6 dark:text-cyan-500"
+      class="w-6 h-6 text-gray-900 dark:text-gray-100"
     />
   </UButton>
 </template>
