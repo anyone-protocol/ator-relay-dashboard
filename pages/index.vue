@@ -119,7 +119,7 @@
                 <h3>Total redeemed rewards</h3>
               </div>
               <template v-if="claimedPending">
-                <USkeleton class="w-[15rem] h-10" />
+                <USkeleton class="w-[15rem] h-10 mt-2" />
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
@@ -160,7 +160,7 @@
                 </Popover>
               </div>
               <template v-if="calculatedAirdropPending">
-                <USkeleton class="w-[15rem] h-10" />
+                <USkeleton class="w-[15rem] h-10 mt-2" />
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
@@ -187,12 +187,14 @@
             >
               <h3>Redeemable rewards</h3>
               <template v-if="claimablePending">
-                <USkeleton class="w-[15rem] h-10" />
+                <USkeleton class="w-[15rem] h-10 mt-2" />
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                    parseFloat(formatUnits(facilitatorStore.availableAllocatedTokens, 18)).toFixed(2)
+                    parseFloat(
+                      formatUnits(facilitatorStore.availableAllocatedTokens, 18)
+                    ).toFixed(2)
                   }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
@@ -225,7 +227,7 @@ import { initToken } from '@/composables/token';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
-import { useRelayRewards } from '@/composables/relay-rewards'
+import { useRelayRewards } from '@/composables/relay-rewards';
 import { formatUnits } from 'viem';
 
 const userStore = useUserStore();
@@ -237,8 +239,8 @@ const { allRelays } = storeToRefs(userStore);
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
 const lockedPending = ref(false);
-const claimedPending = ref(false);
-const claimablePending = ref(false);
+const claimedPending = ref(true);
+const claimablePending = ref(true);
 
 const toast = useToast();
 
@@ -307,7 +309,6 @@ const fetchInitialData = async (
     console.error(error);
   } finally {
     //wait 1 second before setting pending to false
-    await new Promise((resolve) => setTimeout(resolve, 5000));
     lockedPending.value = false;
     claimedPending.value = false;
     claimablePending.value = false;
