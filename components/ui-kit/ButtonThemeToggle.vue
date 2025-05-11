@@ -18,18 +18,18 @@ const changeMode = () => {
         @click="changeMode"
         aria-label="Color Mode"
         variant="ghost"
-        class="hover:bg-gray-100 dark:hover:bg-gray-800 p-[8px]"
+        class="hover:bg-neutral-100 dark:hover:bg-neutral-800 p-[8px]"
       >
         <ColorScheme placeholder="...">
           <Icon
             v-if="colorMode.value === 'dark'"
             name="heroicons-outline:moon"
-            class="text-xl dark:text-gray-50 text-gray-600"
+            class="text-xl dark:text-neutral-50 text-neutral-600"
           />
           <Icon
             v-else
             name="heroicons-outline:sun"
-            class="text-xl dark:text-gray-300 text-gray-600"
+            class="text-xl dark:text-neutral-300 text-neutral-600"
           />
         </ColorScheme>
       </UButton>

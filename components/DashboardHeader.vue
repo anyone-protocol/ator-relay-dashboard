@@ -40,7 +40,7 @@ const menuStore = useMenuStore();
                 :class="[
                   isActive
                     ? 'ring-cyan-500 text-cyan-500 bg-cyan-100/50 hover:bg-cyan-100/50 dark:ring-cyan-400 dark:text-cyan-400 dark:bg-gray-800/50 dark:hover:bg-gray-800/50'
-                    : 'ring-gray-200 text-gray-950 hover:bg-gray-100/50 dark:ring-gray-700 dark:text-gray-50 dark:hover:bg-gray-800/50',
+                    : 'ring-neutral-200 text-neutral-950 hover:bg-neutral-100/50 dark:ring-neutral-700 dark:text-neutral-50 dark:hover:bg-neutral-800/50',
                 ]"
                 >Home</UButton
               >
@@ -54,7 +54,7 @@ const menuStore = useMenuStore();
                 :class="[
                   isActive
                     ? 'ring-cyan-500 text-cyan-500 bg-cyan-100/50 hover:bg-cyan-100/50 dark:ring-cyan-400 dark:text-cyan-400 dark:bg-gray-800/50 dark:hover:bg-gray-800/50'
-                    : 'ring-gray-200 text-gray-950 hover:bg-gray-100/50 dark:ring-gray-700 dark:text-gray-50 dark:hover:bg-gray-800/50',
+                    : 'ring-neutral-200 text-neutral-950 hover:bg-neutral-100/50 dark:ring-neutral-700 dark:text-neutral-50 dark:hover:bg-neutral-800/50',
                 ]"
                 >Relays</UButton
               >
