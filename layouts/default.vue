@@ -9,7 +9,7 @@ onMounted(() => {
 
 <template>
   <main
-    class="relative isolate h-full min-h-screen bg-gray-50 dark:bg-gray-900"
+    class="relative isolate h-full min-h-screen bg-neutral-50 dark:bg-neutral-900"
   >
     <div class="xl:p-6">
       <div

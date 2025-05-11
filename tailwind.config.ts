@@ -22,6 +22,7 @@ export default <Partial<Config>>{
         },
       },
       colors: {
+        primary: '#4f46e5',
         bristol: {
           50: '#eff5f6',
           100: '#cfe2e3',

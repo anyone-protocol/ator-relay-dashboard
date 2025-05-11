@@ -19,7 +19,7 @@ router.beforeEach(async () => {
 <template>
   <div
     v-if="!lgAndLarger && menuStore.isOpen"
-    class="fixed inset-0 w-full h-full bg-gray-50 dark:bg-gray-900 backdrop-blur dark:bg-none overflow-hidden z-10"
+    class="fixed inset-0 w-full h-full bg-neutral-50 dark:bg-neutral-900 backdrop-blur dark:bg-none overflow-hidden z-10"
   >
     <div class="px-8 pb-12 pt-24 flex flex-col h-full">
       <div class="flex justify-between py-6 gap-4">
@@ -30,21 +30,21 @@ router.beforeEach(async () => {
         <RouterLink to="/">
           <UButton
             variant="outline"
-            class="nav-button uniform-height text-sm lg:text-base w-[8rem]"
+            class="nav-button uniform-height text-sm lg:text-base w-[8rem] ring-cyan-500 text-cyan-500 bg-cyan-100/50 hover:bg-cyan-100/50 dark:ring-cyan-400 dark:text-cyan-400 dark:bg-gray-800/50 dark:hover:bg-gray-800/50"
             >Home</UButton
           >
         </RouterLink>
         <RouterLink to="/relays">
           <UButton
             variant="outline"
-            class="nav-button uniform-height text-sm lg:text-base w-[8rem]"
+            class="nav-button uniform-height text-sm lg:text-base w-[8rem] ring-cyan-500 text-cyan-500 bg-cyan-100/50 hover:bg-cyan-100/50 dark:ring-cyan-400 dark:text-cyan-400 dark:bg-gray-800/50 dark:hover:bg-gray-800/50"
             >Relays</UButton
           >
         </RouterLink>
         <ReportIssueButton class="w-[8rem]" />
       </div>
       <div
-        class="w-full bg-gradient-to-r from-gray-600/10 via-cyan-600 to-gray-600/10 h-px"
+        class="w-full bg-gradient-to-r from-neutral-600/10 via-cyan-600 to-neutral-600/10 h-px"
       ></div>
 
       <div
