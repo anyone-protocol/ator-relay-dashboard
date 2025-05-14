@@ -156,7 +156,6 @@ import { useUserStore } from '@/stores/useUserStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import DataTableMyRelays from '@/components/DataTableMyRelays/DataTableMyRelays.vue';
 import DataTableMyRelaysMobile from '@/components/DataTableMyRelays/DataTableMyRelaysMobile.vue';
-import { initRegistrator, useRegistrator } from '@/composables/registrator';
 import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
 import { type RelayTabType } from '@/types/relay';
@@ -169,10 +168,9 @@ import { initHodler, useHodler } from '~/composables/hodler';
 const isMobile = useMediaQuery('(max-width: 1024px)');
 
 const userStore = useUserStore();
-const registrator = useRegistrator();
-const registratorStore = useRegistratorStore();
 const facilitatorStore = useFacilitatorStore();
 const hodlerStore = useHolderStore();
+const hodler = useHodler();
 const registerModalOpen = ref(false);
 const currentTab = ref<RelayTabType>('all');
 const metricsStore = useMetricsStore();
@@ -189,8 +187,7 @@ const initializeAndFetchData = async (
     await Promise.all([
       (!facilitatorStore?.initialized || forceRefresh) &&
         useFacilitator()?.refresh(),
-      (!registratorStore?.initialized || forceRefresh) &&
-        useRegistrator()?.refresh(),
+      (!hodlerStore?.initialized || forceRefresh) && useHodler()?.refresh(),
       ,
     ]);
     console.log('Data fetching complete');
@@ -205,13 +202,7 @@ watch(
   () => userStore.userData.address,
   async (newAddress?: string) => {
     try {
-      await Promise.all([
-        registrator?.getLokedRelaysTokens(
-          userStore.userData.address || '',
-          true
-        ),
-        userStore.createRelayCache(),
-      ]);
+      await Promise.all([hodler?.refresh(), userStore.createRelayCache()]);
     } catch (error) {
       console.error('Error during address change handling:', error);
     }
@@ -225,18 +216,10 @@ watch(
   }
 );
 
-// const loadLockedRelays = async () => {
-//   if (userStore.userData.address) {
-//     await registratorStore?.getLokedRelaysTokens(userStore.userData.address);
-//   }
-// };
-
 onMounted(async () => {
   console.log('Mounted - Starting initialization');
-  // initDistribution();
-  await useRelayRewards().refresh()
+  await useRelayRewards().refresh();
   initFacilitator();
-  initRegistrator();
   initToken();
   initHodler();
   await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -295,8 +278,8 @@ const handleLockRemote = async () => {
   }
 
   try {
-    const register = useRegistrator();
-    const success = await register?.lock(
+    const hodler = useHodler();
+    const success = await hodler?.lock(
       fingerPrintRegister.value,
       ethAddress.value
     );
