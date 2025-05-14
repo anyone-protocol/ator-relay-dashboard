@@ -22,7 +22,7 @@ const menuStore = useMenuStore();
     class="lg:relative sticky top-0"
   >
     <div
-      class="absolute dark:bg-gradient-to-b dark:from-zinc-900 dark:via-gray-900 bg-gradient-to-b from-slate-100 to-teal-50 w-full inset-0 dark:h-28 h-20 [mask-image:linear-gradient(to_bottom,black_90%,transparent)] lg:hidden"
+      class="absolute w-full inset-0 dark:h-28 h-20 [mask-image:linear-gradient(to_bottom,black_90%,transparent)] lg:hidden"
     ></div>
     <div
       class="flex justify-between items-center px-6 pb-4 lg:pt-6 pt-4 relative h-full"
@@ -33,19 +33,29 @@ const menuStore = useMenuStore();
       <nav class="flex-1 h-full">
         <ul class="flex justify-center items-center space-x-2 lg:space-x-4">
           <li>
-            <RouterLink to="/">
+            <RouterLink to="/" v-slot="{ isActive }">
               <UButton
                 variant="outline"
                 class="nav-button uniform-height text-sm lg:text-base lg:flex hidden"
+                :class="[
+                  isActive
+                    ? 'ring-cyan-500 text-cyan-500 bg-cyan-100/50 hover:bg-cyan-100/50 dark:ring-cyan-400 dark:text-cyan-400 dark:bg-gray-800/50 dark:hover:bg-gray-800/50'
+                    : 'ring-neutral-200 text-neutral-950 hover:bg-neutral-100/50 dark:ring-neutral-700 dark:text-neutral-50 dark:hover:bg-neutral-800/50',
+                ]"
                 >Home</UButton
               >
             </RouterLink>
           </li>
           <li>
-            <RouterLink to="/relays">
+            <RouterLink to="/relays" v-slot="{ isActive }">
               <UButton
                 variant="outline"
                 class="nav-button uniform-height text-sm lg:text-base lg:flex hidden"
+                :class="[
+                  isActive
+                    ? 'ring-cyan-500 text-cyan-500 bg-cyan-100/50 hover:bg-cyan-100/50 dark:ring-cyan-400 dark:text-cyan-400 dark:bg-gray-800/50 dark:hover:bg-gray-800/50'
+                    : 'ring-neutral-200 text-neutral-950 hover:bg-neutral-100/50 dark:ring-neutral-700 dark:text-neutral-50 dark:hover:bg-neutral-800/50',
+                ]"
                 >Relays</UButton
               >
             </RouterLink>
@@ -58,7 +68,7 @@ const menuStore = useMenuStore();
       <div class="flex items-center gap-2">
         <ButtonMobileMenu class="uniform-height" />
       </div>
-      <div class="lg:flex items-center hidden ml-auto mr-6">
+      <div class="lg:flex items-center hidden ml-auto mr-4">
         <ButtonConnect class="uniform-height" />
       </div>
       <div class="lg:flex items-center gap-2 hidden">
@@ -66,7 +76,7 @@ const menuStore = useMenuStore();
       </div>
     </div>
 
-    <ReportIssueDialog />
+    <!-- <ReportIssueDialog /> -->
   </header>
 </template>
 
@@ -84,12 +94,18 @@ nav ul li {
   height: 2.3rem;
 }
 
-.dark .router-link-active .nav-button {
+/* .dark .nav-button {
   background-color: #141313;
+  box-shadow: 0 0 0 1px #555;
   color: #d6d6d6;
+}
+
+.dark .router-link-active .nav-button {
+  box-shadow: 0 0 0 1px rgb(5, 190, 223);
+  color: rgb(5, 190, 223);
 }
 .router-link-active .nav-button {
   background-color: transparent;
   color: #000;
-}
+} */
 </style>

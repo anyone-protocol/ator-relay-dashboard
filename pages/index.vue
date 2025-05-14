@@ -48,28 +48,20 @@
       </DashboardMobileSection>
 
       <DashboardMobileSection title="my-rewards">
-        <Card>
+        <Card title="Rewards History" icon="eos-icons:trusted-organization">
           <div
             class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
           >
-            <div>
-              <h2
-                class="dark:text-cyan-200 lg:text-3xl text-2xl tracking-wide flex items-center gap-2 font-brand"
+            <p class="mb-4 text-sm">
+              Earn rewards by contributing relays to the ANYONE network.
+              <a
+                href="https://docs.anyone.io/rewards"
+                target="_blank"
+                class="dark:text-cyan-200 text-cyan-500 underline"
               >
-                <Icon name="eos-icons:trusted-organization" />
-                Rewards History
-              </h2>
-              <p class="mb-4 text-sm mt-4">
-                Earn rewards by contributing relays to the ANYONE network.
-                <a
-                  href="https://docs.anyone.io/rewards"
-                  target="_blank"
-                  class="dark:text-cyan-200 text-cyan-500 underline"
-                >
-                  Find Out More
-                </a>
-              </p>
-            </div>
+                Find Out More
+              </a>
+            </p>
             <div v-if="isConnected" class="redeem flex gap-6 items-center">
               <div class="divider hidden lg:visible"></div>
               <div>
@@ -110,7 +102,7 @@
                 <h3>Total redeemed rewards</h3>
               </div>
               <template v-if="claimedPending">
-                <USkeleton class="w-[15rem] h-10" />
+                <USkeleton class="w-[15rem] h-10 mt-2" />
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
@@ -151,7 +143,7 @@
                 </Popover>
               </div>
               <template v-if="calculatedAirdropPending">
-                <USkeleton class="w-[15rem] h-10" />
+                <USkeleton class="w-[15rem] h-10 mt-2" />
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
@@ -174,7 +166,7 @@
             >
               <h3>Redeemable rewards</h3>
               <template v-if="claimablePending">
-                <USkeleton class="w-[15rem] h-10" />
+                <USkeleton class="w-[15rem] h-10 mt-2" />
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
@@ -226,8 +218,8 @@ const { allRelays } = storeToRefs(userStore);
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
 const lockedPending = ref(false);
-const claimedPending = ref(false);
-const claimablePending = ref(false);
+const claimedPending = ref(true);
+const claimablePending = ref(true);
 
 const toast = useToast();
 
@@ -287,7 +279,6 @@ const fetchInitialData = async (
     console.error(error);
   } finally {
     //wait 1 second before setting pending to false
-    await new Promise((resolve) => setTimeout(resolve, 5000));
     lockedPending.value = false;
     claimedPending.value = false;
     claimablePending.value = false;
