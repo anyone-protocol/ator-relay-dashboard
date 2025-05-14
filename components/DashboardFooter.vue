@@ -72,10 +72,10 @@ const isOpen = ref(false);
 
 <template>
   <footer
-    class="bg-gradient-to-t max-w-[100vw] from-slate-100 to-teal-50 dark:from-zinc-900 dark:via-gray-900 py-4 px-6 mt-auto flex justify-between lg:justify-end items-end flex-col rounded-xl"
+    class="max-w-[100vw] py-4 px-6 mt-auto flex justify-between lg:justify-end items-end flex-col rounded-xl"
   >
     <UModal v-model="isOpen">
-      <UCard class="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+      <UCard class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg">
         <h4
           class="text-lg font-semibold mb-4 border-b border-b-[rgba(255,255,255,0.1)] pb-4"
         >
@@ -119,17 +119,17 @@ const isOpen = ref(false);
 
     <div class="flex justify-between items-center rounded-xl w-full">
       <div class="flex gap-2">
-        <div class="font-brand tracking-wider">
-          <UButton
-            variant="outline"
-            @click="isOpen = true"
+        <div
+          class="font-brand tracking-wider ring-cyan-500 text-cyan-500 bg-cyan-100/50 hover:bg-cyan-100/50 dark:ring-cyan-400 dark:text-cyan-400 dark:bg-neutral-800/50 dark:hover:bg-neutral-800/50"
+        >
+          <UButton variant="outline" @click="isOpen = true"
             >View Contracts</UButton
           >
         </div>
       </div>
       <div
         @click="openCommitUrl"
-        class="text-sm text-gray-600 dark:text-gray-300 justify-self-center margin-auto hover:cursor-pointer"
+        class="text-sm text-neutral-600 dark:text-neutral-300 justify-self-center margin-auto hover:cursor-pointer"
       >
         Version: {{ version }} | Commit: {{ commitHash.slice(0, 7) }}...
       </div>

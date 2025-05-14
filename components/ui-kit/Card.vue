@@ -18,25 +18,20 @@ const onInView = ([{ isIntersecting }]: [{ isIntersecting: boolean }]) => {
   <div
     v-intersection-observer="[onInView, { threshold: 0.75 }]"
     :class="[isVisible ? 'opacity-100' : 'opacity-70']"
-    class="shadow-xl dark:ring-4 ring-4 dark:ring-teal-600/10 ring-slate-200/70 p-px rounded-3xl w-full relative group transition-all duration-700 lg:opacity-100 h-full"
+    class="rounded-xl w-full relative group h-full border-2 border-neutral-200 hover:border-cyan-500 dark:border-neutral-800 dark:hover:border-cyan-500 lg:opacity-100"
   >
-    <div
-      :class="[isVisible ? 'opacity-100' : 'opacity-0']"
-      class="bg-gradient-to-br dark:from-cyan-300 dark:to-cyan-500 from-zinc-200 to-gray-300 blur w-full h-full absolute inset-0 rounded-3xl lg:opacity-0 lg:group-hover:opacity-100 dark:ring-cyan-400 shadow-2xl ring-1 dark:shadow-teal-900 shadow-gray-800 transition-all duration-700"
-    ></div>
-
     <!-- Inner -->
     <div
       :class="[
         isVisible
-          ? 'dark:bg-gray-900 bg-slate-200'
-          : 'dark:bg-gray-900/60 bg-slate-200/60',
+          ? 'bg-white dark:bg-neutral-900'
+          : 'bg-white/90 dark:bg-neutral-900/90',
       ]"
-      class="dark:group-hover:bg-gray-900 group-hover:bg-slate-100 relative flex flex-col h-full rounded-3xl dark:lg:bg-gray-900/60 bg-gradient-to-br from-slate-100/50 to-gray-300/50 dark:bg-none overflow-hidden transition-all duration-700"
+      class="relative flex flex-col h-full rounded-xl overflow-hidden"
     >
       <h2
         v-if="title"
-        class="dark:text-cyan-200 lg:text-3xl text-2xl tracking-wide flex items-center gap-2 py-4 px-4 relative z-10 font-brand"
+        class="text-neutral-800 group-hover:text-cyan-600 dark:text-neutral-100 dark:group-hover:text-cyan-300 text-xl tracking-wide flex items-center gap-2 py-4 px-4 relative z-10 font-medium"
       >
         <Icon v-if="icon" :name="icon" />
         {{ title }}
@@ -49,7 +44,7 @@ const onInView = ([{ isIntersecting }]: [{ isIntersecting: boolean }]) => {
         <slot></slot>
       </div>
       <div
-        class="absolute h-12 dark:bg-gray-900 bg-slate-100 w-full bottom-0 [mask-image:linear-gradient(to_top,black_20%,transparent)] block lg:hidden"
+        class="absolute h-12 bg-white dark:bg-neutral-900 w-full bottom-0 [mask-image:linear-gradient(to_top,black_20%,transparent)] block lg:hidden"
       ></div>
     </div>
   </div>

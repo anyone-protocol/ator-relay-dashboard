@@ -32,8 +32,17 @@
       />
     </Card>
   </DashboardMobileSection>
-  <UModal v-model="registerModalOpen">
-    <UCard class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg relative">
+  <UModal
+    v-model="registerModalOpen"
+    :ui="{
+      overlay: {
+        background: 'bg-neutral-200/50 dark:bg-neutral-800/50',
+      },
+    }"
+  >
+    <UCard
+      class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
+    >
       <div class="flex gap-2 mb-4 pb-4">
         <Icon
           name="material-symbols:lock"
@@ -59,11 +68,12 @@
               <UInput
                 v-model="fingerPrintRegister"
                 placeholder="012382382142349FJSSDFJO31239"
-                class="w-full bg-transparent text-gray-900 dark:text-gray-50 focus:outline-none border-none"
+                class="w-full text-neutral-900 dark:text-neutral-50 border-none"
                 :rules="[rules.required]"
                 :error="fingerPrintRegisterError !== null"
                 persistent-hint
                 input-class="text-sm md:text-md"
+                color="neutral"
                 size="xl"
               >
                 <template #leading>
@@ -76,16 +86,17 @@
               </UInput>
             </div>
           </UFormGroup>
-          <UFormGroup label="Operator's ETH Wallet">
+          <UFormGroup label="Operator's ETH Wallet" class="mt-5">
             <div class="relative">
               <UInput
                 v-model="ethAddress"
                 placeholder="0x2abe87c45e0969a499bc003543ed9c661fa77049"
-                class="border-2 rounded-md w-full text-gray-900 dark:text-gray-50 bg-transparent border-[#24adc3] text-sm"
+                class="border-2 rounded-md w-full text-neutral-900 dark:text-neutral-50 bg-transparent border-[#24adc3] text-sm"
                 :rules="[rules.required]"
                 :error="ethAddressError !== null"
                 persistent-hint
                 input-class="text-sm md:text-md"
+                color="neutral"
                 size="xl"
               >
                 <template #leading>
@@ -102,6 +113,7 @@
         <div class="flex justify-end gap-4">
           <UButton
             variant="outline"
+            color="cyan"
             size="sm"
             @click="registerModalOpen = false"
             class="cancel-btn"
@@ -111,7 +123,7 @@
           <UButton
             variant="solid"
             size="sm"
-            color="primary"
+            color="cyan"
             @click="handleLockRemote"
             :loading="lockRemoteLoading"
             class="lock-btn"
@@ -234,7 +246,7 @@ watch(
 onMounted(async () => {
   console.log('Mounted - Starting initialization');
   // initDistribution();
-  await useRelayRewards().refresh()
+  await useRelayRewards().refresh();
   initFacilitator();
   initRegistrator();
   initToken();
