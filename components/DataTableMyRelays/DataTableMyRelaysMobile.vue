@@ -21,6 +21,7 @@ import { ethers } from 'ethers';
 import { watchAccount } from '@wagmi/core';
 import { defineProps } from 'vue';
 import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
+import { useHodler } from '~/composables/hodler';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -30,10 +31,10 @@ const props = defineProps<{
 const toast = useToast();
 const userStore = useUserStore();
 const metricsStore = useMetricsStore();
-const registratorStore = useRegistratorStore();
 const facilitatorStore = useFacilitatorStore();
-const registrator = useRegistrator();
 const operatorRegistry = useOperatorRegistry();
+const hodler = useHodler();
+const hodlerStore = useHolderStore();
 
 const isHovered = ref(false);
 const isUnlocking = ref(false);
@@ -43,12 +44,11 @@ const { address } = useAccount({ config } as any);
 const registerModalOpen = ref(false);
 
 onMounted(() => {
-  // refresh the locked relays every minute
+  // refresh everything every 60 seconds
   setInterval(() => {
-    if (registrator) {
+    if (hodler) {
       if (userStore.userData.address) {
-        // refresh the relays every minute
-        registrator.getLokedRelaysTokens(userStore.userData.address);
+        hodler.refresh();
       }
     }
   }, 1000 * 60);
@@ -90,8 +90,8 @@ watch(allRelays, async () => {
   await fetchRegistrationCredit();
 });
 
-const { lokedRelays: lockedRelays, loading: lockedRelaysPending } =
-  storeToRefs(registratorStore);
+const { locks: lockedRelays, loading: lockedRelaysPending } =
+  storeToRefs(hodlerStore);
 
 const lockedRelaysMap = ref<Record<string, boolean | undefined>>({});
 
@@ -440,7 +440,7 @@ const getTableData = (tab: RelayTabType) => {
     case 'locked':
       return filterUniqueRelays(
         allRelays.value.filter((relay) =>
-          registratorStore.isRelayLocked(relay.fingerprint)
+          hodlerStore.relayIsLocked(relay.fingerprint)
         )
       );
     case 'claimable':
@@ -457,17 +457,15 @@ const getObservedBandwidth = (fingerprint: string) => {
 };
 
 const handleUnlockClick = async (fingerprint: string) => {
-  if (registratorStore.isRelayLocked(fingerprint)) {
-    isUnlocking.value = true;
-    const register = useRegistrator();
-    try {
-      await register?.unlock(fingerprint, BigInt(100 * 1e18));
-      // Refresh the relays
-      await userStore.createRelayCache();
-    } catch (error) {
-    } finally {
-      isUnlocking.value = false;
-    }
+  isUnlocking.value = true;
+  const hodler = useHodler();
+  try {
+    await hodler?.unlock(fingerprint, userStore.userData.address!);
+    // Refresh the relays
+    await userStore.createRelayCache();
+  } catch (error) {
+  } finally {
+    isUnlocking.value = false;
   }
 };
 </script>
@@ -757,7 +755,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
           :is-loading="
-            registratorStore.loading || lockedRelaysPending || allRelaysPending
+            hodlerStore.loading || lockedRelaysPending || allRelaysPending
           "
         />
       </div>
@@ -774,7 +772,7 @@ const handleUnlockClick = async (fingerprint: string) => {
             isHardwareResolved?.[row.fingerprint]
           "
           :is-loading="
-            registratorStore.loading || lockedRelaysPending || allRelaysPending
+            hodlerStore.loading || lockedRelaysPending || allRelaysPending
           "
           :has-registration-credit="relayCredits[row.fingerprint]"
           :registration-credits-required="registrationCreditsRequired ?? false"
@@ -786,9 +784,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           v-if="currentTab === 'locked'"
           :ui="{ base: 'text-sm' }"
           :class="{
-            'cursor-not-allowed min-w-[140px]':
-              (!registratorStore.isUnlockable(row.fingerprint) && isHovered) ||
-              isUnlocking,
+            'cursor-not-allowed min-w-[140px]': isUnlocking,
           }"
           icon="i-heroicons-check-circle-solid"
           size="xl"
@@ -847,7 +843,7 @@ const handleUnlockClick = async (fingerprint: string) => {
         </div>
         <UBadge
           v-if="
-            registratorStore.isRelayOwner(
+            hodlerStore.isRelayOwner(
               row.fingerprint,
               userStore.userData.address!
             )
