@@ -67,6 +67,7 @@ export default defineNuxtConfig({
       distributionContract: '22rOD-_0isRZQaw0EBGh6Ko0ri5IPE7cYTaMThhPENk',
       metricsDeployer: '53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q',
       registratorContract: '0xBaDEfC9bFdD8bAf78D948E4C9dB76734A056e2BD',
+      hodlerContract: '0x853B73e080293CE696653cA466Ff2c3aAD92992f',
       distributionDeployer: 'G5tXjZS4SaMJNwOENZYgymvc6Zxp2Wws4Qf8wB0b',
       warpGateway: 'https://gw.warp.cc/gateway/v2',
       centralizedMetricsAPI: 'https://api.ec.anyone.tech',
@@ -81,7 +82,7 @@ export default defineNuxtConfig({
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '1.9.0',
+      version: '1.9.1',
     },
   },
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],

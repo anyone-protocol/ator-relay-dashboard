@@ -176,6 +176,7 @@ import Card from '~/components/ui-kit/Card.vue';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 import { useMediaQuery } from '@vueuse/core';
 import { useFacilitator } from '@/composables/facilitator';
+import { initHodler, useHodler } from '~/composables/hodler';
 
 const isMobile = useMediaQuery('(max-width: 1024px)');
 
@@ -183,6 +184,7 @@ const userStore = useUserStore();
 const registrator = useRegistrator();
 const registratorStore = useRegistratorStore();
 const facilitatorStore = useFacilitatorStore();
+const hodlerStore = useHolderStore();
 const registerModalOpen = ref(false);
 const currentTab = ref<RelayTabType>('all');
 const metricsStore = useMetricsStore();
@@ -248,6 +250,7 @@ onMounted(async () => {
   initFacilitator();
   initRegistrator();
   initToken();
+  initHodler();
   await new Promise((resolve) => setTimeout(resolve, 2000));
   initializeAndFetchData(userStore.userData.address);
 });

@@ -33,11 +33,7 @@
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-bold">
-                      {{
-                        formatEtherNoRound(
-                          registratorStore.totalLockedTokens || '0'
-                        )
-                      }}
+                      {{ Number(hodlerStore.lockedTokens).toFixed(2) }}
                     </span>
                     <span v-if="!isConnected" class="text-4xl font-bold">
                       --
@@ -71,18 +67,13 @@
               <div>
                 <Button
                   :disabled="
-                    !facilitatorStore.hasClaimableRewards ||
-                    isRedeemLoading ||
-                    !!facilitatorStore.pendingClaim
+                    !hodlerStore.hasClaimableRewards || isRedeemLoading
                   "
                   @onClick="handleClaimAllRewards"
                   class="mb-2"
                 >
-                  <span
-                    v-if="isRedeemLoading || !!facilitatorStore.pendingClaim"
-                    >Processing...</span
-                  >
-                  <span v-else-if="facilitatorStore.hasClaimableRewards"
+                  <span v-if="isRedeemLoading">Processing...</span>
+                  <span v-else-if="hodlerStore.hasClaimableRewards"
                     >Redeem Rewards</span
                   >
                   <span v-else>Nothing to Redeem</span>
@@ -117,7 +108,7 @@
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
                     formatEtherNoRound(
-                      facilitatorStore.totalClaimedTokens || '0'
+                      hodlerStore?.claimData?.totalClaimed || '0'
                     )
                   }}
                 </span>
@@ -156,11 +147,7 @@
               </template>
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
-                  {{
-                    formatEtherNoRound(
-                      facilitatorStore.calculatedAirdrop || '0'
-                    )
-                  }}
+                  {{ formatEtherNoRound(hodlerStore.calculatedAirdrop || '0') }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
                 <Ticker />
@@ -184,9 +171,9 @@
               <template v-else>
                 <span v-if="isConnected" class="text-4xl font-bold">
                   {{
-                    parseFloat(
-                      formatUnits(facilitatorStore.availableAllocatedTokens, 18)
-                    ).toFixed(2)
+                    formatEtherNoRound(
+                      hodlerStore.claimData?.totalClaimable || '0'
+                    )
                   }}
                 </span>
                 <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
@@ -203,9 +190,8 @@
 <script setup lang="ts">
 import { useAccount } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
-import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { useUserStore } from '@/stores/useUserStore';
-import { useRegistratorStore } from '@/stores/useRegistratorStore';
+// import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import UserBalance from '@/components/UserBalance.vue';
 import Button from '@/components/ui-kit/Button.vue';
@@ -221,10 +207,11 @@ import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
 import { useRelayRewards } from '@/composables/relay-rewards';
 import { formatUnits } from 'viem';
+import { initHodler, useHodler } from '~/composables/hodler';
 
 const userStore = useUserStore();
-const facilitatorStore = useFacilitatorStore();
-const registratorStore = useRegistratorStore();
+// const registratorStore = useRegistratorStore();
+const hodlerStore = useHolderStore();
 const { isConnected, address } = useAccount({ config } as any);
 const { allRelays } = storeToRefs(userStore);
 
@@ -248,8 +235,11 @@ const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
 );
 const { tokenBalance } = storeToRefs(userStore);
 
-const { lokedRelays: lockedRelays, loading: lockedRelaysPending } =
-  storeToRefs(registratorStore);
+const {
+  locks: lockedRelays,
+  loading: lockedRelaysPending,
+  lockedTokens,
+} = storeToRefs(hodlerStore);
 const hasEnoughBalance = ref(false);
 const hasEnoughBalancePending = ref(true);
 
@@ -273,27 +263,15 @@ const fetchInitialData = async (
   if (!isConnected || !newAddress || !address) return;
 
   try {
-    if (!facilitatorStore?.initialized || forceRefresh) {
+    if (!hodlerStore?.initialized || forceRefresh) {
+      lockedPending.value = true;
       claimedPending.value = true;
       claimablePending.value = true;
-    }
-    if (!registratorStore?.initialized || forceRefresh) {
-      lockedPending.value = true;
-    }
-
-    facilitatorStore.pendingClaim = getRedeemProcessSessionStorage(newAddress);
-    // Pending claim is not null on initial load
-    if (facilitatorStore.pendingClaim) {
-      facilitatorStore.resetPendingClaim();
-      facilitatorStore.pendingClaim = null;
     }
 
     await Promise.all([
       userStore.getTokenBalance(),
-      (!facilitatorStore?.initialized || forceRefresh) &&
-        useFacilitator()?.refresh(),
-      (!registratorStore?.initialized || forceRefresh) &&
-        useRegistrator()?.refresh(),
+      (!hodlerStore?.initialized || forceRefresh) && useHodler()?.refresh(),
       useRelayRewards().refresh(),
       useDistribution().airdropTokens(newAddress as string),
     ]);
@@ -313,16 +291,11 @@ onMounted(async () => {
   try {
     // await initDistribution();
     // initRelayRegistry();
-    initFacilitator();
-    initRegistrator();
-    initToken();
+    initHodler();
     // add 5 seconds delay
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     await fetchInitialData(userStore.userData.address);
-    if (!facilitatorStore.pendingClaim) {
-      progressLoading.value = 0;
-    }
   } catch (error) {
     console.error('Error during onMounted execution', error);
   } finally {
@@ -337,22 +310,22 @@ watch(
   }
 );
 
-watch(
-  () => facilitatorStore.pendingClaim,
-  (updatedPendingClaim) => {
-    progressLoading.value = updatedPendingClaim ? 2 : 0;
-  }
-);
+// watch(
+//   () => facilitatorStore.pendingClaim,
+//   (updatedPendingClaim) => {
+//     progressLoading.value = updatedPendingClaim ? 2 : 0;
+//   }
+// );
 
 const calculatedAirdropPending = ref(false);
 
 //watch and do the calculate airdrop
 watch(
-  () => [facilitatorStore.totalClaimedTokens, facilitatorStore.airDropTokens],
+  () => [hodlerStore.claimData.totalClaimed, hodlerStore.airDropTokens],
   ([totalClaimedTokens, airDropTokens]) => {
     calculatedAirdropPending.value = true;
     if (totalClaimedTokens && airDropTokens) {
-      facilitatorStore.calculatedAirdrop = calculateAirdrop(
+      hodlerStore.calculatedAirdrop = calculateAirdrop(
         totalClaimedTokens,
         airDropTokens
       );
@@ -419,7 +392,7 @@ const handleClaimAllRewards = async () => {
   }
 
   isRedeemLoading.value = false;
-  facilitatorStore.pendingClaim = null;
+  // facilitatorStore.pendingClaim = null;
   progressLoading.value = 0;
 };
 </script>
