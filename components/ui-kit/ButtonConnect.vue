@@ -1,19 +1,24 @@
 <script setup lang="ts">
-import { useWeb3Modal } from '@web3modal/wagmi/vue';
-import { useAccount, useDisconnect, useSwitchChain } from '@wagmi/vue';
+import {
+  useAccount,
+  useDisconnect,
+  useSwitchChain,
+  type Config,
+} from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import Address from './Address.vue';
 import { ref } from 'vue';
 import { getChainId } from '@wagmi/core';
 import { useUserStore } from '@/stores/useUserStore';
+import { useAppKit } from '@reown/appkit/vue';
 
 const { address, status, isDisconnected, isReconnecting, isConnecting } =
   useAccount({ config });
-const { open } = useWeb3Modal();
+const { open } = useAppKit();
 const { disconnect } = useDisconnect({ config });
 
 const { chains, switchChain } = useSwitchChain({ config });
-const chainId = getChainId(config);
+const chainId = getChainId(config as Config);
 
 const isWrongNetwork = computed(
   () => !chains.value.some((chainItem) => chainItem.id === chainId)
@@ -58,28 +63,6 @@ const handleDisconnect = () => {
           @click="handleDisconnect"
           >Disconnect</UButton
         >
-
-        <!-- <div>
-          <h5 class="text-sm font-medium mb-2">Current Network</h5>
-          <div class="space-y-2">
-            <UButton
-              v-for="chainItem in chains"
-              :key="chainItem.id"
-              class="w-full"
-              variant="outline"
-              :class="{
-                'opacity-50 cursor-not-allowed': chainId === chainItem.id,
-              }"
-              @click="switchChain({ chainId: chainItem.id })"
-              :disabled="chainId === chainItem.id"
-            >
-              {{ chainItem.name }}
-              <span v-if="chainId === chainItem.id" class="ml-2"
-                >(Connected)</span
-              >
-            </UButton>
-          </div>
-        </div> -->
       </div>
 
       <template #footer>
