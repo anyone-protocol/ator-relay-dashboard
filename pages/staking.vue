@@ -43,22 +43,18 @@
           <UCard
             class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
           >
-            <div class="flex gap-2 mb-2 pb-4">
+            <div class="flex gap-2 mb-2 pb-2">
               <Icon
                 name="i-heroicons-chart-pie-20-solid"
                 color="#24adc3"
                 class="h-6 w-auto"
               ></Icon>
 
-              <h4 class="text-lg font-semibold">Stake with an operator</h4>
+              <h4 class="text-lg font-semibold">Stake with operator:</h4>
             </div>
-            <form
-              @submit.prevent="submitStakeForm"
-              class="mt-6 md:mt-0 w-full md:w-auto"
-            >
-              <div class="text-gray-400 mb-2">Staking with operator:</div>
+            <form @submit.prevent="submitStakeForm" class="w-full md:w-auto">
               <UInput
-                class="mb-2"
+                class="mb-6"
                 :disabled="true"
                 :model-value="selectedOperator?.operator"
               />
@@ -73,7 +69,8 @@
                 />
                 <div class="flex justify-end gap-3 mt-5">
                   <UButton
-                    @click="stakeDialogOpen = false"
+                    size="xs"
+                    @click="[(stakeAmount = 0), (stakeDialogOpen = false)]"
                     type="button"
                     variant="outline"
                     color="cyan"
@@ -83,7 +80,9 @@
                   </UButton>
                   <UButton
                     :loading="isSubmitting.value"
+                    :disabled="!stakeAmount"
                     type="submit"
+                    size="xs"
                     variant="solid"
                     color="cyan"
                     class="justify-center text-md"
@@ -96,7 +95,66 @@
           </UCard>
         </UModal>
 
-        <div class="flex justify-end"></div>
+        <!-- Unstake dialog -->
+        <UModal v-model="unstakeDialogOpen">
+          <UCard
+            class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
+          >
+            <div class="flex gap-2 mb-2 pb-2">
+              <Icon
+                name="i-heroicons-chart-pie-20-solid"
+                color="#24adc3"
+                class="h-6 w-auto"
+              ></Icon>
+
+              <h4 class="text-lg font-semibold">Unstake from operator:</h4>
+            </div>
+            <form
+              @submit.prevent="submitUnstakeForm"
+              class="mt-6 md:mt-0 w-full md:w-auto"
+            >
+              <!-- <div class="text-gray-400 mb-2">Staking with operator:</div> -->
+              <UInput
+                class="mb-6"
+                :disabled="true"
+                :model-value="selectedOperator?.operator"
+              />
+              <div class="flex flex-col gap-2">
+                <div class="text-gray-400">Amount to unstake:</div>
+                <UInput
+                  v-model="unstakeAmount"
+                  color="neutral"
+                  placeholder="Amount to unstake"
+                  type="number"
+                  min="0"
+                />
+                <div class="flex justify-end gap-3 mt-5">
+                  <UButton
+                    size="xs"
+                    @click="[(unstakeAmount = 0), (unstakeDialogOpen = false)]"
+                    type="button"
+                    variant="outline"
+                    color="cyan"
+                    class="justify-center text-md"
+                  >
+                    Cancel
+                  </UButton>
+                  <UButton
+                    :disabled="!unstakeAmount"
+                    :loading="isSubmitting.value"
+                    type="submit"
+                    size="xs"
+                    variant="solid"
+                    color="cyan"
+                    class="justify-center text-md"
+                  >
+                    {{ isPending ? 'Unstaking' : 'Unstake' }}
+                  </UButton>
+                </div>
+              </div>
+            </form>
+          </UCard>
+        </UModal>
       </template>
       <template #vault="{ item }">
         <p>{{ item.label }}</p>
@@ -136,7 +194,10 @@ const CONTRACT_ADDRESS = '0x948B3c65b89DF0B4894ABE91E6D02FE579834F8F';
 const OPERATOR_ADDRESS = '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC';
 
 const stakeDialogOpen = ref(false);
+const unstakeDialogOpen = ref(false);
 const stakeAmount = ref(0);
+const unstakeAmount = ref(0);
+const operatorAction = ref<'stake' | 'unstake' | null>(null);
 const selectedOperator = ref<Operator | null>(null);
 const hodlerAddress = computed(() => address.value);
 const operators = computed(() => {
@@ -219,36 +280,31 @@ const operatorActionItems = (row: Operator) => [
     {
       label: 'Stake',
       icon: 'i-heroicons-chart-pie-20-solid',
-      click: () => [
-        (selectedOperator.value = row),
-        (stakeDialogOpen.value = true),
-      ],
+      click: () => [(selectedOperator.value = row), handleStake()],
     },
     {
       label: 'Unstake',
-      icon: 'i-heroicons-minus-circle-20-solid',
-      click: () => console.log(`Unstaking with operator: ${row.operator}`),
+      icon: 'i-heroicons-x-circle-20-solid',
+      click: () => [(selectedOperator.value = row), handleUnstake()],
+      disabled: !row.amount,
     },
   ],
 ];
 
-function select(row: Operator) {
-  const index = selected.value.findIndex(
-    (item) => item.operator === row.operator
-  );
-  if (index === -1) {
-    selected.value = [row];
-  } else {
-    selected.value = [];
-  }
-}
+const handleStake = () => {
+  stakeDialogOpen.value = true;
+  operatorAction.value = 'stake';
+};
 
-const selected = ref<Operator[]>([]);
+const handleUnstake = () => {
+  unstakeDialogOpen.value = true;
+  operatorAction.value = 'unstake';
+};
 
 const submitStakeForm = async () => {
   if (!isConnected) {
     toast.add({
-      title: 'Please connect your wallet',
+      title: 'Please connect your wallet to stake',
       color: 'red',
     });
     return;
@@ -296,13 +352,56 @@ const submitStakeForm = async () => {
   }
 };
 
+const submitUnstakeForm = async () => {
+  if (!isConnected) {
+    toast.add({
+      title: 'Please connect your wallet to unstake',
+      color: 'red',
+    });
+    return;
+  }
+
+  if (!unstakeAmount.value || Number(unstakeAmount.value) <= 0) {
+    toast.add({
+      title: 'Enter a valid amount to unstake',
+      color: 'red',
+    });
+    return;
+  }
+
+  try {
+    const amount = parseEther(unstakeAmount.value.toString());
+
+    await writeContractAsync({
+      address: CONTRACT_ADDRESS,
+      abi: hodlerAbi,
+      functionName: 'unstake',
+      args: [OPERATOR_ADDRESS, amount],
+    });
+  } catch (error) {
+    console.error('UnstakingError:', error);
+    toast.add({
+      title: 'Failed to unstake tokens',
+      color: 'red',
+    });
+  }
+};
+
 watch(isConfirmed, (confirmed) => {
   if (confirmed) {
-    toast.add({
-      title: `Staked ${stakeAmount.value} tokens with operator`,
-      color: 'green',
-    });
-    stakeAmount.value = 0;
+    if (operatorAction.value === 'stake') {
+      toast.add({
+        title: `Staked ${stakeAmount.value} tokens with operator`,
+        color: 'green',
+      });
+      stakeAmount.value = 0;
+    } else if (operatorAction.value === 'unstake') {
+      toast.add({
+        title: `Unstaked ${unstakeAmount.value} tokens from operator`,
+        color: 'green',
+      });
+      unstakeAmount.value = 0;
+    }
   }
 });
 </script>
