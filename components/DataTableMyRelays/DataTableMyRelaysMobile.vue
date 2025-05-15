@@ -15,8 +15,6 @@ import BigNumber from 'bignumber.js';
 
 import LockStatusColumn from './columns/LockStatusColumn.vue';
 import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
-import { useRegistrator } from '@/composables/registrator';
-import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import { ethers } from 'ethers';
 import { watchAccount } from '@wagmi/core';
 import { defineProps } from 'vue';
@@ -356,8 +354,8 @@ const handleLockRelay = async (fingerprint: string) => {
   };
 
   try {
-    const register = useRegistrator();
-    register?.lock(fingerprint, '').then(async (result) => {
+    const hodler = useHodler();
+    hodler?.lock(fingerprint, '').then(async (result) => {
       searchWithBackoff(0);
 
       selectedRow!.class = '';
@@ -403,8 +401,8 @@ const handleLockRemote = async () => {
   }
 
   try {
-    const register = useRegistrator();
-    const success = await register?.lock(
+    const hodler = useHodler();
+    const success = await hodler?.lock(
       fingerPrintRegister.value,
       ethAddress.value
     );
