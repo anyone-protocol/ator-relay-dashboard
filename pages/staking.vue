@@ -1,5 +1,9 @@
 <template>
   <Card>
+    <div class="flex items-center space-x-2 mb-6">
+      <Icon name="dashicons:chart-pie" class="text-2xl" />
+      <h2 class="text-2xl">Staking</h2>
+    </div>
     <UTabs
       :items="items"
       :ui="{
