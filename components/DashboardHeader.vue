@@ -60,6 +60,20 @@ const menuStore = useMenuStore();
               >
             </RouterLink>
           </li>
+          <li>
+            <RouterLink to="/staking" v-slot="{ isActive }">
+              <UButton
+                variant="outline"
+                class="nav-button uniform-height text-sm lg:text-base lg:flex hidden"
+                :class="[
+                  isActive
+                    ? 'ring-cyan-500 text-cyan-500 bg-cyan-100/50 hover:bg-cyan-100/50 dark:ring-cyan-400 dark:text-cyan-400 dark:bg-gray-800/50 dark:hover:bg-gray-800/50'
+                    : 'ring-neutral-200 text-neutral-950 hover:bg-neutral-100/50 dark:ring-neutral-700 dark:text-neutral-50 dark:hover:bg-neutral-800/50',
+                ]"
+                >Staking</UButton
+              >
+            </RouterLink>
+          </li>
           <div class="lg:flex items-center gap-2 hidden h-full">
             <ReportIssueButton class="uniform-height" v-if="isConnected" />
           </div>
