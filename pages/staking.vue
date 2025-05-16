@@ -1,11 +1,12 @@
 <template>
   <Card>
     <div class="flex items-center space-x-2 mb-6">
-      <Icon name="dashicons:chart-pie" class="text-2xl" />
-      <h2 class="text-2xl">Staking</h2>
+      <Icon name="i-heroicons-chart-pie-20-solid" class="text-3xl" />
+      <h2 class="text-3xl">Staking</h2>
     </div>
     <UTabs
-      :items="items"
+      :items="tabItems"
+      @change="onTabChange"
       :ui="{
         list: {
           width: 'w-max',
@@ -28,16 +29,40 @@
             icon: 'i-heroicons-circle-stack-20-solid',
             label: 'No operators.',
           }"
-          :columns="columns"
+          :columns="operatorColumns"
           :rows="operators"
         >
+          <template #operator-data="{ row }: { row: Operator }">
+            <span> {{ truncatedAddress(row.operator) }} </span>
+          </template>
           <template #actions-data="{ row }">
-            <UDropdown :items="operatorActionItems(row)">
+            <UDropdown
+              :items="operatorActionItems(row)"
+              :popper="{ placement: 'right-start' }"
+            >
               <UButton
                 color="neutral"
                 variant="ghost"
                 icon="i-heroicons-ellipsis-horizontal-20-solid"
               />
+
+              <template #item="{ item }">
+                <UIcon
+                  :name="
+                    item.label === 'Copy Address' && copied
+                      ? 'i-heroicons-check-20-solid'
+                      : item.icon
+                  "
+                  class="w-[1rem] h-[1rem]"
+                />
+                <span>
+                  {{
+                    item.label === 'Copy Address' && copied
+                      ? 'Copied!'
+                      : item.label
+                  }}
+                </span>
+              </template>
             </UDropdown>
           </template>
         </UTable>
@@ -160,8 +185,16 @@
           </UCard>
         </UModal>
       </template>
-      <template #vault="{ item }">
-        <p>{{ item.label }}</p>
+      <template #vaults="{ item }">
+        <UTable
+          :empty-state="{
+            icon: 'i-heroicons-circle-stack-20-solid',
+            label: 'No vaults.',
+          }"
+          :columns="vaultColumns"
+          :rows="vaults"
+        >
+        </UTable>
       </template>
     </UTabs>
   </Card>
@@ -180,6 +213,14 @@ import {
   tokenAbi,
 } from '../assets/contract-artifacts/wagmi-generated';
 import { formatUnits, parseEther } from 'viem';
+import { useClipboard } from '@vueuse/core';
+
+interface Vault {
+  amount: bigint;
+  availableAt: bigint;
+  kind: bigint;
+  data: string;
+}
 
 interface Operator {
   operator: `0x${string}`;
@@ -193,6 +234,7 @@ const { isLoading: isConfirming, isSuccess: isConfirmed } =
     hash,
   });
 const toast = useToast();
+const { copy, copied } = useClipboard();
 
 const CONTRACT_ADDRESS = '0x948B3c65b89DF0B4894ABE91E6D02FE579834F8F';
 const OPERATOR_ADDRESS = '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC';
@@ -201,6 +243,7 @@ const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
 const stakeAmount = ref(0);
 const unstakeAmount = ref(0);
+const currentTab = ref<'operators' | 'vaults'>('operators');
 const operatorAction = ref<'stake' | 'unstake' | null>(null);
 const selectedOperator = ref<Operator | null>(null);
 const hodlerAddress = computed(() => address.value);
@@ -215,6 +258,26 @@ const operators = computed(() => {
   });
   return stakes;
 });
+const vaults = computed(() => {
+  if (!vaultsData.value) return [];
+  const data = vaultsData.value.map((vault) => {
+    const amount = formatUnits(vault.amount, 18);
+    const timeDiff = Number(vault.availableAt) * 1000 - Date.now();
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const availableAt = `${days} Days ${hours} Hrs ${minutes} Min`;
+    return {
+      amount,
+      data: truncatedAddress(vault.data),
+      kind: vault.kind,
+      availableAt,
+    };
+  });
+  return data;
+});
 const isSubmitting = computed(() => isPending || isConfirming);
 
 const {
@@ -227,7 +290,8 @@ const {
   functionName: 'getStakes',
   args: [hodlerAddress.value as `0x${string}`],
   query: {
-    enabled: !!hodlerAddress.value,
+    enabled:
+      !!hodlerAddress.value && computed(() => currentTab.value === 'operators'),
   },
 });
 
@@ -241,7 +305,7 @@ const { data: tokenAddress } = useReadContract({
   address: CONTRACT_ADDRESS,
   abi: hodlerAbi,
   functionName: 'tokenContract',
-  query: { enabled: true },
+  query: { enabled: computed(() => currentTab.value === 'operators') },
 });
 
 const { data: allowance } = useReadContract({
@@ -254,18 +318,24 @@ const { data: allowance } = useReadContract({
   },
 });
 
-const items = [
+const onTabChange = (index: number) => {
+  const item = tabItems[index];
+
+  currentTab.value = item.slot as 'operators' | 'vaults';
+};
+
+const tabItems = [
   {
     slot: 'operators',
     label: 'Operators',
   },
   {
-    slot: 'vault',
-    label: 'Vault',
+    slot: 'vaults',
+    label: 'Vaults',
   },
 ];
 
-const columns = [
+const operatorColumns = [
   {
     key: 'operator',
     label: 'Address',
@@ -292,8 +362,45 @@ const operatorActionItems = (row: Operator) => [
       click: () => [(selectedOperator.value = row), handleUnstake()],
       disabled: !row.amount,
     },
+    {
+      label: 'Copy Address',
+      icon: 'i-heroicons-clipboard-20-solid',
+      click: (e: any) => [e.preventDefault(), copy(row.operator)],
+    },
   ],
 ];
+
+const vaultColumns = [
+  {
+    key: 'data',
+    label: 'From',
+  },
+  {
+    key: 'amount',
+    label: 'Amount in vault',
+  },
+  {
+    key: 'availableAt',
+    label: 'Available in',
+  },
+  {
+    key: 'kind',
+    label: 'Type',
+  },
+  {
+    key: 'actions',
+  },
+];
+
+// const vaultActionItems = (row: Vault) => [
+//   [
+//     {
+//       label: 'Claim',
+//       icon: '',
+//       click:
+//     },
+//   ],
+// ];
 
 const handleStake = () => {
   stakeDialogOpen.value = true;
@@ -407,5 +514,14 @@ watch(isConfirmed, (confirmed) => {
       unstakeAmount.value = 0;
     }
   }
+});
+
+// vault stuff
+const { data: vaultsData } = useReadContract({
+  address: CONTRACT_ADDRESS,
+  abi: hodlerAbi,
+  functionName: 'getVaults',
+  args: [hodlerAddress.value as `0x${string}`],
+  query: { enabled: computed(() => currentTab.value === 'vaults') },
 });
 </script>
