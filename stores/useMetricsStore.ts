@@ -198,7 +198,14 @@ export const useMetricsStore = defineStore('metrics', {
     },
     async refreshRelayMetrics(limit: number = 1) {
       this.relayMetricsPending = true;
+      const startTime = performance.now();
       await this.centralizedRelayMetrics();
+      const endTime = performance.now();
+      logger.info(
+        `Centralized relay metrics refreshed in ${(endTime - startTime).toFixed(
+          2
+        )} ms`
+      );
       this.relayMetricsPending = false;
     },
   },

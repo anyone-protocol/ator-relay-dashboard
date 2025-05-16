@@ -10,7 +10,6 @@ import {
 import BigNumber from 'bignumber.js';
 
 import { abi } from './Facility.json';
-import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import { saveRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 import Logger from '~/utils/logger';
 // first round
@@ -238,11 +237,11 @@ export class Facilitator {
         .multipliedBy(gasPrice)
         .plus(usedBudget.minus(availableBudget));
 
-      useFacilitatorStore().totalClaimedTokens = totalClaimed.toString();
-      useFacilitatorStore().alocatedTokens = allocatedTokens.toString();
-      useFacilitatorStore().availableBudget = availableBudget.toString();
-      useFacilitatorStore().usedBudget = usedBudget.toString();
-      useFacilitatorStore().setInitialized(true);
+      // useFacilitatorStore().totalClaimedTokens = totalClaimed.toString();
+      // useFacilitatorStore().alocatedTokens = allocatedTokens.toString();
+      // useFacilitatorStore().availableBudget = availableBudget.toString();
+      // useFacilitatorStore().usedBudget = usedBudget.toString();
+      // useFacilitatorStore().setInitialized(true);
 
       this.logger.timeEnd();
       this.logger.info('Facilitator refreshed', {
@@ -268,7 +267,7 @@ export class Facilitator {
     )) as bigint;
 
     if (address === useUserStore().userData?.address) {
-      useFacilitatorStore().totalClaimedTokens = totalClaimedTokens.toString();
+      // useFacilitatorStore().totalClaimedTokens = totalClaimedTokens.toString();
     }
 
     return BigNumber(totalClaimedTokens.toString());
@@ -284,7 +283,7 @@ export class Facilitator {
     )) as bigint;
 
     if (address === useUserStore().userData?.address) {
-      useFacilitatorStore().alocatedTokens = allocatedTokens.toString();
+      // useFacilitatorStore().alocatedTokens = allocatedTokens.toString();
     }
 
     return BigNumber(allocatedTokens.toString());
@@ -439,7 +438,7 @@ export class Facilitator {
       }
       const block = await result.getBlock();
       const timestamp = block?.timestamp || Math.floor(Date.now() / 1000);
-      useFacilitatorStore().addPendingClaim(result.hash, timestamp);
+      // useFacilitatorStore().addPendingClaim(result.hash, timestamp);
 
       return result;
     } catch (error) {
@@ -489,7 +488,7 @@ export class Facilitator {
     const auth = useUserStore();
 
     try {
-      const facilitatorStore = useFacilitatorStore();
+      // const facilitatorStore = useFacilitatorStore();
       const result = await this.contract.updateAllocation(
         auth.userData.address,
         amount,
@@ -499,7 +498,7 @@ export class Facilitator {
       const block = await result.getBlock();
       const timestamp = block?.timestamp || Math.floor(Date.now() / 1000);
 
-      facilitatorStore.alocatedTokens = amount.toString();
+      // facilitatorStore.alocatedTokens = amount.toString();
       return result;
     } catch (error) {
       this.logger.error(ERRORS.REQUESTING_UPDATE, error);
@@ -522,8 +521,8 @@ export class Facilitator {
 
       if (auth.userData.address === address) {
         this.logger.info('onAllocationClaimed()', address, amount.toString());
-        const store = useFacilitatorStore();
-        await store.onAllocationClaimed(amount, event);
+        // const store = useFacilitatorStore();
+        // await store.onAllocationClaimed(amount, event);
         const tx = await event.getTransaction();
         await tx.wait();
         await this.getTotalClaimedTokens(auth.userData.address);
@@ -546,8 +545,8 @@ export class Facilitator {
       }
       if (auth.userData.address === address) {
         this.logger.info('onAllocationClaimed()', address, amount.toString());
-        const store = useFacilitatorStore();
-        await store.onAllocationUpdated(amount, event);
+        // const store = useFacilitatorStore();
+        // await store.onAllocationUpdated(amount, event);
         const tx = await event.getTransaction();
         await tx.wait();
         await this.getTotalClaimedTokens(auth.userData.address);

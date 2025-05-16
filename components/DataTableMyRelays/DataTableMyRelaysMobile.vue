@@ -4,7 +4,6 @@ import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
-import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import FingerprintDisplay from './FingerprintDisplay.vue';
 
 import Tabs from '../ui-kit/Tabs.vue';
@@ -29,7 +28,6 @@ const props = defineProps<{
 const toast = useToast();
 const userStore = useUserStore();
 const metricsStore = useMetricsStore();
-const facilitatorStore = useFacilitatorStore();
 const operatorRegistry = useOperatorRegistry();
 const hodler = useHodler();
 const hodlerStore = useHolderStore();
@@ -623,7 +621,8 @@ const handleUnlockClick = async (fingerprint: string) => {
         <div>
           <span>
             {{
-              facilitatorStore?.distributionPerRelay?.[row.fingerprint] || '-'
+              // facilitatorStore?.distributionPerRelay?.[row.fingerprint] ||
+              '-'
             }}
 
             <Popover placement="left" :arrow="false" mode="hover">
@@ -637,7 +636,7 @@ const handleUnlockClick = async (fingerprint: string) => {
                     >
 
                     {{
-                      facilitatorStore?.baseTokensPerRelay?.[row.fingerprint] ||
+                      // facilitatorStore?.baseTokensPerRelay?.[row.fingerprint] ||
                       '-'
                     }}
                     $ANYONE
@@ -649,8 +648,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Family Multiplier:</span
                     >
                     {{
-                      facilitatorStore?.multipliersPerRelay?.[row.fingerprint]
-                        ?.family || '-'
+                      // facilitatorStore?.multipliersPerRelay?.[row.fingerprint]?.family ||
+                      '-'
                     }}x
                   </div>
                   <div
@@ -660,8 +659,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Region Multiplier:</span
                     >
                     {{
-                      facilitatorStore?.multipliersPerRelay?.[row.fingerprint]
-                        ?.region || '-'
+                      // facilitatorStore?.multipliersPerRelay?.[row.fingerprint]?.region ||
+                      '-'
                     }}x
                   </div>
                   <div
@@ -671,8 +670,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Hardware Bonus:</span
                     >
                     {{
-                      facilitatorStore?.bonusesPerRelay?.[row.fingerprint]
-                        ?.hardware || '-'
+                      // facilitatorStore?.bonusesPerRelay?.[row.fingerprint]?.hardware ||
+                      '-'
                     }}
                     $ANYONE
                   </div>
@@ -683,8 +682,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Uptime Bonus:</span
                     >
                     {{
-                      facilitatorStore?.bonusesPerRelay?.[row.fingerprint]
-                        ?.quality || '-'
+                      // facilitatorStore?.bonusesPerRelay?.[row.fingerprint]?.quality ||
+                      '-'
                     }}
                     $ANYONE
                   </div>
@@ -695,7 +694,7 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Exit Bonus:</span
                     >
                     {{
-                      facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
+                      // facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
                       '-'
                     }}
                   </div>
@@ -704,8 +703,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                   >
                     <span class="text-gray-800 dark:text-white">Period:</span>
                     {{
-                      facilitatorStore?.previousDistributions[0]?.period / 60 +
-                        ' minutes' || '-'
+                      // facilitatorStore?.previousDistributions[0]?.period / 60 +' minutes' ||
+                      '-'
                     }}
                   </div>
                   <div
@@ -715,9 +714,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Last Distribution:</span
                     >
                     {{
-                      facilitatorStore?.lastDistributionTimePerRelay?.[
-                        row.fingerprint
-                      ] || '-'
+                      // facilitatorStore?.lastDistributionTimePerRelay?.[row.fingerprint] ||
+                      '-'
                     }}
                   </div>
                 </div>
