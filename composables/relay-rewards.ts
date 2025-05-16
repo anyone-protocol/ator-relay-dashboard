@@ -86,7 +86,7 @@ export class RelayRewards {
   constructor(private readonly processId: string) {}
 
   private setRefreshing(refreshing: boolean) {
-    useFacilitatorStore().distributionRefreshing = refreshing;
+    // useFacilitatorStore().distributionRefreshing = refreshing;
     this._refreshing = refreshing;
   }
 
@@ -132,82 +132,82 @@ export class RelayRewards {
         fromNowHumanized: moment(date).fromNow(),
       };
 
-      useFacilitatorStore().sumOfTotalDistributions =
-        previousDistribution.totalDistributed;
-      useFacilitatorStore().previousDistributions = [previousDistribution];
-      useFacilitatorStore().distributionPerRelay = Object.fromEntries(
-        Object.entries(previousRound.Details).map(([fingerprint, details]) => [
-          fingerprint,
-          BigNumber(details.Reward.Total)
-            .dividedBy(Math.pow(10, 18))
-            .decimalPlaces(3),
-        ])
-      );
-      useFacilitatorStore().bonusesPerRelay = Object.fromEntries(
-        Object.entries(previousRound.Details).map(([fingerprint, details]) => [
-          fingerprint,
-          {
-            hardware: BigNumber(details.Reward.Hardware || 0)
-              .dividedBy(Math.pow(10, 18))
-              .decimalPlaces(3),
-            quality: BigNumber(details.Reward.Uptime || 0)
-              .dividedBy(Math.pow(10, 18))
-              .decimalPlaces(3),
-          },
-        ])
-      );
-      useFacilitatorStore().multipliersPerRelay = Object.fromEntries(
-        Object.entries(previousRound.Details).map(([fingerprint, details]) => [
-          fingerprint,
-          {
-            family: details.Variables.FamilyMultiplier.toFixed(4).toString(),
-            region: details.Variables.LocationMultiplier.toFixed(4).toString(),
-          },
-        ])
-      );
-      useFacilitatorStore().scorePerRelay = Object.fromEntries(
-        Object.entries(previousRound.Details).map(([fingerprint, details]) => [
-          fingerprint,
-          BigNumber(details.Rating.Network)
-            .plus(details.Rating.ExitBonus)
-            .plus(details.Rating.Uptime)
-            .decimalPlaces(4),
-        ])
-      );
-      useFacilitatorStore().baseTokensPerRelay = Object.fromEntries(
-        Object.entries(previousRound.Details).map(([fingerprint, details]) => [
-          fingerprint,
-          BigNumber(details.Reward.Total)
-            .minus(details.Reward.Hardware)
-            .minus(details.Reward.Uptime)
-            .minus(details.Reward.ExitBonus)
-            .dividedBy(Math.pow(10, 18))
-            .decimalPlaces(4),
-        ])
-      );
-      useFacilitatorStore().lastDistributionTimePerRelay = Object.fromEntries(
-        Object.keys(previousRound.Details).map((fingerprint) => [
-          fingerprint,
-          new Date(previousRound.Timestamp).toLocaleString('en-US', {
-            month: 'short',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false,
-          }),
-        ])
-      );
+      // useFacilitatorStore().sumOfTotalDistributions =
+      previousDistribution.totalDistributed;
+      // useFacilitatorStore().previousDistributions = [previousDistribution];
+      // useFacilitatorStore().distributionPerRelay = Object.fromEntries(
+      //   Object.entries(previousRound.Details).map(([fingerprint, details]) => [
+      //     fingerprint,
+      //     BigNumber(details.Reward.Total)
+      //       .dividedBy(Math.pow(10, 18))
+      //       .decimalPlaces(3),
+      //   ])
+      // );
+      // useFacilitatorStore().bonusesPerRelay = Object.fromEntries(
+      //   Object.entries(previousRound.Details).map(([fingerprint, details]) => [
+      //     fingerprint,
+      //     {
+      //       hardware: BigNumber(details.Reward.Hardware || 0)
+      //         .dividedBy(Math.pow(10, 18))
+      //         .decimalPlaces(3),
+      //       quality: BigNumber(details.Reward.Uptime || 0)
+      //         .dividedBy(Math.pow(10, 18))
+      //         .decimalPlaces(3),
+      //     },
+      //   ])
+      // );
+      // useFacilitatorStore().multipliersPerRelay = Object.fromEntries(
+      //   Object.entries(previousRound.Details).map(([fingerprint, details]) => [
+      //     fingerprint,
+      //     {
+      //       family: details.Variables.FamilyMultiplier.toFixed(4).toString(),
+      //       region: details.Variables.LocationMultiplier.toFixed(4).toString(),
+      //     },
+      //   ])
+      // );
+      // useFacilitatorStore().scorePerRelay = Object.fromEntries(
+      //   Object.entries(previousRound.Details).map(([fingerprint, details]) => [
+      //     fingerprint,
+      //     BigNumber(details.Rating.Network)
+      //       .plus(details.Rating.ExitBonus)
+      //       .plus(details.Rating.Uptime)
+      //       .decimalPlaces(4),
+      //   ])
+      // );
+      // useFacilitatorStore().baseTokensPerRelay = Object.fromEntries(
+      //   Object.entries(previousRound.Details).map(([fingerprint, details]) => [
+      //     fingerprint,
+      //     BigNumber(details.Reward.Total)
+      //       .minus(details.Reward.Hardware)
+      //       .minus(details.Reward.Uptime)
+      //       .minus(details.Reward.ExitBonus)
+      //       .dividedBy(Math.pow(10, 18))
+      //       .decimalPlaces(4),
+      //   ])
+      // );
+      // useFacilitatorStore().lastDistributionTimePerRelay = Object.fromEntries(
+      //   Object.keys(previousRound.Details).map((fingerprint) => [
+      //     fingerprint,
+      //     new Date(previousRound.Timestamp).toLocaleString('en-US', {
+      //       month: 'short',
+      //       day: '2-digit',
+      //       hour: '2-digit',
+      //       minute: '2-digit',
+      //       second: '2-digit',
+      //       hour12: false,
+      //     }),
+      //   ])
+      // );
 
-      useFacilitatorStore().exitBonusPerRelay = Object.fromEntries(
-        Object.entries(previousRound.Details).map(([fingerprint, details]) => [
-          fingerprint,
-          BigNumber(details.Reward.ExitBonus)
-            .dividedBy(Math.pow(10, 18))
-            .decimalPlaces(4)
-            .toString(),
-        ])
-      );
+      // useFacilitatorStore().exitBonusPerRelay = Object.fromEntries(
+      //   Object.entries(previousRound.Details).map(([fingerprint, details]) => [
+      //     fingerprint,
+      //     BigNumber(details.Reward.ExitBonus)
+      //       .dividedBy(Math.pow(10, 18))
+      //       .decimalPlaces(4)
+      //       .toString(),
+      //   ])
+      // );
 
       await this.refreshAuthedUserClaimableTokens();
     } catch (error) {
@@ -224,7 +224,7 @@ export class RelayRewards {
       const address = auth.userData.address;
       const claimable = await this.getClaimable(address);
       this.logger.log('address', address, 'claimable', claimable);
-      useFacilitatorStore().claimableAtomicTokens = claimable || undefined;
+      // useFacilitatorStore().claimableAtomicTokens = claimable || undefined;
     }
   }
 

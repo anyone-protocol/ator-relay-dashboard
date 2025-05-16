@@ -180,7 +180,7 @@ import { initHodler, useHodler } from '~/composables/hodler';
 const isMobile = useMediaQuery('(max-width: 1024px)');
 
 const userStore = useUserStore();
-const facilitatorStore = useFacilitatorStore();
+// const facilitatorStore = useFacilitatorStore();
 const hodlerStore = useHolderStore();
 const hodler = useHodler();
 const registerModalOpen = ref(false);
@@ -197,8 +197,8 @@ const initializeAndFetchData = async (
 
     metricsStore.refreshRelayMetrics();
     await Promise.all([
-      (!facilitatorStore?.initialized || forceRefresh) &&
-        useFacilitator()?.refresh(),
+      // (!facilitatorStore?.initialized || forceRefresh) &&
+      //   useFacilitator()?.refresh(),
       (!hodlerStore?.initialized || forceRefresh) && useHodler()?.refresh(),
       ,
     ]);
@@ -230,12 +230,12 @@ watch(
 
 onMounted(async () => {
   console.log('Mounted - Starting initialization');
+  initializeAndFetchData(userStore.userData.address);
   await useRelayRewards().refresh();
-  initFacilitator();
+  // initFacilitator();
   initToken();
   initHodler();
   await new Promise((resolve) => setTimeout(resolve, 2000));
-  initializeAndFetchData(userStore.userData.address);
 });
 
 // watch(
