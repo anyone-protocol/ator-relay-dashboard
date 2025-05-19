@@ -413,7 +413,7 @@ const allOperators = ref<Operator[]>([]);
 const vaults = computed(() => {
   if (!vaultsData.value) return [];
   const data = vaultsData.value
-    .filter((vault) => vault.amount)
+    .filter((vault) => vault.kind === 2n)
     .map((vault) => {
       const amount = formatUnits(vault.amount, 18);
       return {
