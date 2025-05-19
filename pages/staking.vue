@@ -64,7 +64,7 @@
       }"
     >
       <template v-slot:[currentTab]="{ item }">
-        <div class="flex justify-end">
+        <div class="flex justify-end mb-4">
           <UInput
             v-model="searchQuery"
             color="neutral"
@@ -78,10 +78,12 @@
             icon: 'i-heroicons-circle-stack-20-solid',
             label: 'No operators.',
           }"
+          :loading="currentTab === 'operators' && operatorRegistryPending"
           :columns="operatorColumns"
           :rows="currentTab === 'operators' ? allOperators : stakedOperators"
           :ui="{
             wrapper: 'max-h-[30svh] overflow-y-scroll',
+            thead: 'sticky top-0 bg-white dark:bg-neutral-900',
           }"
         >
           <template #operator-data="{ row }: { row: Operator }">
@@ -388,6 +390,7 @@ const withdrawAmount = ref(0);
 const totalClaimableAmount = ref<bigint>(0n);
 const searchQuery = ref('');
 const operatorRegistry = useOperatorRegistry();
+const operatorRegistryPending = ref(false);
 const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
 const operatorAction = ref<'stake' | 'unstake' | null>(null);
 const selectedOperator = ref<Operator | null>(null);
@@ -799,26 +802,33 @@ const claimTokens = async (available: bigint) => {
 };
 
 const updateOperators = async () => {
-  const operatorRegistryState = await operatorRegistry.viewState();
-  const verifiedFingerprints =
-    operatorRegistryState?.VerifiedFingerprintsToOperatorAddresses || {};
-  const registryOperators = Array.from(
-    new Set(Object.values(verifiedFingerprints))
-  ).map((address) => ({ operator: address as `0x${string}`, amount: '0' }));
+  try {
+    operatorRegistryPending.value = true;
+    const state = await operatorRegistry.viewState();
+    const verifiedFingerprints =
+      state?.VerifiedFingerprintsToOperatorAddresses || {};
+    const registryOperators = Array.from(
+      new Set(Object.values(verifiedFingerprints))
+    ).map((address) => ({ operator: address as `0x${string}`, amount: '0' }));
 
-  const combinedOperators = [
-    ...stakedOperators.value,
-    ...registryOperators.filter(
-      (regOp) =>
-        !stakedOperators.value.some(
-          (stakeOp) => stakeOp.operator === regOp.operator
-        )
-    ),
-  ];
+    const combinedOperators = [
+      ...stakedOperators.value,
+      ...registryOperators.filter(
+        (regOp) =>
+          !stakedOperators.value.some(
+            (stakeOp) => stakeOp.operator === regOp.operator
+          )
+      ),
+    ];
 
-  allOperators.value = combinedOperators.filter((op) =>
-    op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
+    allOperators.value = combinedOperators.filter((op) =>
+      op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+  } catch (error) {
+    console.error('OperatorRegistryError:', error);
+  } finally {
+    operatorRegistryPending.value = false;
+  }
 };
 
 watch([stakedOperators, searchQuery], updateOperators); // Trigger on dependency changes
