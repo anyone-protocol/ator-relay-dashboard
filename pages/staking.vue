@@ -5,36 +5,6 @@
         <Icon name="i-heroicons-chart-pie-20-solid" class="text-3xl" />
         <h2 class="text-3xl">Staking</h2>
       </div>
-
-      <div>
-        <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
-          <h3>
-            <!-- <Icon name="i-heroicons-chart-pie-20-solid" /> -->
-            Available tokens
-          </h3>
-          <div class="inline-flex items-baseline gap-2">
-            <template v-if="hodlerInfoPending">
-              <USkeleton class="w-[15rem] h-10" />
-            </template>
-            <template v-else>
-              <span class="text-3xl font-bold">
-                <template v-if="isConnected">
-                  {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
-                </template>
-                <template v-else> -- </template>
-              </span>
-            </template>
-          </div>
-        </div>
-        <UButton
-          :disabled="!isConnected || Number(hodlerInfo?.[0]) <= 0"
-          @click="withdrawDialogOpen = true"
-          variant="outline"
-          color="cyan"
-        >
-          Withdraw
-        </UButton>
-      </div>
     </div>
 
     <UModal v-model="withdrawDialogOpen">
@@ -274,37 +244,67 @@
             <span v-else>{{ formatAvailableAt(row.availableAt) }}</span>
           </template>
         </UTable>
-
-        <div class="mt-4 flex">
-          <div>
-            <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
-              <h3>Claimable Tokens</h3>
-              <div class="inline-flex items-baseline gap-2">
-                <template v-if="vaultsPending">
-                  <USkeleton class="w-[15rem] h-10" />
-                </template>
-                <template v-else>
-                  <span class="text-3xl font-bold">
-                    <template v-if="isConnected">
-                      {{ formatEtherNoRound(totalClaimableAmount || '0') }}
-                    </template>
-                    <template v-else>--</template>
-                  </span>
-                </template>
-              </div>
-            </div>
-            <UButton
-              :disabled="!isConnected || totalClaimableAmount <= 0n"
-              @click="claimTokens"
-              variant="outline"
-              color="cyan"
-            >
-              Claim All
-            </UButton>
-          </div>
-        </div>
       </template>
     </UTabs>
+
+    <div class="mt-5 flex justify-between">
+      <div>
+        <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
+          <h3>
+            <!-- <Icon name="i-heroicons-chart-pie-20-solid" /> -->
+            Available tokens
+          </h3>
+          <div class="inline-flex items-baseline gap-2">
+            <template v-if="hodlerInfoPending">
+              <USkeleton class="w-[15rem] h-10" />
+            </template>
+            <template v-else>
+              <span class="text-3xl font-bold">
+                <template v-if="isConnected">
+                  {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
+                </template>
+                <template v-else> -- </template>
+              </span>
+            </template>
+          </div>
+        </div>
+        <UButton
+          :disabled="!isConnected || Number(hodlerInfo?.[0]) <= 0"
+          @click="withdrawDialogOpen = true"
+          variant="outline"
+          color="cyan"
+        >
+          Withdraw
+        </UButton>
+      </div>
+
+      <div v-if="currentTab === 'vaults'">
+        <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
+          <h3>Claimable Tokens</h3>
+          <div class="inline-flex items-baseline gap-2">
+            <template v-if="vaultsPending">
+              <USkeleton class="w-[15rem] h-10" />
+            </template>
+            <template v-else>
+              <span class="text-3xl font-bold">
+                <template v-if="isConnected">
+                  {{ formatEtherNoRound(totalClaimableAmount || '0') }}
+                </template>
+                <template v-else>--</template>
+              </span>
+            </template>
+          </div>
+        </div>
+        <UButton
+          :disabled="!isConnected || totalClaimableAmount <= 0n"
+          @click="claimTokens"
+          variant="outline"
+          color="cyan"
+        >
+          Claim All
+        </UButton>
+      </div>
+    </div>
   </Card>
 </template>
 
