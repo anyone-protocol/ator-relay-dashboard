@@ -63,17 +63,39 @@
         },
       }"
     >
-      <template v-slot:operators="{ item }">
+      <template v-slot:[currentTab]="{ item }">
+        <div class="flex justify-end">
+          <UInput
+            v-model="searchQuery"
+            color="neutral"
+            icon="i-heroicons-magnifying-glass"
+            placeholder="Search by address"
+            class="w-max"
+          />
+        </div>
         <UTable
           :empty-state="{
             icon: 'i-heroicons-circle-stack-20-solid',
             label: 'No operators.',
           }"
+          :loading="currentTab === 'operators' && operatorRegPending"
+          :loading-state="{
+            icon: 'i-heroicons-arrow-path-20-solid',
+            label: 'Loading...',
+          }"
           :columns="operatorColumns"
-          :rows="operators"
+          :rows="
+            currentTab === 'operators' ? filteredOperators : stakedOperators
+          "
+          :ui="{
+            wrapper: 'max-h-[30svh] overflow-y-scroll',
+          }"
         >
           <template #operator-data="{ row }: { row: Operator }">
-            <span> {{ truncatedAddress(row.operator) }} </span>
+            <span> {{ row.operator }} </span>
+          </template>
+          <template #total-data="{ row }: { row: Operator }">
+            <span> N/A </span>
           </template>
           <template #actions-data="{ row }">
             <UDropdown
@@ -308,6 +330,20 @@
   </Card>
 </template>
 
+<style scoped>
+.scrollable-table tbody {
+  display: block;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.scrollable-table thead,
+.scrollable-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+</style>
+
 <script lang="ts" setup>
 import Card from '~/components/ui-kit/Card.vue';
 import {
@@ -320,7 +356,7 @@ import {
   hodlerAbi,
   tokenAbi,
 } from '../assets/contract-artifacts/wagmi-generated';
-import { formatUnits, parseEther } from 'viem';
+import { formatUnits, getAddress, parseEther } from 'viem';
 import { useClipboard } from '@vueuse/core';
 import { getBlock } from '@wagmi/core';
 import { config } from '~/config/wagmi.config';
@@ -348,7 +384,7 @@ const toast = useToast();
 const { copy, copied } = useClipboard();
 
 const CONTRACT_ADDRESS = '0x948B3c65b89DF0B4894ABE91E6D02FE579834F8F';
-const OPERATOR_ADDRESS = '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC';
+// const OPERATOR_ADDRESS = '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC';
 
 const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
@@ -357,11 +393,12 @@ const stakeAmount = ref(0);
 const unstakeAmount = ref(0);
 const withdrawAmount = ref(0);
 const totalClaimableAmount = ref<bigint>(0n);
-const currentTab = ref<'operators' | 'vaults'>('operators');
+const searchQuery = ref('');
+const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
 const operatorAction = ref<'stake' | 'unstake' | null>(null);
 const selectedOperator = ref<Operator | null>(null);
 const hodlerAddress = computed(() => address.value);
-const operators = computed(() => {
+const stakedOperators = computed(() => {
   if (!stakesData.value) return [];
   const stakes: Operator[] = stakesData.value.map((stake) => {
     const amount = formatUnits(stake.amount, 18);
@@ -372,6 +409,7 @@ const operators = computed(() => {
   });
   return stakes;
 });
+const allOperators = ref<Operator[]>([]);
 const vaults = computed(() => {
   if (!vaultsData.value) return [];
   const data = vaultsData.value
@@ -380,7 +418,7 @@ const vaults = computed(() => {
       const amount = formatUnits(vault.amount, 18);
       return {
         amount,
-        data: truncatedAddress(vault.data),
+        data: vault.data,
         kind: vault.kind,
         availableAt: vault.availableAt,
       };
@@ -439,19 +477,27 @@ const tabItems = [
     label: 'Operators',
   },
   {
+    slot: 'stakedOperators',
+    label: 'Your Staked',
+  },
+  {
     slot: 'vaults',
-    label: 'Vaults',
+    label: 'Unstaked Tokens',
   },
 ];
 
 const operatorColumns = [
   {
     key: 'operator',
-    label: 'Address',
+    label: 'Operator',
   },
   {
     key: 'amount',
-    label: 'Amount staked',
+    label: 'Your stake',
+  },
+  {
+    key: 'total',
+    label: 'Total Staked',
   },
   {
     key: 'actions',
@@ -546,6 +592,14 @@ const submitStakeForm = async () => {
     return;
   }
 
+  if (!selectedOperator.value?.operator) {
+    toast.add({
+      title: 'You must select an operator to stake',
+      color: 'red',
+    });
+    return;
+  }
+
   try {
     // console.log('parsing amount...');
     const amount = parseEther(stakeAmount.value.toString());
@@ -565,7 +619,7 @@ const submitStakeForm = async () => {
       address: CONTRACT_ADDRESS,
       abi: hodlerAbi,
       functionName: 'stake',
-      args: [OPERATOR_ADDRESS, amount],
+      args: [getAddress(selectedOperator.value?.operator), amount],
     });
   } catch (error: any) {
     console.error('StakingError:', error);
@@ -593,6 +647,14 @@ const submitUnstakeForm = async () => {
     return;
   }
 
+  if (!selectedOperator.value?.operator) {
+    toast.add({
+      title: 'You must select an operator to unstake',
+      color: 'red',
+    });
+    return;
+  }
+
   try {
     const amount = parseEther(unstakeAmount.value.toString());
 
@@ -600,7 +662,7 @@ const submitUnstakeForm = async () => {
       address: CONTRACT_ADDRESS,
       abi: hodlerAbi,
       functionName: 'unstake',
-      args: [OPERATOR_ADDRESS, amount],
+      args: [getAddress(selectedOperator.value?.operator), amount],
     });
   } catch (error) {
     console.error('UnstakingError:', error);
@@ -741,4 +803,44 @@ const claimTokens = async (available: bigint) => {
     });
   }
 };
+
+const { viewState } = useOperatorRegistry();
+
+const { data: operatorRegistryState, isPending: operatorRegPending } = useQuery(
+  {
+    queryKey: ['operators'],
+    queryFn: viewState,
+    enabled: currentTab.value === 'operators',
+  }
+);
+
+watch([stakedOperators, searchQuery, operatorRegistryState], () => {
+  // extract unique operator addresses from registry
+  const verifiedFingerprints =
+    operatorRegistryState.value?.VerifiedFingerprintsToOperatorAddresses || {};
+  const registryOperators = Array.from(
+    new Set(Object.values(verifiedFingerprints))
+  ).map((address) => ({
+    operator: address as `0x${string}`,
+    amount: '0',
+  }));
+
+  // combine staked and registry operators, deduplicating by operator address
+  const combinedOperators = [
+    ...stakedOperators.value,
+    ...registryOperators.filter(
+      (regOp) =>
+        !stakedOperators.value.some(
+          (stakeOp) => stakeOp.operator === regOp.operator
+        )
+    ),
+  ];
+
+  // filter based on search query
+  allOperators.value = combinedOperators.filter((op) =>
+    op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+const filteredOperators = computed(() => allOperators.value);
 </script>
