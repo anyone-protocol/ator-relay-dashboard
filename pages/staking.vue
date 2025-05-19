@@ -1,9 +1,79 @@
 <template>
   <Card>
-    <div class="flex items-center space-x-2 mb-6">
-      <Icon name="i-heroicons-chart-pie-20-solid" class="text-3xl" />
-      <h2 class="text-3xl">Staking</h2>
+    <div class="flex items-start justify-between">
+      <div class="flex items-center space-x-2 mb-6">
+        <Icon name="i-heroicons-chart-pie-20-solid" class="text-3xl" />
+        <h2 class="text-3xl">Staking</h2>
+      </div>
+
+      <div>
+        <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
+          <h3>
+            <!-- <Icon name="i-heroicons-chart-pie-20-solid" /> -->
+            Available tokens
+          </h3>
+          <div class="inline-flex items-baseline gap-2">
+            <template v-if="hodlerInfoPending">
+              <USkeleton class="w-[15rem] h-10" />
+            </template>
+            <template v-else>
+              <span class="text-3xl font-bold">
+                <template v-if="isConnected">
+                  {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
+                </template>
+                <template v-else> -- </template>
+              </span>
+            </template>
+          </div>
+        </div>
+        <UButton
+          :disabled="!isConnected || Number(hodlerInfo?.[0]) <= 0"
+          @click="withdrawDialogOpen = true"
+          variant="outline"
+          color="cyan"
+        >
+          Withdraw
+        </UButton>
+      </div>
     </div>
+
+    <UModal v-model="withdrawDialogOpen">
+      <UCard
+        class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
+      >
+        <h4 class="text-lg font-semibold mb-6">Withdraw tokens</h4>
+        <form
+          @submit.prevent="submitWithdrawForm"
+          class="mt-6 md:mt-0 w-full md:w-auto"
+        >
+          <label for="withdrawAmount" class="text-sm"
+            >Amount to withdraw:
+          </label>
+          <UInput
+            name="withdrawAmount"
+            class="mt-2 mb-6"
+            v-model="withdrawAmount"
+            color="neutral"
+            placeholder="Withdraw amount"
+            type="number"
+            min="0"
+          />
+          <div class="flex justify-end gap-3">
+            <UButton
+              variant="outline"
+              color="cyan"
+              @click="[(withdrawAmount = 0), (withdrawDialogOpen = false)]"
+            >
+              Cancel
+            </UButton>
+            <UButton variant="solid" color="cyan" type="submit">
+              Withdraw
+            </UButton>
+          </div>
+        </form>
+      </UCard>
+    </UModal>
+
     <UTabs
       :items="tabItems"
       @change="onTabChange"
@@ -194,7 +264,45 @@
           :columns="vaultColumns"
           :rows="vaults"
         >
+          <template #availableAt-data="{ row }: { row: Vault }">
+            <UBadge
+              v-if="formatAvailableAt(row.availableAt) === 'Expired'"
+              color="green"
+              variant="outline"
+              >Claimable</UBadge
+            >
+            <span v-else>{{ formatAvailableAt(row.availableAt) }}</span>
+          </template>
         </UTable>
+
+        <div class="mt-4 flex">
+          <div>
+            <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
+              <h3>Claimable Tokens</h3>
+              <div class="inline-flex items-baseline gap-2">
+                <template v-if="vaultsPending">
+                  <USkeleton class="w-[15rem] h-10" />
+                </template>
+                <template v-else>
+                  <span class="text-3xl font-bold">
+                    <template v-if="isConnected">
+                      {{ formatEtherNoRound(totalClaimableAmount || '0') }}
+                    </template>
+                    <template v-else>--</template>
+                  </span>
+                </template>
+              </div>
+            </div>
+            <UButton
+              :disabled="!isConnected || totalClaimableAmount <= 0n"
+              @click="claimTokens"
+              variant="outline"
+              color="cyan"
+            >
+              Claim All
+            </UButton>
+          </div>
+        </div>
       </template>
     </UTabs>
   </Card>
@@ -214,6 +322,9 @@ import {
 } from '../assets/contract-artifacts/wagmi-generated';
 import { formatUnits, parseEther } from 'viem';
 import { useClipboard } from '@vueuse/core';
+import { getBlock } from '@wagmi/core';
+import { config } from '~/config/wagmi.config';
+import { useQuery } from '@tanstack/vue-query';
 
 interface Vault {
   amount: bigint;
@@ -241,8 +352,11 @@ const OPERATOR_ADDRESS = '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC';
 
 const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
+const withdrawDialogOpen = ref(false);
 const stakeAmount = ref(0);
 const unstakeAmount = ref(0);
+const withdrawAmount = ref(0);
+const totalClaimableAmount = ref<bigint>(0n);
 const currentTab = ref<'operators' | 'vaults'>('operators');
 const operatorAction = ref<'stake' | 'unstake' | null>(null);
 const selectedOperator = ref<Operator | null>(null);
@@ -260,22 +374,17 @@ const operators = computed(() => {
 });
 const vaults = computed(() => {
   if (!vaultsData.value) return [];
-  const data = vaultsData.value.map((vault) => {
-    const amount = formatUnits(vault.amount, 18);
-    const timeDiff = Number(vault.availableAt) * 1000 - Date.now();
-    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor(
-      (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-    );
-    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-    const availableAt = `${days} Days ${hours} Hrs ${minutes} Min`;
-    return {
-      amount,
-      data: truncatedAddress(vault.data),
-      kind: vault.kind,
-      availableAt,
-    };
-  });
+  const data = vaultsData.value
+    .filter((vault) => vault.amount)
+    .map((vault) => {
+      const amount = formatUnits(vault.amount, 18);
+      return {
+        amount,
+        data: truncatedAddress(vault.data),
+        kind: vault.kind,
+        availableAt: vault.availableAt,
+      };
+    });
   return data;
 });
 const isSubmitting = computed(() => isPending || isConfirming);
@@ -383,24 +492,32 @@ const vaultColumns = [
     key: 'availableAt',
     label: 'Available in',
   },
+  // {
+  //   key: 'kind',
+  //   label: 'Vault type',
+  // },
   {
-    key: 'kind',
-    label: 'Type',
-  },
-  {
-    key: 'actions',
+    key: 'claimAction',
   },
 ];
 
-// const vaultActionItems = (row: Vault) => [
-//   [
-//     {
-//       label: 'Claim',
-//       icon: '',
-//       click:
-//     },
-//   ],
-// ];
+const block = await getBlock(config);
+
+const formatAvailableAt = (availableAt: bigint) => {
+  const timestamp = block.timestamp;
+  const timeDiffSeconds = availableAt - timestamp - BigInt(15 * 60);
+  if (timeDiffSeconds <= 0n) return 'Expired';
+
+  const secondsPerDay = BigInt(24 * 60 * 60);
+  const secondsPerHour = BigInt(60 * 60);
+  const secondsPerMinute = BigInt(60);
+
+  const days = timeDiffSeconds / secondsPerDay;
+  const hours = (timeDiffSeconds % secondsPerDay) / secondsPerHour;
+  const minutes = (timeDiffSeconds % secondsPerHour) / secondsPerMinute;
+
+  return `${days} Days ${hours} Hrs ${minutes} Min`;
+};
 
 const handleStake = () => {
   stakeDialogOpen.value = true;
@@ -441,10 +558,6 @@ const submitStakeForm = async () => {
         functionName: 'approve',
         args: [CONTRACT_ADDRESS, amount],
       });
-
-      console.log('Approved Hodler contract to spend tokens');
-    } else {
-      console.log('Sufficient allowance, skipping approval');
     }
 
     // console.log('writing to contract...');
@@ -516,12 +629,116 @@ watch(isConfirmed, (confirmed) => {
   }
 });
 
-// vault stuff
-const { data: vaultsData } = useReadContract({
+const { data: vaultsData, isPending: vaultsPending } = useReadContract({
   address: CONTRACT_ADDRESS,
   abi: hodlerAbi,
   functionName: 'getVaults',
   args: [hodlerAddress.value as `0x${string}`],
   query: { enabled: computed(() => currentTab.value === 'vaults') },
 });
+
+watch(vaultsData, async (vaults) => {
+  if (vaults) {
+    let total = 0n;
+    await Promise.all(
+      vaults.map(async (vault) => {
+        const isClaimable = await claimable(vault.availableAt);
+        if (isClaimable) total += vault.amount;
+      })
+    );
+    totalClaimableAmount.value = total;
+  }
+});
+
+const { data: hodlerInfo, isPending: hodlerInfoPending } = useReadContract({
+  address: CONTRACT_ADDRESS,
+  abi: hodlerAbi,
+  functionName: 'hodlers',
+  args: [hodlerAddress.value as `0x${string}`],
+  query: { enabled: true },
+});
+
+const submitWithdrawForm = async () => {
+  if (!isConnected) {
+    toast.add({
+      title: 'Please connect your wallet to withdraw',
+      color: 'red',
+    });
+    return;
+  }
+
+  // console.log('withdraw amount: ', withdrawAmount.value);
+
+  if (!withdrawAmount.value || Number(withdrawAmount.value) <= 0) {
+    toast.add({
+      title: 'Enter a valid withdraw amount',
+      color: 'red',
+    });
+    return;
+  }
+
+  try {
+    // console.log('withdrawing...');
+    const amount = parseEther(withdrawAmount.value.toString());
+
+    await writeContractAsync({
+      address: CONTRACT_ADDRESS,
+      abi: hodlerAbi,
+      functionName: 'withdraw',
+      args: [amount],
+    });
+    // TODO - await receipt & show success toast
+    toast.add({
+      title: `Withdrew ${withdrawAmount.value} tokens`,
+      color: 'green',
+    });
+  } catch (error) {
+    console.error('WithdrawError: ', error);
+    toast.add({
+      title: 'Failed to withdraw tokens',
+      color: 'red',
+    });
+  }
+};
+
+const claimable = async (available: bigint) => {
+  const TIMESTAMP_BUFFER = 15 * 60;
+  const block = await getBlock(config);
+  const timestamp = block.timestamp;
+  // console.log('block_timestamp: ', timestamp);
+  // console.log('available_timestamp: ', available);
+  return available < timestamp - BigInt(TIMESTAMP_BUFFER);
+};
+
+const claimTokens = async (available: bigint) => {
+  if (!isConnected) {
+    toast.add({
+      title: 'Please connect your wallet to claim tokens',
+      color: 'red',
+    });
+    return;
+  }
+
+  if (Number(available) < Math.round(Date.now() / 1000)) {
+    toast.add({
+      title: `You can't claim these tokens yet`,
+      color: 'red',
+    });
+    return;
+  }
+
+  try {
+    await writeContractAsync({
+      address: CONTRACT_ADDRESS,
+      abi: hodlerAbi,
+      functionName: 'openExpired',
+    });
+  } catch (error) {
+    console.error('VaultClaimError: ', error);
+    toast.add({
+      title: 'Failed to claim tokens from vault',
+      color: 'red',
+    });
+  }
+};
 </script>
