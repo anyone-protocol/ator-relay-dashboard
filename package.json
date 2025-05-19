@@ -8,7 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "deploy": "pnpm run generate && node operations/scripts/deploy.mjs",
+    "deploy": "pnpm run generate && pnpm run deploy:arweave",
+    "deploy:arweave": "node operations/scripts/deploy.mjs",
     "prepare": "husky && husky install",
     "test": "echo \"No tests specified\""
   },
