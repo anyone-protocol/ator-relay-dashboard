@@ -78,15 +78,8 @@
             icon: 'i-heroicons-circle-stack-20-solid',
             label: 'No operators.',
           }"
-          :loading="currentTab === 'operators' && operatorRegPending"
-          :loading-state="{
-            icon: 'i-heroicons-arrow-path-20-solid',
-            label: 'Loading...',
-          }"
           :columns="operatorColumns"
-          :rows="
-            currentTab === 'operators' ? filteredOperators : stakedOperators
-          "
+          :rows="currentTab === 'operators' ? allOperators : stakedOperators"
           :ui="{
             wrapper: 'max-h-[30svh] overflow-y-scroll',
           }"
@@ -394,6 +387,7 @@ const unstakeAmount = ref(0);
 const withdrawAmount = ref(0);
 const totalClaimableAmount = ref<bigint>(0n);
 const searchQuery = ref('');
+const operatorRegistry = useOperatorRegistry();
 const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
 const operatorAction = ref<'stake' | 'unstake' | null>(null);
 const selectedOperator = ref<Operator | null>(null);
@@ -442,11 +436,11 @@ const {
   },
 });
 
-watch(stakesData, (stakes) => {
-  if (stakes) {
-    console.log('stakes: ', toRaw(stakes));
-  }
-});
+// watch(stakesData, (stakes) => {
+//   if (stakes) {
+//     console.log('stakes: ', toRaw(stakes));
+//   }
+// });
 
 const { data: tokenAddress } = useReadContract({
   address: CONTRACT_ADDRESS,
@@ -804,28 +798,14 @@ const claimTokens = async (available: bigint) => {
   }
 };
 
-const { viewState } = useOperatorRegistry();
-
-const { data: operatorRegistryState, isPending: operatorRegPending } = useQuery(
-  {
-    queryKey: ['operators'],
-    queryFn: viewState,
-    enabled: currentTab.value === 'operators',
-  }
-);
-
-watch([stakedOperators, searchQuery, operatorRegistryState], () => {
-  // extract unique operator addresses from registry
+const updateOperators = async () => {
+  const operatorRegistryState = await operatorRegistry.viewState();
   const verifiedFingerprints =
-    operatorRegistryState.value?.VerifiedFingerprintsToOperatorAddresses || {};
+    operatorRegistryState?.VerifiedFingerprintsToOperatorAddresses || {};
   const registryOperators = Array.from(
     new Set(Object.values(verifiedFingerprints))
-  ).map((address) => ({
-    operator: address as `0x${string}`,
-    amount: '0',
-  }));
+  ).map((address) => ({ operator: address as `0x${string}`, amount: '0' }));
 
-  // combine staked and registry operators, deduplicating by operator address
   const combinedOperators = [
     ...stakedOperators.value,
     ...registryOperators.filter(
@@ -836,11 +816,13 @@ watch([stakedOperators, searchQuery, operatorRegistryState], () => {
     ),
   ];
 
-  // filter based on search query
   allOperators.value = combinedOperators.filter((op) =>
     op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
-});
+};
 
-const filteredOperators = computed(() => allOperators.value);
+watch([stakedOperators, searchQuery], updateOperators); // Trigger on dependency changes
+watch(currentTab, (newTab) => {
+  if (newTab === 'operators') updateOperators(); // Refresh on tab switch
+});
 </script>
