@@ -1,6 +1,6 @@
 job "deploy-relay-dashboard-dev" {
   datacenters = [ "ator-fin" ]
-  namespace = "ator-network"
+  namespace = "dashboard"
   type = "batch"
 
   reschedule { attempts = 0 }
@@ -11,13 +11,32 @@ job "deploy-relay-dashboard-dev" {
     config {
       image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.commit_sha]]"
       image_pull_timeout = "15m"
-      entrypoint = [ "pnpm" ]
-      command = "run"
-      args = [ "deploy" ]
+      entrypoint = [ "/usr/src/app/entrypoint.sh" ]
+      mount {
+        type = "bind"
+        source = "secrets/rclone.conf"
+        target = "/root/.config/rclone/rclone.conf"
+        readonly = true
+      }
+      mount {
+        type = "bind"
+        source = "local/entrypoint.sh"
+        target = "/usr/src/app/entrypoint.sh"
+        readonly = true
+      }
+      mount {
+        type = "bind"
+        target = "/etc/ssl/certs/vault-ca.crt"
+        source = "/opt/nomad/tls/vault-ca.crt"
+        readonly = true
+        bind_options {
+          propagation = "private"
+        }
+      }
       logging {
         type = "loki"
         config {
-          loki-url = "http://10.1.244.1:3100/loki/api/v1/push"
+          loki-url = "${LOKI_URL}"
           loki-external-labels = "container_name={{.Name}},job_name=${NOMAD_JOB_NAME}"
         }
       }
@@ -28,7 +47,22 @@ job "deploy-relay-dashboard-dev" {
       DASHBOARD_VERSION="[[.commit_sha]]"
     }
 
-    vault { policies = [ "dashboard-stage" ] }
+    vault { role = "any1-nomad-workloads-controller" }
+    identity {
+      name = "vault_default"
+      aud  = ["any1-infra"]
+      ttl  = "1h"
+    }
+
+    template {
+      data = <<-EOH
+      {{- range service "loki" }}
+      LOKI_URL="http://{{ .Address }}:{{ .Port }}/loki/api/v1/push"
+      {{- end }}
+      EOH
+      destination = "local/config.env"
+      env         = true
+    }
 
     template {
       data = <<-EOH
@@ -42,12 +76,42 @@ job "deploy-relay-dashboard-dev" {
       NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
       PERMAWEB_KEY="{{ .Data.data.DASHBOARD_OWNER_KEY }}"
       {{ end }}
-      {{ with secret "kv/dashboard/stage/cloudflare" }}
-      DEPLOY_BUCKET="{{ .Data.data.DEPLOY_BUCKET }}"
-      {{ end }}
       EOH
       destination = "secrets/file.env"
       env         = true
+    }
+
+    template {
+      data = <<-EOF
+      {{ with secret "kv/dashboard/dev/cloudflare" }}[r2]
+      type = s3
+      provider = Cloudflare
+      region = auto
+      endpoint = {{ .Data.data.ENDPOINT }}
+      access_key_id = {{ .Data.data.ACCESS_KEY_ID }}
+      secret_access_key = {{ .Data.data.SECRET_ACCESS_KEY }}
+      {{ end }}
+      EOF
+      destination = "secrets/rclone.conf"
+    }
+
+    template {
+      data = <<-EOF
+      #!/bin/sh
+
+      echo "Generating static files"
+      pnpm run generate
+
+      {{ with secret "kv/dashboard/dev/cloudflare" }}
+      echo "Syncing static files to cloudflare r2: {{ .Data.data.DEPLOY_BUCKET }}"
+      rclone sync .output/public r2:{{ .Data.data.DEPLOY_BUCKET }}/
+      {{ end }}
+
+      echo "Publishing static files to Arweave"
+      pnpm run deploy:arweave
+      EOF
+      destination = "local/entrypoint.sh"
+      perms = "0755"
     }
 
     restart {
