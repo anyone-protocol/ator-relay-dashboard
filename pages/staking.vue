@@ -1,284 +1,23 @@
 <template>
-  <Card>
-    <div class="flex items-start justify-between">
-      <div class="flex items-center space-x-2 mb-6">
-        <Icon name="i-heroicons-chart-pie-20-solid" class="text-3xl" />
-        <h2 class="text-3xl">Staking</h2>
-      </div>
-    </div>
-
-    <UModal v-model="withdrawDialogOpen">
-      <UCard
-        class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
-      >
-        <h4 class="text-lg font-semibold mb-6">Withdraw tokens</h4>
-        <form
-          @submit.prevent="submitWithdrawForm"
-          class="mt-6 md:mt-0 w-full md:w-auto"
-        >
-          <label for="withdrawAmount" class="text-sm"
-            >Amount to withdraw:
-          </label>
-          <UInput
-            name="withdrawAmount"
-            class="mt-2 mb-6"
-            v-model="withdrawAmount"
-            color="neutral"
-            placeholder="Withdraw amount"
-            type="number"
-            min="0"
-          />
-          <div class="flex justify-end gap-3">
-            <UButton
-              variant="outline"
-              color="cyan"
-              @click="[(withdrawAmount = 0), (withdrawDialogOpen = false)]"
-            >
-              Cancel
-            </UButton>
-            <UButton variant="solid" color="cyan" type="submit">
-              Withdraw
-            </UButton>
-          </div>
-        </form>
-      </UCard>
-    </UModal>
-
-    <UTabs
-      :items="tabItems"
-      @change="onTabChange"
-      :ui="{
-        list: {
-          width: 'w-max',
-          background: '',
-          marker: {
-            background: '',
-          },
-          tab: {
-            base: 'pb-2 px-4 text-white font-medium',
-            rounded: 'rounded-none',
-            background: '',
-            active: 'border-b-2 border-cyan-500',
-          },
-        },
-      }"
-    >
-      <template v-slot:[currentTab]="{ item }">
-        <div class="flex justify-end mb-4">
-          <UInput
-            v-model="searchQuery"
-            color="neutral"
-            icon="i-heroicons-magnifying-glass"
-            placeholder="Search by address"
-            class="w-max"
-          />
+  <div class="flex flex-col-reverse lg:flex-row gap-10">
+    <Card class="min-w-max w-max h-max aspect-square">
+      <div class="p-2">
+        <div class="flex gap-1 items-center">
+          <UIcon class="text-lg" name="i-heroicons-arrow-up-circle-solid" />
+          <h3 class="font-medium">Staking Rewards</h3>
         </div>
-        <UTable
-          :empty-state="{
-            icon: 'i-heroicons-circle-stack-20-solid',
-            label: 'No operators.',
-          }"
-          :loading="currentTab === 'operators' && operatorRegistryPending"
-          :columns="operatorColumns"
-          :rows="currentTab === 'operators' ? allOperators : stakedOperators"
-          :ui="{
-            wrapper: 'max-h-[30svh] overflow-y-scroll',
-            thead: 'sticky top-0 bg-white dark:bg-neutral-900',
-          }"
-        >
-          <template #operator-data="{ row }: { row: Operator }">
-            <span> {{ row.operator }} </span>
-          </template>
-          <template #total-data="{ row }: { row: Operator }">
-            <span> N/A </span>
-          </template>
-          <template #actions-data="{ row }">
-            <UDropdown
-              :items="operatorActionItems(row)"
-              :popper="{ placement: 'right-start' }"
-            >
-              <UButton
-                color="neutral"
-                variant="ghost"
-                icon="i-heroicons-ellipsis-horizontal-20-solid"
-              />
-
-              <template #item="{ item }">
-                <UIcon
-                  :name="
-                    item.label === 'Copy Address' && copied
-                      ? 'i-heroicons-check-20-solid'
-                      : item.icon
-                  "
-                  class="w-[1rem] h-[1rem]"
-                />
-                <span>
-                  {{
-                    item.label === 'Copy Address' && copied
-                      ? 'Copied!'
-                      : item.label
-                  }}
-                </span>
-              </template>
-            </UDropdown>
-          </template>
-        </UTable>
-
-        <!-- Stake dialog -->
-        <UModal v-model="stakeDialogOpen">
-          <UCard
-            class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
-          >
-            <div class="flex gap-2 mb-2 pb-2">
-              <Icon
-                name="i-heroicons-chart-pie-20-solid"
-                color="#24adc3"
-                class="h-6 w-auto"
-              ></Icon>
-
-              <h4 class="text-lg font-semibold">Stake with operator:</h4>
-            </div>
-            <form @submit.prevent="submitStakeForm" class="w-full md:w-auto">
-              <UInput
-                class="mb-6"
-                :disabled="true"
-                :model-value="selectedOperator?.operator"
-              />
-              <div class="flex flex-col gap-2">
-                <div class="text-gray-400">Amount to stake:</div>
-                <UInput
-                  v-model="stakeAmount"
-                  color="neutral"
-                  placeholder="Amount to stake"
-                  type="number"
-                  min="0"
-                />
-                <div class="flex justify-end gap-3 mt-5">
-                  <UButton
-                    size="xs"
-                    @click="[(stakeAmount = 0), (stakeDialogOpen = false)]"
-                    type="button"
-                    variant="outline"
-                    color="cyan"
-                    class="justify-center text-md"
-                  >
-                    Cancel
-                  </UButton>
-                  <UButton
-                    :loading="isSubmitting.value"
-                    :disabled="!stakeAmount"
-                    type="submit"
-                    size="xs"
-                    variant="solid"
-                    color="cyan"
-                    class="justify-center text-md"
-                  >
-                    {{ isPending ? 'Staking' : 'Stake' }}
-                  </UButton>
-                </div>
-              </div>
-            </form>
-          </UCard>
-        </UModal>
-
-        <!-- Unstake dialog -->
-        <UModal v-model="unstakeDialogOpen">
-          <UCard
-            class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
-          >
-            <div class="flex gap-2 mb-2 pb-2">
-              <Icon
-                name="i-heroicons-chart-pie-20-solid"
-                color="#24adc3"
-                class="h-6 w-auto"
-              ></Icon>
-
-              <h4 class="text-lg font-semibold">Unstake from operator:</h4>
-            </div>
-            <form
-              @submit.prevent="submitUnstakeForm"
-              class="mt-6 md:mt-0 w-full md:w-auto"
-            >
-              <!-- <div class="text-gray-400 mb-2">Staking with operator:</div> -->
-              <UInput
-                class="mb-6"
-                :disabled="true"
-                :model-value="selectedOperator?.operator"
-              />
-              <div class="flex flex-col gap-2">
-                <div class="text-gray-400">Amount to unstake:</div>
-                <UInput
-                  v-model="unstakeAmount"
-                  color="neutral"
-                  placeholder="Amount to unstake"
-                  type="number"
-                  min="0"
-                />
-                <div class="flex justify-end gap-3 mt-5">
-                  <UButton
-                    size="xs"
-                    @click="[(unstakeAmount = 0), (unstakeDialogOpen = false)]"
-                    type="button"
-                    variant="outline"
-                    color="cyan"
-                    class="justify-center text-md"
-                  >
-                    Cancel
-                  </UButton>
-                  <UButton
-                    :disabled="!unstakeAmount"
-                    :loading="isSubmitting.value"
-                    type="submit"
-                    size="xs"
-                    variant="solid"
-                    color="cyan"
-                    class="justify-center text-md"
-                  >
-                    {{ isPending ? 'Unstaking' : 'Unstake' }}
-                  </UButton>
-                </div>
-              </div>
-            </form>
-          </UCard>
-        </UModal>
-      </template>
-      <template #vaults="{ item }">
-        <UTable
-          :empty-state="{
-            icon: 'i-heroicons-circle-stack-20-solid',
-            label: 'No vaults.',
-          }"
-          :columns="vaultColumns"
-          :rows="vaults"
-        >
-          <template #availableAt-data="{ row }: { row: Vault }">
-            <UBadge
-              v-if="formatAvailableAt(row.availableAt) === 'Expired'"
-              color="green"
-              variant="outline"
-              >Claimable</UBadge
-            >
-            <span v-else>{{ formatAvailableAt(row.availableAt) }}</span>
-          </template>
-        </UTable>
-      </template>
-    </UTabs>
-
-    <div class="mt-5 flex justify-between">
-      <div>
-        <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
-          <h3>
-            <!-- <Icon name="i-heroicons-chart-pie-20-solid" /> -->
-            Available tokens
-          </h3>
+        <div class="mt-6 mb-2 flex flex-col border-l-2 border-cyan-600 pl-3">
+          <p class="text-neutral-600 dark:text-neutral-400">
+            Unclaimed Rewards
+          </p>
           <div class="inline-flex items-baseline gap-2">
-            <template v-if="hodlerInfoPending">
-              <USkeleton class="w-[15rem] h-10" />
+            <template v-if="claimableRewardsPending">
+              <USkeleton class="w-full h-10" />
             </template>
             <template v-else>
-              <span class="text-3xl font-bold">
+              <span class="text-3xl">
                 <template v-if="isConnected">
-                  {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
+                  {{ formatEtherNoRound(claimableRewards || '0') }}
                 </template>
                 <template v-else> -- </template>
               </span>
@@ -286,43 +25,345 @@
           </div>
         </div>
         <UButton
-          :disabled="!isConnected || Number(hodlerInfo?.[0]) <= 0"
-          @click="withdrawDialogOpen = true"
-          variant="outline"
-          color="cyan"
+          class="bg-neutral-200 ring-1 ring-neutral-300 text-neutral-900 dark:bg-neutral-800 dark:ring-neutral-700 dark:text-neutral-50 disabled:opacity-35"
+          :disabled="
+            !isConnected ||
+            claimableRewardsPending ||
+            Number(claimableRewards) <= 0
+          "
+          :loading="claimStakingRewardsPending"
+          variant="soft"
         >
-          Withdraw
+          Claim
         </UButton>
+      </div>
+    </Card>
+    <Card>
+      <div class="flex items-start justify-between">
+        <div class="flex items-center space-x-2 mb-6">
+          <Icon name="i-heroicons-chart-pie-20-solid" class="text-3xl" />
+          <h2 class="text-3xl">Staking</h2>
+        </div>
       </div>
 
-      <div v-if="currentTab === 'vaults'">
-        <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
-          <h3>Claimable Tokens</h3>
-          <div class="inline-flex items-baseline gap-2">
-            <template v-if="vaultsPending">
-              <USkeleton class="w-[15rem] h-10" />
-            </template>
-            <template v-else>
-              <span class="text-3xl font-bold">
-                <template v-if="isConnected">
-                  {{ formatEtherNoRound(totalClaimableAmount || '0') }}
-                </template>
-                <template v-else>--</template>
-              </span>
-            </template>
+      <UTabs
+        :items="tabItems"
+        @change="onTabChange"
+        :ui="{
+          list: {
+            width: 'w-max',
+            background: '',
+            marker: {
+              background: '',
+            },
+            tab: {
+              base: 'pb-2 px-4 text-white font-medium',
+              rounded: 'rounded-none',
+              background: '',
+              active: 'border-b-2 border-cyan-500',
+            },
+          },
+        }"
+      >
+        <template v-slot:[currentTab]="{ item }">
+          <div class="flex justify-end mb-4">
+            <UInput
+              v-model="searchQuery"
+              color="neutral"
+              icon="i-heroicons-magnifying-glass"
+              placeholder="Search by address"
+              class="w-max"
+            />
           </div>
+          <UTable
+            :empty-state="{
+              icon: 'i-heroicons-circle-stack-20-solid',
+              label: 'No operators.',
+            }"
+            :loading="currentTab === 'operators' && operatorRegistryPending"
+            :columns="operatorColumns"
+            :rows="currentTab === 'operators' ? allOperators : stakedOperators"
+            :ui="{
+              wrapper: 'max-h-[30svh] overflow-y-scroll',
+              thead: 'sticky top-0 bg-white dark:bg-neutral-900',
+            }"
+          >
+            <template #operator-data="{ row }: { row: Operator }">
+              <span> {{ row.operator }} </span>
+            </template>
+            <template #total-data="{ row }: { row: Operator }">
+              <span> N/A </span>
+            </template>
+            <template #actions-data="{ row }">
+              <UDropdown
+                :items="operatorActionItems(row)"
+                :popper="{ placement: 'right-start' }"
+              >
+                <UButton
+                  variant="ghost"
+                  icon="i-heroicons-ellipsis-horizontal-20-solid"
+                />
+
+                <template #item="{ item }">
+                  <UIcon
+                    :name="
+                      item.label === 'Copy Address' && copied
+                        ? 'i-heroicons-check-20-solid'
+                        : item.icon
+                    "
+                    class="w-[1rem] h-[1rem]"
+                  />
+                  <span>
+                    {{
+                      item.label === 'Copy Address' && copied
+                        ? 'Copied!'
+                        : item.label
+                    }}
+                  </span>
+                </template>
+              </UDropdown>
+            </template>
+          </UTable>
+
+          <!-- Stake dialog -->
+          <UModal v-model="stakeDialogOpen">
+            <UCard
+              class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
+            >
+              <div class="flex gap-2 mb-2 pb-2">
+                <Icon
+                  name="i-heroicons-chart-pie-20-solid"
+                  color="#24adc3"
+                  class="h-6 w-auto"
+                ></Icon>
+
+                <h4 class="text-lg font-semibold">Stake with operator:</h4>
+              </div>
+              <form @submit.prevent="submitStakeForm" class="w-full md:w-auto">
+                <UInput
+                  class="mb-6"
+                  :disabled="true"
+                  :model-value="selectedOperator?.operator"
+                />
+                <div class="flex flex-col gap-2">
+                  <div class="text-gray-400">Amount to stake:</div>
+                  <UInput
+                    v-model="stakeAmount"
+                    color="neutral"
+                    placeholder="Amount to stake"
+                    type="number"
+                    min="0"
+                  />
+                  <div class="flex justify-end gap-3 mt-5">
+                    <UButton
+                      size="xs"
+                      @click="[(stakeAmount = 0), (stakeDialogOpen = false)]"
+                      type="button"
+                      variant="outline"
+                      color="cyan"
+                      class="justify-center text-md"
+                    >
+                      Cancel
+                    </UButton>
+                    <UButton
+                      :loading="isSubmitting.value"
+                      :disabled="!stakeAmount"
+                      type="submit"
+                      size="xs"
+                      variant="solid"
+                      color="cyan"
+                      class="justify-center text-md"
+                    >
+                      {{ isPending ? 'Staking' : 'Stake' }}
+                    </UButton>
+                  </div>
+                </div>
+              </form>
+            </UCard>
+          </UModal>
+
+          <!-- Unstake dialog -->
+          <UModal v-model="unstakeDialogOpen">
+            <UCard
+              class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
+            >
+              <div class="flex gap-2 mb-2 pb-2">
+                <Icon
+                  name="i-heroicons-chart-pie-20-solid"
+                  color="#24adc3"
+                  class="h-6 w-auto"
+                ></Icon>
+
+                <h4 class="text-lg font-semibold">Unstake from operator:</h4>
+              </div>
+              <form
+                @submit.prevent="submitUnstakeForm"
+                class="mt-6 md:mt-0 w-full md:w-auto"
+              >
+                <!-- <div class="text-gray-400 mb-2">Staking with operator:</div> -->
+                <UInput
+                  class="mb-6"
+                  :disabled="true"
+                  :model-value="selectedOperator?.operator"
+                />
+                <div class="flex flex-col gap-2">
+                  <div class="text-gray-400">Amount to unstake:</div>
+                  <UInput
+                    v-model="unstakeAmount"
+                    color="neutral"
+                    placeholder="Amount to unstake"
+                    type="number"
+                    min="0"
+                  />
+                  <div class="flex justify-end gap-3 mt-5">
+                    <UButton
+                      size="xs"
+                      @click="
+                        [(unstakeAmount = 0), (unstakeDialogOpen = false)]
+                      "
+                      type="button"
+                      variant="outline"
+                      color="cyan"
+                      class="justify-center text-md"
+                    >
+                      Cancel
+                    </UButton>
+                    <UButton
+                      :disabled="!unstakeAmount"
+                      :loading="isSubmitting.value"
+                      type="submit"
+                      size="xs"
+                      variant="solid"
+                      color="cyan"
+                      class="justify-center text-md"
+                    >
+                      {{ isPending ? 'Unstaking' : 'Unstake' }}
+                    </UButton>
+                  </div>
+                </div>
+              </form>
+            </UCard>
+          </UModal>
+        </template>
+        <template #vaults="{ item }">
+          <UTable
+            :empty-state="{
+              icon: 'i-heroicons-circle-stack-20-solid',
+              label: 'No vaults.',
+            }"
+            :columns="vaultColumns"
+            :rows="vaults"
+          >
+            <template #availableAt-data="{ row }: { row: Vault }">
+              <UBadge
+                v-if="formatAvailableAt(row.availableAt) === 'Expired'"
+                color="green"
+                variant="outline"
+                >Claimable</UBadge
+              >
+              <span v-else>{{ formatAvailableAt(row.availableAt) }}</span>
+            </template>
+          </UTable>
+        </template>
+      </UTabs>
+
+      <div class="mt-5 flex justify-between">
+        <div>
+          <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
+            <h3>
+              <!-- <Icon name="i-heroicons-chart-pie-20-solid" /> -->
+              Available tokens
+            </h3>
+            <div class="inline-flex items-baseline gap-2">
+              <template v-if="hodlerInfoPending">
+                <USkeleton class="w-[15rem] h-10" />
+              </template>
+              <template v-else>
+                <span class="text-3xl font-bold">
+                  <template v-if="isConnected">
+                    {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
+                  </template>
+                  <template v-else> -- </template>
+                </span>
+              </template>
+            </div>
+          </div>
+          <UButton
+            :disabled="!isConnected || Number(hodlerInfo?.[0]) <= 0"
+            @click="withdrawDialogOpen = true"
+            variant="outline"
+            color="cyan"
+          >
+            Withdraw
+          </UButton>
         </div>
-        <UButton
-          :disabled="!isConnected || totalClaimableAmount <= 0n"
-          @click="claimTokens"
-          variant="outline"
-          color="cyan"
-        >
-          Claim All
-        </UButton>
+
+        <UModal v-model="withdrawDialogOpen">
+          <UCard
+            class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
+          >
+            <h4 class="text-lg font-semibold mb-6">Withdraw tokens</h4>
+            <form
+              @submit.prevent="submitWithdrawForm"
+              class="mt-6 md:mt-0 w-full md:w-auto"
+            >
+              <label for="withdrawAmount" class="text-sm"
+                >Amount to withdraw:
+              </label>
+              <UInput
+                name="withdrawAmount"
+                class="mt-2 mb-6"
+                v-model="withdrawAmount"
+                color="neutral"
+                placeholder="Withdraw amount"
+                type="number"
+                min="0"
+              />
+              <div class="flex justify-end gap-3">
+                <UButton
+                  variant="outline"
+                  color="cyan"
+                  @click="[(withdrawAmount = 0), (withdrawDialogOpen = false)]"
+                >
+                  Cancel
+                </UButton>
+                <UButton variant="solid" color="cyan" type="submit">
+                  Withdraw
+                </UButton>
+              </div>
+            </form>
+          </UCard>
+        </UModal>
+
+        <div v-if="currentTab === 'vaults'">
+          <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
+            <h3>Claimable Tokens</h3>
+            <div class="inline-flex items-baseline gap-2">
+              <template v-if="vaultsPending">
+                <USkeleton class="w-[15rem] h-10" />
+              </template>
+              <template v-else>
+                <span class="text-3xl font-bold">
+                  <template v-if="isConnected">
+                    {{ formatEtherNoRound(totalClaimableAmount || '0') }}
+                  </template>
+                  <template v-else>--</template>
+                </span>
+              </template>
+            </div>
+          </div>
+          <UButton
+            :disabled="!isConnected || totalClaimableAmount <= 0n"
+            @click="claimTokens"
+            variant="outline"
+            color="cyan"
+          >
+            Claim All
+          </UButton>
+        </div>
       </div>
-    </div>
-  </Card>
+    </Card>
+  </div>
 </template>
 
 <style scoped>
@@ -355,7 +396,7 @@ import { formatUnits, getAddress, parseEther } from 'viem';
 import { useClipboard } from '@vueuse/core';
 import { getBlock } from '@wagmi/core';
 import { config } from '~/config/wagmi.config';
-import { useQuery } from '@tanstack/vue-query';
+import { useMutation, useQuery } from '@tanstack/vue-query';
 
 interface Vault {
   amount: bigint;
@@ -423,6 +464,57 @@ const vaults = computed(() => {
   return data;
 });
 const isSubmitting = computed(() => isPending || isConfirming);
+
+const { getClaimableStakingRewards, claimStakingRewards } = useStakingRewards();
+
+const { data: claimableRewards, isPending: claimableRewardsPending } = useQuery(
+  {
+    queryKey: ['claimableRewards', address],
+    queryFn: async () => {
+      if (!address.value) return '0';
+
+      return getClaimableStakingRewards(address.value);
+    },
+    enabled: !!address.value,
+  }
+);
+
+const {
+  data: claimStakingRewardsMutation,
+  isPending: claimStakingRewardsPending,
+  isSuccess: claimStakingRewardsSuccess,
+  isError: claimStakingRewardsError,
+} = useMutation({
+  mutationFn: async () => {
+    if (!address.value) {
+      toast.add({
+        title: 'Please connect wallet to claim',
+        color: 'red',
+      });
+      return;
+    }
+
+    return claimStakingRewards(address.value);
+  },
+});
+
+watch([claimStakingRewardsSuccess, claimStakingRewardsError], () => {
+  if (claimStakingRewardsError) {
+    toast.add({
+      title: 'Failed to claim staking rewards',
+      color: 'red',
+    });
+  }
+
+  // TODO - need to do more robust check here
+  if (claimStakingRewardsSuccess) {
+    toast.add({
+      title: `Successfully claimed ${claimableRewards.value} tokens`,
+      color: 'green',
+    });
+    claimableRewards.value = '0';
+  }
+});
 
 const {
   data: stakesData,
@@ -831,8 +923,11 @@ const updateOperators = async () => {
   }
 };
 
-watch([stakedOperators, searchQuery], updateOperators); // Trigger on dependency changes
+watch([stakedOperators, searchQuery], updateOperators);
 watch(currentTab, (newTab) => {
-  if (newTab === 'operators') updateOperators(); // Refresh on tab switch
+  if (newTab === 'operators') updateOperators();
+});
+onMounted(() => {
+  if (currentTab.value === 'operators') updateOperators();
 });
 </script>
