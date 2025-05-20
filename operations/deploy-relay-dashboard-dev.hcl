@@ -1,6 +1,6 @@
 job "deploy-relay-dashboard-dev" {
   datacenters = [ "ator-fin" ]
-  namespace = "dashboard"
+  namespace = "ator-network"
   type = "batch"
 
   reschedule { attempts = 0 }
