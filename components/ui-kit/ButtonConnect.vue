@@ -49,27 +49,37 @@ const handleDisconnect = () => {
     <UButton v-else variant="outline" color="yellow">Wrong Network</UButton>
   </div>
 
-  <UModal v-model="isOpen">
-    <UCard class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg">
-      <template #header>
-        <h4 class="text-lg font-semibold">Account Options</h4>
-      </template>
+  <UModal
+    v-model="isOpen"
+    :ui="{
+      base: 'w-full md:w-max',
+    }"
+  >
+    <UCard
+      class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg w-full md:w-max"
+    >
+      <div class="flex flex-col gap-4">
+        <div class="flex gap-2 items-center">
+          <UIcon name="i-heroicons-user-solid" />
+          <h4 class="text-lg font-semibold">Account Options</h4>
+        </div>
 
-      <div>
-        <UButton
-          variant="outline"
-          color="red"
-          class="w-full"
-          @click="handleDisconnect"
-          >Disconnect</UButton
+        <p
+          class="text-start text-neutral-700 dark:text-neutral-300 max-w-[40ch] text-xs"
         >
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quibusdam
+          iure.
+        </p>
+
+        <div class="grid grid-cols-2 gap-3 items-center">
+          <UButton variant="outline" color="gray" @click="isOpen = false"
+            >Cancel</UButton
+          >
+          <UButton variant="solid" color="red" @click="handleDisconnect"
+            >Disconnect</UButton
+          >
+        </div>
       </div>
-
-      <template #footer>
-        <UButton variant="outline" class="w-full" @click="isOpen = false"
-          >Close</UButton
-        >
-      </template>
     </UCard>
   </UModal>
 
