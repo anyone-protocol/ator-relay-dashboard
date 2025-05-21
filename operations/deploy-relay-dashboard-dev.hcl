@@ -54,12 +54,13 @@ job "deploy-relay-dashboard-dev" {
         DASHBOARD_VERSION="[[.commit_sha]]"
       }
 
-      vault { role = "any1-nomad-workloads-controller" }
-      identity {
-        name = "vault_default"
-        aud  = ["any1-infra"]
-        ttl  = "1h"
-      }
+      vault { policies = [ "dashboard-dev" ] }
+      # vault { role = "any1-nomad-workloads-controller" }
+      # identity {
+      #   name = "vault_default"
+      #   aud  = ["any1-infra"]
+      #   ttl  = "1h"
+      # }
 
       template {
         data = <<-EOH
@@ -79,7 +80,7 @@ job "deploy-relay-dashboard-dev" {
         NUXT_PUBLIC_FACILITATOR_CONTRACT="[[ consulKey "facilitator/sepolia/stage/address" ]]"
         NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/sepolia/stage/address" ]]"
         NUXT_PUBLIC_REGISTRATOR_CONTRACT="[[ consulKey "registrator/sepolia/stage/address" ]]"
-        {{ with secret "kv/dashboard/stage" }}
+        {{ with secret "kv/dashboard/dev" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
         PERMAWEB_KEY="{{ .Data.data.DASHBOARD_OWNER_KEY }}"
         {{ end }}
