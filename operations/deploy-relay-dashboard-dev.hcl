@@ -8,10 +8,6 @@ job "deploy-relay-dashboard-dev" {
   group "deploy-relay-dashboard-dev-group" {
     count = 1
 
-    network {
-      mode = "bridge"
-    }
-
     task "deploy-relay-dashboard-dev-task" {
       driver = "docker"
 
