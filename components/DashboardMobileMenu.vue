@@ -41,6 +41,13 @@ router.beforeEach(async () => {
             >Relays</UButton
           >
         </RouterLink>
+        <RouterLink to="/staking">
+          <UButton
+            variant="outline"
+            class="nav-button uniform-height text-sm lg:text-base w-[8rem] ring-cyan-500 text-cyan-500 bg-cyan-100/50 hover:bg-cyan-100/50 dark:ring-cyan-400 dark:text-cyan-400 dark:bg-gray-800/50 dark:hover:bg-gray-800/50"
+            >Staking</UButton
+          >
+        </RouterLink>
         <ReportIssueButton class="w-[8rem]" />
       </div>
       <div
