@@ -49,7 +49,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/device'],
+  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/device', '@wagmi/vue/nuxt'],
 
   // This is used instead on env file
   // See: https://nuxt.com/docs/guide/going-further/runtime-config
@@ -58,6 +58,7 @@ export default defineNuxtConfig({
       aoCuUrl: 'https://cu.anyone.permaweb.services',
       operatorRegistryProcessId: '_-JHiTCYy8cG4dsQDm0kHKF0I3rJit1uxbPdNqQBE_Q',
       relayRewardsProcessId: 'QZJTY63XZtHOHo_qPaEX7VdtemZh4rpj821xcanPGXA',
+      stakingRewardsProcessId: 'aQ5MmpWnb4hq1XPklhuny6Q59Idl2URl0_5meNZhmRo',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: '53a5b087ab4cb303a799325360098216',
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',
