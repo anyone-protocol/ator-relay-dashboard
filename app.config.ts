@@ -9,7 +9,48 @@ export default defineAppConfig({
     gray: 'neutral',
     modal: {
       overlay: {
-        background: 'bg-gray-200/75 dark:bg-gray-800/75 backdrop-blur',
+        background: 'bg-neutral-200/75 dark:bg-neutral-800/75 backdrop-blur',
+      },
+    },
+    card: {
+      ring: 'ring-inset ring-1 ring-neutral-200 dark:ring-neutral-700/50',
+    },
+    // strategy: 'override',
+    button: {
+      color: {
+        red: {
+          solid: 'bg-red-500 text-white hover:brightness-110',
+        },
+        gray: {
+          outline:
+            'text-neutral-900 ring-1 ring-neutral-200 hover:ring-neutral-300 dark:text-neutral-50 dark:ring-neutral-700 hover:dark:ring-neutral-600',
+          soft: 'text-neutral-950 hover:bg-neutral-200/50  dark:text-neutral-50 dark:hover:bg-neutral-800/50',
+        },
+        primary: {
+          soft: 'text-cyan-800 bg-cyan-200/50 hover:bg-cyan-300/50 dark:text-cyan-400 dark:bg-cyan-800/50 dark:hover:bg-cyan-600/50',
+        },
+      },
+      rounded: 'rounded-[4px]',
+      base: 'justify-center',
+    },
+    input: {
+      placeholder: 'placeholder-neutral-400 dark:placeholder-neutral-500',
+      color: {
+        gray: {
+          outline:
+            'bg-transparent dark:bg-transparent ring-neutral-200 dark:ring-neutral-700 text-neutral-900 dark:text-neutral-50 focus:ring-cyan-500 dark:focus:ring-cyan-400',
+        },
+      },
+      icon: {
+        base: 'text-neutral-400 dark:text-neutral-500',
+      },
+    },
+    badge: {
+      color: {
+        white: {
+          outline:
+            'text-neutral-500 dark:text-neutral-400 ring-1 ring-neutral-500 dark:ring-neutral-400',
+        },
       },
     },
   },
