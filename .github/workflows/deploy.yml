@@ -62,9 +62,9 @@ jobs:
         run: |
           curl -L https://releases.hashicorp.com/levant/0.3.2/levant_0.3.2_linux_amd64.zip -o levant.zip
           unzip levant.zip
-          [[ -n $(grep "dev" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-dashboard-dev.hcl
-          [[ -n $(grep "stage" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-dashboard-stage.hcl
-          [[ -z $(grep "stage" deploy-vars.json) && -z $(grep "dev" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-dashboard-live.hcl
+          [[ -n $(grep "dev" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-dev.hcl
+          [[ -n $(grep "stage" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-stage.hcl
+          [[ -z $(grep "stage" deploy-vars.json) && -z $(grep "dev" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-live.hcl
 
           curl -L https://releases.hashicorp.com/nomad/1.5.6/nomad_1.5.6_linux_amd64.zip -o nomad.zip
           unzip nomad.zip

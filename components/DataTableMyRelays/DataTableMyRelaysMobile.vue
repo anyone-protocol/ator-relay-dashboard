@@ -4,7 +4,6 @@ import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
-import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 import FingerprintDisplay from './FingerprintDisplay.vue';
 
 import Tabs from '../ui-kit/Tabs.vue';
@@ -15,12 +14,11 @@ import BigNumber from 'bignumber.js';
 
 import LockStatusColumn from './columns/LockStatusColumn.vue';
 import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
-import { useRegistrator } from '@/composables/registrator';
-import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import { ethers } from 'ethers';
 import { watchAccount } from '@wagmi/core';
 import { defineProps } from 'vue';
 import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
+import { useHodler } from '~/composables/hodler';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -30,10 +28,9 @@ const props = defineProps<{
 const toast = useToast();
 const userStore = useUserStore();
 const metricsStore = useMetricsStore();
-const registratorStore = useRegistratorStore();
-const facilitatorStore = useFacilitatorStore();
-const registrator = useRegistrator();
 const operatorRegistry = useOperatorRegistry();
+const hodler = useHodler();
+const hodlerStore = useHolderStore();
 
 const isHovered = ref(false);
 const isUnlocking = ref(false);
@@ -43,12 +40,11 @@ const { address } = useAccount({ config } as any);
 const registerModalOpen = ref(false);
 
 onMounted(() => {
-  // refresh the locked relays every minute
+  // refresh everything every 60 seconds
   setInterval(() => {
-    if (registrator) {
+    if (hodler) {
       if (userStore.userData.address) {
-        // refresh the relays every minute
-        registrator.getLokedRelaysTokens(userStore.userData.address);
+        hodler.refresh();
       }
     }
   }, 1000 * 60);
@@ -90,8 +86,8 @@ watch(allRelays, async () => {
   await fetchRegistrationCredit();
 });
 
-const { lokedRelays: lockedRelays, loading: lockedRelaysPending } =
-  storeToRefs(registratorStore);
+const { locks: lockedRelays, loading: lockedRelaysPending } =
+  storeToRefs(hodlerStore);
 
 const lockedRelaysMap = ref<Record<string, boolean | undefined>>({});
 
@@ -168,7 +164,10 @@ const timestamp = computed(
 const fingerprints = computed(() => {
   return allRelays.value.map((relay) => relay.fingerprint);
 });
-const relayAction = async (action: "claim" | "renounce", fingerprint: string) => {
+const relayAction = async (
+  action: 'claim' | 'renounce',
+  fingerprint: string
+) => {
   //TODO: Sign the message
   // See: The following resources
   // https://academy.warp.cc/docs/sdk/advanced/plugins/signature
@@ -189,12 +188,12 @@ const relayAction = async (action: "claim" | "renounce", fingerprint: string) =>
     switch (action) {
       case 'claim':
         // actionPromise = registry.claim(fingerprint);
-        actionPromise = operatorRegistry.claim(fingerprint)
+        actionPromise = operatorRegistry.claim(fingerprint);
         break;
 
       case 'renounce':
         // actionPromise = registry.renounce(fingerprint);
-        actionPromise = operatorRegistry.renounce(fingerprint)
+        actionPromise = operatorRegistry.renounce(fingerprint);
         break;
 
       default:
@@ -331,7 +330,6 @@ const handleLockRelay = async (fingerprint: string) => {
 
   const maxTries = 3;
 
-
   // retry untill maxRetry or the registrationcredit is removed
   const searchWithBackoff = async (currentTry: number) => {
     if (currentTry > maxTries) {
@@ -341,29 +339,27 @@ const handleLockRelay = async (fingerprint: string) => {
     userStore.createRelayCache().then(async () => {
       await fetchRegistrationCredit();
       if (relayCredits.value[fingerprint] === false) {
-        console.log("Registration credit removed at attempt: ", currentTry);
+        console.log('Registration credit removed at attempt: ', currentTry);
         return;
       }
-
-    })
+    });
 
     console.log(`Didn't remove lock yet... (Attempt ${currentTry})`);
 
     setTimeout(() => {
       searchWithBackoff(currentTry + 1);
     }, 5000 * currentTry);
-  }
+  };
 
   try {
-    const register = useRegistrator();
-    register?.lock(fingerprint, '').then(async (result) => {
-
+    const hodler = useHodler();
+    hodler?.lock(fingerprint, '').then(async (result) => {
       searchWithBackoff(0);
 
       selectedRow!.class = '';
       selectedRow!.isWorking = false;
       relayActionOngoing.value = false;
-    })
+    });
   } catch {
     selectedRow!.class = '';
     selectedRow!.isWorking = false;
@@ -403,8 +399,8 @@ const handleLockRemote = async () => {
   }
 
   try {
-    const register = useRegistrator();
-    const success = await register?.lock(
+    const hodler = useHodler();
+    const success = await hodler?.lock(
       fingerPrintRegister.value,
       ethAddress.value
     );
@@ -440,7 +436,7 @@ const getTableData = (tab: RelayTabType) => {
     case 'locked':
       return filterUniqueRelays(
         allRelays.value.filter((relay) =>
-          registratorStore.isRelayLocked(relay.fingerprint)
+          hodlerStore.relayIsLocked(relay.fingerprint)
         )
       );
     case 'claimable':
@@ -457,17 +453,15 @@ const getObservedBandwidth = (fingerprint: string) => {
 };
 
 const handleUnlockClick = async (fingerprint: string) => {
-  if (registratorStore.isRelayLocked(fingerprint)) {
-    isUnlocking.value = true;
-    const register = useRegistrator();
-    try {
-      await register?.unlock(fingerprint, BigInt(100 * 1e18));
-      // Refresh the relays
-      await userStore.createRelayCache();
-    } catch (error) {
-    } finally {
-      isUnlocking.value = false;
-    }
+  isUnlocking.value = true;
+  const hodler = useHodler();
+  try {
+    await hodler?.unlock(fingerprint, userStore.userData.address!);
+    // Refresh the relays
+    await userStore.createRelayCache();
+  } catch (error) {
+  } finally {
+    isUnlocking.value = false;
   }
 };
 </script>
@@ -627,7 +621,8 @@ const handleUnlockClick = async (fingerprint: string) => {
         <div>
           <span>
             {{
-              facilitatorStore?.distributionPerRelay?.[row.fingerprint] || '-'
+              // facilitatorStore?.distributionPerRelay?.[row.fingerprint] ||
+              '-'
             }}
 
             <Popover placement="left" :arrow="false" mode="hover">
@@ -641,7 +636,7 @@ const handleUnlockClick = async (fingerprint: string) => {
                     >
 
                     {{
-                      facilitatorStore?.baseTokensPerRelay?.[row.fingerprint] ||
+                      // facilitatorStore?.baseTokensPerRelay?.[row.fingerprint] ||
                       '-'
                     }}
                     $ANYONE
@@ -653,8 +648,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Family Multiplier:</span
                     >
                     {{
-                      facilitatorStore?.multipliersPerRelay?.[row.fingerprint]
-                        ?.family || '-'
+                      // facilitatorStore?.multipliersPerRelay?.[row.fingerprint]?.family ||
+                      '-'
                     }}x
                   </div>
                   <div
@@ -664,8 +659,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Region Multiplier:</span
                     >
                     {{
-                      facilitatorStore?.multipliersPerRelay?.[row.fingerprint]
-                        ?.region || '-'
+                      // facilitatorStore?.multipliersPerRelay?.[row.fingerprint]?.region ||
+                      '-'
                     }}x
                   </div>
                   <div
@@ -675,8 +670,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Hardware Bonus:</span
                     >
                     {{
-                      facilitatorStore?.bonusesPerRelay?.[row.fingerprint]
-                        ?.hardware || '-'
+                      // facilitatorStore?.bonusesPerRelay?.[row.fingerprint]?.hardware ||
+                      '-'
                     }}
                     $ANYONE
                   </div>
@@ -687,8 +682,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Uptime Bonus:</span
                     >
                     {{
-                      facilitatorStore?.bonusesPerRelay?.[row.fingerprint]
-                        ?.quality || '-'
+                      // facilitatorStore?.bonusesPerRelay?.[row.fingerprint]?.quality ||
+                      '-'
                     }}
                     $ANYONE
                   </div>
@@ -699,18 +694,17 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Exit Bonus:</span
                     >
                     {{
-                        facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
-                        '-'
+                      // facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
+                      '-'
                     }}
                   </div>
                   <div
                     class="text-xs font-normal text-stone-700 dark:text-stone-300"
                   >
-                    <span class="text-gray-800 dark:text-white"
-                      >Period:</span
-                    >
+                    <span class="text-gray-800 dark:text-white">Period:</span>
                     {{
-                      facilitatorStore?.previousDistributions[0]?.period / 60 + " minutes" || '-'
+                      // facilitatorStore?.previousDistributions[0]?.period / 60 +' minutes' ||
+                      '-'
                     }}
                   </div>
                   <div
@@ -720,9 +714,8 @@ const handleUnlockClick = async (fingerprint: string) => {
                       >Last Distribution:</span
                     >
                     {{
-                      facilitatorStore?.lastDistributionTimePerRelay?.[
-                        row.fingerprint
-                      ] || '-'
+                      // facilitatorStore?.lastDistributionTimePerRelay?.[row.fingerprint] ||
+                      '-'
                     }}
                   </div>
                 </div>
@@ -757,7 +750,9 @@ const handleUnlockClick = async (fingerprint: string) => {
           :is-locked="lockedRelaysMap[row.fingerprint]"
           :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
-          :is-loading="registratorStore.loading || lockedRelaysPending || allRelaysPending"
+          :is-loading="
+            hodlerStore.loading || lockedRelaysPending || allRelaysPending
+          "
         />
       </div>
       <div class="flex justify-between items-center mt-2">
@@ -772,7 +767,9 @@ const handleUnlockClick = async (fingerprint: string) => {
             row.status === 'verified' ||
             isHardwareResolved?.[row.fingerprint]
           "
-          :is-loading="registratorStore.loading || lockedRelaysPending || allRelaysPending"
+          :is-loading="
+            hodlerStore.loading || lockedRelaysPending || allRelaysPending
+          "
           :has-registration-credit="relayCredits[row.fingerprint]"
           :registration-credits-required="registrationCreditsRequired ?? false"
           :family-verified="familyVerified[row.fingerprint]"
@@ -783,9 +780,7 @@ const handleUnlockClick = async (fingerprint: string) => {
           v-if="currentTab === 'locked'"
           :ui="{ base: 'text-sm' }"
           :class="{
-            'cursor-not-allowed min-w-[140px]':
-              (!registratorStore.isUnlockable(row.fingerprint) && isHovered) ||
-              isUnlocking,
+            'cursor-not-allowed min-w-[140px]': isUnlocking,
           }"
           icon="i-heroicons-check-circle-solid"
           size="xl"
@@ -844,7 +839,7 @@ const handleUnlockClick = async (fingerprint: string) => {
         </div>
         <UBadge
           v-if="
-            registratorStore.isRelayOwner(
+            hodlerStore.isRelayOwner(
               row.fingerprint,
               userStore.userData.address!
             )

@@ -4,7 +4,6 @@ import { formatEther } from 'ethers';
 
 import { useAccount } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
-import { useFacilitatorStore } from '@/stores/useFacilitatorStore';
 
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
