@@ -86,7 +86,7 @@ const handleDisconnect = () => {
   <UButton
     v-if="isDisconnected"
     variant="outline"
-    class="lg:text-base ring-neutral-300 text-neutral-950 hover:bg-neutral-100/50 dark:ring-neutral-700 dark:text-neutral-50 dark:hover:bg-neutral-800/50"
+    class="bg-neutral-100 ring-neutral-200 text-neutral-950 hover:bg-neutral-300 dark:bg-neutral-800/50 dark:ring-neutral-700 dark:text-neutral-50 dark:hover:bg-neutral-800/25"
     @click="open({ view: 'Connect' })"
   >
     Connect wallet
