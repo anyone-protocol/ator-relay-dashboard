@@ -97,7 +97,6 @@
                 ? allOperators
                 : filteredStakedOperators
             "
-            :ui="tableStyles"
           >
             <template #operator-data="{ row }: { row: Operator }">
               <span> {{ truncatedAddress(row.operator) }} </span>
@@ -266,7 +265,6 @@
             }"
             :columns="vaultColumns"
             :rows="vaults"
-            :ui="tableStyles"
           >
             <template #availableAt-data="{ row }: { row: Vault }">
               <span>{{
@@ -353,7 +351,12 @@
                 >
                   Cancel
                 </UButton>
-                <UButton variant="solid" color="cyan" type="submit">
+                <UButton
+                  :disabled="withdrawAmount <= 0"
+                  variant="solid"
+                  color="cyan"
+                  type="submit"
+                >
                   Withdraw
                 </UButton>
               </div>
@@ -392,20 +395,6 @@
   </div>
 </template>
 
-<!-- <style scoped>
-.scrollable-table tbody {
-  display: block;
-  max-height: 300px;
-  overflow-y: auto;
-}
-.scrollable-table thead,
-.scrollable-table tbody tr {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
-</style> -->
-
 <script lang="ts" setup>
 import Card from '~/components/ui-kit/Card.vue';
 import {
@@ -414,10 +403,8 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from '@wagmi/vue';
-import {
-  hodlerAbi,
-  tokenAbi,
-} from '../assets/contract-artifacts/wagmi-generated';
+import { hodlerAbi } from '../assets/abi/hodler';
+import { tokenAbi } from '../assets/abi/token';
 import { formatUnits, getAddress, parseEther } from 'viem';
 import { useClipboard } from '@vueuse/core';
 import { getBlock } from '@wagmi/core';
@@ -436,8 +423,6 @@ interface Operator {
   amount: string;
 }
 
-const tableStyles = {};
-
 const { address, isConnected } = useAccount();
 const { data: hash, isPending, writeContractAsync } = useWriteContract();
 const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -446,9 +431,11 @@ const { isLoading: isConfirming, isSuccess: isConfirmed } =
   });
 const toast = useToast();
 const { copy, copied } = useClipboard();
+const runtimeConfig = useRuntimeConfig();
 
-const CONTRACT_ADDRESS = '0x948B3c65b89DF0B4894ABE91E6D02FE579834F8F';
-// const OPERATOR_ADDRESS = '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC';
+const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
+const tokenContract = runtimeConfig.public
+  .sepoliaAtorTokenContract as `0x${string}`;
 
 const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
@@ -551,7 +538,7 @@ const {
   error,
   refetch: refetchStakes,
 } = useReadContract({
-  address: CONTRACT_ADDRESS as `0x${string}`,
+  address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'getStakes',
   args: [hodlerAddress.value as `0x${string}`],
@@ -562,17 +549,17 @@ const {
 });
 
 const { data: tokenAddress } = useReadContract({
-  address: CONTRACT_ADDRESS,
+  address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'tokenContract',
   query: { enabled: computed(() => currentTab.value === 'operators') },
 });
 
 const { data: allowance } = useReadContract({
-  address: tokenAddress.value as `0x${string}`,
+  address: tokenContract,
   abi: tokenAbi,
   functionName: 'allowance',
-  args: [hodlerAddress.value as `0x${string}`, CONTRACT_ADDRESS],
+  args: [hodlerAddress.value as `0x${string}`, hodlerContract],
   query: {
     enabled: !!hodlerAddress.value && !!tokenAddress.value,
   },
@@ -718,16 +705,16 @@ const submitStakeForm = async () => {
     if (allowance.value === undefined || allowance.value < amount) {
       // console.log('Approving tokens...');
       await writeContractAsync({
-        address: tokenAddress.value,
+        address: tokenContract,
         abi: tokenAbi,
         functionName: 'approve',
-        args: [CONTRACT_ADDRESS, amount],
+        args: [hodlerContract, amount],
       });
     }
 
     // console.log('writing to contract...');
     await writeContractAsync({
-      address: CONTRACT_ADDRESS,
+      address: hodlerContract,
       abi: hodlerAbi,
       functionName: 'stake',
       args: [getAddress(selectedOperator.value?.operator), amount],
@@ -770,7 +757,7 @@ const submitUnstakeForm = async () => {
     const amount = parseEther(unstakeAmount.value.toString());
 
     await writeContractAsync({
-      address: CONTRACT_ADDRESS,
+      address: hodlerContract,
       abi: hodlerAbi,
       functionName: 'unstake',
       args: [getAddress(selectedOperator.value?.operator), amount],
@@ -810,7 +797,7 @@ const {
   isPending: vaultsPending,
   refetch: refetchVaults,
 } = useReadContract({
-  address: CONTRACT_ADDRESS,
+  address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'getVaults',
   args: [hodlerAddress.value as `0x${string}`],
@@ -846,7 +833,7 @@ const {
   isPending: hodlerInfoPending,
   refetch: refetchHolderInfo,
 } = useReadContract({
-  address: CONTRACT_ADDRESS,
+  address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'hodlers',
   args: [hodlerAddress.value as `0x${string}`],
@@ -877,7 +864,7 @@ const submitWithdrawForm = async () => {
     const amount = parseEther(withdrawAmount.value.toString());
 
     await writeContractAsync({
-      address: CONTRACT_ADDRESS,
+      address: hodlerContract,
       abi: hodlerAbi,
       functionName: 'withdraw',
       args: [amount],
@@ -924,7 +911,7 @@ const claimTokens = async (available: bigint) => {
 
   try {
     await writeContractAsync({
-      address: CONTRACT_ADDRESS,
+      address: hodlerContract,
       abi: hodlerAbi,
       functionName: 'openExpired',
     });
