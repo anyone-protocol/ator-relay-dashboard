@@ -53,6 +53,33 @@ export default defineAppConfig({
         },
       },
     },
+    dropdown: {
+      background: 'dark:bg-neutral-800/80 backdrop-blur-sm',
+      ring: 'ring-neutral-200 dark:ring-neutral-700',
+      divide: 'divide-neutral-200 dark:divide-neutral-700',
+      item: {
+        active: 'bg-cyan-400 dark:bg-cyan-500 text-cyan-900 dark:text-white',
+        icon: {
+          active: 'text-neutral-500 dark:text-neutral-400',
+        },
+      },
+    },
+    table: {
+      wrapper: 'max-h-[30svh] overflow-y-scroll',
+      thead:
+        'sticky top-0 bg-white dark:bg-neutral-900 after:absolute after:bottom-0 after:w-full after:h-[1px] after:bg-neutral-200 after:dark:bg-neutral-600 z-10',
+      th: {
+        padding: 'p-2',
+        color: 'text-neutral-600 dark:text-neutral-300',
+        font: 'font-normal',
+      },
+      td: {
+        padding: 'p-2',
+        base: 'min-h-11',
+        color: 'text-cyan-900 dark:text-cyan-100',
+      },
+      tbody: 'divide-y divide-neutral-200 dark:divide-neutral-800',
+    },
   },
   icon: {
     size: '24px', // default <Icon> size applied
