@@ -1,19 +1,24 @@
 <script setup lang="ts">
-import { useWeb3Modal } from '@web3modal/wagmi/vue';
-import { useAccount, useDisconnect, useSwitchChain } from '@wagmi/vue';
+import {
+  useAccount,
+  useDisconnect,
+  useSwitchChain,
+  type Config,
+} from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import Address from './Address.vue';
 import { ref } from 'vue';
 import { getChainId } from '@wagmi/core';
 import { useUserStore } from '@/stores/useUserStore';
+import { useAppKit } from '@reown/appkit/vue';
 
 const { address, status, isDisconnected, isReconnecting, isConnecting } =
   useAccount({ config });
-const { open } = useWeb3Modal();
+const { open } = useAppKit();
 const { disconnect } = useDisconnect({ config });
 
 const { chains, switchChain } = useSwitchChain({ config });
-const chainId = getChainId(config);
+const chainId = getChainId(config as Config);
 
 const isWrongNetwork = computed(
   () => !chains.value.some((chainItem) => chainItem.id === chainId)
@@ -44,56 +49,44 @@ const handleDisconnect = () => {
     <UButton v-else variant="outline" color="yellow">Wrong Network</UButton>
   </div>
 
-  <UModal v-model="isOpen">
-    <UCard class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg">
-      <template #header>
-        <h4 class="text-lg font-semibold">Account Options</h4>
-      </template>
+  <UModal
+    v-model="isOpen"
+    :ui="{
+      base: 'w-full md:w-max',
+    }"
+  >
+    <UCard
+      class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg w-full md:w-max"
+    >
+      <div class="flex flex-col gap-4">
+        <div class="flex gap-2 items-center">
+          <UIcon name="i-heroicons-user-solid" />
+          <h4 class="text-lg font-semibold">Account Options</h4>
+        </div>
 
-      <div>
-        <UButton
-          variant="outline"
-          color="red"
-          class="w-full"
-          @click="handleDisconnect"
-          >Disconnect</UButton
+        <p
+          class="text-start text-neutral-700 dark:text-neutral-300 max-w-[40ch] text-xs"
         >
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quibusdam
+          iure.
+        </p>
 
-        <!-- <div>
-          <h5 class="text-sm font-medium mb-2">Current Network</h5>
-          <div class="space-y-2">
-            <UButton
-              v-for="chainItem in chains"
-              :key="chainItem.id"
-              class="w-full"
-              variant="outline"
-              :class="{
-                'opacity-50 cursor-not-allowed': chainId === chainItem.id,
-              }"
-              @click="switchChain({ chainId: chainItem.id })"
-              :disabled="chainId === chainItem.id"
-            >
-              {{ chainItem.name }}
-              <span v-if="chainId === chainItem.id" class="ml-2"
-                >(Connected)</span
-              >
-            </UButton>
-          </div>
-        </div> -->
+        <div class="grid grid-cols-2 gap-3 items-center">
+          <UButton variant="outline" color="gray" @click="isOpen = false"
+            >Cancel</UButton
+          >
+          <UButton variant="solid" color="red" @click="handleDisconnect"
+            >Disconnect</UButton
+          >
+        </div>
       </div>
-
-      <template #footer>
-        <UButton variant="outline" class="w-full" @click="isOpen = false"
-          >Close</UButton
-        >
-      </template>
     </UCard>
   </UModal>
 
   <UButton
     v-if="isDisconnected"
     variant="outline"
-    class="lg:text-base ring-neutral-300 text-neutral-950 hover:bg-neutral-100/50 dark:ring-neutral-700 dark:text-neutral-50 dark:hover:bg-neutral-800/50"
+    class="bg-neutral-100 ring-neutral-200 text-neutral-950 hover:bg-neutral-300 dark:bg-neutral-800/50 dark:ring-neutral-700 dark:text-neutral-50 dark:hover:bg-neutral-800/25"
     @click="open({ view: 'Connect' })"
   >
     Connect wallet
