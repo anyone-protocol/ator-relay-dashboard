@@ -65,7 +65,7 @@
               rounded: 'rounded-none',
               background: '',
               active: 'border-b border-cyan-500 text-black dark:text-white',
-              size: 'text-xs md:text-md',
+              size: 'text-xs md:text-sm',
             },
           },
         }"
@@ -100,7 +100,7 @@
             :ui="tableStyles"
           >
             <template #operator-data="{ row }: { row: Operator }">
-              <span> {{ row.operator }} </span>
+              <span> {{ truncatedAddress(row.operator) }} </span>
             </template>
             <template #total-data="{ row }: { row: Operator }">
               <span> N/A </span>
@@ -108,11 +108,13 @@
             <template #actions-data="{ row }">
               <UDropdown
                 :items="operatorActionItems(row)"
-                :popper="{ placement: 'right-start' }"
+                :popper="{ placement: 'left-start' }"
               >
                 <UButton
+                  size="xs"
                   variant="ghost"
                   icon="i-heroicons-ellipsis-horizontal-20-solid"
+                  class="hover:bg-neutral-200 hover:dark:bg-neutral-800"
                 />
 
                 <template #item="{ item }">
@@ -390,7 +392,7 @@
   </div>
 </template>
 
-<style scoped>
+<!-- <style scoped>
 .scrollable-table tbody {
   display: block;
   max-height: 300px;
@@ -402,7 +404,7 @@
   width: 100%;
   table-layout: fixed;
 }
-</style>
+</style> -->
 
 <script lang="ts" setup>
 import Card from '~/components/ui-kit/Card.vue';
@@ -434,18 +436,7 @@ interface Operator {
   amount: string;
 }
 
-const tableStyles = {
-  wrapper: 'max-h-[30svh] overflow-y-scroll',
-  thead:
-    'sticky top-0 bg-white dark:bg-neutral-900 after:absolute after:bottom-0 after:w-full after:h-[1px] after:bg-neutral-200 after:dark:bg-neutral-600 backdrop-blur-xs',
-  th: {
-    padding: 'p-2 backdrop-blur-xs',
-  },
-  td: {
-    padding: 'p-2 text-neutral-500 dark:text-neutral-400',
-  },
-  tbody: 'divide-y divide-neutral-200 dark:divide-neutral-800',
-};
+const tableStyles = {};
 
 const { address, isConnected } = useAccount();
 const { data: hash, isPending, writeContractAsync } = useWriteContract();
@@ -623,6 +614,7 @@ const operatorColumns = [
   },
   {
     key: 'actions',
+    label: 'Actions',
   },
 ];
 
@@ -663,9 +655,6 @@ const vaultColumns = [
   {
     key: 'status',
     label: 'Vault status',
-  },
-  {
-    key: 'claimAction',
   },
 ];
 
@@ -949,6 +938,7 @@ const claimTokens = async (available: bigint) => {
 };
 
 const filteredStakedOperators = computed(() => {
+  if (!isConnected.value) return [];
   return stakedOperators.value.filter((op) =>
     op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
