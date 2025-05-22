@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col-reverse lg:flex-row gap-10">
+  <div class="flex flex-col-reverse lg:flex-row gap-5">
     <Card class="min-w-max w-max h-max aspect-square">
       <div class="p-2">
         <div class="flex gap-1 items-center">
@@ -7,7 +7,7 @@
           <h3 class="font-medium">Staking Rewards</h3>
         </div>
         <div class="mt-6 mb-2 flex flex-col border-l-2 border-cyan-600 pl-3">
-          <p class="text-neutral-600 dark:text-neutral-400">
+          <p class="text-sm text-neutral-600 dark:text-neutral-400">
             Unclaimed Rewards
           </p>
           <div class="inline-flex items-baseline gap-2">
@@ -25,13 +25,15 @@
           </div>
         </div>
         <UButton
-          class="bg-neutral-200 ring-1 ring-neutral-300 text-neutral-900 dark:bg-neutral-800 dark:ring-neutral-700 dark:text-neutral-50 disabled:opacity-35"
+          class="ring-1 ring-neutral-200 dark:ring-neutral-800"
+          @click="claimStakingRewardsMutation()"
           :disabled="
             !isConnected ||
             claimableRewardsPending ||
             Number(claimableRewards) <= 0
           "
           :loading="claimStakingRewardsPending"
+          color="gray"
           variant="soft"
         >
           Claim
@@ -51,28 +53,36 @@
         @change="onTabChange"
         :ui="{
           list: {
-            width: 'w-max',
+            width: 'w-max max-w-full',
             background: '',
             marker: {
               background: '',
             },
+            padding: 'p-0',
+            height: 'h-max',
             tab: {
-              base: 'pb-2 px-4 text-white font-medium',
+              base: 'pb-2 px-4 text-cyan-700 dark:text-cyan-300 font-medium w-max',
               rounded: 'rounded-none',
               background: '',
-              active: 'border-b-2 border-cyan-500',
+              active: 'border-b border-cyan-500 text-black dark:text-white',
+              size: 'text-xs md:text-md',
             },
           },
         }"
       >
+        <template #default="{ item, index, selected }">
+          <span class="truncate text-cyan-700 dark:text-cyan-200">{{
+            item.label
+          }}</span>
+        </template>
         <template v-slot:[currentTab]="{ item }">
-          <div class="flex justify-end mb-4">
+          <div class="flex justify-end my-4">
             <UInput
               v-model="searchQuery"
-              color="neutral"
+              color="gray"
+              variant="outline"
               icon="i-heroicons-magnifying-glass"
               placeholder="Search by address"
-              class="w-max"
             />
           </div>
           <UTable
@@ -82,11 +92,12 @@
             }"
             :loading="currentTab === 'operators' && operatorRegistryPending"
             :columns="operatorColumns"
-            :rows="currentTab === 'operators' ? allOperators : stakedOperators"
-            :ui="{
-              wrapper: 'max-h-[30svh] overflow-y-scroll',
-              thead: 'sticky top-0 bg-white dark:bg-neutral-900',
-            }"
+            :rows="
+              currentTab === 'operators'
+                ? allOperators
+                : filteredStakedOperators
+            "
+            :ui="tableStyles"
           >
             <template #operator-data="{ row }: { row: Operator }">
               <span> {{ row.operator }} </span>
@@ -253,15 +264,31 @@
             }"
             :columns="vaultColumns"
             :rows="vaults"
+            :ui="tableStyles"
           >
             <template #availableAt-data="{ row }: { row: Vault }">
+              <span>{{
+                formatAvailableAt(row.availableAt) === 'Expired'
+                  ? '0D 0H 0S'
+                  : formatAvailableAt(row.availableAt)
+              }}</span>
+            </template>
+
+            <template #status-data="{ row }: { row: Vault }">
               <UBadge
-                v-if="formatAvailableAt(row.availableAt) === 'Expired'"
-                color="green"
+                :color="
+                  formatAvailableAt(row.availableAt) === 'Expired'
+                    ? 'green'
+                    : 'white'
+                "
                 variant="outline"
-                >Claimable</UBadge
               >
-              <span v-else>{{ formatAvailableAt(row.availableAt) }}</span>
+                {{
+                  formatAvailableAt(row.availableAt) === 'Expired'
+                    ? 'Expired'
+                    : 'Active'
+                }}
+              </UBadge>
             </template>
           </UTable>
         </template>
@@ -270,16 +297,13 @@
       <div class="mt-5 flex justify-between">
         <div>
           <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
-            <h3>
-              <!-- <Icon name="i-heroicons-chart-pie-20-solid" /> -->
-              Available tokens
-            </h3>
+            <h3>Available tokens</h3>
             <div class="inline-flex items-baseline gap-2">
               <template v-if="hodlerInfoPending">
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
-                <span class="text-3xl font-bold">
+                <span class="text-3xl">
                   <template v-if="isConnected">
                     {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
                   </template>
@@ -343,7 +367,7 @@
                 <USkeleton class="w-[15rem] h-10" />
               </template>
               <template v-else>
-                <span class="text-3xl font-bold">
+                <span class="text-3xl">
                   <template v-if="isConnected">
                     {{ formatEtherNoRound(totalClaimableAmount || '0') }}
                   </template>
@@ -409,6 +433,19 @@ interface Operator {
   operator: `0x${string}`;
   amount: string;
 }
+
+const tableStyles = {
+  wrapper: 'max-h-[30svh] overflow-y-scroll',
+  thead:
+    'sticky top-0 bg-white dark:bg-neutral-900 after:absolute after:bottom-0 after:w-full after:h-[1px] after:bg-neutral-200 after:dark:bg-neutral-600 backdrop-blur-xs',
+  th: {
+    padding: 'p-2 backdrop-blur-xs',
+  },
+  td: {
+    padding: 'p-2 text-neutral-500 dark:text-neutral-400',
+  },
+  tbody: 'divide-y divide-neutral-200 dark:divide-neutral-800',
+};
 
 const { address, isConnected } = useAccount();
 const { data: hash, isPending, writeContractAsync } = useWriteContract();
@@ -480,7 +517,8 @@ const { data: claimableRewards, isPending: claimableRewardsPending } = useQuery(
 );
 
 const {
-  data: claimStakingRewardsMutation,
+  mutate: claimStakingRewardsMutation,
+  data: claimStakingRewardsResult,
   isPending: claimStakingRewardsPending,
   isSuccess: claimStakingRewardsSuccess,
   isError: claimStakingRewardsError,
@@ -520,6 +558,7 @@ const {
   data: stakesData,
   isLoading,
   error,
+  refetch: refetchStakes,
 } = useReadContract({
   address: CONTRACT_ADDRESS as `0x${string}`,
   abi: hodlerAbi,
@@ -530,12 +569,6 @@ const {
       !!hodlerAddress.value && computed(() => currentTab.value === 'operators'),
   },
 });
-
-// watch(stakesData, (stakes) => {
-//   if (stakes) {
-//     console.log('stakes: ', toRaw(stakes));
-//   }
-// });
 
 const { data: tokenAddress } = useReadContract({
   address: CONTRACT_ADDRESS,
@@ -625,12 +658,12 @@ const vaultColumns = [
   },
   {
     key: 'availableAt',
-    label: 'Available in',
+    label: 'Expires in',
   },
-  // {
-  //   key: 'kind',
-  //   label: 'Vault type',
-  // },
+  {
+    key: 'status',
+    label: 'Vault status',
+  },
   {
     key: 'claimAction',
   },
@@ -651,7 +684,7 @@ const formatAvailableAt = (availableAt: bigint) => {
   const hours = (timeDiffSeconds % secondsPerDay) / secondsPerHour;
   const minutes = (timeDiffSeconds % secondsPerHour) / secondsPerMinute;
 
-  return `${days} Days ${hours} Hrs ${minutes} Min`;
+  return `${days}D ${hours}H ${minutes}M`;
 };
 
 const handleStake = () => {
@@ -770,38 +803,60 @@ watch(isConfirmed, (confirmed) => {
         color: 'green',
       });
       stakeAmount.value = 0;
+      refetchStakes();
     } else if (operatorAction.value === 'unstake') {
       toast.add({
         title: `Unstaked ${unstakeAmount.value} tokens from operator`,
         color: 'green',
       });
       unstakeAmount.value = 0;
+      refetchStakes();
+      refetchVaults();
     }
   }
 });
 
-const { data: vaultsData, isPending: vaultsPending } = useReadContract({
+const {
+  data: vaultsData,
+  isPending: vaultsPending,
+  refetch: refetchVaults,
+} = useReadContract({
   address: CONTRACT_ADDRESS,
   abi: hodlerAbi,
   functionName: 'getVaults',
   args: [hodlerAddress.value as `0x${string}`],
-  query: { enabled: computed(() => currentTab.value === 'vaults') },
+  query: {
+    enabled: computed(() => isConnected.value && currentTab.value === 'vaults'),
+  },
 });
 
 watch(vaultsData, async (vaults) => {
   if (vaults) {
-    let total = 0n;
-    await Promise.all(
-      vaults.map(async (vault) => {
-        const isClaimable = await claimable(vault.availableAt);
-        if (isClaimable) total += vault.amount;
-      })
-    );
-    totalClaimableAmount.value = total;
+    updateTotalClaimable();
   }
 });
 
-const { data: hodlerInfo, isPending: hodlerInfoPending } = useReadContract({
+const updateTotalClaimable = async () => {
+  if (!vaultsData.value?.length) {
+    totalClaimableAmount.value = 0n;
+    return;
+  }
+
+  let total = 0n;
+  await Promise.all(
+    vaultsData.value.map(async (vault) => {
+      const isClaimable = await claimable(vault.availableAt);
+      if (isClaimable) total += vault.amount;
+    })
+  );
+  totalClaimableAmount.value = total;
+};
+
+const {
+  data: hodlerInfo,
+  isPending: hodlerInfoPending,
+  refetch: refetchHolderInfo,
+} = useReadContract({
   address: CONTRACT_ADDRESS,
   abi: hodlerAbi,
   functionName: 'hodlers',
@@ -893,7 +948,17 @@ const claimTokens = async (available: bigint) => {
   }
 };
 
+const filteredStakedOperators = computed(() => {
+  return stakedOperators.value.filter((op) =>
+    op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
 const updateOperators = async () => {
+  if (!isConnected.value) {
+    allOperators.value = [];
+    return;
+  }
   try {
     operatorRegistryPending.value = true;
     const state = await operatorRegistry.viewState();
@@ -926,8 +991,9 @@ const updateOperators = async () => {
 watch([stakedOperators, searchQuery], updateOperators);
 watch(currentTab, (newTab) => {
   if (newTab === 'operators') updateOperators();
+  if (newTab === 'vaults') updateTotalClaimable();
 });
 onMounted(() => {
-  if (currentTab.value === 'operators') updateOperators();
+  if (currentTab.value === 'operators' && isConnected.value) updateOperators();
 });
 </script>
