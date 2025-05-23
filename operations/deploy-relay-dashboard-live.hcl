@@ -3,6 +3,11 @@ job "deploy-relay-dashboard-live" {
   type = "batch"
   namespace = "live-protocol"
 
+  constraint {
+    attribute = "${meta.pool}"
+    value = "live-protocol"
+  }
+
   reschedule { attempts = 0 }
 
   group "deploy-relay-dashboard-live-group" {
