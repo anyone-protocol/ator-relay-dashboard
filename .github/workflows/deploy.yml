@@ -66,6 +66,6 @@ jobs:
           [[ -n $(grep "stage" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-stage.hcl
           [[ -z $(grep "stage" deploy-vars.json) && -z $(grep "dev" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-live.hcl
 
-          curl -L https://releases.hashicorp.com/nomad/1.5.6/nomad_1.5.6_linux_amd64.zip -o nomad.zip
+          curl -L https://releases.hashicorp.com/nomad/1.8.3/nomad_1.8.3_linux_amd64.zip -o nomad.zip
           unzip nomad.zip
           ./nomad job run runtime-job.hcl
