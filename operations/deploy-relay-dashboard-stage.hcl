@@ -25,7 +25,7 @@ job "deploy-relay-dashboard-stage" {
 
       config {
         image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.commit_sha]]"
-        image_pull_timeout = "15m"
+        image_pull_timeout = "45m"
         entrypoint = [ "/usr/src/app/entrypoint.sh" ]
         mount {
           type = "bind"
