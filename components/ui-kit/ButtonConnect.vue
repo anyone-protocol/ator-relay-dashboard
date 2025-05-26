@@ -11,6 +11,7 @@ import { ref } from 'vue';
 import { getChainId } from '@wagmi/core';
 import { useUserStore } from '@/stores/useUserStore';
 import { useAppKit } from '@reown/appkit/vue';
+import { sepolia } from 'viem/chains';
 
 const { address, status, isDisconnected, isReconnecting, isConnecting } =
   useAccount({ config });
@@ -30,6 +31,16 @@ const handleDisconnect = () => {
   useUserStore().clearCache();
   isOpen.value = false;
 };
+
+watch([chainId, address], async ([newChainId, newAddress]) => {
+  if (newAddress && newChainId !== sepolia.id) {
+    try {
+      switchChain({ chainId: sepolia.id });
+    } catch (error) {
+      console.error('Failed to switch to Sepolia:', error);
+    }
+  }
+});
 </script>
 
 <template>
