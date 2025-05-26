@@ -41,11 +41,19 @@
       </div>
     </Card>
     <Card>
-      <div class="flex items-start justify-between">
-        <div class="flex items-center space-x-2 mb-6">
+      <div class="flex items-center justify-between mb-6 gap-3">
+        <div class="flex items-center space-x-2">
           <Icon name="i-heroicons-chart-pie-20-solid" class="text-3xl" />
           <h2 class="text-3xl">Staking</h2>
         </div>
+        <UInput
+          v-if="currentTab === 'operators' || currentTab === 'stakedOperators'"
+          v-model="searchQuery"
+          color="gray"
+          variant="outline"
+          icon="i-heroicons-magnifying-glass"
+          placeholder="Search by address"
+        />
       </div>
 
       <UTabs
@@ -76,15 +84,6 @@
           }}</span>
         </template>
         <template v-slot:[currentTab]="{ item }">
-          <div class="flex justify-end my-4">
-            <UInput
-              v-model="searchQuery"
-              color="gray"
-              variant="outline"
-              icon="i-heroicons-magnifying-glass"
-              placeholder="Search by address"
-            />
-          </div>
           <UTable
             :empty-state="{
               icon: 'i-heroicons-circle-stack-20-solid',
