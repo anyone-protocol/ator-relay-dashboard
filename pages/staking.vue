@@ -724,7 +724,7 @@ const formatAvailableAt = (availableAt: bigint) => {
 };
 
 const handleCloseStakeDialog = () => {
-  if (isStaking) {
+  if (isStaking.value) {
     toast.add({
       id: 'staking',
       title: `Staking ${stakeAmount.value} tokens with operator...`,
@@ -738,7 +738,7 @@ const handleCloseStakeDialog = () => {
 };
 
 const handleCloseUnstakeDialog = () => {
-  if (isUnstaking) {
+  if (isUnstaking.value) {
     toast.add({
       id: 'unstaking',
       title: `Unstaking ${unstakeAmount.value} tokens from operator...`,
