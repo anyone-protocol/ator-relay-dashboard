@@ -192,7 +192,7 @@
                       color="cyan"
                       class="justify-center text-md"
                     >
-                      {{ isStaking ? 'Staking' : 'Stake' }}
+                      {{ isStaking ? 'Staking...' : 'Stake' }}
                     </UButton>
                   </div>
                 </div>
@@ -253,7 +253,7 @@
                       color="cyan"
                       class="justify-center text-md"
                     >
-                      {{ isUnstaking ? 'Unstaking' : 'Unstake' }}
+                      {{ isUnstaking ? 'Unstaking...' : 'Unstake' }}
                     </UButton>
                   </div>
                 </div>
@@ -1061,6 +1061,7 @@ watch(isConfirmed, (confirmed) => {
       });
       stakeAmount.value = 0;
       currentWriteAction.value = null;
+      stakeDialogOpen.value = false;
       refetchStakes();
     } else if (currentWriteAction.value === 'unstake') {
       toast.remove('unstaking');
@@ -1070,6 +1071,7 @@ watch(isConfirmed, (confirmed) => {
       });
       unstakeAmount.value = 0;
       currentWriteAction.value = null;
+      unstakeDialogOpen.value = false;
       refetchStakes();
       refetchVaults();
     } else if (currentWriteAction.value === 'openExpired') {
