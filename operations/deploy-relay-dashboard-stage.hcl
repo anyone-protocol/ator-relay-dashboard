@@ -3,6 +3,11 @@ job "deploy-relay-dashboard-stage" {
   type = "batch"
   namespace = "stage-protocol"
 
+  constraint {
+    attribute = "${meta.pool}"
+    value = "stage"
+  }
+
   reschedule { attempts = 0 }
 
   group "deploy-relay-dashboard-stage-group" {
