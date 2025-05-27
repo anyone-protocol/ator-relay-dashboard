@@ -70,16 +70,15 @@ watch([chainId, address], async ([newChainId, newAddress]) => {
       class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg w-full md:w-max"
     >
       <div class="flex flex-col gap-4">
-        <div class="flex gap-2 items-center">
-          <UIcon name="i-heroicons-user-solid" />
-          <h4 class="text-lg font-semibold">Account Options</h4>
+        <div class="flex gap-2 items-center text-cyan-900 dark:text-cyan-100">
+          <UIcon name="i-heroicons-power" class="w-[1.25rem] h-[1.25rem]" />
+          <h4 class="text-lg font-semibold">Disconnect Wallet</h4>
         </div>
-
         <p
           class="text-start text-neutral-700 dark:text-neutral-300 max-w-[40ch] text-xs"
         >
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quibusdam
-          iure.
+          Disconnect manually or switch wallets on your extension to change
+          wallet
         </p>
 
         <div class="grid grid-cols-2 gap-3 items-center">
