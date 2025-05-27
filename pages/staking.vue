@@ -1,6 +1,6 @@
 <template>
-  <div class="flex flex-col-reverse lg:flex-row gap-5">
-    <Card class="min-w-max w-max h-max aspect-square">
+  <div class="flex flex-col-reverse lg:flex-row gap-5 mt-4">
+    <!-- <Card class="min-w-max w-max h-max aspect-square">
       <div class="p-2">
         <div class="flex gap-1 items-center">
           <UIcon class="text-lg" name="i-heroicons-arrow-up-circle-solid" />
@@ -39,12 +39,15 @@
           Claim
         </UButton>
       </div>
-    </Card>
+    </Card> -->
     <Card>
       <div class="flex items-center justify-between mb-6 gap-3">
         <div class="flex items-center space-x-2">
-          <Icon name="i-heroicons-chart-pie-20-solid" class="text-3xl" />
-          <h2 class="text-3xl">Staking</h2>
+          <Icon
+            name="i-heroicons-chart-pie-20-solid"
+            class="w-[1.8rem] h-[1.8rem]"
+          />
+          <h2 class="text-[2rem]">Staking</h2>
         </div>
         <UInput
           v-if="currentTab === 'operators' || currentTab === 'stakedOperators'"
@@ -54,6 +57,51 @@
           icon="i-heroicons-magnifying-glass"
           placeholder="Search by address"
         />
+        <div v-if="currentTab === 'vaults'">
+          <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
+            <div class="flex items-center gap-1">
+              <h3 class="text-sm">Claimable Tokens</h3>
+              <Popover
+                placement="left"
+                :arrow="false"
+                class="h-max grid place-items-center"
+              >
+                <template #content>
+                  <span class="text-xs font-normal">
+                    Total amount of tokens that are claimable across vaults.
+                  </span>
+                </template>
+                <template #trigger>
+                  <Icon name="heroicons:exclamation-circle" class="" />
+                </template>
+              </Popover>
+            </div>
+            <div class="inline-flex items-baseline gap-2">
+              <template v-if="vaultsPending">
+                <USkeleton class="w-[8rem] h-6" />
+              </template>
+              <template v-else>
+                <div class="flex items-center gap-3">
+                  <span class="text-xl">
+                    <template v-if="isConnected">
+                      {{ formatEtherNoRound(totalClaimableAmount || '0') }}
+                    </template>
+                    <template v-else>--</template>
+                  </span>
+                  <UButton
+                    :disabled="!isConnected || totalClaimableAmount <= 0n"
+                    @click="claimTokens"
+                    variant="outline"
+                    color="cyan"
+                    size="2xs"
+                  >
+                    Claim
+                  </UButton>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
       </div>
 
       <UTabs
@@ -61,7 +109,7 @@
         @change="onTabChange"
         :ui="{
           list: {
-            base: 'after:bg-gradient-to-r dark:after:from-cyan-600 dark:after:to-gray-900 after:from-cyan-300 after:to-gray-200',
+            base: 'after:bg-gradient-to-r dark:after:from-cyan-600 dark:after:to-gray-900 after:from-cyan-300 after:to-gray-200 mb-6',
             width: 'w-full max-w-full',
             background: '',
             marker: {
@@ -70,20 +118,18 @@
             padding: 'p-0',
             height: 'h-max',
             tab: {
-              base: 'pb-2 px-4 text-cyan-700 dark:text-cyan-300 font-medium w-max',
+              base: 'py-[8px] px-5 w-max bg-clip-text bg-gradient-to-r dark:from-cyan-300 dark:to-cyan-600 from-cyan-500 to-cyan-600 after:bg-gradient-to-r dark:after:from-cyan-300 dark:after:to-cyan-600 after:from-cyan-500 after:to-cyan-600 h-[36px]',
               rounded: 'rounded-none',
               background: '',
-              active:
-                'border-b-4 border-cyan-400 dark:border-cyan-600 text-black dark:text-white',
-              size: 'text-xs md:text-sm',
+              active: 'tab-active font-medium text-cyan-500 dark:text-cyan-400',
+              inactive: 'text-cyan-900 dark:text-cyan-100',
+              size: 'text-xs md:text-[15px] md:leading-[24px] font-normal',
             },
           },
         }"
       >
         <template #default="{ item, index, selected }">
-          <span class="truncate text-cyan-700 dark:text-cyan-200">{{
-            item.label
-          }}</span>
+          <span class="truncate">{{ item.label }}</span>
         </template>
         <template v-slot:[currentTab]="{ item }">
           <UTable
@@ -101,6 +147,9 @@
           >
             <template #operator-data="{ row }: { row: Operator }">
               <span> {{ truncatedAddress(row.operator) }} </span>
+            </template>
+            <template #amount-data="{ row }: { row: Operator }">
+              <span> {{ formatEtherNoRound(row.amount) }} </span>
             </template>
             <template #total-data="{ row }: { row: Operator }">
               <span> N/A </span>
@@ -166,10 +215,9 @@
                   <div class="text-gray-400">Amount to stake:</div>
                   <UInput
                     :disabled="isSubmitting"
-                    v-model="stakeAmount"
+                    v-model="stakeInput"
                     color="neutral"
                     placeholder="Amount to stake"
-                    type="number"
                     min="0"
                   />
                   <div class="flex justify-end gap-3 mt-5">
@@ -185,7 +233,7 @@
                     </UButton>
                     <UButton
                       :loading="isStaking"
-                      :disabled="!stakeAmount"
+                      :disabled="!parseFloat(stakeAmount)"
                       type="submit"
                       size="xs"
                       variant="solid"
@@ -227,10 +275,9 @@
                 <div class="flex flex-col gap-2">
                   <div class="text-gray-400">Amount to unstake:</div>
                   <UInput
-                    v-model="unstakeAmount"
+                    v-model="unstakeInput"
                     color="neutral"
                     placeholder="Amount to unstake"
-                    type="number"
                     min="0"
                   />
                   <div class="flex justify-end gap-3 mt-5">
@@ -282,11 +329,14 @@
                   <Icon
                     v-if="copied && copiedText === getAddress(row.data)"
                     name="ion:checkmark-sharp"
-                    class="h-4 w-4 text-green-600 dark:text-green-400"
+                    class="h-3 w-3 text-green-600 dark:text-green-400"
                   />
-                  <Icon v-else name="ion:copy-outline" class="h-4 w-4" />
+                  <Icon v-else name="ion:copy-outline" class="h-3 w-3" />
                 </UButton>
               </div>
+            </template>
+            <template #amount-data="{ row }: { row: Vault }">
+              {{ formatEtherNoRound(row.amount) }}
             </template>
             <template #availableAt-data="{ row }: { row: Vault }">
               <span>{{
@@ -316,103 +366,7 @@
         </template>
       </UTabs>
 
-      <div class="mt-5 flex justify-between">
-        <div>
-          <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
-            <h3>Available tokens</h3>
-            <div class="inline-flex items-baseline gap-2">
-              <template v-if="hodlerInfoPending">
-                <USkeleton class="w-[15rem] h-10" />
-              </template>
-              <template v-else>
-                <span class="text-3xl">
-                  <template v-if="isConnected">
-                    {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
-                  </template>
-                  <template v-else> -- </template>
-                </span>
-              </template>
-            </div>
-          </div>
-          <UButton
-            :disabled="!isConnected || Number(hodlerInfo?.[0]) <= 0"
-            @click="withdrawDialogOpen = true"
-            variant="outline"
-            color="cyan"
-          >
-            Withdraw
-          </UButton>
-        </div>
-
-        <UModal v-model="withdrawDialogOpen">
-          <UCard
-            class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
-          >
-            <h4 class="text-lg font-semibold mb-6">Withdraw tokens</h4>
-            <form
-              @submit.prevent="submitWithdrawForm"
-              class="mt-6 md:mt-0 w-full md:w-auto"
-            >
-              <label for="withdrawAmount" class="text-sm"
-                >Amount to withdraw:
-              </label>
-              <UInput
-                name="withdrawAmount"
-                class="mt-2 mb-6"
-                v-model="withdrawAmount"
-                color="neutral"
-                placeholder="Withdraw amount"
-                type="number"
-                min="0"
-              />
-              <div class="flex justify-end gap-3">
-                <UButton
-                  variant="outline"
-                  color="cyan"
-                  @click="[(withdrawAmount = 0), (withdrawDialogOpen = false)]"
-                >
-                  Cancel
-                </UButton>
-                <UButton
-                  :disabled="withdrawAmount <= 0"
-                  variant="solid"
-                  color="cyan"
-                  type="submit"
-                >
-                  Withdraw
-                </UButton>
-              </div>
-            </form>
-          </UCard>
-        </UModal>
-
-        <div v-if="currentTab === 'vaults'">
-          <div class="my-2 flex flex-col border-l-2 border-cyan-600 pl-3">
-            <h3>Claimable Tokens</h3>
-            <div class="inline-flex items-baseline gap-2">
-              <template v-if="vaultsPending">
-                <USkeleton class="w-[15rem] h-10" />
-              </template>
-              <template v-else>
-                <span class="text-3xl">
-                  <template v-if="isConnected">
-                    {{ formatEtherNoRound(totalClaimableAmount || '0') }}
-                  </template>
-                  <template v-else>--</template>
-                </span>
-              </template>
-            </div>
-          </div>
-          <UButton
-            :disabled="!isConnected || totalClaimableAmount <= 0n"
-            @click="claimTokens"
-            variant="outline"
-            color="cyan"
-          >
-            Claim All
-          </UButton>
-        </div>
-      </div>
+      <div class="mt-5 flex justify-between"></div>
     </Card>
   </div>
 </template>
@@ -421,7 +375,6 @@
 div[role='tablist'] {
   display: grid;
   grid-template-columns: repeat(3, auto) !important;
-  gap: 20px !important;
   width: 100%;
   justify-content: start;
   position: relative;
@@ -433,6 +386,30 @@ div[role='tablist'] {
     width: 100%;
     height: 1px;
   }
+}
+
+.tab {
+  position: relative;
+  cursor: pointer;
+  // padding: 6px 20px;
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.tab-active::after {
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  left: 0;
+  content: '';
+  display: block;
+  width: 100%;
+  height: 3px;
+}
+
+.tab-active {
+  color: transparent;
+  font-weight: 500;
 }
 </style>
 
@@ -451,6 +428,7 @@ import { useClipboard } from '@vueuse/core';
 import { getBlock } from '@wagmi/core';
 import { config } from '~/config/wagmi.config';
 import { useMutation, useQuery } from '@tanstack/vue-query';
+import Popover from '~/components/ui-kit/Popover.vue';
 
 interface Vault {
   amount: bigint;
@@ -461,7 +439,7 @@ interface Vault {
 
 interface Operator {
   operator: `0x${string}`;
-  amount: string;
+  amount: bigint;
 }
 
 const { address, isConnected } = useAccount();
@@ -487,9 +465,12 @@ const tokenContract = runtimeConfig.public
 
 const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
-const withdrawDialogOpen = ref(false);
-const stakeAmount = ref(0);
-const unstakeAmount = ref(0);
+const stakeInput = ref('');
+const stakeAmount = computed(() => validateTokenInput(stakeInput.value) || '0');
+const unstakeInput = ref('');
+const unstakeAmount = computed(
+  () => validateTokenInput(unstakeInput.value) || '0'
+);
 const withdrawAmount = ref(0);
 const totalClaimableAmount = ref<bigint>(0n);
 const searchQuery = ref('');
@@ -501,10 +482,9 @@ const hodlerAddress = computed(() => address.value);
 const stakedOperators = computed(() => {
   if (!stakesData.value) return [];
   const stakes: Operator[] = stakesData.value.map((stake) => {
-    const amount = formatUnits(stake.amount, 18);
     return {
       operator: `0x${stake.operator.slice(2).toUpperCase()}`,
-      amount,
+      amount: stake.amount,
     };
   });
   return stakes;
@@ -515,10 +495,9 @@ const vaults = computed(() => {
   const data = vaultsData.value
     .filter((vault) => vault.kind === 2n)
     .map((vault) => {
-      const amount = formatUnits(vault.amount, 18);
       const data = `0x${vault.data.slice(2).toUpperCase()}`;
       return {
-        amount,
+        amount: vault.amount,
         data,
         kind: vault.kind,
         availableAt: vault.availableAt,
@@ -628,11 +607,11 @@ const onTabChange = (index: number) => {
 const tabItems = [
   {
     slot: 'operators',
-    label: 'Operators',
+    label: 'All Operators',
   },
   {
     slot: 'stakedOperators',
-    label: 'Your Staked',
+    label: 'Your Stakes',
   },
   {
     slot: 'vaults',
@@ -705,6 +684,23 @@ const vaultColumns = [
   },
 ];
 
+const validateTokenInput = (value: string): string | null => {
+  // remove commas, trim whitespace
+  const cleanedValue = value.replace(/,/g, '').trim();
+  if (!cleanedValue) return '0';
+
+  try {
+    const numValue = parseFloat(cleanedValue);
+    if (numValue <= 0) return null;
+
+    // validate with parseEther (ensure 18 decimals and valid wei)
+    return cleanedValue.toString();
+  } catch {
+    // invalid format (e.g., letters, too many decimals)
+    return null;
+  }
+};
+
 const block = await getBlock(config);
 
 const formatAvailableAt = (availableAt: bigint) => {
@@ -732,7 +728,7 @@ const handleCloseStakeDialog = () => {
       timeout: 0,
     });
   } else {
-    stakeAmount.value = 0;
+    stakeInput.value = '';
   }
   stakeDialogOpen.value = false;
 };
@@ -746,7 +742,7 @@ const handleCloseUnstakeDialog = () => {
       timeout: 0,
     });
   } else {
-    unstakeAmount.value = 0;
+    unstakeInput.value = '';
   }
   unstakeDialogOpen.value = false;
 };
@@ -778,7 +774,7 @@ const submitStakeForm = async () => {
 
   try {
     // console.log('parsing amount...');
-    const amount = parseEther(stakeAmount.value.toString());
+    const amount = parseEther(stakeAmount.value);
 
     currentWriteAction.value = 'stake';
     if (allowance.value === undefined || allowance.value < amount) {
@@ -1014,7 +1010,7 @@ const updateOperators = async () => {
       new Set(Object.values(verifiedFingerprints))
     ).map((address) => ({
       operator: address as `0x${string}`,
-      amount: '0',
+      amount: 0n,
     }));
 
     const normalizedStakedOperators = stakedOperators.value.map((op) => ({
@@ -1059,7 +1055,7 @@ watch(isConfirmed, (confirmed) => {
         title: `Staked ${stakeAmount.value} tokens with operator`,
         color: 'green',
       });
-      stakeAmount.value = 0;
+      stakeInput.value = '';
       currentWriteAction.value = null;
       stakeDialogOpen.value = false;
       refetchStakes();
@@ -1069,7 +1065,7 @@ watch(isConfirmed, (confirmed) => {
         title: `Unstaked ${unstakeAmount.value} tokens from operator`,
         color: 'green',
       });
-      unstakeAmount.value = 0;
+      unstakeInput.value = '';
       currentWriteAction.value = null;
       unstakeDialogOpen.value = false;
       refetchStakes();
