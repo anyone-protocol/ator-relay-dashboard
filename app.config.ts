@@ -65,7 +65,7 @@ export default defineAppConfig({
       },
     },
     table: {
-      wrapper: 'max-h-[30svh] overflow-y-scroll',
+      wrapper: 'max-h-[42svh] overflow-y-scroll',
       thead:
         'sticky top-0 bg-white dark:bg-neutral-900 after:absolute after:bottom-0 after:w-full after:h-[1px] after:bg-neutral-200 after:dark:bg-neutral-600 z-10',
       th: {
