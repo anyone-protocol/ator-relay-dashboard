@@ -207,6 +207,8 @@
               </div>
               <form @submit.prevent="submitStakeForm" class="w-full md:w-auto">
                 <UInput
+                  color="gray"
+                  variant="outline"
                   class="mb-6"
                   :disabled="true"
                   :model-value="selectedOperator?.operator"
@@ -268,6 +270,8 @@
               >
                 <!-- <div class="text-gray-400 mb-2">Staking with operator:</div> -->
                 <UInput
+                  color="gray"
+                  variant="outline"
                   class="mb-6"
                   :disabled="true"
                   :model-value="selectedOperator?.operator"
