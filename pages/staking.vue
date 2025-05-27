@@ -61,7 +61,8 @@
         @change="onTabChange"
         :ui="{
           list: {
-            width: 'w-max max-w-full',
+            base: 'after:bg-gradient-to-r dark:after:from-cyan-600 dark:after:to-gray-900 after:from-cyan-300 after:to-gray-200',
+            width: 'w-full max-w-full',
             background: '',
             marker: {
               background: '',
@@ -72,7 +73,8 @@
               base: 'pb-2 px-4 text-cyan-700 dark:text-cyan-300 font-medium w-max',
               rounded: 'rounded-none',
               background: '',
-              active: 'border-b border-cyan-500 text-black dark:text-white',
+              active:
+                'border-b-4 border-cyan-400 dark:border-cyan-600 text-black dark:text-white',
               size: 'text-xs md:text-sm',
             },
           },
@@ -103,7 +105,7 @@
             <template #total-data="{ row }: { row: Operator }">
               <span> N/A </span>
             </template>
-            <template #actions-data="{ row }">
+            <template #actions-data="{ row }: { row: Operator }">
               <UDropdown
                 :items="operatorActionItems(row)"
                 :popper="{ placement: 'left-start' }"
@@ -118,7 +120,9 @@
                 <template #item="{ item }">
                   <UIcon
                     :name="
-                      item.label === 'Copy Address' && copied
+                      item.label === 'Copy Address' &&
+                      copied &&
+                      copiedText === getAddress(row.operator)
                         ? 'i-heroicons-check-20-solid'
                         : item.icon
                     "
@@ -126,7 +130,9 @@
                   />
                   <span>
                     {{
-                      item.label === 'Copy Address' && copied
+                      item.label === 'Copy Address' &&
+                      copied &&
+                      copiedText === getAddress(row.operator)
                         ? 'Copied!'
                         : item.label
                     }}
@@ -265,6 +271,24 @@
             :columns="vaultColumns"
             :rows="vaults"
           >
+            <template #data-data="{ row }: { row: Vault }">
+              <div class="flex items-center">
+                <span>{{ truncatedAddress(row.data) }}</span>
+                <UButton
+                  icon=""
+                  size="sm"
+                  variant="ghost"
+                  @click="copy(getAddress(row.data))"
+                >
+                  <Icon
+                    v-if="copied && copiedText === getAddress(row.data)"
+                    name="ion:checkmark-sharp"
+                    class="h-4 w-4 text-green-600 dark:text-green-400"
+                  />
+                  <Icon v-else name="ion:copy-outline" class="h-4 w-4" />
+                </UButton>
+              </div>
+            </template>
             <template #availableAt-data="{ row }: { row: Vault }">
               <span>{{
                 formatAvailableAt(row.availableAt) === 'Expired'
@@ -284,8 +308,8 @@
               >
                 {{
                   formatAvailableAt(row.availableAt) === 'Expired'
-                    ? 'Expired'
-                    : 'Active'
+                    ? 'Available'
+                    : 'Locked'
                 }}
               </UBadge>
             </template>
@@ -394,6 +418,25 @@
   </div>
 </template>
 
+<style lang="scss">
+div[role='tablist'] {
+  display: grid;
+  grid-template-columns: repeat(3, auto) !important;
+  gap: 20px !important;
+  width: 100%;
+  justify-content: start;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 1px;
+  }
+}
+</style>
+
 <script lang="ts" setup>
 import Card from '~/components/ui-kit/Card.vue';
 import {
@@ -429,7 +472,7 @@ const { isLoading: isConfirming, isSuccess: isConfirmed } =
     hash,
   });
 const toast = useToast();
-const { copy, copied } = useClipboard();
+const { copy, copied, text: copiedText } = useClipboard();
 const runtimeConfig = useRuntimeConfig();
 
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
@@ -455,7 +498,7 @@ const stakedOperators = computed(() => {
   const stakes: Operator[] = stakesData.value.map((stake) => {
     const amount = formatUnits(stake.amount, 18);
     return {
-      operator: stake.operator,
+      operator: `0x${stake.operator.slice(2).toUpperCase()}`,
       amount,
     };
   });
@@ -468,9 +511,10 @@ const vaults = computed(() => {
     .filter((vault) => vault.kind === 2n)
     .map((vault) => {
       const amount = formatUnits(vault.amount, 18);
+      const data = `0x${vault.data.slice(2).toUpperCase()}`;
       return {
         amount,
-        data: vault.data,
+        data,
         kind: vault.kind,
         availableAt: vault.availableAt,
       };
@@ -620,7 +664,7 @@ const operatorActionItems = (row: Operator) => [
     {
       label: 'Copy Address',
       icon: 'i-heroicons-clipboard-20-solid',
-      click: (e: any) => [e.preventDefault(), copy(row.operator)],
+      click: (e: any) => [e.preventDefault(), copy(getAddress(row.operator))],
     },
   ],
 ];
@@ -942,13 +986,21 @@ const updateOperators = async () => {
       state?.VerifiedFingerprintsToOperatorAddresses || {};
     const registryOperators = Array.from(
       new Set(Object.values(verifiedFingerprints))
-    ).map((address) => ({ operator: address as `0x${string}`, amount: '0' }));
+    ).map((address) => ({
+      operator: address as `0x${string}`,
+      amount: '0',
+    }));
+
+    const normalizedStakedOperators = stakedOperators.value.map((op) => ({
+      ...op,
+      operator: `0x${op.operator.slice(2).toUpperCase()}` as `0x${string}`,
+    }));
 
     const combinedOperators = [
-      ...stakedOperators.value,
+      ...normalizedStakedOperators,
       ...registryOperators.filter(
         (regOp) =>
-          !stakedOperators.value.some(
+          !normalizedStakedOperators.some(
             (stakeOp) => stakeOp.operator === regOp.operator
           )
       ),
