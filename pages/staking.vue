@@ -41,11 +41,19 @@
       </div>
     </Card>
     <Card>
-      <div class="flex items-start justify-between">
-        <div class="flex items-center space-x-2 mb-6">
+      <div class="flex items-center justify-between mb-6 gap-3">
+        <div class="flex items-center space-x-2">
           <Icon name="i-heroicons-chart-pie-20-solid" class="text-3xl" />
           <h2 class="text-3xl">Staking</h2>
         </div>
+        <UInput
+          v-if="currentTab === 'operators' || currentTab === 'stakedOperators'"
+          v-model="searchQuery"
+          color="gray"
+          variant="outline"
+          icon="i-heroicons-magnifying-glass"
+          placeholder="Search by address"
+        />
       </div>
 
       <UTabs
@@ -53,7 +61,8 @@
         @change="onTabChange"
         :ui="{
           list: {
-            width: 'w-max max-w-full',
+            base: 'after:bg-gradient-to-r dark:after:from-cyan-600 dark:after:to-gray-900 after:from-cyan-300 after:to-gray-200',
+            width: 'w-full max-w-full',
             background: '',
             marker: {
               background: '',
@@ -64,7 +73,8 @@
               base: 'pb-2 px-4 text-cyan-700 dark:text-cyan-300 font-medium w-max',
               rounded: 'rounded-none',
               background: '',
-              active: 'border-b border-cyan-500 text-black dark:text-white',
+              active:
+                'border-b-4 border-cyan-400 dark:border-cyan-600 text-black dark:text-white',
               size: 'text-xs md:text-sm',
             },
           },
@@ -76,15 +86,6 @@
           }}</span>
         </template>
         <template v-slot:[currentTab]="{ item }">
-          <div class="flex justify-end my-4">
-            <UInput
-              v-model="searchQuery"
-              color="gray"
-              variant="outline"
-              icon="i-heroicons-magnifying-glass"
-              placeholder="Search by address"
-            />
-          </div>
           <UTable
             :empty-state="{
               icon: 'i-heroicons-circle-stack-20-solid',
@@ -104,7 +105,7 @@
             <template #total-data="{ row }: { row: Operator }">
               <span> N/A </span>
             </template>
-            <template #actions-data="{ row }">
+            <template #actions-data="{ row }: { row: Operator }">
               <UDropdown
                 :items="operatorActionItems(row)"
                 :popper="{ placement: 'left-start' }"
@@ -119,7 +120,9 @@
                 <template #item="{ item }">
                   <UIcon
                     :name="
-                      item.label === 'Copy Address' && copied
+                      item.label === 'Copy Address' &&
+                      copied &&
+                      copiedText === getAddress(row.operator)
                         ? 'i-heroicons-check-20-solid'
                         : item.icon
                     "
@@ -127,7 +130,9 @@
                   />
                   <span>
                     {{
-                      item.label === 'Copy Address' && copied
+                      item.label === 'Copy Address' &&
+                      copied &&
+                      copiedText === getAddress(row.operator)
                         ? 'Copied!'
                         : item.label
                     }}
@@ -160,6 +165,7 @@
                 <div class="flex flex-col gap-2">
                   <div class="text-gray-400">Amount to stake:</div>
                   <UInput
+                    :disabled="isSubmitting"
                     v-model="stakeAmount"
                     color="neutral"
                     placeholder="Amount to stake"
@@ -169,7 +175,7 @@
                   <div class="flex justify-end gap-3 mt-5">
                     <UButton
                       size="xs"
-                      @click="[(stakeAmount = 0), (stakeDialogOpen = false)]"
+                      @click="handleCloseStakeDialog"
                       type="button"
                       variant="outline"
                       color="cyan"
@@ -178,7 +184,7 @@
                       Cancel
                     </UButton>
                     <UButton
-                      :loading="isSubmitting.value"
+                      :loading="isStaking"
                       :disabled="!stakeAmount"
                       type="submit"
                       size="xs"
@@ -186,7 +192,7 @@
                       color="cyan"
                       class="justify-center text-md"
                     >
-                      {{ isPending ? 'Staking' : 'Stake' }}
+                      {{ isStaking ? 'Staking...' : 'Stake' }}
                     </UButton>
                   </div>
                 </div>
@@ -230,9 +236,7 @@
                   <div class="flex justify-end gap-3 mt-5">
                     <UButton
                       size="xs"
-                      @click="
-                        [(unstakeAmount = 0), (unstakeDialogOpen = false)]
-                      "
+                      @click="handleCloseUnstakeDialog"
                       type="button"
                       variant="outline"
                       color="cyan"
@@ -242,14 +246,14 @@
                     </UButton>
                     <UButton
                       :disabled="!unstakeAmount"
-                      :loading="isSubmitting.value"
+                      :loading="isUnstaking"
                       type="submit"
                       size="xs"
                       variant="solid"
                       color="cyan"
                       class="justify-center text-md"
                     >
-                      {{ isPending ? 'Unstaking' : 'Unstake' }}
+                      {{ isUnstaking ? 'Unstaking...' : 'Unstake' }}
                     </UButton>
                   </div>
                 </div>
@@ -266,6 +270,24 @@
             :columns="vaultColumns"
             :rows="vaults"
           >
+            <template #data-data="{ row }: { row: Vault }">
+              <div class="flex items-center">
+                <span>{{ truncatedAddress(row.data) }}</span>
+                <UButton
+                  icon=""
+                  size="sm"
+                  variant="ghost"
+                  @click="copy(getAddress(row.data))"
+                >
+                  <Icon
+                    v-if="copied && copiedText === getAddress(row.data)"
+                    name="ion:checkmark-sharp"
+                    class="h-4 w-4 text-green-600 dark:text-green-400"
+                  />
+                  <Icon v-else name="ion:copy-outline" class="h-4 w-4" />
+                </UButton>
+              </div>
+            </template>
             <template #availableAt-data="{ row }: { row: Vault }">
               <span>{{
                 formatAvailableAt(row.availableAt) === 'Expired'
@@ -285,8 +307,8 @@
               >
                 {{
                   formatAvailableAt(row.availableAt) === 'Expired'
-                    ? 'Expired'
-                    : 'Active'
+                    ? 'Available'
+                    : 'Locked'
                 }}
               </UBadge>
             </template>
@@ -395,6 +417,25 @@
   </div>
 </template>
 
+<style lang="scss">
+div[role='tablist'] {
+  display: grid;
+  grid-template-columns: repeat(3, auto) !important;
+  gap: 20px !important;
+  width: 100%;
+  justify-content: start;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 1px;
+  }
+}
+</style>
+
 <script lang="ts" setup>
 import Card from '~/components/ui-kit/Card.vue';
 import {
@@ -424,13 +465,20 @@ interface Operator {
 }
 
 const { address, isConnected } = useAccount();
-const { data: hash, isPending, writeContractAsync } = useWriteContract();
+const currentWriteAction = ref<
+  'stake' | 'unstake' | 'withdraw' | 'openExpired' | null
+>(null);
+const {
+  data: hash,
+  isPending: writePending,
+  writeContractAsync,
+} = useWriteContract();
 const { isLoading: isConfirming, isSuccess: isConfirmed } =
   useWaitForTransactionReceipt({
     hash,
   });
 const toast = useToast();
-const { copy, copied } = useClipboard();
+const { copy, copied, text: copiedText } = useClipboard();
 const runtimeConfig = useRuntimeConfig();
 
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
@@ -448,7 +496,6 @@ const searchQuery = ref('');
 const operatorRegistry = useOperatorRegistry();
 const operatorRegistryPending = ref(false);
 const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
-const operatorAction = ref<'stake' | 'unstake' | null>(null);
 const selectedOperator = ref<Operator | null>(null);
 const hodlerAddress = computed(() => address.value);
 const stakedOperators = computed(() => {
@@ -456,7 +503,7 @@ const stakedOperators = computed(() => {
   const stakes: Operator[] = stakesData.value.map((stake) => {
     const amount = formatUnits(stake.amount, 18);
     return {
-      operator: stake.operator,
+      operator: `0x${stake.operator.slice(2).toUpperCase()}`,
       amount,
     };
   });
@@ -469,16 +516,23 @@ const vaults = computed(() => {
     .filter((vault) => vault.kind === 2n)
     .map((vault) => {
       const amount = formatUnits(vault.amount, 18);
+      const data = `0x${vault.data.slice(2).toUpperCase()}`;
       return {
         amount,
-        data: vault.data,
+        data,
         kind: vault.kind,
         availableAt: vault.availableAt,
       };
     });
   return data;
 });
-const isSubmitting = computed(() => isPending || isConfirming);
+const isSubmitting = computed(() => writePending.value || isConfirming.value);
+const isStaking = computed(
+  () => isSubmitting.value && currentWriteAction.value === 'stake'
+);
+const isUnstaking = computed(
+  () => isSubmitting.value && currentWriteAction.value === 'unstake'
+);
 
 const { getClaimableStakingRewards, claimStakingRewards } = useStakingRewards();
 
@@ -610,18 +664,24 @@ const operatorActionItems = (row: Operator) => [
     {
       label: 'Stake',
       icon: 'i-heroicons-chart-pie-20-solid',
-      click: () => [(selectedOperator.value = row), handleStake()],
+      click: () => [
+        (selectedOperator.value = row),
+        (stakeDialogOpen.value = true),
+      ],
     },
     {
       label: 'Unstake',
       icon: 'i-heroicons-x-circle-20-solid',
-      click: () => [(selectedOperator.value = row), handleUnstake()],
+      click: () => [
+        (selectedOperator.value = row),
+        (unstakeDialogOpen.value = true),
+      ],
       disabled: !row.amount,
     },
     {
       label: 'Copy Address',
       icon: 'i-heroicons-clipboard-20-solid',
-      click: (e: any) => [e.preventDefault(), copy(row.operator)],
+      click: (e: any) => [e.preventDefault(), copy(getAddress(row.operator))],
     },
   ],
 ];
@@ -663,14 +723,32 @@ const formatAvailableAt = (availableAt: bigint) => {
   return `${days}D ${hours}H ${minutes}M`;
 };
 
-const handleStake = () => {
-  stakeDialogOpen.value = true;
-  operatorAction.value = 'stake';
+const handleCloseStakeDialog = () => {
+  if (isStaking.value) {
+    toast.add({
+      id: 'staking',
+      title: `Staking ${stakeAmount.value} tokens with operator...`,
+      color: 'blue',
+      timeout: 0,
+    });
+  } else {
+    stakeAmount.value = 0;
+  }
+  stakeDialogOpen.value = false;
 };
 
-const handleUnstake = () => {
-  unstakeDialogOpen.value = true;
-  operatorAction.value = 'unstake';
+const handleCloseUnstakeDialog = () => {
+  if (isUnstaking.value) {
+    toast.add({
+      id: 'unstaking',
+      title: `Unstaking ${unstakeAmount.value} tokens from operator...`,
+      color: 'blue',
+      timeout: 0,
+    });
+  } else {
+    unstakeAmount.value = 0;
+  }
+  unstakeDialogOpen.value = false;
 };
 
 const submitStakeForm = async () => {
@@ -702,6 +780,7 @@ const submitStakeForm = async () => {
     // console.log('parsing amount...');
     const amount = parseEther(stakeAmount.value.toString());
 
+    currentWriteAction.value = 'stake';
     if (allowance.value === undefined || allowance.value < amount) {
       // console.log('Approving tokens...');
       await writeContractAsync({
@@ -721,6 +800,7 @@ const submitStakeForm = async () => {
     });
   } catch (error: any) {
     console.error('StakingError:', error);
+    toast.remove('staking');
     toast.add({
       title: 'Failed to stake tokens',
       color: 'red',
@@ -754,6 +834,7 @@ const submitUnstakeForm = async () => {
   }
 
   try {
+    currentWriteAction.value = 'unstake';
     const amount = parseEther(unstakeAmount.value.toString());
 
     await writeContractAsync({
@@ -764,33 +845,13 @@ const submitUnstakeForm = async () => {
     });
   } catch (error) {
     console.error('UnstakingError:', error);
+    toast.remove('unstaking');
     toast.add({
       title: 'Failed to unstake tokens',
       color: 'red',
     });
   }
 };
-
-watch(isConfirmed, (confirmed) => {
-  if (confirmed) {
-    if (operatorAction.value === 'stake') {
-      toast.add({
-        title: `Staked ${stakeAmount.value} tokens with operator`,
-        color: 'green',
-      });
-      stakeAmount.value = 0;
-      refetchStakes();
-    } else if (operatorAction.value === 'unstake') {
-      toast.add({
-        title: `Unstaked ${unstakeAmount.value} tokens from operator`,
-        color: 'green',
-      });
-      unstakeAmount.value = 0;
-      refetchStakes();
-      refetchVaults();
-    }
-  }
-});
 
 const {
   data: vaultsData,
@@ -861,6 +922,7 @@ const submitWithdrawForm = async () => {
 
   try {
     // console.log('withdrawing...');
+    currentWriteAction.value = 'withdraw';
     const amount = parseEther(withdrawAmount.value.toString());
 
     await writeContractAsync({
@@ -901,7 +963,7 @@ const claimTokens = async (available: bigint) => {
     return;
   }
 
-  if (Number(available) < Math.round(Date.now() / 1000)) {
+  if (!claimable(available)) {
     toast.add({
       title: `You can't claim these tokens yet`,
       color: 'red',
@@ -910,6 +972,12 @@ const claimTokens = async (available: bigint) => {
   }
 
   try {
+    currentWriteAction.value = 'openExpired';
+    toast.add({
+      title: `Claiming ${totalClaimableAmount.value} tokens from expired vaults...`,
+      color: 'blue',
+      timeout: 0,
+    });
     await writeContractAsync({
       address: hodlerContract,
       abi: hodlerAbi,
@@ -917,6 +985,7 @@ const claimTokens = async (available: bigint) => {
     });
   } catch (error) {
     console.error('VaultClaimError: ', error);
+    toast.remove('openExpired');
     toast.add({
       title: 'Failed to claim tokens from vault',
       color: 'red',
@@ -943,13 +1012,21 @@ const updateOperators = async () => {
       state?.VerifiedFingerprintsToOperatorAddresses || {};
     const registryOperators = Array.from(
       new Set(Object.values(verifiedFingerprints))
-    ).map((address) => ({ operator: address as `0x${string}`, amount: '0' }));
+    ).map((address) => ({
+      operator: address as `0x${string}`,
+      amount: '0',
+    }));
+
+    const normalizedStakedOperators = stakedOperators.value.map((op) => ({
+      ...op,
+      operator: `0x${op.operator.slice(2).toUpperCase()}` as `0x${string}`,
+    }));
 
     const combinedOperators = [
-      ...stakedOperators.value,
+      ...normalizedStakedOperators,
       ...registryOperators.filter(
         (regOp) =>
-          !stakedOperators.value.some(
+          !normalizedStakedOperators.some(
             (stakeOp) => stakeOp.operator === regOp.operator
           )
       ),
@@ -972,5 +1049,41 @@ watch(currentTab, (newTab) => {
 });
 onMounted(() => {
   if (currentTab.value === 'operators' && isConnected.value) updateOperators();
+});
+
+watch(isConfirmed, (confirmed) => {
+  if (confirmed) {
+    if (currentWriteAction.value === 'stake') {
+      toast.remove('staking');
+      toast.add({
+        title: `Staked ${stakeAmount.value} tokens with operator`,
+        color: 'green',
+      });
+      stakeAmount.value = 0;
+      currentWriteAction.value = null;
+      stakeDialogOpen.value = false;
+      refetchStakes();
+    } else if (currentWriteAction.value === 'unstake') {
+      toast.remove('unstaking');
+      toast.add({
+        title: `Unstaked ${unstakeAmount.value} tokens from operator`,
+        color: 'green',
+      });
+      unstakeAmount.value = 0;
+      currentWriteAction.value = null;
+      unstakeDialogOpen.value = false;
+      refetchStakes();
+      refetchVaults();
+    } else if (currentWriteAction.value === 'openExpired') {
+      toast.remove('openExpired');
+      toast.add({
+        title: `Claimed ${totalClaimableAmount.value} tokens across expired vaults`,
+        color: 'green',
+      });
+      currentWriteAction.value = null;
+      refetchVaults();
+      refetchHolderInfo();
+    }
+  }
 });
 </script>

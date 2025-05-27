@@ -5,11 +5,7 @@ import { http } from '@wagmi/vue';
 
 const projectId = '53a5b087ab4cb303a799325360098216';
 
-export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [
-  mainnet,
-  sepolia,
-  hardhat,
-];
+export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, sepolia];
 
 export const networksLocal: [AppKitNetwork, ...AppKitNetwork[]] = [
   sepolia,
