@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative grid grid-flow-row grid-cols-1 pt-4 lg:pt-0 gap-6 lg:grid-cols-6"
+    class="relative grid grid-flow-row grid-cols-1 pt-4 lg:pt-0 gap-6 lg:grid-cols-6 mt-4"
   >
     <div class="flex w-full flex-col gap-4 lg:col-span-6">
       <DashboardMobileSection title="account-balance">
