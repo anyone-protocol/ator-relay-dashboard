@@ -1,22 +1,22 @@
 <template>
-  <div class="hidden lg:flex items-center gap-2 ml-auto mr-7">
-    <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
-      <span class="text-xs text-neutral-600 dark:text-neutral-200"
-        >Available tokens</span
-      >
-      <div class="inline-flex items-baseline gap-2">
-        <template v-if="hodlerInfoPending">
-          <USkeleton class="w-[8rem] h-6" />
-        </template>
-        <template v-else>
-          <div class="flex items-center gap-3">
-            <span class="text-xl">
-              <template v-if="isConnected">
-                {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
-              </template>
-              <template v-else> -- </template>
-            </span>
-            <UButton
+  <div class="hidden lg:grid grid-rows-[1fr 2fr] items-end pr-3 h-full">
+    <span class="text-[9px] text-neutral-600 dark:text-neutral-300 mb-auto"
+      >AVAILABLE</span
+    >
+    <div class="inline-flex items-baseline gap-2">
+      <template v-if="hodlerInfoPending">
+        <USkeleton class="w-full h-8" />
+      </template>
+      <template v-else>
+        <div class="flex flex-col items-end">
+          <span class="text-lg leading-tight">
+            <template v-if="isConnected">
+              {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
+            </template>
+            <template v-else> -- </template>
+          </span>
+          <Ticker class="text-[9px] leading-tight" />
+          <!-- <UButton
               :disabled="!isConnected || Number(hodlerInfo?.[0]) <= 0"
               variant="outline"
               color="cyan"
@@ -24,10 +24,9 @@
               class="h-max"
             >
               Withdraw
-            </UButton>
-          </div>
-        </template>
-      </div>
+            </UButton> -->
+        </div>
+      </template>
     </div>
   </div>
 
@@ -80,6 +79,7 @@ import {
 } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import { parseEther } from 'viem';
+import Ticker from './ui-kit/Ticker.vue';
 
 const toast = useToast();
 const runtimeConfig = useRuntimeConfig();
