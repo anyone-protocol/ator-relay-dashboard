@@ -57,7 +57,8 @@ import Card from './ui-kit/Card.vue';
 const { isConnected, address } = useAccount({ config } as any);
 
 const toast = useToast();
-const { getClaimableStakingRewards, claimStakingRewards } = useStakingRewards();
+const { getTotalClaimableStakingRewards, claimStakingRewards } =
+  useStakingRewards();
 
 const { data: claimableRewards, isPending: claimableRewardsPending } = useQuery(
   {
@@ -65,7 +66,7 @@ const { data: claimableRewards, isPending: claimableRewardsPending } = useQuery(
     queryFn: async () => {
       if (!address.value) return '0';
 
-      return getClaimableStakingRewards(address.value);
+      return getTotalClaimableStakingRewards(address.value);
     },
     enabled: !!address.value,
   }
