@@ -24,7 +24,7 @@ export default defineAppConfig({
         gray: {
           outline:
             'text-neutral-900 ring-1 ring-neutral-200 hover:ring-neutral-300 dark:text-neutral-50 dark:ring-neutral-700 hover:dark:ring-neutral-600',
-          soft: 'text-neutral-950 hover:bg-neutral-200/50  dark:text-neutral-50 dark:hover:bg-neutral-800/50',
+          soft: 'text-neutral-950 hover:bg-neutral-100  dark:text-neutral-50 dark:hover:bg-neutral-800/50',
         },
         primary: {
           soft: 'text-cyan-800 bg-cyan-200/50 hover:bg-cyan-300/50 dark:text-cyan-400 dark:bg-cyan-800/50 dark:hover:bg-cyan-600/50',
@@ -79,6 +79,12 @@ export default defineAppConfig({
         color: 'text-cyan-900 dark:text-cyan-100',
       },
       tbody: 'divide-y divide-neutral-200 dark:divide-neutral-800',
+      default: {
+        sortButton: {
+          class: 'text-xs md:text-base font-normal dark:text-neutral-300',
+          color: 'neutral',
+        },
+      },
     },
   },
   icon: {
