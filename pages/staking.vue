@@ -1,45 +1,5 @@
 <template>
   <div class="flex flex-col-reverse lg:flex-row gap-5 mt-4">
-    <!-- <Card class="min-w-max w-max h-max aspect-square">
-      <div class="p-2">
-        <div class="flex gap-1 items-center">
-          <UIcon class="text-lg" name="i-heroicons-arrow-up-circle-solid" />
-          <h3 class="font-medium">Staking Rewards</h3>
-        </div>
-        <div class="mt-6 mb-2 flex flex-col border-l-2 border-cyan-600 pl-3">
-          <p class="text-sm text-neutral-600 dark:text-neutral-400">
-            Unclaimed Rewards
-          </p>
-          <div class="inline-flex items-baseline gap-2">
-            <template v-if="claimableRewardsPending">
-              <USkeleton class="w-full h-10" />
-            </template>
-            <template v-else>
-              <span class="text-3xl">
-                <template v-if="isConnected">
-                  {{ formatEtherNoRound(claimableRewards || '0') }}
-                </template>
-                <template v-else> -- </template>
-              </span>
-            </template>
-          </div>
-        </div>
-        <UButton
-          class="ring-1 ring-neutral-200 dark:ring-neutral-800"
-          @click="claimStakingRewardsMutation()"
-          :disabled="
-            !isConnected ||
-            claimableRewardsPending ||
-            Number(claimableRewards) <= 0
-          "
-          :loading="claimStakingRewardsPending"
-          color="gray"
-          variant="soft"
-        >
-          Claim
-        </UButton>
-      </div>
-    </Card> -->
     <Card>
       <div class="flex items-center justify-between mb-6 gap-3">
         <div class="flex items-center space-x-2">
@@ -49,18 +9,23 @@
           />
           <h2 class="text-[2rem]">Staking</h2>
         </div>
-        <UInput
-          v-if="currentTab === 'operators' || currentTab === 'stakedOperators'"
-          v-model="searchQuery"
-          color="gray"
-          variant="outline"
-          icon="i-heroicons-magnifying-glass"
-          placeholder="Search by address"
-        />
+        <div class="flex items-center gap-10">
+          <StakingRewards v-if="currentTab === 'stakedOperators'" />
+          <UInput
+            v-if="
+              currentTab === 'operators' || currentTab === 'stakedOperators'
+            "
+            v-model="searchQuery"
+            color="gray"
+            variant="outline"
+            icon="i-heroicons-magnifying-glass"
+            placeholder="Search by address"
+          />
+        </div>
         <div v-if="currentTab === 'vaults'">
           <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
             <div class="flex items-center gap-1">
-              <h3 class="text-sm">Claimable Tokens</h3>
+              <h3 class="text-xs">Redeemable Tokens</h3>
               <Popover
                 placement="left"
                 :arrow="false"
@@ -68,7 +33,7 @@
               >
                 <template #content>
                   <span class="text-xs font-normal">
-                    Total amount of tokens that are claimable across vaults.
+                    Total amount of tokens that are redeemable across vaults.
                   </span>
                 </template>
                 <template #trigger>
@@ -82,12 +47,15 @@
               </template>
               <template v-else>
                 <div class="flex items-center gap-3">
-                  <span class="text-xl">
-                    <template v-if="isConnected">
-                      {{ formatEtherNoRound(totalClaimableAmount || '0') }}
-                    </template>
-                    <template v-else>--</template>
-                  </span>
+                  <div class="flex flex-col">
+                    <span class="text-xl">
+                      <template v-if="isConnected">
+                        {{ formatEtherNoRound(totalClaimableAmount || '0') }}
+                      </template>
+                      <template v-else>--</template>
+                    </span>
+                    <Ticker class="text-[9px] leading-tight" />
+                  </div>
                   <UButton
                     :disabled="!isConnected || totalClaimableAmount <= 0n"
                     @click="claimTokens"
@@ -95,7 +63,7 @@
                     color="cyan"
                     size="2xs"
                   >
-                    Claim
+                    Redeem expired
                   </UButton>
                 </div>
               </template>
@@ -215,13 +183,24 @@
                 />
                 <div class="flex flex-col gap-2">
                   <div class="text-gray-400">Amount to stake:</div>
-                  <UInput
-                    :disabled="isSubmitting"
-                    v-model="stakeInput"
-                    color="neutral"
-                    placeholder="Amount to stake"
-                    min="0"
-                  />
+                  <div class="relative">
+                    <UInput
+                      :disabled="isSubmitting"
+                      v-model="stakeInput"
+                      color="neutral"
+                      placeholder="Amount to stake"
+                      min="0"
+                    />
+                    <UButton
+                      @click="setMaxStake"
+                      size="2xs"
+                      variant="ghost"
+                      color="neutral"
+                      class="absolute right-2 top-1/2 -translate-y-1/2"
+                    >
+                      Max
+                    </UButton>
+                  </div>
                   <div class="flex justify-end gap-3 mt-5">
                     <UButton
                       size="xs"
@@ -278,12 +257,23 @@
                 />
                 <div class="flex flex-col gap-2">
                   <div class="text-gray-400">Amount to unstake:</div>
-                  <UInput
-                    v-model="unstakeInput"
-                    color="neutral"
-                    placeholder="Amount to unstake"
-                    min="0"
-                  />
+                  <div class="relative">
+                    <UInput
+                      v-model="unstakeInput"
+                      color="neutral"
+                      placeholder="Amount to unstake"
+                      min="0"
+                    />
+                    <UButton
+                      @click="setMaxUnstake"
+                      size="2xs"
+                      variant="ghost"
+                      color="neutral"
+                      class="absolute right-2 top-1/2 -translate-y-1/2"
+                    >
+                      Max
+                    </UButton>
+                  </div>
                   <div class="flex justify-end gap-3 mt-5">
                     <UButton
                       size="xs"
@@ -424,15 +414,17 @@ import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useBalance,
 } from '@wagmi/vue';
 import { hodlerAbi } from '../assets/abi/hodler';
 import { tokenAbi } from '../assets/abi/token';
-import { formatUnits, getAddress, parseEther } from 'viem';
+import { formatEther, getAddress, parseEther } from 'viem';
 import { useClipboard } from '@vueuse/core';
-import { getBlock } from '@wagmi/core';
+import { getBlock, getChainId } from '@wagmi/core';
 import { config } from '~/config/wagmi.config';
-import { useMutation, useQuery } from '@tanstack/vue-query';
 import Popover from '~/components/ui-kit/Popover.vue';
+import Ticker from '~/components/ui-kit/Ticker.vue';
+import { sepolia } from 'viem/chains';
 
 interface Vault {
   amount: bigint;
@@ -517,56 +509,16 @@ const isUnstaking = computed(
   () => isSubmitting.value && currentWriteAction.value === 'unstake'
 );
 
-const { getClaimableStakingRewards, claimStakingRewards } = useStakingRewards();
+const chainId = getChainId(config);
 
-const { data: claimableRewards, isPending: claimableRewardsPending } = useQuery(
-  {
-    queryKey: ['claimableRewards', address],
-    queryFn: async () => {
-      if (!address.value) return '0';
-
-      return getClaimableStakingRewards(address.value);
-    },
-    enabled: !!address.value,
-  }
-);
-
-const {
-  mutate: claimStakingRewardsMutation,
-  data: claimStakingRewardsResult,
-  isPending: claimStakingRewardsPending,
-  isSuccess: claimStakingRewardsSuccess,
-  isError: claimStakingRewardsError,
-} = useMutation({
-  mutationFn: async () => {
-    if (!address.value) {
-      toast.add({
-        title: 'Please connect wallet to claim',
-        color: 'red',
-      });
-      return;
-    }
-
-    return claimStakingRewards(address.value);
+const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
+  address: address.value,
+  // need to confirm whether to set dynamically or use only mainnet
+  chainId: chainId,
+  token: tokenContract,
+  query: {
+    enabled: computed(() => !!address.value),
   },
-});
-
-watch([claimStakingRewardsSuccess, claimStakingRewardsError], () => {
-  if (claimStakingRewardsError) {
-    toast.add({
-      title: 'Failed to claim staking rewards',
-      color: 'red',
-    });
-  }
-
-  // TODO - need to do more robust check here
-  if (claimStakingRewardsSuccess) {
-    toast.add({
-      title: `Successfully claimed ${claimableRewards.value} tokens`,
-      color: 'green',
-    });
-    claimableRewards.value = '0';
-  }
 });
 
 const {
@@ -627,14 +579,17 @@ const operatorColumns = [
   {
     key: 'operator',
     label: 'Operator',
+    sortable: true,
   },
   {
     key: 'amount',
     label: 'Your stake',
+    sortable: true,
   },
   {
     key: 'total',
     label: 'Total Staked',
+    sortable: true,
   },
   {
     key: 'actions',
@@ -673,18 +628,22 @@ const vaultColumns = [
   {
     key: 'data',
     label: 'From',
+    sortable: true,
   },
   {
     key: 'amount',
     label: 'Amount in vault',
+    sortable: true,
   },
   {
     key: 'availableAt',
     label: 'Expires in',
+    sortable: true,
   },
   {
     key: 'status',
     label: 'Vault status',
+    sortable: true,
   },
 ];
 
@@ -735,6 +694,23 @@ const handleCloseStakeDialog = () => {
     stakeInput.value = '';
   }
   stakeDialogOpen.value = false;
+};
+
+const setMaxStake = () => {
+  console.log('token balance: ', tokenBalance?.value?.value);
+  if (tokenBalance.value) {
+    console.log('token balance: ', tokenBalance.value.value);
+    stakeInput.value = formatEtherNoRound(tokenBalance.value.value);
+  }
+};
+
+const setMaxUnstake = () => {
+  // console.log('setting max unstake...');
+  if (selectedOperator.value?.amount) {
+    unstakeInput.value = formatEtherNoRound(
+      selectedOperator.value.amount.toString()
+    );
+  }
 };
 
 const handleCloseUnstakeDialog = () => {
