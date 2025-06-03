@@ -120,7 +120,7 @@
               <span> {{ formatEtherNoRound(row.amount) }} </span>
             </template>
             <template #total-data="{ row }: { row: Operator }">
-              <span> N/A </span>
+              <span> {{ formatEtherNoRound(row.total || '0') }} </span>
             </template>
             <template #actions-data="{ row }: { row: Operator }">
               <UDropdown
@@ -425,6 +425,8 @@ import { config } from '~/config/wagmi.config';
 import Popover from '~/components/ui-kit/Popover.vue';
 import Ticker from '~/components/ui-kit/Ticker.vue';
 import { sepolia } from 'viem/chains';
+import { useQuery } from '@tanstack/vue-query';
+import type { StakingSnapshot } from '~/types/staking-rewards';
 
 interface Vault {
   amount: bigint;
@@ -436,6 +438,13 @@ interface Vault {
 interface Operator {
   operator: `0x${string}`;
   amount: bigint;
+  redeemableRewards?: string;
+  total?: bigint;
+}
+
+interface OperatorRewards {
+  operator: string;
+  redeemable: string;
 }
 
 const { address, isConnected } = useAccount();
@@ -454,6 +463,7 @@ const { isLoading: isConfirming, isSuccess: isConfirmed } =
 const toast = useToast();
 const { copy, copied, text: copiedText } = useClipboard();
 const runtimeConfig = useRuntimeConfig();
+const { getClaimableStakingRewards } = useStakingRewards();
 
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 const tokenContract = runtimeConfig.public
@@ -474,13 +484,20 @@ const operatorRegistry = useOperatorRegistry();
 const operatorRegistryPending = ref(false);
 const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
 const selectedOperator = ref<Operator | null>(null);
+const operatorRewards = ref<OperatorRewards[]>([]);
 const hodlerAddress = computed(() => address.value);
 const stakedOperators = computed(() => {
   if (!stakesData.value) return [];
   const stakes: Operator[] = stakesData.value.map((stake) => {
+    const reward = operatorRewards.value.find(
+      (r) => r.operator === stake.operator
+    );
     return {
       operator: `0x${stake.operator.slice(2).toUpperCase()}`,
       amount: stake.amount,
+      redeemableRewards: reward
+        ? formatEtherNoRound(reward.redeemable)
+        : '0.00',
     };
   });
   return stakes;
@@ -519,6 +536,21 @@ const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
   query: {
     enabled: computed(() => !!address.value),
   },
+});
+
+const { data: operatorRewardsData } = useQuery({
+  queryKey: ['operatorRewards', address],
+  queryFn: async () => {
+    if (!address.value) return [];
+    return getClaimableStakingRewards(address.value);
+  },
+  enabled: computed(
+    () => !!address.value && currentTab.value === 'stakedOperators'
+  ),
+});
+
+watch(operatorRewardsData, (newData) => {
+  if (newData) operatorRewards.value = newData;
 });
 
 const {
@@ -575,27 +607,23 @@ const tabItems = [
   },
 ];
 
-const operatorColumns = [
-  {
-    key: 'operator',
-    label: 'Operator',
-    sortable: true,
-  },
-  {
-    key: 'amount',
-    label: 'Your stake',
-    sortable: true,
-  },
-  {
-    key: 'total',
-    label: 'Total Staked',
-    sortable: true,
-  },
-  {
-    key: 'actions',
-    label: 'Actions',
-  },
-];
+const operatorColumns = computed(() => {
+  if (currentTab.value === 'stakedOperators') {
+    return [
+      { key: 'operator', label: 'Operator', sortable: true },
+      { key: 'amount', label: 'Your stake', sortable: true },
+      { key: 'total', label: 'Total Stakes', sortable: true },
+      { key: 'redeemableRewards', label: 'Redeemable Rewards', sortable: true },
+      { key: 'actions', label: 'Actions', sortable: true },
+    ];
+  }
+  return [
+    { key: 'operator', label: 'Operator', sortable: true },
+    { key: 'amount', label: 'Your stake', sortable: true },
+    { key: 'total', label: 'Total Stakes', sortable: true },
+    { key: 'actions', label: 'Actions', sortable: true },
+  ];
+});
 
 const operatorActionItems = (row: Operator) => [
   [
@@ -1008,9 +1036,16 @@ const updateOperators = async () => {
       ),
     ];
 
-    allOperators.value = combinedOperators.filter((op) =>
-      op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
-    );
+    allOperators.value = combinedOperators
+      .map((op) => ({
+        ...op,
+        total: stakingSnapshot.value?.Stakes[op.operator]
+          ? BigInt(stakingSnapshot.value.Stakes[op.operator])
+          : 0n,
+      }))
+      .filter((op) =>
+        op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
+      );
   } catch (error) {
     console.error('OperatorRegistryError:', error);
   } finally {
@@ -1061,5 +1096,66 @@ watch(isConfirmed, (confirmed) => {
       refetchHolderInfo();
     }
   }
+});
+
+// staking snapshot - move this to a separate file
+const arweave = useArweave();
+const queryObject = {
+  query: `{
+		transactions(
+			first:1,
+			tags: [
+				{
+					name: "Protocol",
+					values: ["ANyONe"]
+				},
+				{
+					name: "Protocol-Version",
+					values: ["0.2"]
+				},
+				{
+					name: "Content-Type",
+					values: ["application/json"]
+				},
+				{
+					name: "Entity-Type",
+					values: ["staking/snapshot"]
+				}
+			]
+		) 
+		{
+			edges {
+				node {
+					id
+					tags {
+						name
+						value
+					}
+				}
+			}
+		}
+	}`,
+};
+
+const fetchStakingSnapshot = async () => {
+  try {
+    const results = await arweave.api.post('/graphql', queryObject);
+    // console.log('Staking snapshot results:', results);
+    const snapshotId = results.data.data.transactions.edges[0]?.node.id;
+
+    const snapshotRes = await arweave.api.get(`/${snapshotId}/data`);
+    const snapshotData: StakingSnapshot = snapshotRes.data;
+    console.log('Staking snapshot data:', snapshotData);
+    return snapshotData;
+  } catch (error) {
+    console.error('Error fetching staking snapshot:', error);
+    throw error;
+  }
+};
+
+const { data: stakingSnapshot } = useQuery({
+  queryKey: ['stakingSnapshot'],
+  queryFn: fetchStakingSnapshot,
+  enabled: computed(() => !!address.value),
 });
 </script>
