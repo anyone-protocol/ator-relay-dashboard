@@ -122,6 +122,11 @@
             <template #total-data="{ row }: { row: Operator }">
               <span> {{ formatEtherNoRound(row.total || '0') }} </span>
             </template>
+            <template #running-data="{ row }: { row: Operator }">
+              <span :class="row.running ? 'text-green-500' : 'text-red-500'"
+                >●</span
+              >
+            </template>
             <template #actions-data="{ row }: { row: Operator }">
               <UDropdown
                 :items="operatorActionItems(row)"
@@ -440,6 +445,7 @@ interface Operator {
   amount: bigint;
   redeemableRewards?: string;
   total?: bigint;
+  running?: boolean;
 }
 
 interface OperatorRewards {
@@ -463,7 +469,12 @@ const { isLoading: isConfirming, isSuccess: isConfirmed } =
 const toast = useToast();
 const { copy, copied, text: copiedText } = useClipboard();
 const runtimeConfig = useRuntimeConfig();
-const { getClaimableStakingRewards } = useStakingRewards();
+const {
+  getClaimableStakingRewards,
+  getLastRoundMetadata,
+  getStakingRewardsState,
+  getStakingSnapshot,
+} = useStakingRewards();
 
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 const tokenContract = runtimeConfig.public
@@ -486,11 +497,19 @@ const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
 const selectedOperator = ref<Operator | null>(null);
 const operatorRewards = ref<OperatorRewards[]>([]);
 const hodlerAddress = computed(() => address.value);
+// for testing purposes - should get running from LastRoundMetadata
+const runningThreshold = computed(
+  () => stakingRewardsState.value?.Configuration.Requirements.Running
+);
 const stakedOperators = computed(() => {
   if (!stakesData.value) return [];
+  const normalizeOp = (operator: `0x${string}`) =>
+    `0x${operator.slice(2).toUpperCase()}` as `0x${string}`;
+
   const stakes: Operator[] = stakesData.value.map((stake) => {
     const reward = operatorRewards.value.find(
-      (r) => r.operator === stake.operator
+      (r) =>
+        normalizeOp(r.operator as `0x${string}`) === normalizeOp(stake.operator)
     );
     return {
       operator: `0x${stake.operator.slice(2).toUpperCase()}`,
@@ -536,6 +555,24 @@ const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
   query: {
     enabled: computed(() => !!address.value),
   },
+});
+
+const { data: stakingSnapshot } = useQuery({
+  queryKey: ['stakingSnapshot'],
+  queryFn: getStakingSnapshot,
+  enabled: computed(() => !!address.value),
+});
+
+const { data: lastRoundMeta } = useQuery({
+  queryKey: ['lastRoundMeta'],
+  queryFn: getLastRoundMetadata,
+  enabled: computed(() => !!address.value),
+});
+
+const { data: stakingRewardsState } = useQuery({
+  queryKey: ['stakingRewardsState'],
+  queryFn: getStakingRewardsState,
+  enabled: computed(() => !!address.value),
 });
 
 const { data: operatorRewardsData } = useQuery({
@@ -613,6 +650,7 @@ const operatorColumns = computed(() => {
       { key: 'operator', label: 'Operator', sortable: true },
       { key: 'amount', label: 'Your stake', sortable: true },
       { key: 'total', label: 'Total Stakes', sortable: true },
+      { key: 'running', label: 'Running', sortable: true },
       { key: 'redeemableRewards', label: 'Redeemable Rewards', sortable: true },
       { key: 'actions', label: 'Actions', sortable: true },
     ];
@@ -621,6 +659,7 @@ const operatorColumns = computed(() => {
     { key: 'operator', label: 'Operator', sortable: true },
     { key: 'amount', label: 'Your stake', sortable: true },
     { key: 'total', label: 'Total Stakes', sortable: true },
+    { key: 'running', label: 'Running', sortable: true },
     { key: 'actions', label: 'Actions', sortable: true },
   ];
 });
@@ -999,11 +1038,21 @@ const claimTokens = async (available: bigint) => {
 
 const filteredStakedOperators = computed(() => {
   if (!isConnected.value) return [];
-  return stakedOperators.value.filter((op) =>
-    op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
+  return stakedOperators.value
+    .filter((op) =>
+      op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
+    )
+    .map((op) => {
+      const operatorData = allOperators.value.find(
+        (aOp) => aOp.operator === op.operator
+      );
+      return {
+        ...op,
+        total: operatorData?.total ?? 0n,
+        running: operatorData?.running ?? false,
+      };
+    });
 });
-
 const updateOperators = async () => {
   if (!isConnected.value) {
     allOperators.value = [];
@@ -1036,13 +1085,40 @@ const updateOperators = async () => {
       ),
     ];
 
+    // console.log('Staking snapshot data: ', toRaw(stakingSnapshot.value));
+
+    const normalizedStakes = stakingSnapshot.value?.Stakes
+      ? Object.fromEntries(
+          Object.entries(stakingSnapshot.value.Stakes).map(([addr, amount]) => [
+            `0x${addr.slice(2).toUpperCase()}` as `0x${string}`,
+            amount,
+          ])
+        )
+      : {};
+
+    const normalizedNetwork = stakingSnapshot.value?.Network
+      ? Object.fromEntries(
+          Object.entries(stakingSnapshot.value.Network).map(([addr, data]) => [
+            `0x${addr.slice(2).toUpperCase()}` as `0x${string}`,
+            data,
+          ])
+        )
+      : {};
+
     allOperators.value = combinedOperators
-      .map((op) => ({
-        ...op,
-        total: stakingSnapshot.value?.Stakes[op.operator]
-          ? BigInt(stakingSnapshot.value.Stakes[op.operator])
-          : 0n,
-      }))
+      .map((op) => {
+        const networkData = normalizedNetwork[op.operator];
+        const running = networkData?.running || 0;
+        const expected = networkData?.expected || 1; // Avoid division by zero
+        const threshold = runningThreshold.value ?? 0.5;
+        return {
+          ...op,
+          total: normalizedStakes[op.operator]
+            ? BigInt(normalizedStakes[op.operator])
+            : 0n,
+          running: expected > 0 ? running / expected > threshold : false,
+        };
+      })
       .filter((op) =>
         op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
       );
@@ -1055,8 +1131,16 @@ const updateOperators = async () => {
 
 watch([stakedOperators, searchQuery], updateOperators);
 watch(currentTab, (newTab) => {
-  if (newTab === 'operators') updateOperators();
+  if (newTab === 'operators' || newTab === 'stakedOperators') updateOperators();
   if (newTab === 'vaults') updateTotalClaimable();
+});
+watch([stakingSnapshot, runningThreshold], () => {
+  if (
+    currentTab.value === 'operators' ||
+    currentTab.value === 'stakedOperators'
+  ) {
+    updateOperators();
+  }
 });
 onMounted(() => {
   if (currentTab.value === 'operators' && isConnected.value) updateOperators();
@@ -1096,66 +1180,5 @@ watch(isConfirmed, (confirmed) => {
       refetchHolderInfo();
     }
   }
-});
-
-// staking snapshot - move this to a separate file
-const arweave = useArweave();
-const queryObject = {
-  query: `{
-		transactions(
-			first:1,
-			tags: [
-				{
-					name: "Protocol",
-					values: ["ANyONe"]
-				},
-				{
-					name: "Protocol-Version",
-					values: ["0.2"]
-				},
-				{
-					name: "Content-Type",
-					values: ["application/json"]
-				},
-				{
-					name: "Entity-Type",
-					values: ["staking/snapshot"]
-				}
-			]
-		) 
-		{
-			edges {
-				node {
-					id
-					tags {
-						name
-						value
-					}
-				}
-			}
-		}
-	}`,
-};
-
-const fetchStakingSnapshot = async () => {
-  try {
-    const results = await arweave.api.post('/graphql', queryObject);
-    // console.log('Staking snapshot results:', results);
-    const snapshotId = results.data.data.transactions.edges[0]?.node.id;
-
-    const snapshotRes = await arweave.api.get(`/${snapshotId}/data`);
-    const snapshotData: StakingSnapshot = snapshotRes.data;
-    console.log('Staking snapshot data:', snapshotData);
-    return snapshotData;
-  } catch (error) {
-    console.error('Error fetching staking snapshot:', error);
-    throw error;
-  }
-};
-
-const { data: stakingSnapshot } = useQuery({
-  queryKey: ['stakingSnapshot'],
-  queryFn: fetchStakingSnapshot,
-  enabled: computed(() => !!address.value),
 });
 </script>
