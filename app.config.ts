@@ -24,7 +24,7 @@ export default defineAppConfig({
         gray: {
           outline:
             'text-neutral-900 ring-1 ring-neutral-200 hover:ring-neutral-300 dark:text-neutral-50 dark:ring-neutral-700 hover:dark:ring-neutral-600',
-          soft: 'text-neutral-950 hover:bg-neutral-200/50  dark:text-neutral-50 dark:hover:bg-neutral-800/50',
+          soft: 'text-neutral-950 hover:bg-neutral-100  dark:text-neutral-50 dark:hover:bg-neutral-800/50',
         },
         primary: {
           soft: 'text-cyan-800 bg-cyan-200/50 hover:bg-cyan-300/50 dark:text-cyan-400 dark:bg-cyan-800/50 dark:hover:bg-cyan-600/50',
@@ -79,6 +79,44 @@ export default defineAppConfig({
         color: 'text-cyan-900 dark:text-cyan-100',
       },
       tbody: 'divide-y divide-neutral-200 dark:divide-neutral-800',
+      default: {
+        sortButton: {
+          class:
+            'text-xs md:text-sm font-normal dark:text-neutral-300 hover:dark:text-neutral-100 p-0',
+          color: 'neutral',
+        },
+      },
+    },
+    select: {
+      color: {
+        white: {
+          outline:
+            'dark:bg-neutral-900 text-neutral-900 ring-neutral-300 dark:ring-neutral-700 ',
+        },
+      },
+      variant: {
+        none: ' text-neutral-800 dark:text-neutral-200',
+      },
+    },
+    tabs: {
+      list: {
+        base: 'after:bg-gradient-to-r dark:after:from-cyan-600 dark:after:to-gray-900 after:from-cyan-300 after:to-gray-200 mb-6',
+        width: 'w-full max-w-full',
+        background: '',
+        marker: {
+          background: '',
+        },
+        padding: 'p-0',
+        height: 'h-max',
+        tab: {
+          base: ' md:py-2 md:px-5 w-max bg-clip-text bg-gradient-to-r dark:from-cyan-300 dark:to-cyan-600 from-cyan-500 to-cyan-600 after:bg-gradient-to-r dark:after:from-cyan-300 dark:after:to-cyan-600 after:from-cyan-500 after:to-cyan-600 h-[36px]',
+          rounded: 'rounded-none',
+          background: '',
+          active: 'tab-active font-medium text-cyan-500 dark:text-cyan-400',
+          inactive: 'text-cyan-900 dark:text-cyan-100',
+          size: 'text-xs md:text-[15px] md:leading-[24px] font-normal',
+        },
+      },
     },
   },
   icon: {

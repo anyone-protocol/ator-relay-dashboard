@@ -1,8 +1,7 @@
-import ethers from 'ethers';
 import BigNumber from 'bignumber.js';
 
 export function formatEtherNoRound(value: string | bigint): string {
-  console.log('formatEtherNoRound', value);
+  // console.log('formatEtherNoRound', value);
   let bigNumberValue: BigNumber;
 
   try {
