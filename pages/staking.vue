@@ -1,15 +1,17 @@
 <template>
   <div class="flex flex-col-reverse lg:flex-row gap-5 mt-4">
     <Card>
-      <div class="flex items-center justify-between mb-6 gap-3">
-        <div class="flex items-center space-x-2">
+      <div class="flex lg:items-center justify-between mb-6 gap-5">
+        <div class="flex items-center space-x-1 md:space-x-2 h-max">
           <Icon
             name="i-heroicons-chart-pie-20-solid"
-            class="w-[1.8rem] h-[1.8rem]"
+            class="w-[1.6rem] md:w-[1.8rem] h-[1.6rem] md:h-[1.8rem]"
           />
-          <h2 class="text-[2rem]">Staking</h2>
+          <h2 class="text-2xl md:text-[2rem]">Staking</h2>
         </div>
-        <div class="flex items-center gap-10">
+        <div
+          class="flex flex-col-reverse items-end gap-5 lg:flex-row lg:items-center lg:gap-10"
+        >
           <StakingRewards v-if="currentTab === 'stakedOperators'" />
           <UInput
             v-if="
@@ -25,7 +27,7 @@
         <div v-if="currentTab === 'vaults'">
           <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
             <div class="flex items-center gap-1">
-              <h3 class="text-xs">Redeemable Tokens</h3>
+              <h3 class="text-[10px] md:text-xs">Redeemable Tokens</h3>
               <Popover
                 placement="left"
                 :arrow="false"
@@ -46,9 +48,9 @@
                 <USkeleton class="w-[8rem] h-6" />
               </template>
               <template v-else>
-                <div class="flex items-center gap-3">
+                <div class="flex gap-2 items-end md:items-center md:gap-3">
                   <div class="flex flex-col">
-                    <span class="text-xl">
+                    <span class="text-base md:text-xl">
                       <template v-if="isConnected">
                         {{ formatEtherNoRound(totalClaimableAmount || '0') }}
                       </template>
@@ -62,6 +64,7 @@
                     variant="outline"
                     color="cyan"
                     size="2xs"
+                    class="text-[9px] md:text-xs"
                   >
                     Redeem expired
                   </UButton>
@@ -187,7 +190,48 @@
                   :model-value="selectedOperator?.operator"
                 />
                 <div class="flex flex-col gap-2">
-                  <div class="text-gray-400">Amount to stake:</div>
+                  <div class="flex items-center justify-between">
+                    <div class="text-neutral-400 text-sm">Amount to stake:</div>
+                    <div class="flex justify-end gap-1 items-center">
+                      <div
+                        class="flex items-center ring-1 ring-neutral-200 dark:ring-neutral-700 focus-within::ring-2 focus-within:ring-primary-500 dark:focus-within:ring-primary-400 rounded-sm overflow-hidden"
+                      >
+                        <div
+                          class="text-xs font-normal p-1 text-neutral-400 dark:text-neutral-400 bg-neutral-200 dark:bg-neutral-800/60"
+                        >
+                          {{
+                            stakedMaxSelected === 'wallet'
+                              ? formatEtherNoRound(tokenBalance?.value || '0')
+                              : formatEtherNoRound(hodlerInfo?.[0] || '0')
+                          }}
+                        </div>
+                        <div
+                          class="w-[1px] h-6 bg-neutral-300 dark:bg-neutral-700"
+                        ></div>
+                        <USelect
+                          :options="stakedMaxOptions"
+                          v-model="stakedMaxSelected"
+                          size="2xs"
+                          variant="none"
+                        />
+                      </div>
+                      <Popover
+                        placement="top"
+                        :arrow="false"
+                        class="h-max grid place-items-center"
+                      >
+                        <template #content>
+                          <span class="text-xs font-normal">
+                            Choose if you want to set the max amount from tokens
+                            in your wallet or available balance.
+                          </span>
+                        </template>
+                        <template #trigger>
+                          <Icon name="heroicons:exclamation-circle" class="" />
+                        </template>
+                      </Popover>
+                    </div>
+                  </div>
                   <div class="relative">
                     <UInput
                       :disabled="isSubmitting"
@@ -197,6 +241,7 @@
                       min="0"
                     />
                     <UButton
+                      :disabled="!validateMaxStake()"
                       @click="setMaxStake"
                       size="2xs"
                       variant="ghost"
@@ -261,7 +306,7 @@
                   :model-value="selectedOperator?.operator"
                 />
                 <div class="flex flex-col gap-2">
-                  <div class="text-gray-400">Amount to unstake:</div>
+                  <div class="text-neutral-400 text-sm">Amount to unstake:</div>
                   <div class="relative">
                     <UInput
                       v-model="unstakeInput"
@@ -423,15 +468,13 @@ import {
 } from '@wagmi/vue';
 import { hodlerAbi } from '../assets/abi/hodler';
 import { tokenAbi } from '../assets/abi/token';
-import { formatEther, getAddress, parseEther } from 'viem';
+import { getAddress, parseEther } from 'viem';
 import { useClipboard } from '@vueuse/core';
 import { getBlock, getChainId } from '@wagmi/core';
 import { config } from '~/config/wagmi.config';
 import Popover from '~/components/ui-kit/Popover.vue';
 import Ticker from '~/components/ui-kit/Ticker.vue';
-import { sepolia } from 'viem/chains';
 import { useQuery } from '@tanstack/vue-query';
-import type { StakingSnapshot } from '~/types/staking-rewards';
 
 interface Vault {
   amount: bigint;
@@ -714,6 +757,9 @@ const vaultColumns = [
   },
 ];
 
+const stakedMaxOptions = ['wallet', 'available'];
+const stakedMaxSelected = ref(stakedMaxOptions[0]);
+
 const validateTokenInput = (value: string): string | null => {
   // remove commas, trim whitespace
   const cleanedValue = value.replace(/,/g, '').trim();
@@ -723,11 +769,18 @@ const validateTokenInput = (value: string): string | null => {
     const numValue = parseFloat(cleanedValue);
     if (numValue <= 0) return null;
 
-    // validate with parseEther (ensure 18 decimals and valid wei)
     return cleanedValue.toString();
   } catch {
-    // invalid format (e.g., letters, too many decimals)
     return null;
+  }
+};
+
+const validateMaxStake = () => {
+  if (stakedMaxSelected.value === 'wallet') {
+    // console.log('token balance: ', tokenBalance.value?.value);
+    return !!tokenBalance.value?.value;
+  } else {
+    return !!hodlerInfo.value?.[0];
   }
 };
 
@@ -764,10 +817,15 @@ const handleCloseStakeDialog = () => {
 };
 
 const setMaxStake = () => {
-  console.log('token balance: ', tokenBalance?.value?.value);
-  if (tokenBalance.value) {
-    console.log('token balance: ', tokenBalance.value.value);
-    stakeInput.value = formatEtherNoRound(tokenBalance.value.value);
+  if (stakedMaxSelected.value === 'wallet') {
+    // console.log('token balance: ', tokenBalance.value?.value);
+    stakeInput.value = tokenBalance.value?.value
+      ? formatEtherNoRound(tokenBalance.value.value)
+      : '0';
+  } else {
+    stakeInput.value = hodlerInfo.value?.[0]
+      ? formatEtherNoRound(hodlerInfo.value?.[0])
+      : '0';
   }
 };
 
