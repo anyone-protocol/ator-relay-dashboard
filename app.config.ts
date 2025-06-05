@@ -98,6 +98,26 @@ export default defineAppConfig({
         none: ' text-neutral-800 dark:text-neutral-200',
       },
     },
+    tabs: {
+      list: {
+        base: 'after:bg-gradient-to-r dark:after:from-cyan-600 dark:after:to-gray-900 after:from-cyan-300 after:to-gray-200 mb-6',
+        width: 'w-full max-w-full',
+        background: '',
+        marker: {
+          background: '',
+        },
+        padding: 'p-0',
+        height: 'h-max',
+        tab: {
+          base: ' md:py-2 md:px-5 w-max bg-clip-text bg-gradient-to-r dark:from-cyan-300 dark:to-cyan-600 from-cyan-500 to-cyan-600 after:bg-gradient-to-r dark:after:from-cyan-300 dark:after:to-cyan-600 after:from-cyan-500 after:to-cyan-600 h-[36px]',
+          rounded: 'rounded-none',
+          background: '',
+          active: 'tab-active font-medium text-cyan-500 dark:text-cyan-400',
+          inactive: 'text-cyan-900 dark:text-cyan-100',
+          size: 'text-xs md:text-[15px] md:leading-[24px] font-normal',
+        },
+      },
+    },
   },
   icon: {
     size: '24px', // default <Icon> size applied

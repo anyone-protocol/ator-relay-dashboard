@@ -10,7 +10,7 @@
           <h2 class="text-2xl md:text-[2rem]">Staking</h2>
         </div>
         <div
-          class="flex flex-col-reverse items-end gap-5 lg:flex-row lg:items-center lg:gap-10"
+          class="flex flex-col-reverse items-end gap-5 md:flex-row md:items-center md:gap-10"
         >
           <StakingRewards v-if="currentTab === 'stakedOperators'" />
           <UInput
@@ -75,30 +75,7 @@
         </div>
       </div>
 
-      <UTabs
-        :items="tabItems"
-        @change="onTabChange"
-        :ui="{
-          list: {
-            base: 'after:bg-gradient-to-r dark:after:from-cyan-600 dark:after:to-gray-900 after:from-cyan-300 after:to-gray-200 mb-6',
-            width: 'w-full max-w-full',
-            background: '',
-            marker: {
-              background: '',
-            },
-            padding: 'p-0',
-            height: 'h-max',
-            tab: {
-              base: 'py-[8px] px-5 w-max bg-clip-text bg-gradient-to-r dark:from-cyan-300 dark:to-cyan-600 from-cyan-500 to-cyan-600 after:bg-gradient-to-r dark:after:from-cyan-300 dark:after:to-cyan-600 after:from-cyan-500 after:to-cyan-600 h-[36px]',
-              rounded: 'rounded-none',
-              background: '',
-              active: 'tab-active font-medium text-cyan-500 dark:text-cyan-400',
-              inactive: 'text-cyan-900 dark:text-cyan-100',
-              size: 'text-xs md:text-[15px] md:leading-[24px] font-normal',
-            },
-          },
-        }"
-      >
+      <UTabs :items="tabItems" @change="onTabChange">
         <template #default="{ item, index, selected }">
           <span class="truncate">{{ item.label }}</span>
         </template>
