@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
     <div class="flex items-center gap-1">
-      <h3 class="text-xs">Redeemable Rewards</h3>
+      <h3 class="text-[10px] md:text-xs">Redeemable Rewards</h3>
       <Popover
         placement="left"
         :arrow="false"
@@ -24,7 +24,7 @@
       <template v-else>
         <div class="flex items-center gap-3">
           <div class="flex flex-col">
-            <span class="text-xl">
+            <span class="text-lg md:text-xl">
               <template v-if="isConnected">
                 {{ formatEtherNoRound(claimableRewards || '0') }}
               </template>
@@ -38,6 +38,7 @@
             variant="outline"
             color="cyan"
             size="2xs"
+            class="text-[10px] md:text-xs"
             :loading="claimStakingRewardsPending"
           >
             Redeem
