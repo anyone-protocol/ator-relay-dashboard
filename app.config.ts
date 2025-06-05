@@ -81,9 +81,21 @@ export default defineAppConfig({
       tbody: 'divide-y divide-neutral-200 dark:divide-neutral-800',
       default: {
         sortButton: {
-          class: 'text-xs md:text-base font-normal dark:text-neutral-300',
+          class:
+            'text-xs md:text-sm font-normal dark:text-neutral-300 hover:dark:text-neutral-100 p-0',
           color: 'neutral',
         },
+      },
+    },
+    select: {
+      color: {
+        white: {
+          outline:
+            'dark:bg-neutral-900 text-neutral-900 ring-neutral-300 dark:ring-neutral-700 ',
+        },
+      },
+      variant: {
+        none: ' text-neutral-800 dark:text-neutral-200',
       },
     },
   },
