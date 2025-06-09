@@ -2,76 +2,73 @@
   <div class="flex flex-col-reverse lg:flex-row gap-5 mt-4">
     <Card>
       <div class="flex lg:items-center justify-between mb-6 gap-5">
-        <div class="flex items-center space-x-1 md:space-x-2 h-max">
-          <Icon
-            name="i-heroicons-chart-pie-20-solid"
-            class="w-[1.6rem] md:w-[1.8rem] h-[1.6rem] md:h-[1.8rem]"
-          />
-          <h2 class="text-2xl md:text-[2rem]">Staking</h2>
+        <div class="flex flex-col gap-5 md:flex-row md:items-center md:gap-10">
+          <div class="flex items-center space-x-1 md:space-x-2 h-max">
+            <Icon
+              name="i-heroicons-chart-pie-20-solid"
+              class="w-[1.6rem] md:w-[1.8rem] h-[1.6rem] md:h-[1.8rem]"
+            />
+            <h2 class="text-2xl md:text-[2rem]">Staking</h2>
+          </div>
+          <div class="flex flex-col items-center md:flex-row gap-2">
+            <div class="flex flex-col">
+              <div class="flex items-center gap-1">
+                <h3 class="text-[10px] md:text-xs">Redeemable Tokens</h3>
+                <Popover
+                  placement="left"
+                  :arrow="false"
+                  class="h-max grid place-items-center"
+                >
+                  <template #content>
+                    <span class="text-xs font-normal">
+                      Total amount of tokens that are redeemable across vaults.
+                    </span>
+                  </template>
+                  <template #trigger>
+                    <Icon name="heroicons:exclamation-circle" />
+                  </template>
+                </Popover>
+              </div>
+              <div class="inline-flex items-baseline justify-end gap-2">
+                <template v-if="vaultsPending">
+                  <USkeleton class="w-[8rem] h-6" />
+                </template>
+                <template v-else>
+                  <div class="flex gap-2 items-end md:items-center md:gap-3">
+                    <div class="flex gap-1 items-baseline">
+                      <span class="text-base md:text-xl">
+                        <template v-if="isConnected">
+                          {{ formatEtherNoRound(totalClaimableAmount || '0') }}
+                        </template>
+                        <template v-else>--</template>
+                      </span>
+                      <Ticker class="text-[9px] leading-tight" />
+                    </div>
+                    <!-- <UButton
+                      :disabled="!isConnected || totalClaimableAmount <= 0n"
+                      @click="claimTokens"
+                      variant="outline"
+                      color="cyan"
+                      size="2xs"
+                      class="text-[9px] md:text-xs"
+                    >
+                      Redeem expired
+                    </UButton> -->
+                  </div>
+                </template>
+              </div>
+            </div>
+            <StakingRewards />
+          </div>
         </div>
-        <div
-          class="flex flex-col-reverse items-end gap-5 md:flex-row md:items-center md:gap-10"
-        >
-          <StakingRewards v-if="currentTab === 'stakedOperators'" />
+        <div class="relative">
           <UInput
-            v-if="
-              currentTab === 'operators' || currentTab === 'stakedOperators'
-            "
             v-model="searchQuery"
             color="gray"
             variant="outline"
             icon="i-heroicons-magnifying-glass"
             placeholder="Search by address"
           />
-        </div>
-        <div v-if="currentTab === 'vaults'">
-          <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
-            <div class="flex items-center gap-1">
-              <h3 class="text-[10px] md:text-xs">Redeemable Tokens</h3>
-              <Popover
-                placement="left"
-                :arrow="false"
-                class="h-max grid place-items-center"
-              >
-                <template #content>
-                  <span class="text-xs font-normal">
-                    Total amount of tokens that are redeemable across vaults.
-                  </span>
-                </template>
-                <template #trigger>
-                  <Icon name="heroicons:exclamation-circle" class="" />
-                </template>
-              </Popover>
-            </div>
-            <div class="inline-flex items-baseline gap-2">
-              <template v-if="vaultsPending">
-                <USkeleton class="w-[8rem] h-6" />
-              </template>
-              <template v-else>
-                <div class="flex gap-2 items-end md:items-center md:gap-3">
-                  <div class="flex flex-col">
-                    <span class="text-base md:text-xl">
-                      <template v-if="isConnected">
-                        {{ formatEtherNoRound(totalClaimableAmount || '0') }}
-                      </template>
-                      <template v-else>--</template>
-                    </span>
-                    <Ticker class="text-[9px] leading-tight" />
-                  </div>
-                  <UButton
-                    :disabled="!isConnected || totalClaimableAmount <= 0n"
-                    @click="claimTokens"
-                    variant="outline"
-                    color="cyan"
-                    size="2xs"
-                    class="text-[9px] md:text-xs"
-                  >
-                    Redeem expired
-                  </UButton>
-                </div>
-              </template>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -941,7 +938,7 @@ const {
   functionName: 'getVaults',
   args: [hodlerAddress.value as `0x${string}`],
   query: {
-    enabled: computed(() => isConnected.value && currentTab.value === 'vaults'),
+    enabled: computed(() => isConnected.value),
   },
 });
 
