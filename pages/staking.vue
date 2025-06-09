@@ -976,50 +976,6 @@ const {
   query: { enabled: true },
 });
 
-const submitWithdrawForm = async () => {
-  if (!isConnected) {
-    toast.add({
-      title: 'Please connect your wallet to withdraw',
-      color: 'red',
-    });
-    return;
-  }
-
-  // console.log('withdraw amount: ', withdrawAmount.value);
-
-  if (!withdrawAmount.value || Number(withdrawAmount.value) <= 0) {
-    toast.add({
-      title: 'Enter a valid withdraw amount',
-      color: 'red',
-    });
-    return;
-  }
-
-  try {
-    // console.log('withdrawing...');
-    currentWriteAction.value = 'withdraw';
-    const amount = parseEther(withdrawAmount.value.toString());
-
-    await writeContractAsync({
-      address: hodlerContract,
-      abi: hodlerAbi,
-      functionName: 'withdraw',
-      args: [amount],
-    });
-    // TODO - await receipt & show success toast
-    toast.add({
-      title: `Withdrew ${withdrawAmount.value} tokens`,
-      color: 'green',
-    });
-  } catch (error) {
-    console.error('WithdrawError: ', error);
-    toast.add({
-      title: 'Failed to withdraw tokens',
-      color: 'red',
-    });
-  }
-};
-
 const claimable = async (available: bigint) => {
   const TIMESTAMP_BUFFER = 15 * 60;
   const block = await getBlock(config);
