@@ -489,6 +489,7 @@ const runtimeConfig = useRuntimeConfig();
 const {
   getClaimableStakingRewards,
   getLastRoundMetadata,
+  getLastSnapshot,
   getStakingRewardsState,
   getStakingSnapshot,
 } = useStakingRewards();
@@ -516,7 +517,7 @@ const operatorRewards = ref<OperatorRewards[]>([]);
 const hodlerAddress = computed(() => address.value);
 // for testing purposes - should get running from LastRoundMetadata
 const runningThreshold = computed(
-  () => stakingRewardsState.value?.Configuration.Requirements.Running
+  () => lastSnapshot.value?.Configuration.Requirements.Running
 );
 const stakedOperators = computed(() => {
   if (!stakesData.value) return [];
@@ -572,6 +573,12 @@ const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
   query: {
     enabled: computed(() => !!address.value),
   },
+});
+
+const { data: lastSnapshot } = useQuery({
+  queryKey: ['lastSnapshot'],
+  queryFn: getLastSnapshot,
+  enabled: computed(() => !!address.value),
 });
 
 const { data: stakingSnapshot } = useQuery({

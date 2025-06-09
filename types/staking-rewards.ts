@@ -34,8 +34,7 @@ export interface LastRoundMetadata {
     Ratings: string;
     Stakes: string;
   };
-  // temp - need to be replaced with real type
-  Configuration: any[];
+  Configuration: Configuration;
 }
 
 export interface StakingRewardsState {
@@ -49,4 +48,39 @@ export interface StakingRewardsState {
   PreviousRound: Omit<LastRoundMetadata, 'Configuration'>;
   Rewarded: [];
   Shares: [];
+}
+
+interface Details {
+  [address: `0x${string}`]: {
+    Rating: string;
+    Reward: {
+      Operator: string;
+      Hodler: string;
+    };
+    Score: {
+      Share: number;
+      Staked: string;
+      Restaked: string;
+      Running: number;
+    };
+  };
+}
+
+interface Configuration {
+  TokensPerSecond: string;
+  Requirements: {
+    Running: number;
+  };
+}
+
+export interface LastSnapshot {
+  Configuration: Configuration;
+  Details: Details;
+  Timestamp: number;
+  Period: number;
+  Summary: {
+    Rewards: string;
+    Ratings: string;
+    Stakes: string;
+  };
 }
