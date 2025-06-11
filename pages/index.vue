@@ -4,44 +4,215 @@
   >
     <div class="flex w-full flex-col gap-4 lg:col-span-6">
       <DashboardMobileSection title="account-balance">
-        <Card title="Account Balance" :icon="'eos-icons:master-outlined'">
+        <Card title="Contract Balance" :icon="'eos-icons:master-outlined'">
           <div
-            class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
+            class="flex justify-between items-start lg:items-start flex-col lg:flex-row mb-2 lg:mb-0"
           >
-            <p class="mb-4 text-sm">
-              The connected wallet shows the following balance:
-            </p>
+            <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
+              <h3>
+                <!-- <Icon name="material-symbols:lock" /> -->
+                Total Contract Balance
+              </h3>
+              <div class="inline-flex flex-col items-baseline">
+                <template v-if="isPending">
+                  <USkeleton class="w-[15rem] h-10" />
+                </template>
+                <template v-else>
+                  <span v-if="isConnected" class="text-4xl font-bold">
+                    {{ formatEtherNoRound(totalContract.toString()) }}
+                  </span>
+                  <span v-if="!isConnected" class="text-4xl font-bold">
+                    --
+                  </span>
+                  <Ticker />
+                </template>
+              </div>
+            </div>
+            <UButton
+              :disabled="availableTokens.isZero()"
+              @click="withdrawDialogOpen = true"
+              variant="outline"
+              color="cyan"
+              size="xl"
+            >
+              {{ isWithdrawing ? 'Withdrawing...' : 'Withdraw available' }}
+            </UButton>
+
+            <UModal v-model="withdrawDialogOpen">
+              <UCard
+                class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
+              >
+                <h4 class="text-lg font-semibold mb-6">Withdraw tokens</h4>
+                <form
+                  @submit.prevent="submitWithdrawForm"
+                  class="mt-6 md:mt-0 w-full md:w-auto"
+                >
+                  <label for="withdrawAmount" class="text-sm"
+                    >Amount to withdraw:
+                  </label>
+                  <UInput
+                    :disabled="isWithdrawing"
+                    v-model="withdrawInput"
+                    name="withdrawAmount"
+                    class="mt-2 mb-6"
+                    color="neutral"
+                    placeholder="Withdraw amount"
+                    type="number"
+                    min="0"
+                  />
+                  <div class="flex justify-end gap-3">
+                    <UButton
+                      variant="outline"
+                      color="cyan"
+                      @click="withdrawDialogOpen = false"
+                    >
+                      Cancel
+                    </UButton>
+                    <UButton
+                      :disabled="!parseFloat(withdrawAmount)"
+                      :loading="isWithdrawing"
+                      variant="solid"
+                      color="cyan"
+                      type="submit"
+                    >
+                      {{ isWithdrawing ? 'Withdrawing...' : 'Withdraw' }}
+                    </UButton>
+                  </div>
+                </form>
+              </UCard>
+            </UModal>
           </div>
 
           <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row my-4">
-            <div class="border-l-4 border-cyan-600 pl-3">
+            <!-- <div class="border-l-4 border-cyan-600 pl-3">
               <UserBalance
                 class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
               >
                 <Ticker />
               </UserBalance>
-            </div>
+            </div> -->
             <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
-              <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-                <h3>
-                  <Icon name="material-symbols:lock" />
-                  Locked
+              <div
+                class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+              >
+                <h3 class="text-sm">
+                  <!-- <Icon name="material-symbols:lock" /> -->
+                  Available
                 </h3>
-                <div class="inline-flex items-baseline gap-2">
-                  <template v-if="lockedPending">
-                    <USkeleton class="w-[15rem] h-10" />
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="hodlerInfoPending">
+                    <USkeleton class="w-[10rem] h-10" />
                   </template>
                   <template v-else>
-                    <span v-if="isConnected" class="text-4xl font-bold">
-                      {{ Number(hodlerStore.lockedTokens).toFixed(2) }}
+                    <span v-if="isConnected" class="text-3xl font-bold">
+                      {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
                     </span>
-                    <span v-if="!isConnected" class="text-4xl font-bold">
+                    <span v-if="!isConnected" class="text-3xl font-bold">
                       --
                     </span>
-                    <Ticker />
+                    <Ticker class="text-sm" />
                   </template>
                 </div>
               </div>
+            </div>
+            <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
+              <div
+                class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+              >
+                <h3 class="text-sm">
+                  <Icon name="material-symbols:lock" />
+                  Locked
+                </h3>
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="lockedPending">
+                    <USkeleton class="w-[10rem] h-10" />
+                  </template>
+                  <template v-else>
+                    <span v-if="isConnected" class="text-3xl font-bold">
+                      {{ Number(hodlerStore.lockedTokens).toFixed(2) }}
+                    </span>
+                    <span v-if="!isConnected" class="text-3xl font-bold">
+                      --
+                    </span>
+                    <Ticker class="text-sm" />
+                  </template>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
+              <div
+                class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+              >
+                <h3 class="text-sm">
+                  <!-- <Icon name="material-symbols:lock" /> -->
+                  Staked
+                </h3>
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="stakesPending">
+                    <USkeleton class="w-[10rem] h-10" />
+                  </template>
+                  <template v-else>
+                    <span v-if="isConnected" class="text-3xl font-bold">
+                      {{ formatEtherNoRound(totalStaked.toString()) }}
+                    </span>
+                    <span v-if="!isConnected" class="text-3xl font-bold">
+                      --
+                    </span>
+                    <Ticker class="text-sm" />
+                  </template>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-0 lg:gap-3 flex-col lg:flex-row lg:items-end">
+              <div
+                class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+              >
+                <div class="flex items-center gap-1">
+                  <h3 class="text-sm">
+                    <Icon name="material-symbols:lock" />
+                    Vaulted
+                  </h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Total amount of tokens across
+                        <strong>all</strong> vaults.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="vaultsPending">
+                    <USkeleton class="w-[10rem] h-10" />
+                  </template>
+                  <template v-else>
+                    <span v-if="isConnected" class="text-3xl font-bold">
+                      {{ formatEtherNoRound(totalVaulted.toString()) }}
+                    </span>
+                    <span v-if="!isConnected" class="text-3xl font-bold">
+                      --
+                    </span>
+                    <Ticker class="text-sm" />
+                  </template>
+                </div>
+              </div>
+              <UButton
+                :disabled="!isConnected || totalVaultClaimable <= 0n"
+                @click="claimTokens"
+                variant="outline"
+                color="cyan"
+                size="md"
+                class="self-end"
+              >
+                Redeem expired
+              </UButton>
             </div>
           </div>
         </Card>
@@ -52,7 +223,7 @@
           <div
             class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
           >
-            <p class="mb-4 text-sm">
+            <!-- <p class="mb-4 text-sm">
               Earn rewards by contributing relays to the ANYONE network.
               <a
                 href="https://docs.anyone.io/rewards"
@@ -61,42 +232,7 @@
               >
                 Find Out More
               </a>
-            </p>
-            <div v-if="isConnected" class="redeem flex gap-6 items-center">
-              <div class="divider hidden lg:visible"></div>
-              <div>
-                <Button
-                  :disabled="
-                    !hodlerStore.hasClaimableRewards || isRedeemLoading
-                  "
-                  @onClick="handleClaimAllRewards"
-                  class="mb-2"
-                >
-                  <span v-if="isRedeemLoading">Processing...</span>
-                  <span v-else-if="hodlerStore.hasClaimableRewards"
-                    >Redeem Rewards</span
-                  >
-                  <span v-else>Nothing to Redeem</span>
-                </Button>
-                <div v-if="progressLoading" class="text-center">
-                  <UProgress animation="carousel">
-                    <template #indicator="{ progressLoading }">
-                      <div class="text-center">
-                        <span v-if="progressLoading === 1" class="text-xs">
-                          1 / 2 Accepting Request...
-                        </span>
-                        <span v-else class="text-xs">
-                          2 / 2 Accepting Request...
-                        </span>
-                      </div>
-                    </template>
-                  </UProgress>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
+            </p> -->
             <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
               <div class="flex flex-col items-start gap-2">
                 <h3>Total redeemed rewards</h3>
@@ -116,17 +252,52 @@
                 <Ticker />
               </template>
             </div>
+            <div v-if="isConnected" class="redeem flex gap-6 items-center">
+              <div class="divider hidden lg:visible"></div>
+              <div>
+                <UButton
+                  :disabled="
+                    !hodlerStore.hasClaimableRewards || isRedeemLoading
+                  "
+                  @onClick="handleClaimAllRewards"
+                  class="mb-2"
+                  variant="outline"
+                  color="cyan"
+                  size="xl"
+                >
+                  <span v-if="isRedeemLoading">Processing...</span>
+                  <span v-else-if="hodlerStore.hasClaimableRewards"
+                    >Redeem Rewards</span
+                  >
+                  <span v-else>Nothing to Redeem</span>
+                </UButton>
+                <div v-if="progressLoading" class="text-center">
+                  <UProgress animation="carousel">
+                    <template #indicator="{ progressLoading }">
+                      <div class="text-center">
+                        <span v-if="progressLoading === 1" class="text-xs">
+                          1 / 2 Accepting Request...
+                        </span>
+                        <span v-else class="text-xs">
+                          2 / 2 Accepting Request...
+                        </span>
+                      </div>
+                    </template>
+                  </UProgress>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
             <div
               class="my-4 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
             >
               <div class="flex items-start gap-2">
-                <h3>Eligible for next airdrop</h3>
+                <h3 class="text-sm">Eligible for next airdrop</h3>
                 <Popover placement="top" :arrow="false">
                   <template #content>
-                    <div
-                      class="text-xs font-normal text-gray-600 dark:text-gray-300"
-                    >
+                    <div class="text-xs font-normal">
                       Total number of redeemed tokens, minus any tokens received
                       or forfeited from previous airdrops.
                     </div>
@@ -143,14 +314,14 @@
                 </Popover>
               </div>
               <template v-if="calculatedAirdropPending">
-                <USkeleton class="w-[15rem] h-10 mt-2" />
+                <USkeleton class="w-[10rem] h-10 mt-2" />
               </template>
               <template v-else>
-                <span v-if="isConnected" class="text-4xl font-bold">
+                <span v-if="isConnected" class="text-3xl font-bold">
                   {{ formatEtherNoRound(hodlerStore.calculatedAirdrop || '0') }}
                 </span>
-                <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
-                <Ticker />
+                <span v-if="!isConnected" class="text-3xl font-bold"> -- </span>
+                <Ticker class="text-sm" />
                 <div
                   v-if="!hasEnoughBalancePending && !hasEnoughBalance"
                   class="flex items-center gap-2 mt-2"
@@ -164,20 +335,52 @@
             <div
               class="my-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
             >
-              <h3>Redeemable rewards</h3>
+              <h3 class="text-sm">Total redeemable rewards</h3>
               <template v-if="claimablePending">
-                <USkeleton class="w-[15rem] h-10 mt-2" />
+                <USkeleton class="w-[10rem] h-10 mt-2" />
               </template>
               <template v-else>
-                <span v-if="isConnected" class="text-4xl font-bold">
+                <span v-if="isConnected" class="text-3xl font-bold">
                   {{
                     formatEtherNoRound(
                       hodlerStore.claimData?.totalClaimable || '0'
                     )
                   }}
                 </span>
-                <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
-                <Ticker />
+                <span v-if="!isConnected" class="text-3xl font-bold"> -- </span>
+                <Ticker class="text-sm" />
+              </template>
+            </div>
+
+            <div
+              class="my-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
+            >
+              <h3 class="text-sm">Relay rewards</h3>
+              <template v-if="stakingRewardsPending">
+                <USkeleton class="w-[10rem] h-10 mt-2" />
+              </template>
+              <template v-else>
+                <span v-if="isConnected" class="text-3xl font-bold">
+                  {{ formatEtherNoRound(relayRewards || '0') }}
+                </span>
+                <span v-if="!isConnected" class="text-3xl font-bold"> -- </span>
+                <Ticker class="text-sm" />
+              </template>
+            </div>
+
+            <div
+              class="my-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
+            >
+              <h3 class="text-sm">Staking rewards</h3>
+              <template v-if="stakingRewardsPending">
+                <USkeleton class="w-[10rem] h-10 mt-2" />
+              </template>
+              <template v-else>
+                <span v-if="isConnected" class="text-3xl font-bold">
+                  {{ formatEtherNoRound(stakingRewards || '0') }}
+                </span>
+                <span v-if="!isConnected" class="text-3xl font-bold"> -- </span>
+                <Ticker class="text-sm" />
               </template>
             </div>
           </div>
@@ -188,33 +391,36 @@
 </template>
 
 <script setup lang="ts">
-import { useAccount } from '@wagmi/vue';
+import {
+  useAccount,
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import { useUserStore } from '@/stores/useUserStore';
-// import { useRegistratorStore } from '@/stores/useRegistratorStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
-import UserBalance from '@/components/UserBalance.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
-import { initRegistrator, useRegistrator } from '@/composables/registrator';
 import { useFacilitator } from '@/composables/facilitator';
 import { useDistribution } from '@/composables/distribution';
-import { initFacilitator } from '@/composables/facilitator';
-import { initToken } from '@/composables/token';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
 import { useRelayRewards } from '@/composables/relay-rewards';
-import { formatUnits } from 'viem';
 import { initHodler, useHodler } from '~/composables/hodler';
+import { hodlerAbi } from '../assets/abi/hodler';
+import BigNumber from 'bignumber.js';
+import { parseEther } from 'viem';
+import { getBlock } from '@wagmi/core';
+import { useQuery } from '@tanstack/vue-query';
 
 const userStore = useUserStore();
 // const registratorStore = useRegistratorStore();
 const hodlerStore = useHolderStore();
 const { isConnected, address } = useAccount({ config } as any);
 const { allRelays } = storeToRefs(userStore);
-
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
 const lockedPending = ref(false);
@@ -395,6 +601,293 @@ const handleClaimAllRewards = async () => {
   // facilitatorStore.pendingClaim = null;
   progressLoading.value = 0;
 };
+
+const runtimeConfig = useRuntimeConfig();
+const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
+const withdrawInput = ref('');
+const withdrawAmount = computed(
+  () => validateTokenInput(withdrawInput.value) || '0'
+);
+const isWithdrawing = computed(
+  () =>
+    (currentWriteAction.value === 'withdraw' && writePending.value) ||
+    isConfirming.value
+);
+const withdrawDialogOpen = ref(false);
+const totalVaultClaimable = ref<bigint>(0n);
+const currentWriteAction = ref<'withdraw' | 'openExpired' | null>(null);
+
+const { getTotalClaimableStakingRewards, claimStakingRewards } =
+  useStakingRewards();
+
+const { data: stakingRewards, isPending: stakingRewardsPending } = useQuery({
+  queryKey: ['claimableRewards', address],
+  queryFn: async () => {
+    if (!address.value) return '0';
+
+    return getTotalClaimableStakingRewards(address.value);
+  },
+  enabled: !!address.value,
+});
+
+const {
+  data: hash,
+  isPending: writePending,
+  writeContractAsync,
+} = useWriteContract();
+const { isLoading: isConfirming, isSuccess: isConfirmed } =
+  useWaitForTransactionReceipt({
+    hash,
+  });
+
+watch(isConfirmed, (confirmed) => {
+  if (confirmed) {
+    if (currentWriteAction.value === 'withdraw') {
+      toast.remove('withdraw');
+      toast.add({
+        title: `Withdrew ${withdrawAmount.value} tokens`,
+        color: 'green',
+      });
+      withdrawInput.value = '';
+      withdrawDialogOpen.value = false;
+      refetchHolderInfo();
+    } else if (currentWriteAction.value === 'openExpired') {
+      toast.remove('openExpired');
+      toast.add({
+        title: 'Successfully claimed tokens from expired vaults',
+        color: 'green',
+      });
+      refetchVaults();
+      refetchHolderInfo();
+    }
+    currentWriteAction.value = null;
+  }
+});
+
+const {
+  data: hodlerInfo,
+  isPending: hodlerInfoPending,
+  refetch: refetchHolderInfo,
+} = useReadContract({
+  address: hodlerContract,
+  abi: hodlerAbi,
+  functionName: 'hodlers',
+  args: [address.value as `0x${string}`],
+  query: { enabled: true },
+});
+
+const availableTokens = computed(() => {
+  if (!hodlerInfo.value) return BigNumber(0);
+  return new BigNumber(hodlerInfo.value[0].toString() || '0');
+});
+
+const {
+  data: stakesData,
+  isLoading: stakesPending,
+  error,
+  refetch: refetchStakes,
+} = useReadContract({
+  address: hodlerContract,
+  abi: hodlerAbi,
+  functionName: 'getStakes',
+  args: [address.value as `0x${string}`],
+  query: {
+    enabled: !!address.value,
+  },
+});
+
+const totalStaked = computed(() => {
+  if (!stakesData.value) return BigNumber(0);
+
+  return stakesData.value.reduce((acc, stake) => {
+    const amount = new BigNumber(stake.amount.toString() || '0');
+    return acc.plus(amount);
+  }, new BigNumber(0));
+});
+
+const {
+  data: vaultsData,
+  isPending: vaultsPending,
+  refetch: refetchVaults,
+} = useReadContract({
+  address: hodlerContract,
+  abi: hodlerAbi,
+  functionName: 'getVaults',
+  args: [address.value as `0x${string}`],
+  query: {
+    enabled: computed(() => isConnected.value),
+  },
+});
+
+const totalVaulted = computed(() => {
+  if (!vaultsData.value) return BigNumber(0);
+
+  return vaultsData.value.reduce((acc, vault) => {
+    const amount = new BigNumber(vault.amount.toString() || '0');
+    return acc.plus(amount);
+  }, new BigNumber(0));
+});
+
+watch(vaultsData, async (vaults) => {
+  if (vaults) {
+    updateTotalClaimable();
+  }
+});
+
+const updateTotalClaimable = async () => {
+  if (!vaultsData.value?.length) {
+    totalVaultClaimable.value = 0n;
+    return;
+  }
+
+  let total = 0n;
+  await Promise.all(
+    vaultsData.value.map(async (vault) => {
+      const isClaimable = await claimable(vault.availableAt);
+      if (isClaimable) total += vault.amount;
+    })
+  );
+  totalVaultClaimable.value = total;
+};
+
+const totalContract = computed(() => {
+  if (!hodlerInfo.value) return BigNumber(0);
+
+  const available = new BigNumber(hodlerInfo.value[0].toString() || '0');
+
+  const totalLocked = new BigNumber(lockedTokens.value.toString() || '0');
+
+  return available.plus(
+    totalVaulted.value.plus(totalStaked.value).plus(totalLocked)
+  );
+});
+
+const isPending = computed(() => {
+  return (
+    hodlerInfoPending.value ||
+    vaultsPending.value ||
+    lockedRelaysPending.value ||
+    stakesPending.value
+  );
+});
+
+const claimable = async (available: bigint) => {
+  const TIMESTAMP_BUFFER = 15 * 60;
+  const block = await getBlock(config);
+  const timestamp = block.timestamp;
+  return available < timestamp - BigInt(TIMESTAMP_BUFFER);
+};
+
+const claimTokens = async (available: bigint) => {
+  if (!isConnected) {
+    toast.add({
+      title: 'Please connect your wallet to claim tokens',
+      color: 'red',
+    });
+    return;
+  }
+  if (!claimable(available)) {
+    toast.add({
+      title: `You can't claim these tokens yet`,
+      color: 'red',
+    });
+    return;
+  }
+  try {
+    currentWriteAction.value = 'openExpired';
+    toast.add({
+      title: `Claiming ${totalVaultClaimable.value} tokens from expired vaults...`,
+      color: 'blue',
+      timeout: 0,
+    });
+    await writeContractAsync({
+      address: hodlerContract,
+      abi: hodlerAbi,
+      functionName: 'openExpired',
+    });
+  } catch (error) {
+    console.error('VaultClaimError: ', error);
+    toast.remove('openExpired');
+    toast.add({
+      title: 'Failed to claim tokens from vault',
+      color: 'red',
+    });
+  }
+};
+
+const submitWithdrawForm = async () => {
+  if (!isConnected) {
+    toast.add({
+      title: 'Please connect your wallet to withdraw',
+      color: 'red',
+    });
+    return;
+  }
+
+  // console.log('withdraw amount: ', withdrawAmount.value);
+
+  if (!withdrawAmount.value || Number(withdrawAmount.value) <= 0) {
+    toast.add({
+      title: 'Enter a valid withdraw amount',
+      color: 'red',
+    });
+    return;
+  }
+
+  try {
+    const amount = parseEther(withdrawAmount.value);
+
+    await writeContractAsync({
+      address: hodlerContract,
+      abi: hodlerAbi,
+      functionName: 'withdraw',
+      args: [amount],
+    });
+  } catch (error) {
+    toast.remove('withdraw');
+    console.error('WithdrawError: ', error);
+    toast.add({
+      title: 'Failed to withdraw tokens',
+      color: 'red',
+    });
+  }
+};
+
+const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
+
+// move to own file/context
+const getClaimableRelayRewards = async (
+  address: string
+): Promise<string | null> => {
+  try {
+    const { result } = await sendAosDryRun({
+      processId: relayRewardsProcessId,
+      tags: [
+        { name: 'Action', value: 'Get-Rewards' },
+        { name: 'Address', value: address },
+      ],
+    });
+
+    // console.log('getClaimable result', result);
+
+    const claimable = result?.Messages[0]?.Data || '0';
+
+    return BigNumber(claimable).toString();
+  } catch (error) {
+    console.error('Error fetching claimable relay rewards:', error);
+  }
+  return null;
+};
+
+const { data: relayRewards, isPending: relayRewardsPending } = useQuery({
+  queryKey: ['relayRewards', address],
+  queryFn: async () => {
+    if (!address.value) return '0';
+
+    return getClaimableRelayRewards(address.value);
+  },
+  enabled: computed(() => !!address.value),
+});
 </script>
 
 <style scoped>
