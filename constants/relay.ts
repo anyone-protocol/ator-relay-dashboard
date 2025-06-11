@@ -81,6 +81,12 @@ export const RELAY_COLUMS: Record<
       label: 'Actions',
     },
   ],
+  unlocked: [
+    { key: 'data', label: 'From' },
+    { key: 'amount', label: 'Amount' },
+    { key: 'availableAt', label: 'Expires in' },
+    { key: 'vaultStatus', label: 'Vault status' },
+  ],
 };
 
 export const TABS = [
@@ -95,6 +101,10 @@ export const TABS = [
   {
     label: 'Locked Relays',
     key: 'locked',
+  },
+  {
+    label: 'Unlocked Tokens',
+    key: 'unlocked',
   },
 ];
 
