@@ -358,23 +358,23 @@
             </template>
             <template #availableAt-data="{ row }: { row: Vault }">
               <span>{{
-                formatAvailableAt(row.availableAt) === 'Expired'
+                formatAvailableAt(row.availableAt, block) === 'Expired'
                   ? '0D 0H 0S'
-                  : formatAvailableAt(row.availableAt)
+                  : formatAvailableAt(row.availableAt, block)
               }}</span>
             </template>
 
             <template #status-data="{ row }: { row: Vault }">
               <UBadge
                 :color="
-                  formatAvailableAt(row.availableAt) === 'Expired'
+                  formatAvailableAt(row.availableAt, block) === 'Expired'
                     ? 'green'
                     : 'white'
                 "
                 variant="outline"
               >
                 {{
-                  formatAvailableAt(row.availableAt) === 'Expired'
+                  formatAvailableAt(row.availableAt, block) === 'Expired'
                     ? 'Available'
                     : 'Locked'
                 }}
@@ -751,22 +751,6 @@ const validateMaxStake = () => {
 };
 
 const block = await getBlock(config);
-
-const formatAvailableAt = (availableAt: bigint) => {
-  const timestamp = block.timestamp;
-  const timeDiffSeconds = availableAt - timestamp - BigInt(15 * 60);
-  if (timeDiffSeconds <= 0n) return 'Expired';
-
-  const secondsPerDay = BigInt(24 * 60 * 60);
-  const secondsPerHour = BigInt(60 * 60);
-  const secondsPerMinute = BigInt(60);
-
-  const days = timeDiffSeconds / secondsPerDay;
-  const hours = (timeDiffSeconds % secondsPerDay) / secondsPerHour;
-  const minutes = (timeDiffSeconds % secondsPerHour) / secondsPerMinute;
-
-  return `${days}D ${hours}H ${minutes}M`;
-};
 
 const handleCloseStakeDialog = () => {
   if (isStaking.value) {
