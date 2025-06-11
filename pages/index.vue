@@ -796,7 +796,8 @@ const claimTokens = async (available: bigint) => {
   try {
     currentWriteAction.value = 'openExpired';
     toast.add({
-      title: `Claiming ${totalVaultClaimable.value} tokens from expired vaults...`,
+      id: 'openExpired',
+      title: `Claiming ${formatEtherNoRound(totalVaultClaimable.value)} tokens from expired vaults...`,
       color: 'blue',
       timeout: 0,
     });
