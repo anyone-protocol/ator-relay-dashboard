@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useAccount } from '@wagmi/vue';
+import { useAccount, useReadContract } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
@@ -17,6 +17,8 @@ import { ethers } from 'ethers';
 import { defineProps } from 'vue';
 import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
 import { useHodler } from '~/composables/hodler';
+import { hodlerAbi } from '~/assets/abi/hodler';
+import { getBlock } from '@wagmi/core';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -35,7 +37,7 @@ const isUnlocking = ref(false);
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 
-const { address } = useAccount({ config } as any);
+const { address, isConnected } = useAccount({ config } as any);
 const registerModalOpen = ref(false);
 
 onMounted(() => {
@@ -461,6 +463,8 @@ const getTableData = (tab: RelayTabType) => {
       );
     case 'claimable':
       return claimableRelays.value;
+    case 'unlocked':
+      return vaults.value;
   }
 };
 
@@ -486,6 +490,47 @@ const handleUnlockClick = async (fingerprint: string) => {
     isUnlocking.value = false;
   }
 };
+
+const runtimeConfig = useRuntimeConfig();
+const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
+
+const {
+  data: vaultsData,
+  isPending: vaultsPending,
+  refetch: refetchVaults,
+} = useReadContract({
+  address: hodlerContract,
+  abi: hodlerAbi,
+  functionName: 'getVaults',
+  args: [address.value as `0x${string}`],
+  query: {
+    enabled: computed(() => isConnected.value),
+  },
+});
+
+watch(vaultsData, (newVaults) => {
+  if (newVaults) {
+    console.log('Vaults data updated:', newVaults);
+  }
+});
+
+const vaults = computed(() => {
+  if (!vaultsData.value) return [];
+  const data = vaultsData.value
+    .filter((vault) => vault.kind === 1n) // 1n for locked
+    .map((vault) => {
+      const data = `0x${vault.data.slice(2).toUpperCase()}`;
+      return {
+        amount: vault.amount,
+        data,
+        kind: vault.kind,
+        availableAt: vault.availableAt,
+      };
+    });
+  return data;
+});
+
+const block = await getBlock(config);
 </script>
 
 <template>
@@ -568,7 +613,7 @@ const handleUnlockClick = async (fingerprint: string) => {
     <Tabs :tabs="TABS" @onChange="handleTabChange" />
 
     <UTable
-      :loading="allRelaysPending"
+      :loading="allRelaysPending || vaultsPending"
       :columns="RELAY_COLUMS[currentTab]"
       :rows="getTableData(currentTab)"
       :ui="{ td: { base: 'max-w-sm truncate' } }"
@@ -577,7 +622,9 @@ const handleUnlockClick = async (fingerprint: string) => {
         label:
           currentTab === 'claimable'
             ? 'No claimable relays!'
-            : 'No locked or delegated-locked relays!',
+            : currentTab === 'unlocked'
+              ? 'No unlocked tokens!'
+              : 'No locked or delegated-locked relays!',
       }"
     >
       <template #actions-data="{ row }">
@@ -898,6 +945,39 @@ const handleUnlockClick = async (fingerprint: string) => {
           Owner
         </UBadge>
         <UBadge v-else color="cayan" variant="outline"> Others </UBadge>
+      </template>
+
+      <template #data-data="{ row }">
+        <div class="flex items-center">
+          <span>{{ truncatedAddress(row.data) }}</span>
+        </div>
+      </template>
+      <template #amount-data="{ row }">
+        {{ formatEtherNoRound(row.amount) }}
+      </template>
+      <template #availableAt-data="{ row }">
+        <span>{{
+          formatAvailableAt(row.availableAt, block) === 'Expired'
+            ? '0D 0H 0S'
+            : formatAvailableAt(row.availableAt, block)
+        }}</span>
+      </template>
+
+      <template #vaultStatus-data="{ row }">
+        <UBadge
+          :color="
+            formatAvailableAt(row.availableAt, block) === 'Expired'
+              ? 'green'
+              : 'white'
+          "
+          variant="outline"
+        >
+          {{
+            formatAvailableAt(row.availableAt, block) === 'Expired'
+              ? 'Available'
+              : 'Locked'
+          }}
+        </UBadge>
       </template>
     </UTable>
   </div>

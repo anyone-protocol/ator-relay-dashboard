@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
     <div class="flex items-center gap-1">
-      <h3 class="text-[10px] md:text-xs">Redeemable Rewards</h3>
-      <Popover
+      <h3 class="text-[10px] md:text-xs">Unclaimed Staking Rewards</h3>
+      <!-- <Popover
         placement="left"
         :arrow="false"
         class="h-max grid place-items-center"
@@ -13,9 +13,9 @@
           </span>
         </template>
         <template #trigger>
-          <Icon name="heroicons:exclamation-circle" class="" />
+          <Icon name="heroicons:exclamation-circle" />
         </template>
-      </Popover>
+      </Popover> -->
     </div>
     <div class="inline-flex items-baseline gap-2">
       <template v-if="claimableRewardsPending">
@@ -23,7 +23,7 @@
       </template>
       <template v-else>
         <div class="flex items-center gap-3">
-          <div class="flex flex-col">
+          <div class="flex gap-1 items-baseline">
             <span class="text-lg md:text-xl">
               <template v-if="isConnected">
                 {{ formatEtherNoRound(claimableRewards || '0') }}
@@ -32,7 +32,7 @@
             </span>
             <Ticker class="text-[9px] leading-tight" />
           </div>
-          <UButton
+          <!-- <UButton
             :disabled="!isConnected || Number(claimableRewards) <= 0"
             @click="claimStakingRewardsMutation()"
             variant="outline"
@@ -42,7 +42,7 @@
             :loading="claimStakingRewardsPending"
           >
             Redeem
-          </UButton>
+          </UButton> -->
         </div>
       </template>
     </div>
@@ -54,6 +54,7 @@ import { useMutation, useQuery } from '@tanstack/vue-query';
 import { useAccount } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import Card from './ui-kit/Card.vue';
+import Ticker from './ui-kit/Ticker.vue';
 
 const { isConnected, address } = useAccount({ config } as any);
 

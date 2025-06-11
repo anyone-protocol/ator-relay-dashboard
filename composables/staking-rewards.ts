@@ -3,6 +3,7 @@ import BigNumber from 'bignumber.js';
 import type {
   GetRewardsResponse,
   LastRoundMetadata,
+  LastSnapshot,
   OperatorRewards,
   StakingRewardsState,
   StakingSnapshot,
@@ -55,7 +56,7 @@ export const useStakingRewards = () => {
         ],
       });
       const data: GetRewardsResponse = result?.Messages[0]?.Data;
-      console.log('stakingRewardsData: ', data);
+      logger.info('stakingRewardsData: ', data);
       let totalClaimable = BigNumber(0);
 
       // iterate over operators to calculate claimable amount
@@ -86,7 +87,28 @@ export const useStakingRewards = () => {
       }
 
       const data: LastRoundMetadata = JSON.parse(result.Messages[0].Data);
-      console.log('Last round metadata: ', data);
+      logger.info('Last round metadata: ', data);
+      return data;
+    } catch (error) {
+      logger.error('Error fetching last round metadata', error);
+      return null;
+    }
+  };
+
+  const getLastSnapshot = async () => {
+    try {
+      const { result } = await sendAosDryRun({
+        processId,
+        tags: [{ name: 'Action', value: 'Last-Snapshot' }],
+      });
+
+      if (!result || !result.Messages || result.Messages.length === 0) {
+        logger.error('No messages found in the result');
+        return null;
+      }
+
+      const data: LastSnapshot = JSON.parse(result.Messages[0].Data);
+      logger.info('Last snapshot: ', data);
       return data;
     } catch (error) {
       logger.error('Error fetching last round metadata', error);
@@ -107,7 +129,7 @@ export const useStakingRewards = () => {
       }
 
       const data: StakingRewardsState = JSON.parse(result.Messages[0].Data);
-      console.log('Staking rewards state: ', data);
+      logger.info('Staking rewards state: ', data);
       return data;
     } catch (error) {
       logger.error('Error fetching last round metadata', error);
@@ -156,15 +178,15 @@ export const useStakingRewards = () => {
   const getStakingSnapshot = async () => {
     try {
       const results = await arweave.api.post('/graphql', queryObject);
-      // console.log('Staking snapshot results:', results);
+      // logger.info('Staking snapshot results:', results);
       const snapshotId = results.data.data.transactions.edges[0]?.node.id;
 
       const snapshotRes = await arweave.api.get(`/${snapshotId}/data`);
       const snapshotData: StakingSnapshot = snapshotRes.data;
-      console.log('Staking snapshot data:', snapshotData);
+      logger.info('Staking snapshot data:', snapshotData);
       return snapshotData;
     } catch (error) {
-      console.error('Error fetching staking snapshot:', error);
+      logger.error('Error fetching staking snapshot:', error);
       throw error;
     }
   };
@@ -201,6 +223,7 @@ export const useStakingRewards = () => {
     getClaimableStakingRewards,
     getTotalClaimableStakingRewards,
     getLastRoundMetadata,
+    getLastSnapshot,
     getStakingRewardsState,
     getStakingSnapshot,
     claimStakingRewards,

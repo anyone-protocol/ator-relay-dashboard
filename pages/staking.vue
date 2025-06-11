@@ -2,76 +2,73 @@
   <div class="flex flex-col-reverse lg:flex-row gap-5 mt-4">
     <Card>
       <div class="flex lg:items-center justify-between mb-6 gap-5">
-        <div class="flex items-center space-x-1 md:space-x-2 h-max">
-          <Icon
-            name="i-heroicons-chart-pie-20-solid"
-            class="w-[1.6rem] md:w-[1.8rem] h-[1.6rem] md:h-[1.8rem]"
-          />
-          <h2 class="text-2xl md:text-[2rem]">Staking</h2>
+        <div class="flex flex-col gap-5 md:flex-row md:items-center md:gap-10">
+          <div class="flex items-center space-x-1 md:space-x-2 h-max">
+            <Icon
+              name="i-heroicons-chart-pie-20-solid"
+              class="w-[1.6rem] md:w-[1.8rem] h-[1.6rem] md:h-[1.8rem]"
+            />
+            <h2 class="text-2xl md:text-[2rem]">Staking</h2>
+          </div>
+          <div class="flex flex-col items-center md:flex-row gap-2">
+            <div class="flex flex-col">
+              <div class="flex items-center gap-1">
+                <h3 class="text-[10px] md:text-xs">Redeemable Tokens</h3>
+                <Popover
+                  placement="left"
+                  :arrow="false"
+                  class="h-max grid place-items-center"
+                >
+                  <template #content>
+                    <span class="text-xs font-normal">
+                      Total amount of tokens that are redeemable across vaults.
+                    </span>
+                  </template>
+                  <template #trigger>
+                    <Icon name="heroicons:exclamation-circle" />
+                  </template>
+                </Popover>
+              </div>
+              <div class="inline-flex items-baseline justify-end gap-2">
+                <template v-if="vaultsPending">
+                  <USkeleton class="w-[8rem] h-6" />
+                </template>
+                <template v-else>
+                  <div class="flex gap-2 items-end md:items-center md:gap-3">
+                    <div class="flex gap-1 items-baseline">
+                      <span class="text-base md:text-xl">
+                        <template v-if="isConnected">
+                          {{ formatEtherNoRound(totalClaimableAmount || '0') }}
+                        </template>
+                        <template v-else>--</template>
+                      </span>
+                      <Ticker class="text-[9px] leading-tight" />
+                    </div>
+                    <!-- <UButton
+                      :disabled="!isConnected || totalClaimableAmount <= 0n"
+                      @click="claimTokens"
+                      variant="outline"
+                      color="cyan"
+                      size="2xs"
+                      class="text-[9px] md:text-xs"
+                    >
+                      Redeem expired
+                    </UButton> -->
+                  </div>
+                </template>
+              </div>
+            </div>
+            <StakingRewards />
+          </div>
         </div>
-        <div
-          class="flex flex-col-reverse items-end gap-5 md:flex-row md:items-center md:gap-10"
-        >
-          <StakingRewards v-if="currentTab === 'stakedOperators'" />
+        <div class="relative">
           <UInput
-            v-if="
-              currentTab === 'operators' || currentTab === 'stakedOperators'
-            "
             v-model="searchQuery"
             color="gray"
             variant="outline"
             icon="i-heroicons-magnifying-glass"
             placeholder="Search by address"
           />
-        </div>
-        <div v-if="currentTab === 'vaults'">
-          <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
-            <div class="flex items-center gap-1">
-              <h3 class="text-[10px] md:text-xs">Redeemable Tokens</h3>
-              <Popover
-                placement="left"
-                :arrow="false"
-                class="h-max grid place-items-center"
-              >
-                <template #content>
-                  <span class="text-xs font-normal">
-                    Total amount of tokens that are redeemable across vaults.
-                  </span>
-                </template>
-                <template #trigger>
-                  <Icon name="heroicons:exclamation-circle" class="" />
-                </template>
-              </Popover>
-            </div>
-            <div class="inline-flex items-baseline gap-2">
-              <template v-if="vaultsPending">
-                <USkeleton class="w-[8rem] h-6" />
-              </template>
-              <template v-else>
-                <div class="flex gap-2 items-end md:items-center md:gap-3">
-                  <div class="flex flex-col">
-                    <span class="text-base md:text-xl">
-                      <template v-if="isConnected">
-                        {{ formatEtherNoRound(totalClaimableAmount || '0') }}
-                      </template>
-                      <template v-else>--</template>
-                    </span>
-                    <Ticker class="text-[9px] leading-tight" />
-                  </div>
-                  <UButton
-                    :disabled="!isConnected || totalClaimableAmount <= 0n"
-                    @click="claimTokens"
-                    variant="outline"
-                    color="cyan"
-                    size="2xs"
-                    class="text-[9px] md:text-xs"
-                  >
-                    Redeem expired
-                  </UButton>
-                </div>
-              </template>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -361,23 +358,23 @@
             </template>
             <template #availableAt-data="{ row }: { row: Vault }">
               <span>{{
-                formatAvailableAt(row.availableAt) === 'Expired'
+                formatAvailableAt(row.availableAt, block) === 'Expired'
                   ? '0D 0H 0S'
-                  : formatAvailableAt(row.availableAt)
+                  : formatAvailableAt(row.availableAt, block)
               }}</span>
             </template>
 
             <template #status-data="{ row }: { row: Vault }">
               <UBadge
                 :color="
-                  formatAvailableAt(row.availableAt) === 'Expired'
+                  formatAvailableAt(row.availableAt, block) === 'Expired'
                     ? 'green'
                     : 'white'
                 "
                 variant="outline"
               >
                 {{
-                  formatAvailableAt(row.availableAt) === 'Expired'
+                  formatAvailableAt(row.availableAt, block) === 'Expired'
                     ? 'Available'
                     : 'Locked'
                 }}
@@ -492,6 +489,7 @@ const runtimeConfig = useRuntimeConfig();
 const {
   getClaimableStakingRewards,
   getLastRoundMetadata,
+  getLastSnapshot,
   getStakingRewardsState,
   getStakingSnapshot,
 } = useStakingRewards();
@@ -519,7 +517,7 @@ const operatorRewards = ref<OperatorRewards[]>([]);
 const hodlerAddress = computed(() => address.value);
 // for testing purposes - should get running from LastRoundMetadata
 const runningThreshold = computed(
-  () => stakingRewardsState.value?.Configuration.Requirements.Running
+  () => lastSnapshot.value?.Configuration.Requirements.Running
 );
 const stakedOperators = computed(() => {
   if (!stakesData.value) return [];
@@ -575,6 +573,12 @@ const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
   query: {
     enabled: computed(() => !!address.value),
   },
+});
+
+const { data: lastSnapshot } = useQuery({
+  queryKey: ['lastSnapshot'],
+  queryFn: getLastSnapshot,
+  enabled: computed(() => !!address.value),
 });
 
 const { data: stakingSnapshot } = useQuery({
@@ -737,21 +741,6 @@ const vaultColumns = [
 const stakedMaxOptions = ['wallet', 'available'];
 const stakedMaxSelected = ref(stakedMaxOptions[0]);
 
-const validateTokenInput = (value: string): string | null => {
-  // remove commas, trim whitespace
-  const cleanedValue = value.replace(/,/g, '').trim();
-  if (!cleanedValue) return '0';
-
-  try {
-    const numValue = parseFloat(cleanedValue);
-    if (numValue <= 0) return null;
-
-    return cleanedValue.toString();
-  } catch {
-    return null;
-  }
-};
-
 const validateMaxStake = () => {
   if (stakedMaxSelected.value === 'wallet') {
     // console.log('token balance: ', tokenBalance.value?.value);
@@ -762,22 +751,6 @@ const validateMaxStake = () => {
 };
 
 const block = await getBlock(config);
-
-const formatAvailableAt = (availableAt: bigint) => {
-  const timestamp = block.timestamp;
-  const timeDiffSeconds = availableAt - timestamp - BigInt(15 * 60);
-  if (timeDiffSeconds <= 0n) return 'Expired';
-
-  const secondsPerDay = BigInt(24 * 60 * 60);
-  const secondsPerHour = BigInt(60 * 60);
-  const secondsPerMinute = BigInt(60);
-
-  const days = timeDiffSeconds / secondsPerDay;
-  const hours = (timeDiffSeconds % secondsPerDay) / secondsPerHour;
-  const minutes = (timeDiffSeconds % secondsPerHour) / secondsPerMinute;
-
-  return `${days}D ${hours}H ${minutes}M`;
-};
 
 const handleCloseStakeDialog = () => {
   if (isStaking.value) {
@@ -941,7 +914,7 @@ const {
   functionName: 'getVaults',
   args: [hodlerAddress.value as `0x${string}`],
   query: {
-    enabled: computed(() => isConnected.value && currentTab.value === 'vaults'),
+    enabled: computed(() => isConnected.value),
   },
 });
 
@@ -978,50 +951,6 @@ const {
   args: [hodlerAddress.value as `0x${string}`],
   query: { enabled: true },
 });
-
-const submitWithdrawForm = async () => {
-  if (!isConnected) {
-    toast.add({
-      title: 'Please connect your wallet to withdraw',
-      color: 'red',
-    });
-    return;
-  }
-
-  // console.log('withdraw amount: ', withdrawAmount.value);
-
-  if (!withdrawAmount.value || Number(withdrawAmount.value) <= 0) {
-    toast.add({
-      title: 'Enter a valid withdraw amount',
-      color: 'red',
-    });
-    return;
-  }
-
-  try {
-    // console.log('withdrawing...');
-    currentWriteAction.value = 'withdraw';
-    const amount = parseEther(withdrawAmount.value.toString());
-
-    await writeContractAsync({
-      address: hodlerContract,
-      abi: hodlerAbi,
-      functionName: 'withdraw',
-      args: [amount],
-    });
-    // TODO - await receipt & show success toast
-    toast.add({
-      title: `Withdrew ${withdrawAmount.value} tokens`,
-      color: 'green',
-    });
-  } catch (error) {
-    console.error('WithdrawError: ', error);
-    toast.add({
-      title: 'Failed to withdraw tokens',
-      color: 'red',
-    });
-  }
-};
 
 const claimable = async (available: bigint) => {
   const TIMESTAMP_BUFFER = 15 * 60;

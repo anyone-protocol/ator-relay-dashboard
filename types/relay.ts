@@ -32,7 +32,7 @@ export type RelayRow = {
   nickname?: string;
 };
 
-export type RelayTabType = 'all' | 'claimable' | 'locked';
+export type RelayTabType = 'all' | 'claimable' | 'locked' | 'unlocked';
 
 export type RelayData = {
   timestamp: number;

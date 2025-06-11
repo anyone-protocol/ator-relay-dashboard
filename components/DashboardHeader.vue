@@ -65,8 +65,8 @@ const menuStore = useMenuStore();
         <ButtonMobileMenu class="uniform-height" />
       </div>
 
-      <WithdrawTokens />
-      <UserBalanceHeader />
+      <ContractBalance />
+      <!-- <UserBalanceHeader /> -->
 
       <div class="lg:flex items-center hidden ml-auto mr-4">
         <ButtonConnect class="uniform-height" />
