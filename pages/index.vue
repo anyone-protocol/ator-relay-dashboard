@@ -57,17 +57,10 @@
                     class="mt-2 mb-6"
                     color="neutral"
                     placeholder="Withdraw amount"
-                    type="number"
-                    min="0"
+                    type="text"
                   />
                   <div class="flex justify-end gap-3">
-                    <UButton
-                      variant="outline"
-                      color="cyan"
-                      @click="withdrawDialogOpen = false"
-                    >
-                      Cancel
-                    </UButton>
+                    <UButton variant="outline" color="cyan"> Cancel </UButton>
                     <UButton
                       :disabled="!parseFloat(withdrawAmount)"
                       :loading="isWithdrawing"
@@ -293,9 +286,13 @@
             <div
               class="my-4 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
             >
-              <div class="flex items-start gap-2">
+              <div class="flex items-center gap-1">
                 <h3 class="text-sm">Eligible for next airdrop</h3>
-                <Popover placement="top" :arrow="false">
+                <Popover
+                  placement="top"
+                  :arrow="false"
+                  class="h-max grid place-items-center"
+                >
                   <template #content>
                     <div class="text-xs font-normal">
                       Total number of redeemed tokens, minus any tokens received
@@ -303,13 +300,7 @@
                     </div>
                   </template>
                   <template #trigger>
-                    <div>
-                      <div
-                        class="-mt-6 cursor-context-menu hover:text-[#24adc3]"
-                      >
-                        <Icon name="heroicons:exclamation-circle" />
-                      </div>
-                    </div>
+                    <Icon name="heroicons:exclamation-circle" />
                   </template>
                 </Popover>
               </div>
@@ -816,6 +807,26 @@ const claimTokens = async (available: bigint) => {
   }
 };
 
+watch(withdrawDialogOpen, (open) => {
+  if (!open) {
+    handleCloseWithdrawDialog();
+  }
+});
+
+const handleCloseWithdrawDialog = () => {
+  if (isWithdrawing.value) {
+    toast.add({
+      id: 'withdraw',
+      title: `Withdrawing ${withdrawAmount.value} available tokens...`,
+      color: 'blue',
+      timeout: 0,
+    });
+  } else {
+    withdrawInput.value = '';
+  }
+  withdrawDialogOpen.value = false;
+};
+
 const submitWithdrawForm = async () => {
   if (!isConnected) {
     toast.add({
@@ -836,6 +847,7 @@ const submitWithdrawForm = async () => {
   }
 
   try {
+    currentWriteAction.value = 'withdraw';
     const amount = parseEther(withdrawAmount.value);
 
     await writeContractAsync({
