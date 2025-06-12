@@ -228,7 +228,6 @@
                   <div class="flex justify-end gap-3 mt-5">
                     <UButton
                       size="xs"
-                      @click="handleCloseStakeDialog"
                       type="button"
                       variant="outline"
                       color="cyan"
@@ -301,7 +300,6 @@
                   <div class="flex justify-end gap-3 mt-5">
                     <UButton
                       size="xs"
-                      @click="handleCloseUnstakeDialog"
                       type="button"
                       variant="outline"
                       color="cyan"
@@ -752,6 +750,12 @@ const validateMaxStake = () => {
 
 const block = await getBlock(config);
 
+watch(stakeDialogOpen, (open) => {
+  if (!open) {
+    handleCloseStakeDialog();
+  }
+});
+
 const handleCloseStakeDialog = () => {
   if (isStaking.value) {
     toast.add({
@@ -787,6 +791,12 @@ const setMaxUnstake = () => {
     );
   }
 };
+
+watch(unstakeDialogOpen, (open) => {
+  if (!open) {
+    handleCloseUnstakeDialog();
+  }
+});
 
 const handleCloseUnstakeDialog = () => {
   if (isUnstaking.value) {
