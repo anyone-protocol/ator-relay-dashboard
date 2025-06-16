@@ -232,6 +232,7 @@
                       variant="outline"
                       color="cyan"
                       class="justify-center text-md"
+                      @click="stakeDialogOpen = false"
                     >
                       Cancel
                     </UButton>
@@ -304,6 +305,7 @@
                       variant="outline"
                       color="cyan"
                       class="justify-center text-md"
+                      @click="unstakeDialogOpen = false"
                     >
                       Cancel
                     </UButton>
