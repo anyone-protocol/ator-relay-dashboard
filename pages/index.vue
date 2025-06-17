@@ -172,8 +172,9 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Total amount of tokens across
-                        <strong>all</strong> vaults.
+                        Total amount of tokens held across all vaults. The
+                        <strong>Redeem expired</strong> action will redeem all
+                        tokens held in expired vaults.
                       </span>
                     </template>
                     <template #trigger>
@@ -198,13 +199,14 @@
               </div>
               <UButton
                 :disabled="!isConnected || totalVaultClaimable <= 0n"
-                @click="claimTokens"
+                :loading="isRedeemingTokens"
+                @click="redeemTokens"
                 variant="outline"
                 color="cyan"
                 size="md"
                 class="self-end"
               >
-                Redeem expired
+                {{ isRedeemingTokens ? 'Redeeming...' : 'Redeem expired' }}
               </UButton>
             </div>
           </div>
@@ -618,7 +620,7 @@ const { data: stakingRewards, isPending: stakingRewardsPending } = useQuery({
 
     return getTotalClaimableStakingRewards(address.value);
   },
-  enabled: !!address.value,
+  enabled: computed(() => !!address.value),
 });
 
 const {
@@ -683,7 +685,7 @@ const {
   functionName: 'getStakes',
   args: [address.value as `0x${string}`],
   query: {
-    enabled: !!address.value,
+    enabled: computed(() => !!address.value),
   },
 });
 
@@ -706,7 +708,7 @@ const {
   functionName: 'getVaults',
   args: [address.value as `0x${string}`],
   query: {
-    enabled: computed(() => isConnected.value),
+    enabled: computed(() => !!address.value),
   },
 });
 
@@ -725,7 +727,14 @@ watch(vaultsData, async (vaults) => {
   }
 });
 
+onMounted(() => {
+  if (vaultsData.value) {
+    updateTotalClaimable();
+  }
+});
+
 const updateTotalClaimable = async () => {
+  console.log('Updating total claimable vaults...');
   if (!vaultsData.value?.length) {
     totalVaultClaimable.value = 0n;
     return;
@@ -769,7 +778,10 @@ const claimable = async (available: bigint) => {
   return available < timestamp - BigInt(TIMESTAMP_BUFFER);
 };
 
-const claimTokens = async (available: bigint) => {
+const isRedeemingTokens = computed(
+  () => writePending.value && currentWriteAction.value === 'openExpired'
+);
+const redeemTokens = async (available: bigint) => {
   if (!isConnected) {
     toast.add({
       title: 'Please connect your wallet to claim tokens',
@@ -777,7 +789,8 @@ const claimTokens = async (available: bigint) => {
     });
     return;
   }
-  if (!claimable(available)) {
+  const isClaimable = await claimable(available);
+  if (!isClaimable) {
     toast.add({
       title: `You can't claim these tokens yet`,
       color: 'red',
