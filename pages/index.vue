@@ -199,13 +199,14 @@
               </div>
               <UButton
                 :disabled="!isConnected || totalVaultClaimable <= 0n"
-                @click="claimTokens"
+                :loading="isRedeemingTokens"
+                @click="redeemTokens"
                 variant="outline"
                 color="cyan"
                 size="md"
                 class="self-end"
               >
-                Redeem expired
+                {{ isRedeemingTokens ? 'Redeeming...' : 'Redeem expired' }}
               </UButton>
             </div>
           </div>
@@ -777,7 +778,10 @@ const claimable = async (available: bigint) => {
   return available < timestamp - BigInt(TIMESTAMP_BUFFER);
 };
 
-const claimTokens = async (available: bigint) => {
+const isRedeemingTokens = computed(
+  () => writePending.value && currentWriteAction.value === 'openExpired'
+);
+const redeemTokens = async (available: bigint) => {
   if (!isConnected) {
     toast.add({
       title: 'Please connect your wallet to claim tokens',
@@ -785,7 +789,8 @@ const claimTokens = async (available: bigint) => {
     });
     return;
   }
-  if (!claimable(available)) {
+  const isClaimable = await claimable(available);
+  if (!isClaimable) {
     toast.add({
       title: `You can't claim these tokens yet`,
       color: 'red',
