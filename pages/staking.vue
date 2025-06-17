@@ -113,7 +113,7 @@
                   size="xs"
                   variant="ghost"
                   icon="i-heroicons-ellipsis-horizontal-20-solid"
-                  class="hover:bg-neutral-200 hover:dark:bg-neutral-800"
+                  class="bg-neutral-100 hover:bg-neutral-200/50 text-neutral-950 dark:bg-neutral-800 hover:dark:bg-neutral-700/50 dark:text-white"
                 />
 
                 <template #item="{ item }">
