@@ -172,8 +172,9 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Total amount of tokens across
-                        <strong>all</strong> vaults.
+                        Total amount of tokens held across all vaults. The
+                        <strong>Redeem expired</strong> action will redeem all
+                        tokens held in expired vaults.
                       </span>
                     </template>
                     <template #trigger>
@@ -618,7 +619,7 @@ const { data: stakingRewards, isPending: stakingRewardsPending } = useQuery({
 
     return getTotalClaimableStakingRewards(address.value);
   },
-  enabled: !!address.value,
+  enabled: computed(() => !!address.value),
 });
 
 const {
@@ -683,7 +684,7 @@ const {
   functionName: 'getStakes',
   args: [address.value as `0x${string}`],
   query: {
-    enabled: !!address.value,
+    enabled: computed(() => !!address.value),
   },
 });
 
@@ -706,7 +707,7 @@ const {
   functionName: 'getVaults',
   args: [address.value as `0x${string}`],
   query: {
-    enabled: computed(() => isConnected.value),
+    enabled: computed(() => !!address.value),
   },
 });
 
@@ -725,7 +726,14 @@ watch(vaultsData, async (vaults) => {
   }
 });
 
+onMounted(() => {
+  if (vaultsData.value) {
+    updateTotalClaimable();
+  }
+});
+
 const updateTotalClaimable = async () => {
+  console.log('Updating total claimable vaults...');
   if (!vaultsData.value?.length) {
     totalVaultClaimable.value = 0n;
     return;
