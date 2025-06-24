@@ -2,20 +2,23 @@
   <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
     <div class="flex items-center gap-1">
       <h3 class="text-[10px] md:text-xs">Unclaimed Staking Rewards</h3>
-      <!-- <Popover
-        placement="left"
+      <Popover
+        placement="bottom"
         :arrow="false"
         class="h-max grid place-items-center"
       >
         <template #content>
           <span class="text-xs font-normal">
-            Total amount of tokens that are redeemable across vaults.
+            Total unclaimed staking rewards. Staking rewards are automatically
+            compounded. Manage them from the
+            <RouterLink to="/"><strong>Home</strong> </RouterLink>
+            page.
           </span>
         </template>
         <template #trigger>
           <Icon name="heroicons:exclamation-circle" />
         </template>
-      </Popover> -->
+      </Popover>
     </div>
     <div class="inline-flex items-baseline gap-2">
       <template v-if="claimableRewardsPending">
@@ -55,6 +58,7 @@ import { useAccount } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import Card from './ui-kit/Card.vue';
 import Ticker from './ui-kit/Ticker.vue';
+import Popover from './ui-kit/Popover.vue';
 
 const { isConnected, address } = useAccount({ config } as any);
 
