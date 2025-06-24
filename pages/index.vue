@@ -50,17 +50,35 @@
                   <label for="withdrawAmount" class="text-sm"
                     >Amount to withdraw:
                   </label>
-                  <UInput
-                    :disabled="isWithdrawing"
-                    v-model="withdrawInput"
-                    name="withdrawAmount"
-                    class="mt-2 mb-6"
-                    color="neutral"
-                    placeholder="Withdraw amount"
-                    type="text"
-                  />
+                  <div class="relative">
+                    <UInput
+                      :disabled="isWithdrawing"
+                      v-model="withdrawInput"
+                      name="withdrawAmount"
+                      class="mt-2 mb-6"
+                      color="neutral"
+                      placeholder="Withdraw amount"
+                      type="text"
+                    />
+                    <UButton
+                      :disabled="availableTokens.isZero() || isWithdrawing"
+                      @click="setMaxWithdraw"
+                      size="2xs"
+                      variant="ghost"
+                      color="neutral"
+                      class="absolute right-2 top-1/2 -translate-y-1/2"
+                    >
+                      Max
+                    </UButton>
+                  </div>
                   <div class="flex justify-end gap-3">
-                    <UButton variant="outline" color="cyan"> Cancel </UButton>
+                    <UButton
+                      variant="outline"
+                      color="cyan"
+                      @click="withdrawDialogOpen = false"
+                    >
+                      Cancel
+                    </UButton>
                     <UButton
                       :disabled="!parseFloat(withdrawAmount)"
                       :loading="isWithdrawing"
@@ -198,7 +216,7 @@
                 </div>
               </div>
               <UButton
-                :disabled="!isConnected || totalVaultClaimable <= 0n"
+                :disabled="!isConnected || totalVaultClaimable.isZero()"
                 :loading="isRedeemingTokens"
                 @click="redeemTokens"
                 variant="outline"
@@ -607,7 +625,7 @@ const isWithdrawing = computed(
     isConfirming.value
 );
 const withdrawDialogOpen = ref(false);
-const totalVaultClaimable = ref<bigint>(0n);
+const totalVaultClaimable = ref<BigNumber>(new BigNumber(0));
 const currentWriteAction = ref<'withdraw' | 'openExpired' | null>(null);
 
 const { getTotalClaimableStakingRewards, claimStakingRewards } =
@@ -647,7 +665,7 @@ watch(isConfirmed, (confirmed) => {
     } else if (currentWriteAction.value === 'openExpired') {
       toast.remove('openExpired');
       toast.add({
-        title: 'Successfully claimed tokens from expired vaults',
+        title: `Successfully redeemed ${formatEtherNoRound(totalVaultClaimable.value.toString())} tokens from expired vaults`,
         color: 'green',
       });
       refetchVaults();
@@ -736,7 +754,7 @@ onMounted(() => {
 const updateTotalClaimable = async () => {
   console.log('Updating total claimable vaults...');
   if (!vaultsData.value?.length) {
-    totalVaultClaimable.value = 0n;
+    totalVaultClaimable.value = new BigNumber(0);
     return;
   }
 
@@ -747,7 +765,7 @@ const updateTotalClaimable = async () => {
       if (isClaimable) total += vault.amount;
     })
   );
-  totalVaultClaimable.value = total;
+  totalVaultClaimable.value = BigNumber(total.toString());
 };
 
 const totalContract = computed(() => {
@@ -789,10 +807,9 @@ const redeemTokens = async (available: bigint) => {
     });
     return;
   }
-  const isClaimable = await claimable(available);
-  if (!isClaimable) {
+  if (totalVaultClaimable.value.isZero()) {
     toast.add({
-      title: `You can't claim these tokens yet`,
+      title: `No tokens to redeem from vaults`,
       color: 'red',
     });
     return;
@@ -801,7 +818,7 @@ const redeemTokens = async (available: bigint) => {
     currentWriteAction.value = 'openExpired';
     toast.add({
       id: 'openExpired',
-      title: `Claiming ${formatEtherNoRound(totalVaultClaimable.value)} tokens from expired vaults...`,
+      title: `Redeeming ${formatEtherNoRound(totalVaultClaimable.value.toString())} tokens from expired vaults...`,
       color: 'blue',
       timeout: 0,
     });
@@ -838,6 +855,12 @@ const handleCloseWithdrawDialog = () => {
     withdrawInput.value = '';
   }
   withdrawDialogOpen.value = false;
+};
+
+const setMaxWithdraw = () => {
+  if (!availableTokens.value.isZero()) {
+    withdrawInput.value = formatEtherNoRound(availableTokens.value.toString());
+  }
 };
 
 const submitWithdrawForm = async () => {
