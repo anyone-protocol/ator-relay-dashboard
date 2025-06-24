@@ -106,10 +106,26 @@
               <div
                 class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
               >
-                <h3 class="text-sm">
-                  <!-- <Icon name="material-symbols:lock" /> -->
-                  Available
-                </h3>
+                <div class="flex items-center gap-1">
+                  <Icon name="material-symbols:check-box-rounded" />
+                  <h3 class="text-sm">Available</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Available tokens in the protocol smart contract. These
+                        tokens are separate to your wallet balance and can be
+                        locked, staked or withdrawn back to your wallet.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
                 <div class="inline-flex flex-col items-baseline">
                   <template v-if="hodlerInfoPending">
                     <USkeleton class="w-[10rem] h-10" />
@@ -130,10 +146,29 @@
               <div
                 class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
               >
-                <h3 class="text-sm">
+                <div class="flex items-center gap-1">
                   <Icon name="material-symbols:lock" />
-                  Locked
-                </h3>
+                  <h3 class="text-sm">Locked</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Tokens locked for your own relays, or delegated to other
+                        relays. Manage them from the
+                        <RouterLink to="/relays"
+                          ><strong>Relays</strong>
+                        </RouterLink>
+                        tab.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
                 <div class="inline-flex flex-col items-baseline">
                   <template v-if="lockedPending">
                     <USkeleton class="w-[10rem] h-10" />
@@ -154,10 +189,29 @@
               <div
                 class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
               >
-                <h3 class="text-sm">
-                  <!-- <Icon name="material-symbols:lock" /> -->
-                  Staked
-                </h3>
+                <div class="flex items-center gap-1">
+                  <Icon name="i-heroicons-chart-pie-20-solid" />
+                  <h3 class="text-sm">Staked</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Your total staked tokens, including relay rewards which
+                        are auto-compounded. Manage them from the
+                        <RouterLink to="/staking"
+                          ><strong>Staking</strong>
+                        </RouterLink>
+                        tab.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
                 <div class="inline-flex flex-col items-baseline">
                   <template v-if="stakesPending">
                     <USkeleton class="w-[10rem] h-10" />
@@ -179,10 +233,8 @@
                 class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
               >
                 <div class="flex items-center gap-1">
-                  <h3 class="text-sm">
-                    <Icon name="material-symbols:lock" />
-                    Vaulted
-                  </h3>
+                  <Icon name="material-symbols:lock" />
+                  <h3 class="text-sm">Vaulted</h3>
                   <Popover
                     placement="top"
                     :arrow="false"
@@ -190,9 +242,10 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Total amount of tokens held across all vaults. The
-                        <strong>Redeem expired</strong> action will redeem all
-                        tokens held in expired vaults.
+                        Tokens are <strong>Vaulted</strong> for a fixed time
+                        period when you unlock a relay or unstake tokens.
+                        <strong>Redeem Expired</strong> redeems all tokens from
+                        expired vaults.
                       </span>
                     </template>
                     <template #trigger>
@@ -426,6 +479,7 @@ import BigNumber from 'bignumber.js';
 import { parseEther } from 'viem';
 import { getBlock } from '@wagmi/core';
 import { useQuery } from '@tanstack/vue-query';
+import { RouterLink } from 'vue-router';
 
 const userStore = useUserStore();
 // const registratorStore = useRegistratorStore();

@@ -10,10 +10,10 @@
         class="h-max grid place-items-center"
       >
         <template #content>
-          <span class="text-xs font-normal">
-            Total amount of tokens from the hodler contract:
+          <span class="text-xs font-normal text-nowrap">
+            Your total amount of tokens in the protocol: <br />
             <strong>Available</strong>, <strong>Locked</strong>,
-            <strong>Staked</strong> & <strong>Vaults</strong>.
+            <strong>Staked</strong> and <strong>Vaulted</strong>.
           </span>
         </template>
         <template #trigger>

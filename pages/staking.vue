@@ -21,7 +21,10 @@
                 >
                   <template #content>
                     <span class="text-xs font-normal">
-                      Total amount of tokens that are redeemable across vaults.
+                      Tokens that were unstaked and are now available to
+                      withdraw from their vault. Withdraw these from the
+                      <RouterLink to="/"><strong>Home</strong> </RouterLink>
+                      page.
                     </span>
                   </template>
                   <template #trigger>
@@ -506,7 +509,6 @@ const unstakeInput = ref('');
 const unstakeAmount = computed(
   () => validateTokenInput(unstakeInput.value) || '0'
 );
-const withdrawAmount = ref(0);
 const totalClaimableAmount = ref<bigint>(0n);
 const searchQuery = ref('');
 const operatorRegistry = useOperatorRegistry();
@@ -529,6 +531,7 @@ const stakedOperators = computed(() => {
       (r) =>
         normalizeOp(r.operator as `0x${string}`) === normalizeOp(stake.operator)
     );
+    // console.log('reward: ', reward);
     return {
       operator: `0x${stake.operator.slice(2).toUpperCase()}`,
       amount: stake.amount,
