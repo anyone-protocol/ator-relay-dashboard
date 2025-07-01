@@ -228,6 +228,12 @@
                       Max
                     </UButton>
                   </div>
+                  <span
+                    v-if="amountExceedsAvailable"
+                    class="text-xs text-amber-600 dark:text-amber-300"
+                  >
+                    Exceeds available balance. Amount will be taken from wallet.
+                  </span>
                   <div class="flex justify-end gap-3 mt-5">
                     <UButton
                       size="xs"
@@ -452,6 +458,7 @@ import { config } from '~/config/wagmi.config';
 import Popover from '~/components/ui-kit/Popover.vue';
 import Ticker from '~/components/ui-kit/Ticker.vue';
 import { useQuery } from '@tanstack/vue-query';
+import BigNumber from 'bignumber.js';
 
 interface Vault {
   amount: bigint;
@@ -741,8 +748,27 @@ const vaultColumns = [
   },
 ];
 
+type MaxStakeOption = 'wallet' | 'available';
+
 const stakedMaxOptions = ['wallet', 'available'];
-const stakedMaxSelected = ref(stakedMaxOptions[0]);
+const stakedMaxSelected = ref<MaxStakeOption>(
+  stakedMaxOptions[0] as MaxStakeOption
+);
+
+const amountExceedsAvailable = computed(() => {
+  if (stakeAmount.value === '0') return false;
+  if (!hodlerInfo.value?.[0]) return false;
+
+  const available = new BigNumber(
+    parseEther(formatEtherNoRound(hodlerInfo.value[0])).toString()
+  );
+  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
+
+  if (stakedMaxSelected.value === 'available' && amount.gt(available)) {
+    return true;
+  }
+  return false;
+});
 
 const validateMaxStake = () => {
   if (stakedMaxSelected.value === 'wallet') {
@@ -1087,15 +1113,15 @@ const updateOperators = async () => {
     allOperators.value = combinedOperators
       .map((op) => {
         const networkData = normalizedNetwork[op.operator];
-        const running = networkData?.running || 0;
-        const expected = networkData?.expected || 1; // Avoid division by zero
+        const running = networkData?.running;
+        const expected = networkData?.expected;
         const threshold = runningThreshold.value ?? 0.5;
         return {
           ...op,
           total: normalizedStakes[op.operator]
             ? BigInt(normalizedStakes[op.operator])
             : 0n,
-          running: expected > 0 ? running / expected > threshold : false,
+          running: expected > 0 ? running / expected >= threshold : false,
         };
       })
       .filter((op) =>
