@@ -6,9 +6,9 @@
       <DashboardMobileSection title="account-balance">
         <Card title="Contract Balance" :icon="'eos-icons:master-outlined'">
           <div
-            class="flex justify-between items-start lg:items-start flex-col lg:flex-row mb-2 lg:mb-0"
+            class="flex justify-between items-start lg:items-start flex-col lg:flex-row mb-2 lg:mb-0 lg:justify-between"
           >
-            <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
+            <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
               <h3>
                 <!-- <Icon name="material-symbols:lock" /> -->
                 Total Contract Balance
@@ -18,10 +18,10 @@
                   <USkeleton class="w-[15rem] h-10" />
                 </template>
                 <template v-else>
-                  <span v-if="isConnected" class="text-4xl font-bold">
+                  <span v-if="isConnected" class="text-4xl font-medium">
                     {{ formatEtherNoRound(totalContract.toString()) }}
                   </span>
-                  <span v-if="!isConnected" class="text-4xl font-bold">
+                  <span v-if="!isConnected" class="text-4xl font-medium">
                     --
                   </span>
                   <Ticker />
@@ -94,17 +94,19 @@
             </UModal>
           </div>
 
-          <div class="flex gap-5 lg:gap-32 flex-col lg:flex-row my-4">
+          <div
+            class="flex gap-5 lg:gap-32 flex-col lg:flex-row my-4 lg:my-0 lg:mt-2"
+          >
             <!-- <div class="border-l-4 border-cyan-600 pl-3">
               <UserBalance
-                class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-bold text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
+                class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-medium text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
               >
                 <Ticker />
               </UserBalance>
             </div> -->
             <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
               <div
-                class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
               >
                 <div class="flex items-center gap-1">
                   <Icon name="material-symbols:check-box-rounded" />
@@ -131,10 +133,10 @@
                     <USkeleton class="w-[10rem] h-10" />
                   </template>
                   <template v-else>
-                    <span v-if="isConnected" class="text-3xl font-bold">
+                    <span v-if="isConnected" class="text-3xl font-medium">
                       {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
                     </span>
-                    <span v-if="!isConnected" class="text-3xl font-bold">
+                    <span v-if="!isConnected" class="text-3xl font-medium">
                       --
                     </span>
                     <Ticker class="text-sm" />
@@ -144,7 +146,7 @@
             </div>
             <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
               <div
-                class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
               >
                 <div class="flex items-center gap-1">
                   <Icon name="material-symbols:lock" />
@@ -174,10 +176,10 @@
                     <USkeleton class="w-[10rem] h-10" />
                   </template>
                   <template v-else>
-                    <span v-if="isConnected" class="text-3xl font-bold">
+                    <span v-if="isConnected" class="text-3xl font-medium">
                       {{ Number(hodlerStore.lockedTokens).toFixed(2) }}
                     </span>
-                    <span v-if="!isConnected" class="text-3xl font-bold">
+                    <span v-if="!isConnected" class="text-3xl font-medium">
                       --
                     </span>
                     <Ticker class="text-sm" />
@@ -187,7 +189,7 @@
             </div>
             <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
               <div
-                class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
               >
                 <div class="flex items-center gap-1">
                   <Icon name="i-heroicons-chart-pie-20-solid" />
@@ -217,10 +219,10 @@
                     <USkeleton class="w-[10rem] h-10" />
                   </template>
                   <template v-else>
-                    <span v-if="isConnected" class="text-3xl font-bold">
+                    <span v-if="isConnected" class="text-3xl font-medium">
                       {{ formatEtherNoRound(totalStaked.toString()) }}
                     </span>
-                    <span v-if="!isConnected" class="text-3xl font-bold">
+                    <span v-if="!isConnected" class="text-3xl font-medium">
                       --
                     </span>
                     <Ticker class="text-sm" />
@@ -230,7 +232,7 @@
             </div>
             <div class="flex gap-0 lg:gap-3 flex-col lg:flex-row lg:items-end">
               <div
-                class="my-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
               >
                 <div class="flex items-center gap-1">
                   <Icon name="material-symbols:lock" />
@@ -258,10 +260,10 @@
                     <USkeleton class="w-[10rem] h-10" />
                   </template>
                   <template v-else>
-                    <span v-if="isConnected" class="text-3xl font-bold">
+                    <span v-if="isConnected" class="text-3xl font-medium">
                       {{ formatEtherNoRound(totalVaulted.toString()) }}
                     </span>
-                    <span v-if="!isConnected" class="text-3xl font-bold">
+                    <span v-if="!isConnected" class="text-3xl font-medium">
                       --
                     </span>
                     <Ticker class="text-sm" />
@@ -285,11 +287,14 @@
       </DashboardMobileSection>
 
       <DashboardMobileSection title="my-rewards">
-        <Card title="Rewards History" icon="eos-icons:trusted-organization">
-          <div
-            class="flex justify-between items-start lg:items-center flex-col lg:flex-row mb-2 lg:mb-0"
-          >
-            <!-- <p class="mb-4 text-sm">
+        <div
+          class="flex w-full flex-col gap-4 lg:flex-row-reverse lg:justify-between"
+        >
+          <Card title="Rewards History" icon="eos-icons:trusted-organization">
+            <div
+              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 mb-2 lg:mb-0"
+            >
+              <!-- <p class="mb-4 text-sm">
               Earn rewards by contributing relays to the ANYONE network.
               <a
                 href="https://docs.anyone.io/rewards"
@@ -299,156 +304,217 @@
                 Find Out More
               </a>
             </p> -->
-            <div class="my-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <div class="flex flex-col items-start gap-2">
-                <h3>Total redeemed rewards</h3>
+              <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
+                <div class="flex flex-col items-start gap-2">
+                  <h3 class="text-sm">Total redeemed rewards</h3>
+                </div>
+                <template v-if="claimedPending">
+                  <USkeleton class="w-[10rem] h-10 mt-2" />
+                </template>
+                <template v-else>
+                  <span v-if="isConnected" class="text-3xl font-medium">
+                    {{
+                      formatEtherNoRound(
+                        hodlerStore?.claimData?.totalClaimed || '0'
+                      )
+                    }}
+                  </span>
+                  <span v-if="!isConnected" class="text-3xl font-medium">
+                    --
+                  </span>
+                  <Ticker />
+                </template>
               </div>
-              <template v-if="claimedPending">
-                <USkeleton class="w-[15rem] h-10 mt-2" />
-              </template>
-              <template v-else>
-                <span v-if="isConnected" class="text-4xl font-bold">
-                  {{
-                    formatEtherNoRound(
-                      hodlerStore?.claimData?.totalClaimed || '0'
-                    )
-                  }}
-                </span>
-                <span v-if="!isConnected" class="text-4xl font-bold"> -- </span>
-                <Ticker />
-              </template>
+
+              <div
+                class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
+              >
+                <h3 class="text-sm">Staking rewards</h3>
+                <template v-if="stakingRewardsPending">
+                  <USkeleton class="w-[10rem] h-10 mt-2" />
+                </template>
+                <template v-else>
+                  <span v-if="isConnected" class="text-3xl font-medium">
+                    {{ formatEtherNoRound(stakingRewards || '0') }}
+                  </span>
+                  <span v-if="!isConnected" class="text-3xl font-medium">
+                    --
+                  </span>
+                  <Ticker class="text-sm" />
+                </template>
+              </div>
+
+              <div
+                class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
+              >
+                <h3 class="text-sm">Total redeemable rewards</h3>
+                <template v-if="claimablePending">
+                  <USkeleton class="w-[10rem] h-10 mt-2" />
+                </template>
+                <template v-else>
+                  <span v-if="isConnected" class="text-3xl font-medium">
+                    {{
+                      formatEtherNoRound(
+                        hodlerStore.claimData?.totalClaimable || '0'
+                      )
+                    }}
+                  </span>
+                  <span v-if="!isConnected" class="text-3xl font-medium">
+                    --
+                  </span>
+                  <Ticker class="text-sm" />
+                </template>
+              </div>
             </div>
-            <div v-if="isConnected" class="redeem flex gap-6 items-center">
-              <div class="divider hidden lg:visible"></div>
-              <div>
-                <UButton
-                  :disabled="
-                    !hodlerStore.hasClaimableRewards || isRedeemLoading
-                  "
-                  @onClick="handleClaimAllRewards"
-                  class="mb-2"
-                  variant="outline"
-                  color="cyan"
-                  size="xl"
-                >
-                  <span v-if="isRedeemLoading">Processing...</span>
-                  <span v-else-if="hodlerStore.hasClaimableRewards"
-                    >Redeem Rewards</span
+
+            <div
+              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 mb-2 lg:mb-0"
+            >
+              <div
+                class="mb-4 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
+              >
+                <div class="flex items-center gap-1">
+                  <h3 class="text-sm">Eligible for next airdrop</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
                   >
-                  <span v-else>Nothing to Redeem</span>
-                </UButton>
-                <div v-if="progressLoading" class="text-center">
-                  <UProgress animation="carousel">
-                    <template #indicator="{ progressLoading }">
-                      <div class="text-center">
-                        <span v-if="progressLoading === 1" class="text-xs">
-                          1 / 2 Accepting Request...
-                        </span>
-                        <span v-else class="text-xs">
-                          2 / 2 Accepting Request...
-                        </span>
+                    <template #content>
+                      <div class="text-xs font-normal">
+                        Total number of redeemed tokens, minus any tokens
+                        received or forfeited from previous airdrops.
                       </div>
                     </template>
-                  </UProgress>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
+                <template v-if="calculatedAirdropPending">
+                  <USkeleton class="w-[10rem] h-10 mt-2" />
+                </template>
+                <template v-else>
+                  <span v-if="isConnected" class="text-3xl font-medium">
+                    {{
+                      formatEtherNoRound(hodlerStore.calculatedAirdrop || '0')
+                    }}
+                  </span>
+                  <span v-if="!isConnected" class="text-3xl font-medium">
+                    --
+                  </span>
+                  <Ticker class="text-sm" />
+                  <div
+                    v-if="!hasEnoughBalancePending && !hasEnoughBalance"
+                    class="flex items-center gap-2 mt-2"
+                  >
+                    <span
+                      class="w-2 h-2 bg-red-600 rounded-full text-xs"
+                    ></span>
+                    <span>Mainnet balance too low</span>
+                  </div>
+                </template>
+              </div>
+
+              <div
+                class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3 flex-shrink-0"
+              >
+                <h3 class="text-sm">Relay rewards</h3>
+                <template v-if="stakingRewardsPending">
+                  <USkeleton class="w-[10rem] h-10 mt-2" />
+                </template>
+                <template v-else>
+                  <span v-if="isConnected" class="text-3xl font-medium">
+                    {{ formatEtherNoRound(relayRewards || '0') }}
+                  </span>
+                  <span v-if="!isConnected" class="text-3xl font-medium">
+                    --
+                  </span>
+                  <Ticker class="text-sm" />
+                </template>
+              </div>
+
+              <div
+                v-if="isConnected"
+                class="redeem flex gap-6 items-center flex-shrink-0"
+              >
+                <div class="divider hidden lg:visible"></div>
+                <div>
+                  <UButton
+                    :disabled="
+                      !hodlerStore.hasClaimableRewards || isRedeemLoading
+                    "
+                    @onClick="handleClaimAllRewards"
+                    class="mb-2"
+                    variant="outline"
+                    color="cyan"
+                    size="xl"
+                  >
+                    <span v-if="isRedeemLoading">Processing...</span>
+                    <span v-else-if="hodlerStore.hasClaimableRewards"
+                      >Redeem Rewards</span
+                    >
+                    <span v-else>Nothing to Redeem</span>
+                  </UButton>
+                  <div v-if="progressLoading" class="text-center">
+                    <UProgress animation="carousel">
+                      <template #indicator="{ progressLoading }">
+                        <div class="text-center">
+                          <span v-if="progressLoading === 1" class="text-xs">
+                            1 / 2 Accepting Request...
+                          </span>
+                          <span v-else class="text-xs">
+                            2 / 2 Accepting Request...
+                          </span>
+                        </div>
+                      </template>
+                    </UProgress>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
-            <div
-              class="my-4 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
-            >
-              <div class="flex items-center gap-1">
-                <h3 class="text-sm">Eligible for next airdrop</h3>
-                <Popover
-                  placement="top"
-                  :arrow="false"
-                  class="h-max grid place-items-center"
-                >
-                  <template #content>
-                    <div class="text-xs font-normal">
-                      Total number of redeemed tokens, minus any tokens received
-                      or forfeited from previous airdrops.
-                    </div>
+          </Card>
+          <Card title="Your relays" icon="eos-icons:product-classes-outlined">
+            <div class="flex flex-col lg:flex-row gap-16 mt-12">
+              <div
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
+              >
+                <h3 class="text-sm">Registered Relays</h3>
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="allRelaysPending">
+                    <USkeleton class="w-[10rem] h-10" />
                   </template>
-                  <template #trigger>
-                    <Icon name="heroicons:exclamation-circle" />
+                  <template v-else>
+                    <span v-if="isConnected" class="text-4xl font-medium">
+                      {{ allRelays.length }}
+                    </span>
+                    <span v-if="!isConnected" class="text-4xl font-medium">
+                      --
+                    </span>
                   </template>
-                </Popover>
-              </div>
-              <template v-if="calculatedAirdropPending">
-                <USkeleton class="w-[10rem] h-10 mt-2" />
-              </template>
-              <template v-else>
-                <span v-if="isConnected" class="text-3xl font-bold">
-                  {{ formatEtherNoRound(hodlerStore.calculatedAirdrop || '0') }}
-                </span>
-                <span v-if="!isConnected" class="text-3xl font-bold"> -- </span>
-                <Ticker class="text-sm" />
-                <div
-                  v-if="!hasEnoughBalancePending && !hasEnoughBalance"
-                  class="flex items-center gap-2 mt-2"
-                >
-                  <span class="w-2 h-2 bg-red-600 rounded-full"></span>
-                  <span>Mainnet balance too low</span>
                 </div>
-              </template>
+              </div>
+              <div
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
+              >
+                <h3 class="text-sm">Active Relays</h3>
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="allRelaysPending">
+                    <USkeleton class="w-[10rem] h-10" />
+                  </template>
+                  <template v-else>
+                    <span v-if="isConnected" class="text-4xl font-medium">
+                      {{ allRelays.filter((relay) => relay.active).length }}
+                    </span>
+                    <span v-if="!isConnected" class="text-4xl font-medium">
+                      --
+                    </span>
+                  </template>
+                </div>
+              </div>
             </div>
-
-            <div
-              class="my-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
-            >
-              <h3 class="text-sm">Total redeemable rewards</h3>
-              <template v-if="claimablePending">
-                <USkeleton class="w-[10rem] h-10 mt-2" />
-              </template>
-              <template v-else>
-                <span v-if="isConnected" class="text-3xl font-bold">
-                  {{
-                    formatEtherNoRound(
-                      hodlerStore.claimData?.totalClaimable || '0'
-                    )
-                  }}
-                </span>
-                <span v-if="!isConnected" class="text-3xl font-bold"> -- </span>
-                <Ticker class="text-sm" />
-              </template>
-            </div>
-
-            <div
-              class="my-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
-            >
-              <h3 class="text-sm">Relay rewards</h3>
-              <template v-if="stakingRewardsPending">
-                <USkeleton class="w-[10rem] h-10 mt-2" />
-              </template>
-              <template v-else>
-                <span v-if="isConnected" class="text-3xl font-bold">
-                  {{ formatEtherNoRound(relayRewards || '0') }}
-                </span>
-                <span v-if="!isConnected" class="text-3xl font-bold"> -- </span>
-                <Ticker class="text-sm" />
-              </template>
-            </div>
-
-            <div
-              class="my-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
-            >
-              <h3 class="text-sm">Staking rewards</h3>
-              <template v-if="stakingRewardsPending">
-                <USkeleton class="w-[10rem] h-10 mt-2" />
-              </template>
-              <template v-else>
-                <span v-if="isConnected" class="text-3xl font-bold">
-                  {{ formatEtherNoRound(stakingRewards || '0') }}
-                </span>
-                <span v-if="!isConnected" class="text-3xl font-bold"> -- </span>
-                <Ticker class="text-sm" />
-              </template>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </DashboardMobileSection>
     </div>
   </div>

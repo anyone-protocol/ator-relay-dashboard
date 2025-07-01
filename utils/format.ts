@@ -1,7 +1,10 @@
 import BigNumber from 'bignumber.js';
 import type { Block } from 'viem';
 
-export function formatEtherNoRound(value: string | bigint): string {
+export function formatEtherNoRound(
+  value: string | bigint,
+  decimals?: number
+): string {
   // console.log('formatEtherNoRound', value);
   let bigNumberValue: BigNumber;
 
@@ -21,7 +24,7 @@ export function formatEtherNoRound(value: string | bigint): string {
   const etherValue = bigNumberValue.div(new BigNumber('1e18'));
 
   // Round the Ether value to 2 decimal places
-  const rounded = etherValue.toFixed(2);
+  const rounded = etherValue.toFixed(decimals || 2);
 
   return rounded;
 }

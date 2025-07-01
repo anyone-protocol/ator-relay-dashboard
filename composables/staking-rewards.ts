@@ -25,19 +25,30 @@ export const useStakingRewards = () => {
           { name: 'Address', value: address },
         ],
       });
-      const data: GetRewardsResponse = result?.Messages[0]?.Data;
+      const data: GetRewardsResponse = JSON.parse(
+        result?.Messages[0]?.Data || '{}'
+      );
       if (!data) return null;
 
+      logger.info('stakingRewardsData: ', data);
+
       const operatorRewards: OperatorRewards[] = [];
-      for (const operator in data.Rewarded) {
-        const rewarded = BigNumber(data.Rewarded[operator] || '0');
-        const claimed = BigNumber(data.Claimed[operator] || '0');
-        const redeemable = rewarded.minus(claimed);
-        operatorRewards.push({
-          operator: `0x${operator.slice(2).toUpperCase()}`, // Normalize operator address
-          redeemable: redeemable.toString(),
-        });
+      if (!Array.isArray(data.Rewarded) && Object.keys(data.Rewarded).length) {
+        for (const operator in data.Rewarded) {
+          const rewarded = BigNumber(data.Rewarded[operator] || '0');
+          const claimed = BigNumber(data.Claimed[operator] || '0');
+          const redeemable = rewarded.minus(claimed);
+          // logger.info('rewarded: ', rewarded.toString());
+          // logger.info('claimed: ', claimed.toString());
+          // logger.info('redeemable: ', redeemable.toString());
+          operatorRewards.push({
+            operator: `0x${operator.slice(2).toUpperCase()}`, // Normalize operator address
+            redeemable: redeemable.toString(),
+          });
+        }
       }
+
+      // logger.info('opRewards: ', operatorRewards);
 
       return operatorRewards;
     } catch (error) {
