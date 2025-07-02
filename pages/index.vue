@@ -499,12 +499,20 @@
               >
                 <h3 class="text-sm">Active Relays</h3>
                 <div class="inline-flex flex-col items-baseline">
-                  <template v-if="allRelaysPending">
+                  <template v-if="allRelaysPending || hardwareStatusPending">
                     <USkeleton class="w-[10rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
-                      {{ allRelays.filter((relay) => relay.active).length }}
+                      {{
+                        allRelays.filter((relay) =>
+                          checkIsHardware(relay.fingerprint)
+                            ? relay.active && relay.status === 'verified'
+                            : relay.active &&
+                              relay.status === 'verified' &&
+                              checkIsLocked(relay.fingerprint)
+                        ).length
+                      }}
                     </span>
                     <span v-if="!isConnected" class="text-4xl font-medium">
                       --
@@ -546,6 +554,7 @@ import { parseEther } from 'viem';
 import { getBlock } from '@wagmi/core';
 import { useQuery } from '@tanstack/vue-query';
 import { RouterLink } from 'vue-router';
+import { fetchHardwareStatus } from '~/composables/utils/useHardwareStatus';
 
 const userStore = useUserStore();
 // const registratorStore = useRegistratorStore();
@@ -579,6 +588,20 @@ const {
 } = storeToRefs(hodlerStore);
 const hasEnoughBalance = ref(false);
 const hasEnoughBalancePending = ref(true);
+
+const checkIsLocked = (fingerprint: string) =>
+  hodlerStore.relayIsLocked(fingerprint);
+
+const { data: isHardwareResolved, pending: hardwareStatusPending } =
+  await useAsyncData(
+    'hardwareStatus',
+    () =>
+      fetchHardwareStatus(allRelays.value.map((relay) => relay.fingerprint)),
+    { watch: [() => allRelays.value] }
+  );
+
+const checkIsHardware = (fingerprint: string) =>
+  isHardwareResolved.value?.[fingerprint];
 
 watch(
   [allRelays, allRelaysPending, address],

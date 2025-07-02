@@ -66,16 +66,21 @@ export const useStakingRewards = () => {
           { name: 'Address', value: address },
         ],
       });
-      const data: GetRewardsResponse = result?.Messages[0]?.Data;
+      const data: GetRewardsResponse = JSON.parse(result?.Messages[0]?.Data);
       logger.info('stakingRewardsData: ', data);
       let totalClaimable = BigNumber(0);
 
-      // iterate over operators to calculate claimable amount
-      for (const operator in data.Rewarded) {
-        const rewarded = BigNumber(data.Rewarded[operator] || '0');
-        const claimed = BigNumber(data.Claimed[operator] || '0');
-        const claimable = rewarded.minus(claimed);
-        totalClaimable = totalClaimable.plus(claimable);
+      if (!Array.isArray(data.Rewarded) && Object.keys(data.Rewarded).length) {
+        for (const operator in data.Rewarded) {
+          // logger.info({
+          //   operator: operator,
+          //   rewarded: data.Rewarded[operator],
+          // });
+          const rewarded = BigNumber(data.Rewarded[operator] || '0');
+          const claimed = BigNumber(data.Claimed[operator] || '0');
+          const claimable = rewarded.minus(claimed);
+          totalClaimable = totalClaimable.plus(claimable);
+        }
       }
 
       return totalClaimable.toString();
