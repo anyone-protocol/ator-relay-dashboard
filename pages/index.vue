@@ -279,7 +279,7 @@
                 size="md"
                 class="self-end"
               >
-                {{ isRedeemingTokens ? 'Redeeming...' : 'Redeem expired' }}
+                {{ isRedeemingTokens ? 'Redeeming...' : redeemLabel }}
               </UButton>
             </div>
           </div>
@@ -313,11 +313,7 @@
                 </template>
                 <template v-else>
                   <span v-if="isConnected" class="text-3xl font-medium">
-                    {{
-                      formatEtherNoRound(
-                        hodlerStore?.claimData?.totalClaimed || '0'
-                      )
-                    }}
+                    {{ formatEtherNoRound(claimData?.totalClaimed || '0') }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
@@ -441,9 +437,7 @@
                 <div class="divider hidden lg:visible"></div>
                 <div>
                   <UButton
-                    :disabled="
-                      !hodlerStore.hasClaimableRewards || isRedeemLoading
-                    "
+                    :disabled="!hasClaimableRewards || isRedeemLoading"
                     @onClick="handleClaimAllRewards"
                     class="mb-2"
                     variant="outline"
@@ -451,9 +445,7 @@
                     size="xl"
                   >
                     <span v-if="isRedeemLoading">Processing...</span>
-                    <span v-else-if="hodlerStore.hasClaimableRewards"
-                      >Redeem Rewards</span
-                    >
+                    <span v-else-if="hasClaimableRewards">Redeem Rewards</span>
                     <span v-else>Nothing to Redeem</span>
                   </UButton>
                   <div v-if="progressLoading" class="text-center">
@@ -559,6 +551,7 @@ import { fetchHardwareStatus } from '~/composables/utils/useHardwareStatus';
 const userStore = useUserStore();
 // const registratorStore = useRegistratorStore();
 const hodlerStore = useHolderStore();
+const { claimData } = storeToRefs(hodlerStore);
 const { isConnected, address } = useAccount({ config } as any);
 const { allRelays } = storeToRefs(userStore);
 const isRedeemLoading = ref(false);
@@ -580,6 +573,13 @@ const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
   }
 );
 const { tokenBalance } = storeToRefs(userStore);
+
+const redeemLabel = computed(() => {
+  if (totalVaultClaimable.value.gt(0)) {
+    return `Redeem ${formatEtherNoRound(totalVaultClaimable.toString())} expired`;
+  }
+  return 'Redeem expired';
+});
 
 const {
   locks: lockedRelays,
@@ -829,6 +829,27 @@ const {
   args: [address.value as `0x${string}`],
   query: { enabled: true },
 });
+
+const totalClaimable = computed(() => {
+  if (!hodlerInfo.value) return BigNumber(0);
+  return new BigNumber(hodlerInfo.value[0].toString() || '0');
+});
+
+const totalClaimed = computed(() => {
+  if (!hodlerInfo.value) return BigNumber(0);
+  return new BigNumber(hodlerInfo.value[4].toString() || '0');
+});
+
+const hasClaimableRewards = computed(() => {
+  if (!hodlerInfo.value) return false;
+  return totalClaimable.value.minus(totalClaimed.value).isGreaterThan(0);
+});
+
+// watch(hodlerInfo, (info) => {
+//   if (info) {
+//     console.log('hodlerInfo: ', toRaw(info));
+//   }
+// });
 
 const availableTokens = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
