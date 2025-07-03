@@ -313,7 +313,7 @@
                 </template>
                 <template v-else>
                   <span v-if="isConnected" class="text-3xl font-medium">
-                    {{ formatEtherNoRound(claimData?.totalClaimed || '0') }}
+                    {{ formatEtherNoRound(totalClaimed.toString() || '0') }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
@@ -349,11 +349,7 @@
                 </template>
                 <template v-else>
                   <span v-if="isConnected" class="text-3xl font-medium">
-                    {{
-                      formatEtherNoRound(
-                        hodlerStore.claimData?.totalClaimable || '0'
-                      )
-                    }}
+                    {{ formatEtherNoRound(totalClaimable.toString() || '0') }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
@@ -832,12 +828,16 @@ const {
 
 const totalClaimable = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
-  return new BigNumber(hodlerInfo.value[0].toString() || '0');
+  return new BigNumber(stakingRewards.value?.toString() || '0').plus(
+    new BigNumber(relayRewards.value?.toString() || '0')
+  );
 });
 
 const totalClaimed = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
-  return new BigNumber(hodlerInfo.value[4].toString() || '0');
+  return new BigNumber(hodlerInfo.value[4].toString() || '0').plus(
+    new BigNumber(hodlerInfo.value[5].toString() || '0')
+  );
 });
 
 const hasClaimableRewards = computed(() => {
