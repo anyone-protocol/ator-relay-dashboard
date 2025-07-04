@@ -1,5 +1,5 @@
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
-const { replaceCodePlugin } = require('./plugins/vite-plugin-replace/index.js');
+import { replaceCodePlugin } from './plugins/vite-plugin-replace';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
