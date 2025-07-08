@@ -870,10 +870,20 @@ const submitStakeForm = async () => {
 
   try {
     // console.log('parsing amount...');
-    const amount = parseEther(stakeAmount.value);
+    const amount = new BigNumber(parseEther(stakeAmount.value).toString());
+    const available = new BigNumber(
+      hodlerInfo.value ? hodlerInfo.value[0].toString() : '0'
+    );
+
+    console.log('available: ', available);
+    console.log('amount: ', amount);
 
     currentWriteAction.value = 'stake';
-    if (allowance.value === undefined || allowance.value < amount) {
+    if (
+      allowance.value === undefined ||
+      (new BigNumber(allowance.value.toString()).lt(amount) &&
+        amount.gt(available))
+    ) {
       // console.log('Approving tokens...');
       await writeContractAsync({
         address: tokenContract,
