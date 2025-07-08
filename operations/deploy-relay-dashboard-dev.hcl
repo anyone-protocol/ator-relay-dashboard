@@ -1,7 +1,12 @@
 job "deploy-relay-dashboard-dev" {
   datacenters = [ "ator-fin" ]
-  namespace = "ator-network"
   type = "batch"
+  namespace = "dev-protocol"
+
+  constraint {
+    attribute = "${meta.pool}"
+    value = "dev"
+  }
 
   reschedule { attempts = 0 }
 
@@ -50,13 +55,15 @@ job "deploy-relay-dashboard-dev" {
         DASHBOARD_VERSION="[[.commit_sha]]"
       }
 
-      vault { policies = [ "dashboard-dev" ] }
-      # vault { role = "any1-nomad-workloads-controller" }
-      # identity {
-      #   name = "vault_default"
-      #   aud  = ["any1-infra"]
-      #   ttl  = "1h"
-      # }
+      vault {
+        role = "any1-nomad-workloads-controller"
+      }
+
+      identity {
+        name = "vault_default"
+        aud  = ["any1-infra"]
+        ttl  = "1h"
+      }
 
       template {
         data = <<-EOH
@@ -76,7 +83,7 @@ job "deploy-relay-dashboard-dev" {
         NUXT_PUBLIC_FACILITATOR_CONTRACT="[[ consulKey "facilitator/sepolia/stage/address" ]]"
         NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/sepolia/stage/address" ]]"
         NUXT_PUBLIC_REGISTRATOR_CONTRACT="[[ consulKey "registrator/sepolia/stage/address" ]]"
-        {{ with secret "kv/dashboard/dev" }}
+        {{ with secret "kv/dev-protocol/deploy-relay-dashboard-dev" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
         PERMAWEB_KEY="{{ .Data.data.DASHBOARD_OWNER_KEY }}"
         {{ end }}
@@ -87,13 +94,13 @@ job "deploy-relay-dashboard-dev" {
 
       template {
         data = <<-EOF
-        {{ with secret "kv/dashboard/dev/cloudflare" }}[r2]
+        {{ with secret "kv/dev-protocol/deploy-relay-dashboard-dev" }}[r2]
         type = s3
         provider = Cloudflare
         region = auto
-        endpoint = {{ .Data.data.ENDPOINT }}
-        access_key_id = {{ .Data.data.ACCESS_KEY_ID }}
-        secret_access_key = {{ .Data.data.SECRET_ACCESS_KEY }}
+        endpoint = {{ .Data.data.CLOUDFLARE_ENDPOINT }}
+        access_key_id = {{ .Data.data.CLOUDFLARE_ACCESS_KEY_ID }}
+        secret_access_key = {{ .Data.data.CLOUDFLARE_SECRET_ACCESS_KEY }}
         {{ end }}
         EOF
         destination = "secrets/rclone.conf"
@@ -106,9 +113,9 @@ job "deploy-relay-dashboard-dev" {
         echo "Generating static files"
         pnpm run generate
 
-        {{ with secret "kv/dashboard/dev/cloudflare" }}
-        echo "Syncing static files to cloudflare r2: {{ .Data.data.DEPLOY_BUCKET }}"
-        rclone sync .output/public r2:{{ .Data.data.DEPLOY_BUCKET }}/
+        {{ with secret "kv/dev-protocol/deploy-relay-dashboard-dev" }}
+        echo "Syncing static files to cloudflare r2: {{ .Data.data.CLOUDFLARE_DEPLOY_BUCKET }}"
+        rclone sync .output/public r2:{{ .Data.data.CLOUDFLARE_DEPLOY_BUCKET }}/
         {{ end }}
 
         echo "Publishing static files to Arweave"
