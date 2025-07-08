@@ -62,7 +62,7 @@ const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
 
 const relayCredits = ref<Record<string, boolean | undefined>>({});
 const familyVerified = ref<Record<string, boolean>>({});
-const registrationCreditsRequired = ref<boolean>(true);
+const registrationCreditsRequired = ref<boolean>(false);
 const familyRequired = ref<boolean>(true);
 
 const fetchRegistrationCredit = async () => {
@@ -77,7 +77,7 @@ const fetchRegistrationCredit = async () => {
     }
   }
 
-  registrationCreditsRequired.value = userStore.registrationCreditsRequired;
+  // registrationCreditsRequired.value = userStore.registrationCreditsRequired;
   familyRequired.value = userStore.familyRequired;
 };
 
@@ -134,12 +134,6 @@ const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
 const fingerPrintRegister = ref<string>('');
 const fingerPrintRegisterError = ref<string | null>(null);
-
-// const relayCredits = ref<Record<string, boolean | undefined>>({});
-// const familyVerified = ref<Record<string, boolean>>({});
-// const registrationCreditsRequired = ref<boolean>(true);
-// const familyRequired = ref<boolean>(true);
-
 const relayActionOngoing = ref<boolean>(false);
 
 // Fetch the registration credits when the relays are loaded
@@ -771,7 +765,7 @@ const handleUnlockClick = async (fingerprint: string) => {
             hodlerStore.loading || lockedRelaysPending || allRelaysPending
           "
           :has-registration-credit="relayCredits[row.fingerprint]"
-          :registration-credits-required="registrationCreditsRequired ?? false"
+          :registration-credits-required="false"
           :family-verified="familyVerified[row.fingerprint]"
           :family-required="familyRequired"
           :relay-action-ongoing="relayActionOngoing"

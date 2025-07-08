@@ -63,7 +63,7 @@ const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
 
 const relayCredits = ref<Record<string, boolean | undefined>>({});
 const familyVerified = ref<Record<string, boolean>>({});
-const registrationCreditsRequired = ref<boolean>(true);
+const registrationCreditsRequired = ref<boolean>(false);
 const familyRequired = ref<boolean>(true);
 
 const fetchRegistrationCredit = async () => {
@@ -78,7 +78,7 @@ const fetchRegistrationCredit = async () => {
     }
   }
 
-  registrationCreditsRequired.value = userStore.registrationCreditsRequired;
+  // registrationCreditsRequired.value = userStore.registrationCreditsRequired;
   familyRequired.value = userStore.familyRequired;
 };
 
@@ -136,11 +136,6 @@ const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
 const fingerPrintRegister = ref<string>('');
 const fingerPrintRegisterError = ref<string | null>(null);
-
-// const relayCredits = ref<Record<string, boolean | undefined>>({});
-// const familyVerified = ref<Record<string, boolean>>({});
-// const registrationCreditsRequired = ref<boolean>(true);
-// const familyRequired = ref<boolean>(true);
 
 const relayActionOngoing = ref<boolean>(false);
 

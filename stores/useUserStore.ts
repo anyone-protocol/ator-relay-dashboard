@@ -31,7 +31,7 @@ export const useUserStore = defineStore('user', {
     verifiedRelays: [] as RelayRow[],
     claimableRelays: [] as RelayRow[],
     registrationCredits: [] as string[],
-    registrationCreditsRequired: true,
+    registrationCreditsRequired: false,
     registrationCreditsCache: {} as Record<string, boolean>,
     families: {} as Record<string, string[]>,
     relaysMeta: {} as Record<string, RelayMeta>,
@@ -185,7 +185,7 @@ export const useUserStore = defineStore('user', {
       // this.families = data.data.families;
 
       this.familyRequired = false; //data.data.familyRequired;
-      this.registrationCreditsRequired = true; //data.data.registrationCreditsRequired;
+      this.registrationCreditsRequired = false; //true; //data.data.registrationCreditsRequired;
       // save to cache
       const relayCache = useRelayCache();
 
@@ -194,34 +194,35 @@ export const useUserStore = defineStore('user', {
       await relayCache.saveRelayData(relayInfo);
     },
     async hasRegistrationCredit(fingerprint: string) {
-      if (!this.userData.address) {
-        this.registrationCredits = [];
-        return;
-      }
+      return true;
+      // if (!this.userData.address) {
+      //   this.registrationCredits = [];
+      //   return;
+      // }
 
-      if (!this.registrationCreditsRequired) {
-        return true;
-      }
+      // if (!this.registrationCreditsRequired) {
+      //   return true;
+      // }
 
-      const relayCache = useRelayCache();
-      const cachedData = await relayCache.getRelayData();
-      if (cachedData) {
-        this.registrationCredits = cachedData.registrationCredits;
-      } else {
-        // build cache
-        await this.createRelayCache();
-        this.registrationCredits = cachedData.registrationCredits;
-      }
+      // const relayCache = useRelayCache();
+      // const cachedData = await relayCache.getRelayData();
+      // if (cachedData) {
+      //   this.registrationCredits = cachedData.registrationCredits;
+      // } else {
+      //   // build cache
+      //   await this.createRelayCache();
+      //   this.registrationCredits = cachedData.registrationCredits;
+      // }
 
-      // Check if the fingerprint has registration credits
-      const hasCredit =
-        this.registrationCredits.includes(fingerprint) ||
-        cachedData.verifiedHardware.includes(fingerprint); //cachedData.verifiedHardware[fingerprint] !== undefined;
+      // // Check if the fingerprint has registration credits
+      // const hasCredit =
+      //   this.registrationCredits.includes(fingerprint) ||
+      //   cachedData.verifiedHardware.includes(fingerprint); //cachedData.verifiedHardware[fingerprint] !== undefined;
 
-      // Cache the result
-      this.registrationCreditsCache[fingerprint] = hasCredit;
+      // // Cache the result
+      // this.registrationCreditsCache[fingerprint] = hasCredit;
 
-      return hasCredit;
+      // return hasCredit;
     },
     async familyVerified2(fingerprint: string): Promise<boolean> {
       return true;
