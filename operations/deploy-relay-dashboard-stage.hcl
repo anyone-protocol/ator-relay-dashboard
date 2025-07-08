@@ -66,6 +66,7 @@ job "deploy-relay-dashboard-stage" {
         PHASE="stage"
         NODE_OPTIONS="--max-old-space-size=4096"
         DASHBOARD_VERSION="[[.commit_sha]]"
+        BUMP="redeploy-for-new-operator-registry-Ori7-Ejn8fxQCanbhNHvWSvkeR6xOFUnyxCFYPmOUzg"
       }
 
       template {
