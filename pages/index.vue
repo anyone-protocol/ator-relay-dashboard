@@ -434,7 +434,7 @@
                 <div>
                   <UButton
                     :disabled="!hasClaimableRewards || isRedeemLoading"
-                    @onClick="handleClaimAllRewards"
+                    @click="handleClaimAllRewards"
                     class="mb-2"
                     variant="outline"
                     color="cyan"
@@ -529,7 +529,7 @@ import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
-import { useFacilitator } from '@/composables/facilitator';
+import { initFacilitator, useFacilitator } from '@/composables/facilitator';
 import { useDistribution } from '@/composables/distribution';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
@@ -572,9 +572,9 @@ const { tokenBalance } = storeToRefs(userStore);
 
 const redeemLabel = computed(() => {
   if (totalVaultClaimable.value.gt(0)) {
-    return `Redeem ${formatEtherNoRound(totalVaultClaimable.toString())} expired`;
+    return `Redeem ${formatEtherNoRound(totalVaultClaimable.value.toString())} expired`;
   }
-  return 'Redeem expired';
+  return 'Nothing to redeem';
 });
 
 const {
@@ -690,13 +690,29 @@ watch(
   }
 );
 
+onMounted(async () => {
+  try {
+    await initFacilitator();
+    // console.log('Facilitator initialized:', useFacilitator());
+  } catch (error) {
+    console.error('Failed to initialize facilitator:', error);
+  }
+});
+
 const handleClaimAllRewards = async () => {
   isRedeemLoading.value = true;
   progressLoading.value = 1;
 
   try {
     const facilitator = useFacilitator();
-    const response = await facilitator?.claim();
+
+    if (!facilitator) {
+      throw new Error('Facilitator not initialized');
+    }
+
+    // console.log('Facilitator: ', facilitator);
+    const response = await facilitator.claim();
+    // console.log('Claim response: ', response);
     if (response) {
       toast.add({
         icon: 'i-heroicons-check-circle',
