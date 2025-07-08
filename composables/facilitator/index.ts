@@ -604,7 +604,7 @@ export const initFacilitator = async () => {
 
   if (!facilitator) {
     facilitator = new Facilitator(
-      runtimeConfig.public.facilitatorContract as string,
+      runtimeConfig.public.hodlerContract as string,
       provider,
       runtimeConfig.public.multicallContract as string // Add your multicall contract address here
     );
