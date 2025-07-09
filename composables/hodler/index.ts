@@ -516,6 +516,77 @@ export class Hodler {
       }
     });
   }
+
+  async claim(): Promise<TransactionResponse | null> {
+    const toast = useToast();
+    const auth = useUserStore();
+
+    if (!this.contract) {
+      throw new Error(ERRORS.NOT_INITIALIZED);
+    }
+
+    let signer: JsonRpcSigner | undefined;
+    if (auth.userData) {
+      const _signer = await useSigner();
+      if (_signer) {
+        signer = _signer;
+      }
+    }
+
+    await this.setSigner(signer);
+
+    if (!this.signer) {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: ERRORS.NO_SIGNER,
+      });
+      throw new Error(ERRORS.NO_SIGNER);
+    }
+    if (!this.contract) {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: ERRORS.NOT_INITIALIZED,
+      });
+      throw new Error(ERRORS.NOT_INITIALIZED);
+    }
+
+    try {
+      const result = await this.contract.redeem();
+      console.log('Redeem transaction sent:', result);
+
+      await result.wait();
+      console.log('Redeem transaction confirmed');
+
+      return result;
+    } catch (error) {
+      const msg = (error as Error)?.message;
+      console.log('msg', msg);
+
+      if (msg.includes('user rejected action')) {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: 'User denied transaction signature.',
+        });
+      } else {
+        toast.add({
+          icon: 'i-heroicons-x-circle',
+          color: 'amber',
+          title: 'Error',
+          description: `Error redeeming rewards: ${msg}`,
+        });
+      }
+
+      this.logger.error('Error redeeming rewards', error);
+    }
+
+    return null;
+  }
 }
 
 let hodler: Hodler | null = null;
