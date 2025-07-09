@@ -696,61 +696,55 @@ const handleClaimAllRewards = async () => {
     const response = await hodler.claim();
     // console.log('Claim response: ', response);
     if (response) {
-      toast.add({
-        icon: 'i-heroicons-check-circle',
-        color: 'blue',
-        title: 'Success',
-        description:
-          'Rewards redeemed successfully please wait for the transaction to be saved',
-      });
+      // toast.add({
+      //   icon: 'i-heroicons-information-circle',
+      //   color: 'blue',
+      //   title: 'Please wait',
+      //   description:
+      //     'Please wait for the data to refresh, this may take a few seconds',
+      //   timeout: 13000,
+      // });
 
-      toast.add({
-        icon: 'i-heroicons-information-circle',
-        color: 'blue',
-        title: 'Please wait',
-        description:
-          'Please wait for the data to refresh, this may take a few seconds',
-        timeout: 13000,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       await Promise.all([
-        useRelayRewards().refreshAuthedUserClaimableTokens(),
+        // useRelayRewards().refreshAuthedUserClaimableTokens(),
         useDistribution().airdropTokens(userStore.userData.address as string),
       ]);
 
-      toast.remove('Please wait');
-
-      refetchHolderInfo();
-      refetchStakingRewards();
-      refetchRelayRewards();
+      // toast.remove('Please wait');
 
       toast.add({
         icon: 'i-heroicons-check-circle',
-        color: 'blue',
-        title: 'Data refreshed',
-        description: 'Data has been refreshed',
+        color: 'green',
+        title: 'Success',
+        description: 'Rewards redeemed successfully',
       });
-    } else {
+
       // toast.add({
-      //   icon: 'i-heroicons-x-circle',
-      //   color: 'amber',
-      //   title: 'Error',
-      //   description: 'Error redeeming rewards',
+      //   icon: 'i-heroicons-check-circle',
+      //   color: 'blue',
+      //   title: 'Data refreshed',
+      //   description: 'Data has been refreshed',
       // });
+    } else {
+      throw new Error('No response from claim');
     }
   } catch (error) {
     toast.add({
       icon: 'i-heroicons-x-circle',
-      color: 'amber',
+      color: 'red',
       title: 'Error',
-      description: `Error redeeming rewards: ${error}`,
+      description: `Error redeeming rewards`,
     });
-  }
+  } finally {
+    refetchHolderInfo();
+    refetchStakingRewards();
+    refetchRelayRewards();
 
-  isRedeemLoading.value = false;
-  progressLoading.value = 0;
+    isRedeemLoading.value = false;
+    progressLoading.value = 0;
+  }
 };
 
 const runtimeConfig = useRuntimeConfig();
@@ -830,6 +824,12 @@ const {
   args: [address.value as `0x${string}`],
   query: { enabled: true },
 });
+
+// watch(hodlerInfo, (info) => {
+//   if (info) {
+//     console.log('hodlerInfo: ', toRaw(info));
+//   }
+// });
 
 const totalClaimable = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
