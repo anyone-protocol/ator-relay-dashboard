@@ -412,7 +412,7 @@
                 class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3 flex-shrink-0"
               >
                 <h3 class="text-sm">Relay rewards</h3>
-                <template v-if="stakingRewardsPending">
+                <template v-if="relayRewardsPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
                 </template>
                 <template v-else>
@@ -529,7 +529,6 @@ import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
-import { initFacilitator, useFacilitator } from '@/composables/facilitator';
 import { useDistribution } from '@/composables/distribution';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
@@ -666,13 +665,6 @@ watch(
   }
 );
 
-// watch(
-//   () => facilitatorStore.pendingClaim,
-//   (updatedPendingClaim) => {
-//     progressLoading.value = updatedPendingClaim ? 2 : 0;
-//   }
-// );
-
 const calculatedAirdropPending = ref(false);
 
 //watch and do the calculate airdrop
@@ -690,28 +682,18 @@ watch(
   }
 );
 
-onMounted(async () => {
-  try {
-    await initFacilitator();
-    // console.log('Facilitator initialized:', useFacilitator());
-  } catch (error) {
-    console.error('Failed to initialize facilitator:', error);
-  }
-});
-
 const handleClaimAllRewards = async () => {
   isRedeemLoading.value = true;
   progressLoading.value = 1;
 
   try {
-    const facilitator = useFacilitator();
+    const hodler = useHodler();
 
-    if (!facilitator) {
-      throw new Error('Facilitator not initialized');
+    if (!hodler) {
+      throw new Error('Hodler not initialized');
     }
 
-    // console.log('Facilitator: ', facilitator);
-    const response = await facilitator.claim();
+    const response = await hodler.claim();
     // console.log('Claim response: ', response);
     if (response) {
       toast.add({
@@ -740,6 +722,10 @@ const handleClaimAllRewards = async () => {
 
       toast.remove('Please wait');
 
+      refetchHolderInfo();
+      refetchStakingRewards();
+      refetchRelayRewards();
+
       toast.add({
         icon: 'i-heroicons-check-circle',
         color: 'blue',
@@ -764,7 +750,6 @@ const handleClaimAllRewards = async () => {
   }
 
   isRedeemLoading.value = false;
-  // facilitatorStore.pendingClaim = null;
   progressLoading.value = 0;
 };
 
@@ -786,7 +771,11 @@ const currentWriteAction = ref<'withdraw' | 'openExpired' | null>(null);
 const { getTotalClaimableStakingRewards, claimStakingRewards } =
   useStakingRewards();
 
-const { data: stakingRewards, isPending: stakingRewardsPending } = useQuery({
+const {
+  data: stakingRewards,
+  isPending: stakingRewardsPending,
+  refetch: refetchStakingRewards,
+} = useQuery({
   queryKey: ['claimableRewards', address],
   queryFn: async () => {
     if (!address.value) return '0';
@@ -1108,7 +1097,11 @@ const getClaimableRelayRewards = async (
   return null;
 };
 
-const { data: relayRewards, isPending: relayRewardsPending } = useQuery({
+const {
+  data: relayRewards,
+  isPending: relayRewardsPending,
+  refetch: refetchRelayRewards,
+} = useQuery({
   queryKey: ['relayRewards', address],
   queryFn: async () => {
     if (!address.value) return '0';
