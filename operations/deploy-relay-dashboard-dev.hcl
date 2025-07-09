@@ -77,12 +77,12 @@ job "deploy-relay-dashboard-dev" {
 
       template {
         data = <<-EOH
-        NUXT_PUBLIC_OPERATOR_REGISTRY_PROCESS_ID="[[ consulKey "smart-contracts/stage/operator-registry-address" ]]"
-        NUXT_PUBLIC_RELAY_REWARDS_PROCESS_ID="[[ consulKey "smart-contracts/stage/relay-rewards-address" ]]"
-        NUXT_PUBLIC_METRICS_DEPLOYER="[[ consulKey "valid-ator/stage/validator-address-base64" ]]"
-        NUXT_PUBLIC_FACILITATOR_CONTRACT="[[ consulKey "facilitator/sepolia/stage/address" ]]"
-        NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/sepolia/stage/address" ]]"
-        NUXT_PUBLIC_REGISTRATOR_CONTRACT="[[ consulKey "registrator/sepolia/stage/address" ]]"
+        NUXT_PUBLIC_OPERATOR_REGISTRY_PROCESS_ID="{{ key "smart-contracts/stage/operator-registry-address" }}"
+        NUXT_PUBLIC_RELAY_REWARDS_PROCESS_ID="{{ key "smart-contracts/stage/relay-rewards-address" }}"
+        NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/stage/validator-address-base64" }}"
+        NUXT_PUBLIC_FACILITATOR_CONTRACT="{{ key "facilitator/sepolia/stage/address" }}"
+        NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/sepolia/stage/address" }}"
+        NUXT_PUBLIC_REGISTRATOR_CONTRACT="{{ key "registrator/sepolia/stage/address" }}"
         {{ with secret "kv/dev-protocol/deploy-relay-dashboard-dev" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
         PERMAWEB_KEY="{{ .Data.data.DASHBOARD_OWNER_KEY }}"
