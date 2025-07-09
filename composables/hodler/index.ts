@@ -11,7 +11,6 @@ import {
 import BigNumber from 'bignumber.js';
 
 import abi from './Hodler.json';
-import { saveRedeemProcessSessionStorage } from '@/utils/redeemSessionStorage';
 import Logger from '~/utils/logger';
 import type { ClaimData, Lock, Vault } from '~/types/hodler';
 import { useHolderStore } from '~/stores/useHodlerStore';
@@ -520,6 +519,9 @@ export class Hodler {
   async claim(): Promise<TransactionResponse | null> {
     const toast = useToast();
     const auth = useUserStore();
+    const address = auth.userData?.address;
+
+    if (!address) throw new Error('User address not found');
 
     if (!this.contract) {
       throw new Error(ERRORS.NOT_INITIALIZED);
@@ -555,6 +557,38 @@ export class Hodler {
     }
 
     try {
+      const [, , currentGas] = await this.contract.hodlers(address);
+      // console.log(
+      //   'Current gas budget:',
+      //   ethers.formatEther(currentGas.toString())
+      // );
+
+      const gasEstimate = ethers.parseEther('0.002');
+
+      if (
+        new BigNumber((currentGas as bigint).toString()).lt(
+          new BigNumber(gasEstimate.toString())
+        )
+      ) {
+        try {
+          const value = gasEstimate.toString();
+
+          const to = await this.contract.getAddress();
+
+          const fundingResult = await this.signer.sendTransaction({
+            to,
+            value,
+          });
+
+          // console.log('Funding transaction sent:', fundingResult);
+        } catch (error) {
+          throw new Error(error as any);
+        }
+      }
+
+      //artificial delay to ensure gas budget is updated before redeeming
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+
       const result = await this.contract.redeem();
       console.log('Redeem transaction sent:', result);
 
