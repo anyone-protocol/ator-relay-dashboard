@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
     <div class="flex items-center gap-1">
-      <h3 class="text-[10px] md:text-xs">Unclaimed Staking Rewards</h3>
+      <h3 class="text-[10px] md:text-xs">Collectable Rewards</h3>
       <Popover
         placement="bottom"
         :arrow="false"
@@ -9,7 +9,7 @@
       >
         <template #content>
           <span class="text-xs font-normal">
-            Total unclaimed staking rewards. Staking rewards are automatically
+            Total uncollected staking rewards. Staking rewards are automatically
             compounded. Manage them from the
             <RouterLink to="/"><strong>Home</strong> </RouterLink>
             page.
