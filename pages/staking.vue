@@ -384,8 +384,8 @@
               >
                 {{
                   formatAvailableAt(row.availableAt, block) === 'Expired'
-                    ? 'Available'
-                    : 'Locked'
+                    ? 'Redeemable'
+                    : 'Vaulted'
                 }}
               </UBadge>
             </template>
@@ -685,7 +685,7 @@ const operatorColumns = computed(() => {
       { key: 'amount', label: 'Your stake', sortable: true },
       { key: 'total', label: 'Total Stakes', sortable: true },
       { key: 'running', label: 'Running', sortable: true },
-      { key: 'redeemableRewards', label: 'Redeemable Rewards', sortable: true },
+      { key: 'redeemableRewards', label: 'Rewards', sortable: true },
       { key: 'actions', label: 'Actions' },
     ];
   }

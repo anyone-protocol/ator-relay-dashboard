@@ -441,8 +441,8 @@
                     size="xl"
                   >
                     <span v-if="isRedeemLoading">Processing...</span>
-                    <span v-else-if="hasClaimableRewards">Redeem Rewards</span>
-                    <span v-else>Nothing to Redeem</span>
+                    <span v-else-if="hasClaimableRewards">Collect Rewards</span>
+                    <span v-else>No rewards</span>
                   </UButton>
                   <div v-if="progressLoading" class="text-center">
                     <UProgress animation="carousel">
@@ -847,7 +847,7 @@ const totalClaimed = computed(() => {
 
 const hasClaimableRewards = computed(() => {
   if (!hodlerInfo.value) return false;
-  return totalClaimable.value.minus(totalClaimed.value).isGreaterThan(0);
+  return totalClaimable.value.isGreaterThan(0);
 });
 
 // watch(hodlerInfo, (info) => {
