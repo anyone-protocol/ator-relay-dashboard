@@ -3,7 +3,8 @@ node_modules
 .nuxt
 dist
 .env
-operations
 .husky
 .github
 .vscode
+operations/*.hcl
+operations/*.crt
