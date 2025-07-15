@@ -519,6 +519,7 @@ const tokenContract = runtimeConfig.public
 const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
 const stakeInput = ref('');
+const maxStakeAmount = ref('');
 const stakeAmount = computed(() => validateTokenInput(stakeInput.value) || '0');
 const unstakeInput = ref('');
 const unstakeAmount = computed(
@@ -814,6 +815,12 @@ watch(stakeDialogOpen, (open) => {
   }
 });
 
+watch(stakeInput, (value) => {
+  if (value) {
+    maxStakeAmount.value = '';
+  }
+});
+
 const handleCloseStakeDialog = () => {
   if (isStaking.value) {
     toast.add({
@@ -831,13 +838,20 @@ const handleCloseStakeDialog = () => {
 const setMaxStake = () => {
   if (stakedMaxSelected.value === 'wallet') {
     // console.log('token balance: ', tokenBalance.value?.value);
+
     stakeInput.value = tokenBalance.value?.value
       ? formatEtherNoRound(tokenBalance.value.value)
       : '0';
+    setTimeout(() => {
+      maxStakeAmount.value = tokenBalance.value?.value.toString() || '0';
+    }, 50);
   } else {
     stakeInput.value = hodlerInfo.value?.[0]
       ? formatEtherNoRound(hodlerInfo.value?.[0])
       : '0';
+    setTimeout(() => {
+      maxStakeAmount.value = hodlerInfo.value?.[0]?.toString() || '0';
+    }, 50);
   }
 };
 
@@ -879,7 +893,10 @@ const submitStakeForm = async () => {
     return;
   }
 
-  if (!stakeAmount.value || Number(stakeAmount.value) <= 0) {
+  if (
+    (!maxStakeAmount.value && !stakeAmount.value) ||
+    Number(stakeAmount.value) <= 0
+  ) {
     toast.add({
       title: 'Enter a valid stake amount',
       color: 'red',
@@ -902,8 +919,15 @@ const submitStakeForm = async () => {
       hodlerInfo.value ? hodlerInfo.value[0].toString() : '0'
     );
 
-    console.log('available: ', available);
-    console.log('amount: ', amount);
+    const amountToStake = maxStakeAmount.value || amount;
+
+    // console.log('amount: ', amount);
+    // console.log('max amount: ', maxStakeAmount.value);
+
+    // console.log('amountToStake: ', amountToStake);
+
+    // console.log('available: ', available);
+    // console.log('amount: ', amount);
 
     currentWriteAction.value = 'stake';
     if (
@@ -916,7 +940,7 @@ const submitStakeForm = async () => {
         address: tokenContract,
         abi: tokenAbi,
         functionName: 'approve',
-        args: [hodlerContract, amount],
+        args: [hodlerContract, amountToStake],
       });
     }
 
@@ -925,7 +949,7 @@ const submitStakeForm = async () => {
       address: hodlerContract,
       abi: hodlerAbi,
       functionName: 'stake',
-      args: [getAddress(selectedOperator.value?.operator), amount],
+      args: [getAddress(selectedOperator.value?.operator), amountToStake],
     });
   } catch (error: any) {
     console.error('StakingError:', error);
