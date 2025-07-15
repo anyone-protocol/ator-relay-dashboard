@@ -232,7 +232,15 @@
                     v-if="amountExceedsAvailable"
                     class="text-xs text-amber-600 dark:text-amber-300"
                   >
-                    Exceeds available balance. Amount will be taken from wallet.
+                    Chosen amount exceeds available balance. Amount will be
+                    taken from wallet.
+                  </span>
+                  <span
+                    v-else-if="amountIsLessThanAvailable"
+                    class="text-xs text-amber-600 dark:text-amber-300"
+                  >
+                    Enough available tokens. Amount will be taken from available
+                    balance.
                   </span>
                   <div class="flex justify-end gap-3 mt-5">
                     <UButton
@@ -536,7 +544,8 @@ const stakedOperators = computed(() => {
   const stakes: Operator[] = stakesData.value.map((stake) => {
     const reward = operatorRewards.value.find(
       (r) =>
-        normalizeOp(r.operator as `0x${string}`) === normalizeOp(stake.operator)
+        normalizeOp(r.operator as `0x${string}`) ===
+          normalizeOp(stake.operator) && new BigNumber(r.redeemable).gt(0)
     );
     // console.log('reward: ', reward);
     return {
@@ -770,6 +779,24 @@ const amountExceedsAvailable = computed(() => {
   return false;
 });
 
+const amountIsLessThanAvailable = computed(() => {
+  if (stakeAmount.value === '0') return false;
+  if (!hodlerInfo.value?.[0]) return false;
+
+  const available = new BigNumber(
+    parseEther(formatEtherNoRound(hodlerInfo.value[0])).toString()
+  );
+  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
+
+  if (
+    stakedMaxSelected.value === 'wallet' &&
+    available.minus(amount).isGreaterThan(0)
+  ) {
+    return true;
+  }
+  return false;
+});
+
 const validateMaxStake = () => {
   if (stakedMaxSelected.value === 'wallet') {
     // console.log('token balance: ', tokenBalance.value?.value);
@@ -870,7 +897,7 @@ const submitStakeForm = async () => {
 
   try {
     // console.log('parsing amount...');
-    const amount = new BigNumber(parseEther(stakeAmount.value).toString());
+    const amount = parseEther(stakeAmount.value).toString();
     const available = new BigNumber(
       hodlerInfo.value ? hodlerInfo.value[0].toString() : '0'
     );
@@ -882,7 +909,7 @@ const submitStakeForm = async () => {
     if (
       allowance.value === undefined ||
       (new BigNumber(allowance.value.toString()).lt(amount) &&
-        amount.gt(available))
+        new BigNumber(amount).gt(available))
     ) {
       // console.log('Approving tokens...');
       await writeContractAsync({
