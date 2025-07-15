@@ -943,7 +943,7 @@ const totalContract = computed(() => {
   const available = new BigNumber(hodlerInfo.value[0].toString() || '0');
   const totalLocked = new BigNumber(
     hodlerStore.lockedTokens.toString() || '0'
-  ).multipliedBy(new BigNumber(10).pow(18n.toString()));
+  ).multipliedBy(new BigNumber(10).pow(18));
 
   return available.plus(
     totalVaulted.value.plus(totalStaked.value).plus(totalLocked)
