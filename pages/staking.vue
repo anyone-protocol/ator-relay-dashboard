@@ -232,7 +232,15 @@
                     v-if="amountExceedsAvailable"
                     class="text-xs text-amber-600 dark:text-amber-300"
                   >
-                    Exceeds available balance. Amount will be taken from wallet.
+                    Chosen amount exceeds available balance. Amount will be
+                    taken from wallet.
+                  </span>
+                  <span
+                    v-else-if="amountIsLessThanAvailable"
+                    class="text-xs text-amber-600 dark:text-amber-300"
+                  >
+                    Enough available tokens. Amount will be taken from available
+                    balance.
                   </span>
                   <div class="flex justify-end gap-3 mt-5">
                     <UButton
@@ -511,6 +519,7 @@ const tokenContract = runtimeConfig.public
 const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
 const stakeInput = ref('');
+const maxStakeAmount = ref('');
 const stakeAmount = computed(() => validateTokenInput(stakeInput.value) || '0');
 const unstakeInput = ref('');
 const unstakeAmount = computed(
@@ -536,7 +545,8 @@ const stakedOperators = computed(() => {
   const stakes: Operator[] = stakesData.value.map((stake) => {
     const reward = operatorRewards.value.find(
       (r) =>
-        normalizeOp(r.operator as `0x${string}`) === normalizeOp(stake.operator)
+        normalizeOp(r.operator as `0x${string}`) ===
+          normalizeOp(stake.operator) && new BigNumber(r.redeemable).gt(0)
     );
     // console.log('reward: ', reward);
     return {
@@ -770,6 +780,24 @@ const amountExceedsAvailable = computed(() => {
   return false;
 });
 
+const amountIsLessThanAvailable = computed(() => {
+  if (stakeAmount.value === '0') return false;
+  if (!hodlerInfo.value?.[0]) return false;
+
+  const available = new BigNumber(
+    parseEther(formatEtherNoRound(hodlerInfo.value[0])).toString()
+  );
+  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
+
+  if (
+    stakedMaxSelected.value === 'wallet' &&
+    available.minus(amount).isGreaterThan(0)
+  ) {
+    return true;
+  }
+  return false;
+});
+
 const validateMaxStake = () => {
   if (stakedMaxSelected.value === 'wallet') {
     // console.log('token balance: ', tokenBalance.value?.value);
@@ -784,6 +812,12 @@ const block = await getBlock(config);
 watch(stakeDialogOpen, (open) => {
   if (!open) {
     handleCloseStakeDialog();
+  }
+});
+
+watch(stakeInput, (value) => {
+  if (value) {
+    maxStakeAmount.value = '';
   }
 });
 
@@ -804,13 +838,20 @@ const handleCloseStakeDialog = () => {
 const setMaxStake = () => {
   if (stakedMaxSelected.value === 'wallet') {
     // console.log('token balance: ', tokenBalance.value?.value);
+
     stakeInput.value = tokenBalance.value?.value
       ? formatEtherNoRound(tokenBalance.value.value)
       : '0';
+    setTimeout(() => {
+      maxStakeAmount.value = tokenBalance.value?.value.toString() || '0';
+    }, 50);
   } else {
     stakeInput.value = hodlerInfo.value?.[0]
       ? formatEtherNoRound(hodlerInfo.value?.[0])
       : '0';
+    setTimeout(() => {
+      maxStakeAmount.value = hodlerInfo.value?.[0]?.toString() || '0';
+    }, 50);
   }
 };
 
@@ -852,7 +893,10 @@ const submitStakeForm = async () => {
     return;
   }
 
-  if (!stakeAmount.value || Number(stakeAmount.value) <= 0) {
+  if (
+    (!maxStakeAmount.value && !stakeAmount.value) ||
+    Number(stakeAmount.value) <= 0
+  ) {
     toast.add({
       title: 'Enter a valid stake amount',
       color: 'red',
@@ -870,26 +914,33 @@ const submitStakeForm = async () => {
 
   try {
     // console.log('parsing amount...');
-    const amount = new BigNumber(parseEther(stakeAmount.value).toString());
+    const amount = parseEther(stakeAmount.value).toString();
     const available = new BigNumber(
       hodlerInfo.value ? hodlerInfo.value[0].toString() : '0'
     );
 
-    console.log('available: ', available);
-    console.log('amount: ', amount);
+    const amountToStake = maxStakeAmount.value || amount;
+
+    // console.log('amount: ', amount);
+    // console.log('max amount: ', maxStakeAmount.value);
+
+    // console.log('amountToStake: ', amountToStake);
+
+    // console.log('available: ', available);
+    // console.log('amount: ', amount);
 
     currentWriteAction.value = 'stake';
     if (
       allowance.value === undefined ||
       (new BigNumber(allowance.value.toString()).lt(amount) &&
-        amount.gt(available))
+        new BigNumber(amount).gt(available))
     ) {
       // console.log('Approving tokens...');
       await writeContractAsync({
         address: tokenContract,
         abi: tokenAbi,
         functionName: 'approve',
-        args: [hodlerContract, amount],
+        args: [hodlerContract, amountToStake],
       });
     }
 
@@ -898,7 +949,7 @@ const submitStakeForm = async () => {
       address: hodlerContract,
       abi: hodlerAbi,
       functionName: 'stake',
-      args: [getAddress(selectedOperator.value?.operator), amount],
+      args: [getAddress(selectedOperator.value?.operator), amountToStake],
     });
   } catch (error: any) {
     console.error('StakingError:', error);
