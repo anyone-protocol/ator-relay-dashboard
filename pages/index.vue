@@ -412,7 +412,7 @@
                 class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3 flex-shrink-0"
               >
                 <h3 class="text-sm">Relay rewards</h3>
-                <template v-if="relayRewardsPending || hodlerInfoPending">
+                <template v-if="relayRewardsPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
                 </template>
                 <template v-else>
