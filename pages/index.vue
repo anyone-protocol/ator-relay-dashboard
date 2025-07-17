@@ -825,11 +825,11 @@ const {
   query: { enabled: true },
 });
 
-// watch(hodlerInfo, (info) => {
-//   if (info) {
-//     console.log('hodlerInfo: ', toRaw(info));
-//   }
-// });
+watch(hodlerInfo, (info) => {
+  if (info) {
+    console.log('hodlerInfo: ', toRaw(info));
+  }
+});
 
 const totalClaimable = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
@@ -1075,9 +1075,7 @@ const submitWithdrawForm = async () => {
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
 
 // move to own file/context
-const getClaimableRelayRewards = async (
-  address: string
-): Promise<string | null> => {
+const getRelayRewards = async (address: string): Promise<string | null> => {
   try {
     const { result } = await sendAosDryRun({
       processId: relayRewardsProcessId,
@@ -1098,6 +1096,35 @@ const getClaimableRelayRewards = async (
   return null;
 };
 
+const getClaimedRelayRewards = async (
+  address: string
+): Promise<string | null> => {
+  try {
+    const { result } = await sendAosDryRun({
+      processId: relayRewardsProcessId,
+      tags: [
+        { name: 'Action', value: 'Get-Claimed' },
+        { name: 'Address', value: address },
+      ],
+    });
+
+    console.log('relay rewards state: ', result?.Messages[0]?.Data);
+    // console.log(result?.Messages[0]?.Data);
+
+    if (!result?.Messages[0]?.Data) {
+      throw new Error('No claimed data found');
+    }
+
+    const claimed: string = JSON.parse(result?.Messages[0]?.Data);
+    console.log('claimed relay rewards: ', claimed);
+
+    return new BigNumber(claimed).toString();
+  } catch (error) {
+    console.error('Error fetching claimable relay rewards:', error);
+  }
+  return null;
+};
+
 const {
   data: relayRewards,
   isPending: relayRewardsPending,
@@ -1107,7 +1134,15 @@ const {
   queryFn: async () => {
     if (!address.value) return '0';
 
-    return getClaimableRelayRewards(address.value);
+    const rewarded = await getRelayRewards(address.value);
+    // console.log('relayRewarded: ', rewarded);
+    const claimed = await getClaimedRelayRewards(address.value);
+    // console.log('claimed: ', claimed);
+    const claimable = new BigNumber(rewarded || '0')
+      .minus(new BigNumber(claimed || '0'))
+      .toString();
+    // console.log('claimable: ', claimable);
+    return claimable;
   },
   enabled: computed(() => !!address.value),
 });
