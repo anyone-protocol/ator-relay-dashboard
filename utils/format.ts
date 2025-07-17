@@ -24,7 +24,7 @@ export function formatEtherNoRound(
   const etherValue = bigNumberValue.div(new BigNumber('1e18'));
 
   // Round the Ether value to 2 decimal places
-  const rounded = etherValue.toFixed(decimals || 2);
+  const rounded = etherValue.toFixed(decimals || 2, BigNumber.ROUND_DOWN);
 
   return rounded;
 }
