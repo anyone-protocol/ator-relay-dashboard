@@ -1103,9 +1103,10 @@ const getRelayRewards = async (address: string): Promise<string | null> => {
       ],
     });
 
-    // console.log('getClaimable result', result);
+    console.log('getRelayRewards result: ', result);
 
     const claimable = result?.Messages[0]?.Data || '0';
+    console.log('claimable relay rewards: ', claimable);
 
     return BigNumber(claimable).toString();
   } catch (error) {
@@ -1126,7 +1127,7 @@ const getClaimedRelayRewards = async (
       ],
     });
 
-    // console.log('relay rewards state: ', result?.Messages[0]?.Data);
+    console.log('getRelayRewards result: ', result);
 
     if (!result?.Messages[0]?.Data) {
       throw new Error('No claimed data found');
