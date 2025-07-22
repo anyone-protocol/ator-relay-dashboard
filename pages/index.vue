@@ -313,7 +313,11 @@
                 </template>
                 <template v-else>
                   <span v-if="isConnected" class="text-3xl font-medium">
-                    {{ formatEtherNoRound(totalClaimed.toString() || '0') }}
+                    {{
+                      formatEtherNoRound(
+                        !totalClaimed.isNaN() ? totalClaimed.toString() : '0'
+                      )
+                    }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
@@ -349,7 +353,13 @@
                 </template>
                 <template v-else>
                   <span v-if="isConnected" class="text-3xl font-medium">
-                    {{ formatEtherNoRound(totalClaimable.toString() || '0') }}
+                    {{
+                      formatEtherNoRound(
+                        !totalClaimable.isNaN()
+                          ? totalClaimable.toString()
+                          : '0'
+                      )
+                    }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
@@ -417,7 +427,13 @@
                 </template>
                 <template v-else>
                   <span v-if="isConnected" class="text-3xl font-medium">
-                    {{ formatEtherNoRound(relayRewards || '0') }}
+                    {{
+                      formatEtherNoRound(
+                        relayRewards && !relayRewards.isNaN()
+                          ? relayRewards.toString()
+                          : '0'
+                      )
+                    }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
@@ -738,9 +754,11 @@ const handleClaimAllRewards = async () => {
       description: `Error redeeming rewards`,
     });
   } finally {
-    refetchHolderInfo();
-    refetchStakingRewards();
-    refetchRelayRewards();
+    setTimeout(() => {
+      refetchHolderInfo();
+      refetchStakingRewards();
+      refetchRelayRewards();
+    }, 1000);
 
     isRedeemLoading.value = false;
     progressLoading.value = 0;
@@ -1108,8 +1126,7 @@ const getClaimedRelayRewards = async (
       ],
     });
 
-    console.log('relay rewards state: ', result?.Messages[0]?.Data);
-    // console.log(result?.Messages[0]?.Data);
+    // console.log('relay rewards state: ', result?.Messages[0]?.Data);
 
     if (!result?.Messages[0]?.Data) {
       throw new Error('No claimed data found');
@@ -1132,16 +1149,13 @@ const {
 } = useQuery({
   queryKey: ['relayRewards', address],
   queryFn: async () => {
-    if (!address.value) return '0';
+    if (!address.value) return BigNumber(0);
 
     const rewarded = await getRelayRewards(address.value);
-    // console.log('relayRewarded: ', rewarded);
     const claimed = await getClaimedRelayRewards(address.value);
-    // console.log('claimed: ', claimed);
-    const claimable = new BigNumber(rewarded || '0')
-      .minus(new BigNumber(claimed || '0'))
-      .toString();
-    // console.log('claimable: ', claimable);
+    const claimable = new BigNumber(rewarded || '0').minus(
+      new BigNumber(claimed || '0')
+    );
     return claimable;
   },
   enabled: computed(() => !!address.value),
