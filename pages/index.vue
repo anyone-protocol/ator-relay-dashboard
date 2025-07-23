@@ -514,7 +514,7 @@
                             ? relay.active && relay.status === 'verified'
                             : relay.active &&
                               relay.status === 'verified' &&
-                              !checkIsLocked(relay.fingerprint)
+                              checkIsLocked(relay.fingerprint)
                         ).length
                       }}
                     </span>
