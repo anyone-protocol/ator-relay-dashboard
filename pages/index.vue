@@ -571,6 +571,12 @@ const lockedPending = ref(false);
 const claimedPending = ref(true);
 const claimablePending = ref(true);
 
+// watch(allRelays, (newRelays) => {
+//   if (newRelays && newRelays.length > 0) {
+//     console.log('allRelays amount: ', toRaw(allRelays.value.length));
+//   }
+// });
+
 const toast = useToast();
 
 const isLoading = ref(true);
@@ -1092,74 +1098,72 @@ const submitWithdrawForm = async () => {
 
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
 
-// move to own file/context
-const getRelayRewards = async (address: string): Promise<string | null> => {
-  try {
+const {
+  data: claimableData,
+  isPending: claimableDataPending,
+  refetch: refetchClaimableRelayRewards,
+} = useQuery({
+  queryKey: ['claimableRelayRewards', address],
+  queryFn: async () => {
+    if (!address.value) return '0';
     const { result } = await sendAosDryRun({
       processId: relayRewardsProcessId,
       tags: [
         { name: 'Action', value: 'Get-Rewards' },
-        { name: 'Address', value: address },
+        { name: 'Address', value: address.value },
       ],
     });
-
-    console.log('getRelayRewards result: ', result);
-
+    console.log('getClaimableRelayRewards result: ', result);
     const claimable = result?.Messages[0]?.Data || '0';
     console.log('claimable relay rewards: ', claimable);
+    return claimable;
+  },
+  enabled: computed(() => !!address.value),
+});
 
-    return BigNumber(claimable).toString();
-  } catch (error) {
-    console.error('Error fetching claimable relay rewards:', error);
-  }
-  return null;
-};
-
-const getClaimedRelayRewards = async (
-  address: string
-): Promise<string | null> => {
-  try {
+const {
+  data: claimedData,
+  isPending: claimedDataPending,
+  refetch: refetchClaimedRelayRewards,
+} = useQuery({
+  queryKey: ['claimedRelayRewards', address],
+  queryFn: async () => {
+    if (!address.value) return '0';
     const { result } = await sendAosDryRun({
       processId: relayRewardsProcessId,
       tags: [
         { name: 'Action', value: 'Get-Claimed' },
-        { name: 'Address', value: address },
+        { name: 'Address', value: address.value },
       ],
     });
-
-    console.log('getRelayRewards result: ', result);
-
+    console.log('getClaimedRelayRewards result: ', result);
     if (!result?.Messages[0]?.Data) {
       throw new Error('No claimed data found');
     }
-
-    const claimed: string = JSON.parse(result?.Messages[0]?.Data);
+    const claimed = JSON.parse(result?.Messages[0]?.Data);
     console.log('claimed relay rewards: ', claimed);
-
-    return new BigNumber(claimed).toString();
-  } catch (error) {
-    console.error('Error fetching claimable relay rewards:', error);
-  }
-  return null;
-};
-
-const {
-  data: relayRewards,
-  isPending: relayRewardsPending,
-  refetch: refetchRelayRewards,
-} = useQuery({
-  queryKey: ['relayRewards', address],
-  queryFn: async () => {
-    if (!address.value) return BigNumber(0);
-
-    const rewarded = await getRelayRewards(address.value);
-    const claimed = await getClaimedRelayRewards(address.value);
-    const claimable = new BigNumber(rewarded || '0').minus(
-      new BigNumber(claimed || '0')
-    );
-    return claimable;
+    return claimed.toString();
   },
   enabled: computed(() => !!address.value),
+});
+
+const refetchRelayRewards = () => {
+  refetchClaimableRelayRewards();
+  refetchClaimedRelayRewards();
+};
+
+const relayRewardsPending = computed(
+  () => claimedDataPending.value || claimableDataPending.value
+);
+
+const relayRewards = computed(() => {
+  const rewarded = new BigNumber(claimableData.value || '0');
+  const claimed = new BigNumber(claimedData.value || '0');
+  const claimable = rewarded.minus(claimed).isNegative()
+    ? BigNumber(0)
+    : rewarded.minus(claimed);
+  console.log('computed claimable relay rewards: ', claimable.toString());
+  return claimable;
 });
 </script>
 
