@@ -427,13 +427,7 @@
                 </template>
                 <template v-else>
                   <span v-if="isConnected" class="text-3xl font-medium">
-                    {{
-                      formatEtherNoRound(
-                        relayRewards && !relayRewards.isNaN()
-                          ? relayRewards.toString()
-                          : '0'
-                      )
-                    }}
+                    {{ formatEtherNoRound(relayRewards?.toString() || '0') }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
@@ -1105,7 +1099,7 @@ const {
 } = useQuery({
   queryKey: ['claimableRelayRewards', address],
   queryFn: async () => {
-    if (!address.value) return '0';
+    if (!address.value) return new BigNumber(0);
     const { result } = await sendAosDryRun({
       processId: relayRewardsProcessId,
       tags: [
@@ -1113,9 +1107,9 @@ const {
         { name: 'Address', value: address.value },
       ],
     });
-    console.log('getClaimableRelayRewards result: ', result);
-    const claimable = result?.Messages[0]?.Data || '0';
-    console.log('claimable relay rewards: ', claimable);
+    console.log('getRewardedRelayRewards result: ', result);
+    const claimable = new BigNumber(result?.Messages[0]?.Data || '0');
+    console.log('rewarded relay rewards: ', claimable);
     return claimable;
   },
   enabled: computed(() => !!address.value),
@@ -1128,7 +1122,7 @@ const {
 } = useQuery({
   queryKey: ['claimedRelayRewards', address],
   queryFn: async () => {
-    if (!address.value) return '0';
+    if (!address.value) return new BigNumber(0);
     const { result } = await sendAosDryRun({
       processId: relayRewardsProcessId,
       tags: [
@@ -1138,11 +1132,12 @@ const {
     });
     console.log('getClaimedRelayRewards result: ', result);
     if (!result?.Messages[0]?.Data) {
-      throw new Error('No claimed data found');
+      return new BigNumber(0);
     }
-    const claimed = JSON.parse(result?.Messages[0]?.Data);
-    console.log('claimed relay rewards: ', claimed);
-    return claimed.toString();
+    const data = JSON.parse(result?.Messages[0]?.Data);
+    const claimed = new BigNumber(data || '0');
+    console.log('claimed relay rewards: ', claimed.toString());
+    return claimed;
   },
   enabled: computed(() => !!address.value),
 });
@@ -1157,12 +1152,13 @@ const relayRewardsPending = computed(
 );
 
 const relayRewards = computed(() => {
-  const rewarded = new BigNumber(claimableData.value || '0');
-  const claimed = new BigNumber(claimedData.value || '0');
-  const claimable = rewarded.minus(claimed).isNegative()
-    ? BigNumber(0)
-    : rewarded.minus(claimed);
-  console.log('computed claimable relay rewards: ', claimable.toString());
+  const rewarded = claimableData.value;
+  const claimed = claimedData.value;
+
+  if (!rewarded?.gt(0) || !claimed?.gt(0)) return new BigNumber(0);
+
+  const claimable = rewarded.minus(claimed);
+  console.log('computed rewarded relay rewards: ', claimable?.toString());
   return claimable;
 });
 </script>
