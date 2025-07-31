@@ -19,6 +19,7 @@ import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
 import { useHodler } from '~/composables/hodler';
 import { hodlerAbi } from '~/assets/abi/hodler';
 import { getBlock } from '@wagmi/core';
+import { debounce } from 'lodash';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -471,7 +472,7 @@ const getObservedBandwidth = (fingerprint: string) => {
   );
 };
 
-console.log();
+// console.log();
 
 const handleUnlockClick = async (fingerprint: string) => {
   isUnlocking.value = true;
@@ -526,6 +527,56 @@ const vaults = computed(() => {
 });
 
 const block = await getBlock(config);
+
+const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
+
+const lastDelegateTotal = ref<Record<string, string>>({});
+
+const displayDelegateRewards = computed(
+  () => (row: RelayRow) =>
+    formatEtherNoRound(lastDelegateTotal.value[row.fingerprint] || '0')
+);
+
+const fetchDelegateTotalForRow = debounce(async (fingerprint: string) => {
+  // if (!lastDelegateTotal.value[fingerprint]) {
+  const delegateTotal = await fetchDelegateTotal(fingerprint);
+  lastDelegateTotal.value = {
+    ...lastDelegateTotal.value,
+    [fingerprint]: delegateTotal,
+    // };
+  };
+}, 300);
+
+const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
+  try {
+    const { result } = await sendAosDryRun({
+      processId: relayRewardsProcessId,
+      tags: [
+        { name: 'Action', value: 'Last-Round-Data' },
+        { name: 'Fingerprint', value: fingerprint },
+      ],
+    });
+    // console.log('Fetch DelegateTotal result:', result);
+
+    if (!result.Messages.length || !result.Messages[0].Data) {
+      console.error(`No data found for fingerprint: ${fingerprint}`);
+      return '0';
+    }
+
+    const data = JSON.parse(result.Messages[0].Data);
+
+    // console.log('DelegateTotal data:', data);
+
+    const delegateTotal = data.Details?.Reward?.DelegateTotal;
+
+    // console.log(`DelegateTotal for ${fingerprint}:`, delegateTotal);
+
+    return delegateTotal ? BigNumber(delegateTotal).toString() : '0';
+  } catch (error) {
+    console.error(`Error fetching DelegateTotal for ${fingerprint}:`, error);
+    return '0';
+  }
+};
 </script>
 
 <template>
@@ -764,6 +815,17 @@ const block = await getBlock(config);
                     '-'
                   }}
                 </div>
+                <div
+                  class="text-xs font-normal text-stone-700 dark:text-stone-300"
+                >
+                  <span class="text-gray-800 dark:text-white"
+                    >Delegate Rewards:
+                  </span>
+                  <span v-if="lastDelegateTotal[row.fingerprint]">{{
+                    displayDelegateRewards(row)
+                  }}</span>
+                  <span v-else>-</span>
+                </div>
               </div>
               <!-- <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
                 <span class="text-gray-800 dark:text-white">Locked:</span> Your
@@ -771,7 +833,10 @@ const block = await getBlock(config);
               </div> -->
             </template>
             <template #trigger>
-              <div class="-mt-6 cursor-context-menu hover:text-[#24adc3]">
+              <div
+                class="-mt-6 cursor-context-menu hover:text-[#24adc3]"
+                @mouseover="fetchDelegateTotalForRow(row.fingerprint)"
+              >
                 <Icon name="heroicons:exclamation-circle" />
               </div>
             </template>
