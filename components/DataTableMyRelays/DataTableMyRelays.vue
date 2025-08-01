@@ -99,26 +99,19 @@ const lockedRelaysMap = ref<Record<string, boolean | undefined>>({});
 // const lockedRelaysPending = ref<boolean>(true);
 watch(
   [
-    () => lockedRelays.value,
+    () => hodlerStore.locks,
     () => allRelays.value,
     address,
     lockedRelaysPending,
   ],
-  async ([lockedRelays, relays, address]) => {
-    if (lockedRelaysPending.value) {
-      return;
+  async ([locks, relays]) => {
+    if (lockedRelaysPending.value) return;
+    lockedRelaysPending.value = true;
+    let data: Record<string, boolean | undefined> = {};
+    for (const fingerprint of Object.keys(locks)) {
+      data[fingerprint] = true; // All fingerprints in locks are locked
     }
-
-    if (lockedRelays && relays.length) {
-      lockedRelaysPending.value = true;
-      let data: Record<string, boolean | undefined> = {};
-      for (const relay of relays) {
-        const isLocked = lockedRelays[relay.fingerprint] !== undefined;
-        data[relay.fingerprint] = isLocked;
-      }
-      lockedRelaysMap.value = data;
-      lockedRelaysPending.value = false;
-    }
+    lockedRelaysMap.value = data;
     lockedRelaysPending.value = false;
   }
 );
@@ -449,14 +442,14 @@ const filterUniqueRelays = (relays: RelayRow[]) => {
 
 const getTableData = (tab: RelayTabType) => {
   switch (tab) {
+    case 'locked':
+      return Object.keys(hodlerStore.locks).map((fingerprint) => ({
+        fingerprint,
+        nickname: userStore.relaysMeta?.[fingerprint]?.nickname || '-',
+        observedBandwidth: getObservedBandwidth(fingerprint),
+      }));
     case 'all':
       return filterUniqueRelays(allRelays.value);
-    case 'locked':
-      return filterUniqueRelays(
-        allRelays.value.filter((relay) =>
-          hodlerStore.relayIsLocked(relay.fingerprint)
-        )
-      );
     case 'claimable':
       return claimableRelays.value;
     case 'unlocked':
