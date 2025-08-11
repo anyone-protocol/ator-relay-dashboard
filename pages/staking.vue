@@ -85,7 +85,7 @@
               icon: 'i-heroicons-circle-stack-20-solid',
               label: 'No operators.',
             }"
-            :loading="currentTab === 'operators' && operatorRegistryPending"
+            :loading="currentTab === 'operators' && operatorWithDomainsPending"
             :columns="operatorColumns"
             :rows="
               currentTab === 'operators'
@@ -105,6 +105,15 @@
             <template #running-data="{ row }: { row: Operator }">
               <span :class="row.running ? 'text-green-500' : 'text-red-500'"
                 >●</span
+              >
+            </template>
+            <template #domains-data="{ row }: { row: Operator }">
+              <span>
+                {{
+                  row.domains?.length
+                    ? `${row.domains[0].name}${row.domains[0].tld.includes('.') ? row.domains[0].tld : '.' + row.domains[0].tld}`
+                    : '-'
+                }}</span
               >
             </template>
             <template #actions-data="{ row }: { row: Operator }">
@@ -481,6 +490,12 @@ interface Operator {
   redeemableRewards?: string;
   total?: bigint;
   running?: boolean;
+  domains?: {
+    tokenId: string;
+    name: string;
+    owner: string | undefined;
+    tld: string;
+  }[];
 }
 
 interface OperatorRewards {
@@ -528,7 +543,7 @@ const unstakeAmount = computed(
 const totalClaimableAmount = ref<bigint>(0n);
 const searchQuery = ref('');
 const operatorRegistry = useOperatorRegistry();
-const operatorRegistryPending = ref(false);
+// const operatorRegistryPending = ref(false);
 const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
 const selectedOperator = ref<Operator | null>(null);
 const operatorRewards = ref<OperatorRewards[]>([]);
@@ -695,6 +710,7 @@ const operatorColumns = computed(() => {
       { key: 'amount', label: 'Your stake', sortable: true },
       { key: 'total', label: 'Total Stakes', sortable: true },
       { key: 'running', label: 'Running', sortable: true },
+      { key: 'domains', label: 'Domains', sortable: true },
       { key: 'redeemableRewards', label: 'Rewards', sortable: true },
       { key: 'actions', label: 'Actions' },
     ];
@@ -704,6 +720,7 @@ const operatorColumns = computed(() => {
     { key: 'amount', label: 'Your stake', sortable: true },
     { key: 'total', label: 'Total Stakes', sortable: true },
     { key: 'running', label: 'Running', sortable: true },
+    { key: 'domains', label: 'Domains', sortable: true },
     { key: 'actions', label: 'Actions' },
   ];
 });
@@ -1125,16 +1142,12 @@ const updateOperators = async () => {
     return;
   }
   try {
-    operatorRegistryPending.value = true;
-    const state = await operatorRegistry.viewState();
-    const verifiedFingerprints =
-      state?.VerifiedFingerprintsToOperatorAddresses || {};
-    const registryOperators = Array.from(
-      new Set(Object.values(verifiedFingerprints))
-    ).map((address) => ({
-      operator: address as `0x${string}`,
-      amount: 0n,
-    }));
+    const operators =
+      operatorWithDomains.value?.map((op) => ({
+        ...op,
+        operator: op.address as `0x${string}`,
+        amount: 0n,
+      })) || [];
 
     const normalizedStakedOperators = stakedOperators.value.map((op) => ({
       ...op,
@@ -1143,10 +1156,10 @@ const updateOperators = async () => {
 
     const combinedOperators = [
       ...normalizedStakedOperators,
-      ...registryOperators.filter(
-        (regOp) =>
+      ...operators.filter(
+        (op) =>
           !normalizedStakedOperators.some(
-            (stakeOp) => stakeOp.operator === regOp.operator
+            (stakeOp) => stakeOp.operator === op.operator
           )
       ),
     ];
@@ -1190,8 +1203,6 @@ const updateOperators = async () => {
       );
   } catch (error) {
     console.error('OperatorRegistryError:', error);
-  } finally {
-    operatorRegistryPending.value = false;
   }
 };
 
@@ -1247,4 +1258,37 @@ watch(isConfirmed, (confirmed) => {
     }
   }
 });
+
+const operatorsEndpoint = runtimeConfig.public.operatorsEndpoint;
+
+interface OperatorWithDomain {
+  address: string;
+  domains?: {
+    tokenId: string;
+    name: string;
+    owner: string | undefined;
+    tld: string;
+  }[];
+}
+
+const getAllOperators = async () => {
+  try {
+    const response = await fetch(
+      `${operatorsEndpoint}/operators?withDomains=true`
+    );
+
+    const data: OperatorWithDomain[] = await response.json();
+    // console.log('Fetched relay operators:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching operators:', error);
+  }
+};
+
+const { data: operatorWithDomains, isPending: operatorWithDomainsPending } =
+  useQuery({
+    queryKey: ['operatorWithDomains'],
+    queryFn: getAllOperators,
+    enabled: computed(() => currentTab.value === 'operators'),
+  });
 </script>
