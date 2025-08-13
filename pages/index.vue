@@ -1091,6 +1091,7 @@ const submitWithdrawForm = async () => {
 };
 
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
+const noClaimableData = ref(false);
 
 const {
   data: claimableData,
@@ -1107,10 +1108,17 @@ const {
         { name: 'Address', value: address.value },
       ],
     });
-    console.log('getRewardedRelayRewards result: ', result);
-    const claimable = new BigNumber(result?.Messages[0]?.Data || '0');
-    console.log('rewarded relay rewards: ', claimable);
-    return claimable;
+    // console.log('getRewardedRelayRewards result: ', result);
+
+    if (!result?.Messages[0]?.Data) {
+      noClaimableData.value = true;
+      return new BigNumber(0);
+    } else {
+      noClaimableData.value = false;
+      const claimable = new BigNumber(result?.Messages[0].Data);
+      console.log('claimable relay rewards: ', claimable);
+      return claimable;
+    }
   },
   enabled: computed(() => !!address.value),
 });
@@ -1119,6 +1127,7 @@ const {
   data: claimedData,
   isPending: claimedDataPending,
   refetch: refetchClaimedRelayRewards,
+  isError: claimedDataError,
 } = useQuery({
   queryKey: ['claimedRelayRewards', address],
   queryFn: async () => {
@@ -1134,6 +1143,7 @@ const {
     if (!result?.Messages[0]?.Data) {
       return new BigNumber(0);
     }
+
     const data = JSON.parse(result?.Messages[0]?.Data);
     const claimed = new BigNumber(data || '0');
     console.log('claimed relay rewards: ', claimed.toString());
@@ -1155,7 +1165,12 @@ const relayRewards = computed(() => {
   const rewarded = claimableData.value;
   const claimed = claimedData.value;
 
-  if (!rewarded?.gt(0) || !claimed?.gt(0)) return new BigNumber(0);
+  // if there is an error getting claimed return 0
+  if (!rewarded?.gt(0) || (claimedDataError.value && !noClaimableData.value))
+    return new BigNumber(0);
+
+  // if there is no data for claimed (0) then just show claimable
+  if (!claimed?.gt(0)) return rewarded;
 
   const claimable = rewarded.minus(claimed);
   console.log('computed rewarded relay rewards: ', claimable?.toString());
