@@ -70,7 +70,8 @@
             color="gray"
             variant="outline"
             icon="i-heroicons-magnifying-glass"
-            placeholder="Search by address"
+            placeholder="Search by address or domain"
+            class="md:w-[15rem]"
           />
         </div>
       </div>
@@ -109,11 +110,7 @@
             </template>
             <template #domains-data="{ row }: { row: Operator }">
               <span>
-                {{
-                  row.domains?.length
-                    ? `${row.domains[0].name}${row.domains[0].tld.includes('.') ? row.domains[0].tld : '.' + row.domains[0].tld}`
-                    : '-'
-                }}</span
+                {{ row.domains?.length ? `${row.domains[0].name}` : '-' }}</span
               >
             </template>
             <template #actions-data="{ row }: { row: Operator }">
@@ -476,6 +473,7 @@ import Popover from '~/components/ui-kit/Popover.vue';
 import Ticker from '~/components/ui-kit/Ticker.vue';
 import { useQuery } from '@tanstack/vue-query';
 import BigNumber from 'bignumber.js';
+import { useDebounceFn } from '@vueuse/core';
 
 interface Vault {
   amount: bigint;
@@ -710,7 +708,7 @@ const operatorColumns = computed(() => {
       { key: 'amount', label: 'Your stake', sortable: true },
       { key: 'total', label: 'Total Stakes', sortable: true },
       { key: 'running', label: 'Running', sortable: true },
-      { key: 'domains', label: 'Domains', sortable: true },
+      { key: 'domains', label: 'Domains' },
       { key: 'redeemableRewards', label: 'Rewards', sortable: true },
       { key: 'actions', label: 'Actions' },
     ];
@@ -720,7 +718,7 @@ const operatorColumns = computed(() => {
     { key: 'amount', label: 'Your stake', sortable: true },
     { key: 'total', label: 'Total Stakes', sortable: true },
     { key: 'running', label: 'Running', sortable: true },
-    { key: 'domains', label: 'Domains', sortable: true },
+    { key: 'domains', label: 'Domains' },
     { key: 'actions', label: 'Actions' },
   ];
 });
@@ -1123,7 +1121,9 @@ const filteredStakedOperators = computed(() => {
   if (!isConnected.value) return [];
   return stakedOperators.value
     .filter((op) =>
-      op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
+      op.operator
+        .toLowerCase()
+        .includes(debouncedSearchQuery.value.toLowerCase())
     )
     .map((op) => {
       const operatorData = allOperators.value.find(
@@ -1136,6 +1136,17 @@ const filteredStakedOperators = computed(() => {
       };
     });
 });
+
+const debouncedSearchQuery = ref('');
+
+const debouncedSearch = useDebounceFn((value: string) => {
+  debouncedSearchQuery.value = value;
+}, 300);
+
+watch(searchQuery, (newValue) => {
+  debouncedSearch(newValue);
+});
+
 const updateOperators = async () => {
   if (!isConnected.value) {
     allOperators.value = [];
@@ -1164,8 +1175,6 @@ const updateOperators = async () => {
       ),
     ];
 
-    // console.log('Staking snapshot data: ', toRaw(stakingSnapshot.value));
-
     const normalizedStakes = stakingSnapshot.value?.Stakes
       ? Object.fromEntries(
           Object.entries(stakingSnapshot.value.Stakes).map(([addr, amount]) => [
@@ -1184,12 +1193,13 @@ const updateOperators = async () => {
         )
       : {};
 
+    const threshold = runningThreshold.value ?? 0.5;
+
     allOperators.value = combinedOperators
       .map((op) => {
         const networkData = normalizedNetwork[op.operator];
-        const running = networkData?.running;
-        const expected = networkData?.expected;
-        const threshold = runningThreshold.value ?? 0.5;
+        const running = networkData?.running || 0;
+        const expected = networkData?.expected || 0;
         return {
           ...op,
           total: normalizedStakes[op.operator]
@@ -1198,15 +1208,25 @@ const updateOperators = async () => {
           running: expected > 0 ? running / expected >= threshold : false,
         };
       })
-      .filter((op) =>
-        op.operator.toLowerCase().includes(searchQuery.value.toLowerCase())
-      );
+      .filter((op) => {
+        if (!debouncedSearchQuery.value) return true;
+        if (debouncedSearchQuery.value.startsWith('0x')) {
+          return op.operator
+            .toLowerCase()
+            .includes(debouncedSearchQuery.value.toLowerCase());
+        }
+        return op.domains?.some((domain) =>
+          domain.name
+            .toLowerCase()
+            .includes(debouncedSearchQuery.value.toLowerCase())
+        );
+      });
   } catch (error) {
     console.error('OperatorRegistryError:', error);
   }
 };
 
-watch([stakedOperators, searchQuery], updateOperators);
+watch([stakedOperators, debouncedSearchQuery], updateOperators);
 watch(currentTab, (newTab) => {
   if (newTab === 'operators' || newTab === 'stakedOperators') updateOperators();
   if (newTab === 'vaults') updateTotalClaimable();
@@ -1278,7 +1298,8 @@ const getAllOperators = async () => {
     );
 
     const data: OperatorWithDomain[] = await response.json();
-    // console.log('Fetched relay operators:', data);
+
+    console.log('Fetched relay operators:', data);
     return data;
   } catch (error) {
     console.error('Error fetching operators:', error);
