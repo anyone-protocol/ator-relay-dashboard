@@ -1279,7 +1279,7 @@ watch(isConfirmed, (confirmed) => {
   }
 });
 
-const operatorsEndpoint = runtimeConfig.public.operatorsEndpoint;
+const metricsAPI = runtimeConfig.public.centralizedMetricsAPI;
 
 interface OperatorWithDomain {
   address: string;
@@ -1293,9 +1293,7 @@ interface OperatorWithDomain {
 
 const getAllOperators = async () => {
   try {
-    const response = await fetch(
-      `${operatorsEndpoint}/operators?withDomains=true`
-    );
+    const response = await fetch(`${metricsAPI}/operators?withDomains=true`);
 
     const data: OperatorWithDomain[] = await response.json();
 
