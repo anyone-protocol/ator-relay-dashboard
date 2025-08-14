@@ -75,7 +75,7 @@ export default defineAppConfig({
       },
       td: {
         padding: 'p-2',
-        base: 'min-h-11',
+        base: 'min-h-11 pl-4',
         color: 'text-cyan-900 dark:text-cyan-100',
       },
       tbody: 'divide-y divide-neutral-200 dark:divide-neutral-800',
