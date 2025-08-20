@@ -471,7 +471,7 @@ import { getBlock, getChainId } from '@wagmi/core';
 import { config } from '~/config/wagmi.config';
 import Popover from '~/components/ui-kit/Popover.vue';
 import Ticker from '~/components/ui-kit/Ticker.vue';
-import { useQuery } from '@tanstack/vue-query';
+import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import BigNumber from 'bignumber.js';
 import { useDebounceFn } from '@vueuse/core';
 
@@ -500,6 +500,8 @@ interface OperatorRewards {
   operator: string;
   redeemable: string;
 }
+
+const queryClient = useQueryClient();
 
 const { address, isConnected } = useAccount();
 const currentWriteAction = ref<
@@ -1297,17 +1299,47 @@ const getAllOperators = async () => {
 
     const data: OperatorWithDomain[] = await response.json();
 
-    console.log('Fetched relay operators:', data);
+    // console.log('Fetched relay operators:', data);
     return data;
   } catch (error) {
     console.error('Error fetching operators:', error);
   }
 };
 
-const { data: operatorWithDomains, isPending: operatorWithDomainsPending } =
-  useQuery({
-    queryKey: ['operatorWithDomains'],
-    queryFn: getAllOperators,
-    enabled: computed(() => currentTab.value === 'operators'),
-  });
+const { cacheOperators, getCachedOperators, clearCachedOperators } =
+  useOperatorCache();
+
+const {
+  data: operatorWithDomains,
+  isPending: operatorWithDomainsPending,
+  isSuccess: operatorWithDomainsSuccess,
+} = useQuery({
+  queryKey: ['operatorWithDomains'],
+  queryFn: getAllOperators,
+  enabled: computed(() => currentTab.value === 'operators'),
+  initialData: () => {
+    if (process.client) {
+      const cached = getCachedOperators();
+      return cached instanceof Promise ? undefined : cached;
+    }
+    return undefined;
+  },
+  staleTime: 1000 * 60 * 5,
+  gcTime: Infinity,
+});
+
+watch(operatorWithDomainsSuccess, (newData) => {
+  if (newData && operatorWithDomains.value?.length) {
+    cacheOperators(operatorWithDomains.value);
+  }
+});
+
+onMounted(async () => {
+  if (process.client && currentTab.value === 'operators') {
+    const cached = await getCachedOperators();
+    if (cached) {
+      queryClient.setQueryData(['operatorWithDomains'], cached);
+    }
+  }
+});
 </script>
