@@ -109,9 +109,36 @@
               >
             </template>
             <template #domains-data="{ row }: { row: Operator }">
-              <span>
-                {{ row.domains?.length ? `${row.domains[0].name}` : '-' }}</span
-              >
+              <div class="flex items-center gap-1">
+                <span>
+                  {{
+                    row.domains?.length ? `${row.domains[0].name}` : '-'
+                  }}</span
+                >
+                <Popover
+                  placement="left"
+                  :arrow="false"
+                  class="h-max grid place-items-center"
+                  v-if="row.domains?.length"
+                >
+                  <template #content>
+                    <ul class="flex flex-col gap-2">
+                      <li v-for="domain in row.domains" :key="domain.tokenId">
+                        {{ domain.name }}
+                      </li>
+                    </ul>
+                  </template>
+                  <template #trigger>
+                    <UButton
+                      v-if="row.domains?.length"
+                      class="w-4 h-4 p-2 text-[12px]"
+                      variant="soft"
+                    >
+                      {{ row.domains.length }}
+                    </UButton>
+                  </template>
+                </Popover>
+              </div>
             </template>
             <template #actions-data="{ row }: { row: Operator }">
               <UDropdown
@@ -471,7 +498,7 @@ import { getBlock, getChainId } from '@wagmi/core';
 import { config } from '~/config/wagmi.config';
 import Popover from '~/components/ui-kit/Popover.vue';
 import Ticker from '~/components/ui-kit/Ticker.vue';
-import { useQuery } from '@tanstack/vue-query';
+import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import BigNumber from 'bignumber.js';
 import { useDebounceFn } from '@vueuse/core';
 
@@ -500,6 +527,8 @@ interface OperatorRewards {
   operator: string;
   redeemable: string;
 }
+
+const queryClient = useQueryClient();
 
 const { address, isConnected } = useAccount();
 const currentWriteAction = ref<
@@ -1120,19 +1149,34 @@ const claimTokens = async (available: bigint) => {
 const filteredStakedOperators = computed(() => {
   if (!isConnected.value) return [];
   return stakedOperators.value
-    .filter((op) =>
-      op.operator
-        .toLowerCase()
-        .includes(debouncedSearchQuery.value.toLowerCase())
-    )
+    .filter((op) => {
+      if (!debouncedSearchQuery.value) return true;
+      if (debouncedSearchQuery.value.startsWith('0x')) {
+        return op.operator
+          .toLowerCase()
+          .includes(debouncedSearchQuery.value.toLowerCase());
+      }
+      const operatorData = allOperators.value.find(
+        (aOp) => aOp.operator === op.operator
+      );
+      return (
+        operatorData?.domains?.some((domain) =>
+          domain.name
+            .toLowerCase()
+            .includes(debouncedSearchQuery.value.toLowerCase())
+        ) || false
+      );
+    })
     .map((op) => {
       const operatorData = allOperators.value.find(
         (aOp) => aOp.operator === op.operator
       );
+      // console.log(`operatorData for ${op.operator}: `, operatorData);
       return {
         ...op,
         total: operatorData?.total ?? 0n,
         running: operatorData?.running ?? false,
+        domains: operatorData?.domains ?? [],
       };
     });
 });
@@ -1153,6 +1197,11 @@ const updateOperators = async () => {
     return;
   }
   try {
+    const operatorsMap = new Map(
+      operatorWithDomains.value?.map((op) => [op.address.toUpperCase(), op]) ||
+        []
+    );
+
     const operators =
       operatorWithDomains.value?.map((op) => ({
         ...op,
@@ -1160,10 +1209,15 @@ const updateOperators = async () => {
         amount: 0n,
       })) || [];
 
-    const normalizedStakedOperators = stakedOperators.value.map((op) => ({
-      ...op,
-      operator: `0x${op.operator.slice(2).toUpperCase()}` as `0x${string}`,
-    }));
+    const normalizedStakedOperators = stakedOperators.value.map((op) => {
+      const upperOp = op.operator.toUpperCase();
+      const mappedOp = operatorsMap.get(upperOp);
+      return {
+        ...op,
+        operator: `0x${upperOp.slice(2)}` as `0x${string}`,
+        domains: mappedOp?.domains ?? [],
+      };
+    });
 
     const combinedOperators = [
       ...normalizedStakedOperators,
@@ -1297,17 +1351,47 @@ const getAllOperators = async () => {
 
     const data: OperatorWithDomain[] = await response.json();
 
-    console.log('Fetched relay operators:', data);
+    // console.log('Fetched relay operators:', data);
     return data;
   } catch (error) {
     console.error('Error fetching operators:', error);
   }
 };
 
-const { data: operatorWithDomains, isPending: operatorWithDomainsPending } =
-  useQuery({
-    queryKey: ['operatorWithDomains'],
-    queryFn: getAllOperators,
-    enabled: computed(() => currentTab.value === 'operators'),
-  });
+const { cacheOperators, getCachedOperators, clearCachedOperators } =
+  useOperatorCache();
+
+const {
+  data: operatorWithDomains,
+  isPending: operatorWithDomainsPending,
+  isSuccess: operatorWithDomainsSuccess,
+} = useQuery({
+  queryKey: ['operatorWithDomains'],
+  queryFn: getAllOperators,
+  enabled: computed(() => currentTab.value === 'operators'),
+  initialData: () => {
+    if (process.client) {
+      const cached = getCachedOperators();
+      return cached instanceof Promise ? undefined : cached;
+    }
+    return undefined;
+  },
+  staleTime: 1000 * 60 * 5,
+  gcTime: Infinity,
+});
+
+watch(operatorWithDomainsSuccess, (newData) => {
+  if (newData && operatorWithDomains.value?.length) {
+    cacheOperators(operatorWithDomains.value);
+  }
+});
+
+onMounted(async () => {
+  if (process.client && currentTab.value === 'operators') {
+    const cached = await getCachedOperators();
+    if (cached) {
+      queryClient.setQueryData(['operatorWithDomains'], cached);
+    }
+  }
+});
 </script>
