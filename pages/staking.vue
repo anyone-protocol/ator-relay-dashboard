@@ -82,6 +82,8 @@
         </template>
         <template v-slot:[currentTab]="{ item }">
           <UTable
+            id="operators-table"
+            ref="operatorTableRef"
             :empty-state="{
               icon: 'i-heroicons-circle-stack-20-solid',
               label: 'No operators.',
@@ -90,7 +92,7 @@
             :columns="operatorColumns"
             :rows="
               currentTab === 'operators'
-                ? allOperators
+                ? visibleOperators
                 : filteredStakedOperators
             "
           >
@@ -501,6 +503,7 @@ import Ticker from '~/components/ui-kit/Ticker.vue';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import BigNumber from 'bignumber.js';
 import { useDebounceFn } from '@vueuse/core';
+import { useTemplateRef } from 'vue';
 
 interface Vault {
   amount: bigint;
@@ -1185,7 +1188,7 @@ const debouncedSearchQuery = ref('');
 
 const debouncedSearch = useDebounceFn((value: string) => {
   debouncedSearchQuery.value = value;
-}, 300);
+}, 100);
 
 watch(searchQuery, (newValue) => {
   debouncedSearch(newValue);
@@ -1392,6 +1395,66 @@ onMounted(async () => {
     if (cached) {
       queryClient.setQueryData(['operatorWithDomains'], cached);
     }
+  }
+});
+
+const operatorTableRef = useTemplateRef('operatorTableRef');
+const visibleItems = ref(50);
+const itemsPerLoad = 50;
+
+const visibleOperators = computed(() => {
+  return (
+    currentTab.value === 'operators'
+      ? allOperators.value
+      : filteredStakedOperators.value
+  ).slice(0, visibleItems.value);
+});
+
+const hasMoreItems = computed(() => {
+  return (
+    visibleItems.value <
+    (currentTab.value === 'operators'
+      ? allOperators.value
+      : filteredStakedOperators.value
+    ).length
+  );
+});
+
+const handleScroll = () => {
+  if (!operatorTableRef.value) return;
+
+  const wrapper = operatorTableRef.value.$el;
+  const { scrollTop, scrollHeight, clientHeight } = wrapper;
+
+  // console.log('Scroll event:', { visibleItems: visibleItems.value });
+
+  if (scrollHeight - scrollTop - clientHeight < 100 && hasMoreItems.value) {
+    // console.log('Loading more items...');
+    visibleItems.value += itemsPerLoad;
+    nextTick(() => {
+      wrapper.scrollTop = scrollTop; // Maintain scroll position
+    });
+  }
+};
+
+watch(
+  [allOperators, filteredStakedOperators, currentTab],
+  async () => {
+    if (process.client && operatorTableRef.value) {
+      await nextTick(); // Ensure DOM is updated
+      visibleItems.value = 50; // Reset on tab change
+      operatorTableRef.value.$el.addEventListener('scroll', handleScroll);
+      return () => {
+        operatorTableRef.value?.$el.removeEventListener('scroll', handleScroll);
+      };
+    }
+  },
+  { immediate: true }
+);
+
+onUnmounted(() => {
+  if (process.client && operatorTableRef.value) {
+    operatorTableRef.value.$el.removeEventListener('scroll', handleScroll);
   }
 });
 </script>

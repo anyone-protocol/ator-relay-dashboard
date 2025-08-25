@@ -60,7 +60,7 @@
     "secp256k1": "^5.0.1",
     "tweetnacl-util": "^0.15.1",
     "viem": "^2.31.7",
-    "vue": "3.4.21",
+    "vue": "latest",
     "vue-router": "4.3.0",
     "vuetify": "3.7.19",
     "warp-contracts": "1.4.21",
