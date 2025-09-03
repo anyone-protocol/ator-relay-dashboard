@@ -265,7 +265,13 @@
                     </UButton>
                   </div>
                   <span
-                    v-if="amountExceedsAvailable"
+                    v-if="amountExceedsWallet"
+                    class="text-xs text-red-600 dark:text-red-300"
+                  >
+                    Chosen amount exceeds wallet balance.
+                  </span>
+                  <span
+                    v-if="amountExceedsAvailable && !amountExceedsWallet"
                     class="text-xs text-amber-600 dark:text-amber-300"
                   >
                     Chosen amount exceeds available balance. Amount will be
@@ -814,6 +820,17 @@ const stakedMaxOptions = ['wallet', 'available'];
 const stakedMaxSelected = ref<MaxStakeOption>(
   stakedMaxOptions[0] as MaxStakeOption
 );
+
+const amountExceedsWallet = computed(() => {
+  if (stakeAmount.value === '0') return false;
+  if (!tokenBalance.value?.value) return false;
+
+  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
+  const walletBalance = new BigNumber(
+    parseEther(formatEtherNoRound(tokenBalance.value.value)).toString()
+  );
+  return amount.isGreaterThan(walletBalance);
+});
 
 const amountExceedsAvailable = computed(() => {
   if (stakeAmount.value === '0') return false;
