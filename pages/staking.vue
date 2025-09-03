@@ -88,7 +88,7 @@
               icon: 'i-heroicons-circle-stack-20-solid',
               label: 'No operators.',
             }"
-            :loading="currentTab === 'operators' && operatorWithDomainsPending"
+            :loading="currentTab === 'operators' && operatorsWithDomainsPending"
             :columns="operatorColumns"
             :rows="
               currentTab === 'operators'
@@ -290,7 +290,7 @@
                     </UButton>
                     <UButton
                       :loading="isStaking"
-                      :disabled="!parseFloat(stakeAmount)"
+                      :disabled="isSubmitting || !isValidStakeInput()"
                       type="submit"
                       size="xs"
                       variant="solid"
@@ -362,7 +362,7 @@
                       Cancel
                     </UButton>
                     <UButton
-                      :disabled="!unstakeAmount"
+                      :disabled="!isValidUnstakeInput()"
                       :loading="isUnstaking"
                       type="submit"
                       size="xs"
@@ -504,6 +504,7 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import BigNumber from 'bignumber.js';
 import { useDebounceFn } from '@vueuse/core';
 import { useTemplateRef } from 'vue';
+import { isValidNumericInput } from '~/utils/validate';
 
 interface Vault {
   amount: bigint;
@@ -854,6 +855,27 @@ const validateMaxStake = () => {
   }
 };
 
+const isValidStakeInput = () => {
+  if (!stakeInput.value || !isValidNumericInput(stakeInput.value)) return false;
+  const cleanedValue = stakeInput.value.replace(/,/g, '').trim();
+  const amount = new BigNumber(parseEther(cleanedValue).toString());
+  const walletBalance = tokenBalance.value?.value
+    ? new BigNumber(tokenBalance.value.value.toString())
+    : new BigNumber(0);
+  return amount.isGreaterThan(0) && amount.isLessThanOrEqualTo(walletBalance);
+};
+
+const isValidUnstakeInput = () => {
+  if (!unstakeInput.value || !isValidNumericInput(unstakeInput.value))
+    return false;
+  const cleanedValue = unstakeInput.value.replace(/,/g, '').trim();
+  const amount = new BigNumber(parseEther(cleanedValue).toString());
+  const stakedAmount = selectedOperator.value?.amount
+    ? new BigNumber(selectedOperator.value.amount.toString())
+    : new BigNumber(0);
+  return amount.isGreaterThan(0) && amount.isLessThanOrEqualTo(stakedAmount);
+};
+
 const block = await getBlock(config);
 
 watch(stakeDialogOpen, (open) => {
@@ -1201,12 +1223,12 @@ const updateOperators = async () => {
   }
   try {
     const operatorsMap = new Map(
-      operatorWithDomains.value?.map((op) => [op.address.toUpperCase(), op]) ||
+      operatorsWithDomains.value?.map((op) => [op.address.toUpperCase(), op]) ||
         []
     );
 
     const operators =
-      operatorWithDomains.value?.map((op) => ({
+      operatorsWithDomains.value?.map((op) => ({
         ...op,
         operator: op.address as `0x${string}`,
         amount: 0n,
@@ -1354,7 +1376,7 @@ const getAllOperators = async () => {
 
     const data: OperatorWithDomain[] = await response.json();
 
-    // console.log('Fetched relay operators:', data);
+    console.log('Fetched relay operators:', data);
     return data;
   } catch (error) {
     console.error('Error fetching operators:', error);
@@ -1365,11 +1387,11 @@ const { cacheOperators, getCachedOperators, clearCachedOperators } =
   useOperatorCache();
 
 const {
-  data: operatorWithDomains,
-  isPending: operatorWithDomainsPending,
-  isSuccess: operatorWithDomainsSuccess,
+  data: operatorsWithDomains,
+  isPending: operatorsWithDomainsPending,
+  isSuccess: operatorsWithDomainsSuccess,
 } = useQuery({
-  queryKey: ['operatorWithDomains'],
+  queryKey: ['operatorsWithDomains'],
   queryFn: getAllOperators,
   enabled: computed(() => currentTab.value === 'operators'),
   initialData: () => {
@@ -1383,9 +1405,9 @@ const {
   gcTime: Infinity,
 });
 
-watch(operatorWithDomainsSuccess, (newData) => {
-  if (newData && operatorWithDomains.value?.length) {
-    cacheOperators(operatorWithDomains.value);
+watch(operatorsWithDomainsSuccess, (newData) => {
+  if (newData && operatorsWithDomains.value?.length) {
+    cacheOperators(operatorsWithDomains.value);
   }
 });
 
@@ -1393,7 +1415,7 @@ onMounted(async () => {
   if (process.client && currentTab.value === 'operators') {
     const cached = await getCachedOperators();
     if (cached) {
-      queryClient.setQueryData(['operatorWithDomains'], cached);
+      queryClient.setQueryData(['operatorsWithDomains'], cached);
     }
   }
 });
