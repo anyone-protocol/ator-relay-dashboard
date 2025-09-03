@@ -20,6 +20,9 @@ import { useHodler } from '~/composables/hodler';
 import { hodlerAbi } from '~/assets/abi/hodler';
 import { getBlock } from '@wagmi/core';
 import { debounce } from 'lodash';
+import { useQueries } from '@tanstack/vue-query';
+import type { LastRoundData } from '~/composables/relay-rewards';
+import Ticker from '../ui-kit/Ticker.vue';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -40,6 +43,85 @@ const { allRelays, claimableRelays } = storeToRefs(userStore);
 
 const { address, isConnected } = useAccount({ config } as any);
 const registerModalOpen = ref(false);
+
+const runtimeConfig = useRuntimeConfig();
+const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
+
+// The user's relays
+const fingerprints = computed(() => {
+  return allRelays.value.map((relay) => relay.fingerprint);
+});
+
+const getLastRoundData = async (fingerprint: string) => {
+  console.log('Fetching last round data for fingerprint:', fingerprint);
+  try {
+    const { result } = await sendAosDryRun({
+      processId: relayRewardsProcessId,
+      tags: [
+        { name: 'Action', value: 'Last-Round-Data' },
+        { name: 'Fingerprint', value: fingerprint },
+      ],
+    });
+
+    if (result.Error) {
+      console.error('AOS Error: ' + result.Error);
+      return null;
+    }
+    if (!result.Messages.length || !result.Messages[0].Data) {
+      console.error(`No data found for fingerprint: ${fingerprint}`);
+      return null;
+    }
+
+    console.log('Last round result:', result.Messages[0].Data);
+    return JSON.parse(result.Messages[0].Data) as LastRoundData;
+  } catch (error) {
+    console.error('Error fetching last round data:', error);
+    return null;
+  }
+};
+
+const lastRoundResults = useQueries({
+  queries: computed(() =>
+    fingerprints.value.map((fp) => ({
+      queryKey: ['lastRound', fp],
+      queryFn: () => getLastRoundData(fp),
+      enabled: !!fp,
+    }))
+  ),
+});
+
+const lastRound = computed(() => {
+  const rounds: Record<string, LastRoundData> = {};
+  lastRoundResults.value.forEach((query, index) => {
+    console.log('Last round query result:', toRaw(query.data));
+    if (query.data) {
+      rounds[fingerprints.value[index]] = query.data;
+    }
+  });
+  return rounds;
+});
+
+const lastRoundPending = computed(() =>
+  lastRoundResults.value.some((q) => q.isPending)
+);
+const lastRoundSuccess = computed(() =>
+  lastRoundResults.value.every((q) => q.isSuccess)
+);
+
+// watch(lastRound, (newRounds) => {
+//   if (newRounds) {
+//     console.log('Last round data:', toRaw(newRounds));
+
+//     fingerprints.value.forEach((fp) => {
+//       if (newRounds[fp]) {
+//         console.log(
+//           `Last round details for ${fp}:`,
+//           toRaw(newRounds[fp].Details)
+//         );
+//       }
+//     });
+//   }
+// });
 
 onMounted(() => {
   // refresh everything every 60 seconds
@@ -147,11 +229,6 @@ if ((allRelaysError as any).value?.cause?.message == 'rate limited') {
 const timestamp = computed(
   () => metricsStore.relays.timestamp && new Date(metricsStore.relays.timestamp)
 );
-
-// The user's relays
-const fingerprints = computed(() => {
-  return allRelays.value.map((relay) => relay.fingerprint);
-});
 
 const relayAction = async (
   action: 'claim' | 'renounce',
@@ -480,7 +557,6 @@ const handleUnlockClick = async (fingerprint: string) => {
   }
 };
 
-const runtimeConfig = useRuntimeConfig();
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 
 const {
@@ -520,56 +596,6 @@ const vaults = computed(() => {
 });
 
 const block = await getBlock(config);
-
-const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
-
-const lastDelegateTotal = ref<Record<string, string>>({});
-
-const displayDelegateRewards = computed(
-  () => (row: RelayRow) =>
-    formatEtherNoRound(lastDelegateTotal.value[row.fingerprint] || '0')
-);
-
-const fetchDelegateTotalForRow = debounce(async (fingerprint: string) => {
-  // if (!lastDelegateTotal.value[fingerprint]) {
-  const delegateTotal = await fetchDelegateTotal(fingerprint);
-  lastDelegateTotal.value = {
-    ...lastDelegateTotal.value,
-    [fingerprint]: delegateTotal,
-    // };
-  };
-}, 300);
-
-const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
-  try {
-    const { result } = await sendAosDryRun({
-      processId: relayRewardsProcessId,
-      tags: [
-        { name: 'Action', value: 'Last-Round-Data' },
-        { name: 'Fingerprint', value: fingerprint },
-      ],
-    });
-    // console.log('Fetch DelegateTotal result:', result);
-
-    if (!result.Messages.length || !result.Messages[0].Data) {
-      console.error(`No data found for fingerprint: ${fingerprint}`);
-      return '0';
-    }
-
-    const data = JSON.parse(result.Messages[0].Data);
-
-    // console.log('DelegateTotal data:', data);
-
-    const delegateTotal = data.Details?.Reward?.DelegateTotal;
-
-    // console.log(`DelegateTotal for ${fingerprint}:`, delegateTotal);
-
-    return delegateTotal ? BigNumber(delegateTotal).toString() : '0';
-  } catch (error) {
-    console.error(`Error fetching DelegateTotal for ${fingerprint}:`, error);
-    return '0';
-  }
-};
 </script>
 
 <template>
@@ -713,13 +739,21 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
           </Popover>
         </div>
       </template>
-      <template #previousDistribution-data="{ row }">
+      <template #previousDistribution-data="{ row }: { row: RelayRow }">
         <div class="relative flex gap-1 items-center">
           {{
-            // facilitatorStore?.distributionPerRelay?.[row.fingerprint] ||
-            '-'
+            formatEtherNoRound(
+              new BigNumber(
+                lastRound[row.fingerprint].Details.Reward.Total || '0'
+              ).toString()
+            ) || '-'
           }}
-          <Popover placement="right" :arrow="false" mode="hover">
+          <Popover
+            placement="right"
+            :arrow="false"
+            mode="hover"
+            :disabled="lastRoundPending"
+          >
             <template #content>
               <div class="p-1 px-4">
                 <div
@@ -728,10 +762,12 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
                   <span class="text-gray-800 dark:text-white"
                     >Base Tokens:</span
                   >
-
                   {{
-                    // facilitatorStore?.baseTokensPerRelay?.[row.fingerprint] ||
-                    '-'
+                    `${formatEtherNoRound(
+                      new BigNumber(
+                        lastRound[row.fingerprint].Details.Reward.Total || '0'
+                      ).toString()
+                    )} $ANYONE` || '-'
                   }}
                 </div>
                 <div
@@ -741,9 +777,13 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
                     >Family Multiplier:</span
                   >
                   {{
-                    // facilitatorStore?.multipliersPerRelay?.[row.fingerprint]?.family ||
-                    '-'
-                  }}x
+                    formatEtherNoRound(
+                      new BigNumber(
+                        lastRound[row.fingerprint].Details.Variables
+                          .FamilyMultiplier || '0'
+                      ).toString()
+                    ) || '-'
+                  }}
                 </div>
                 <div
                   class="text-xs font-normal text-gray-600 dark:text-gray-300 mb-2"
@@ -752,9 +792,13 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
                     >Region Multiplier:</span
                   >
                   {{
-                    // facilitatorStore?.multipliersPerRelay?.[row.fingerprint]?.region ||
-                    '-'
-                  }}x
+                    formatEtherNoRound(
+                      new BigNumber(
+                        lastRound[row.fingerprint].Details.Variables
+                          .LocationMultiplier || '0'
+                      ).toString()
+                    ) || '-'
+                  }}
                 </div>
                 <div
                   class="text-xs font-normal text-cyan-600 dark:text-cyan-300"
@@ -763,8 +807,12 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
                     >Hardware Bonus:</span
                   >
                   {{
-                    // facilitatorStore?.bonusesPerRelay?.[row.fingerprint]?.hardware ||
-                    '-'
+                    `${formatEtherNoRound(
+                      new BigNumber(
+                        lastRound[row.fingerprint].Details.Reward.Hardware ||
+                          '0'
+                      ).toString()
+                    )} $ANYONE` || '-'
                   }}
                 </div>
                 <div
@@ -774,8 +822,11 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
                     >Uptime Bonus:</span
                   >
                   {{
-                    // facilitatorStore?.bonusesPerRelay?.[row.fingerprint]?.quality ||
-                    '-'
+                    `${formatEtherNoRound(
+                      new BigNumber(
+                        lastRound[row.fingerprint].Details.Reward.Uptime || '0'
+                      ).toString()
+                    )} $ANYONE` || '-'
                   }}
                 </div>
                 <div
@@ -783,8 +834,12 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
                 >
                   <span class="text-gray-800 dark:text-white">Exit Bonus:</span>
                   {{
-                    // facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
-                    '-'
+                    `${formatEtherNoRound(
+                      new BigNumber(
+                        lastRound[row.fingerprint].Details.Reward.ExitBonus ||
+                          '0'
+                      ).toString()
+                    )} $ANYONE` || '-'
                   }}
                 </div>
 
@@ -793,8 +848,7 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
                 >
                   <span class="text-gray-800 dark:text-white">Period:</span>
                   {{
-                    // facilitatorStore?.previousDistributions[0]?.period / 60 +' minutes' ||
-                    '-'
+                    lastRound[row.fingerprint].Period / 60 + ' minutes' || '-'
                   }}
                 </div>
                 <div
@@ -804,8 +858,7 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
                     >Last Distribution:</span
                   >
                   {{
-                    // facilitatorStore?.lastDistributionTimePerRelay?.[row.fingerprint] ||
-                    '-'
+                    formatTimeAgo(lastRound[row.fingerprint].Timestamp) || '-'
                   }}
                 </div>
                 <div
@@ -814,10 +867,14 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
                   <span class="text-gray-800 dark:text-white"
                     >Delegate Rewards:
                   </span>
-                  <span v-if="lastDelegateTotal[row.fingerprint]">{{
-                    displayDelegateRewards(row)
+                  <span class="text-gray-800 dark:text-white">{{
+                    formatEtherNoRound(
+                      new BigNumber(
+                        lastRound[row.fingerprint].Details.Reward
+                          .Delegatetotal || '0'
+                      ).toString()
+                    ) || '-'
                   }}</span>
-                  <span v-else>-</span>
                 </div>
               </div>
               <!-- <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
@@ -826,10 +883,7 @@ const fetchDelegateTotal = async (fingerprint: string): Promise<string> => {
               </div> -->
             </template>
             <template #trigger>
-              <div
-                class="-mt-6 cursor-context-menu hover:text-[#24adc3]"
-                @mouseover="fetchDelegateTotalForRow(row.fingerprint)"
-              >
+              <div class="-mt-6 cursor-context-menu hover:text-[#24adc3]">
                 <Icon name="heroicons:exclamation-circle" />
               </div>
             </template>

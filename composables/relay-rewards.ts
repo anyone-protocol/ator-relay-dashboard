@@ -27,6 +27,41 @@ export type RelayRewardsConfiguration = {
   //     }
 };
 
+export type LastRoundData = {
+  Timestamp: number;
+  Period: number;
+  Details: {
+    Address: string;
+    Score: {
+      Network: number;
+      IsHardware: boolean;
+      UptimeStreak: number;
+      ExitBonus: boolean;
+      FamilySize: number;
+      LocationSize: number;
+    };
+    Variables: {
+      FamilyMultiplier: number;
+      LocationMultiplier: number;
+    };
+    Rating: {
+      Network: number;
+      Uptime: number;
+      ExitBonus: number;
+      IsHardware: boolean;
+    };
+    Reward: {
+      Total: string;
+      OperatorTotal: string;
+      Delegatetotal: string;
+      Network: string;
+      Hardware: string;
+      Uptime: string;
+      ExitBonus: string;
+    };
+  };
+};
+
 export type PreviousRound = {
   Timestamp: number;
   Period: number;
