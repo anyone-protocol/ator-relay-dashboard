@@ -251,6 +251,7 @@
                       color="neutral"
                       placeholder="Amount to stake"
                       min="0"
+                      @keypress="restrictKeypress($event)"
                     />
                     <UButton
                       :disabled="!validateMaxStake()"
@@ -339,6 +340,7 @@
                       color="neutral"
                       placeholder="Amount to unstake"
                       min="0"
+                      @keypress="restrictKeypress($event)"
                     />
                     <UButton
                       @click="setMaxUnstake"
@@ -874,6 +876,24 @@ const isValidUnstakeInput = () => {
     ? new BigNumber(selectedOperator.value.amount.toString())
     : new BigNumber(0);
   return amount.isGreaterThan(0) && amount.isLessThanOrEqualTo(stakedAmount);
+};
+
+const restrictKeypress = (event: KeyboardEvent) => {
+  const allowedKeys = /[0-9.,]/;
+  const input = event.target as HTMLInputElement;
+  const value = input.value;
+  // Prevent multiple decimals
+  if (event.key === '.' && value.includes('.')) {
+    event.preventDefault();
+    return;
+  }
+  // Allow control keys (e.g., Backspace, Delete, Arrow keys)
+  if (
+    event.key.length === 1 && // Only check single-character keys
+    !allowedKeys.test(event.key)
+  ) {
+    event.preventDefault();
+  }
 };
 
 const block = await getBlock(config);
