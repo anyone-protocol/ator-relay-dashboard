@@ -88,7 +88,7 @@
               icon: 'i-heroicons-circle-stack-20-solid',
               label: 'No operators.',
             }"
-            :loading="currentTab === 'operators' && operatorWithDomainsPending"
+            :loading="currentTab === 'operators' && operatorsWithDomainsPending"
             :columns="operatorColumns"
             :rows="
               currentTab === 'operators'
@@ -251,6 +251,7 @@
                       color="neutral"
                       placeholder="Amount to stake"
                       min="0"
+                      @keypress="restrictKeypress($event)"
                     />
                     <UButton
                       :disabled="!validateMaxStake()"
@@ -264,7 +265,13 @@
                     </UButton>
                   </div>
                   <span
-                    v-if="amountExceedsAvailable"
+                    v-if="amountExceedsWallet"
+                    class="text-xs text-red-600 dark:text-red-300"
+                  >
+                    Chosen amount exceeds wallet balance.
+                  </span>
+                  <span
+                    v-if="amountExceedsAvailable && !amountExceedsWallet"
                     class="text-xs text-amber-600 dark:text-amber-300"
                   >
                     Chosen amount exceeds available balance. Amount will be
@@ -290,7 +297,7 @@
                     </UButton>
                     <UButton
                       :loading="isStaking"
-                      :disabled="!parseFloat(stakeAmount)"
+                      :disabled="isSubmitting || !isValidStakeInput()"
                       type="submit"
                       size="xs"
                       variant="solid"
@@ -339,6 +346,7 @@
                       color="neutral"
                       placeholder="Amount to unstake"
                       min="0"
+                      @keypress="restrictKeypress($event)"
                     />
                     <UButton
                       @click="setMaxUnstake"
@@ -362,7 +370,7 @@
                       Cancel
                     </UButton>
                     <UButton
-                      :disabled="!unstakeAmount"
+                      :disabled="!isValidUnstakeInput()"
                       :loading="isUnstaking"
                       type="submit"
                       size="xs"
@@ -504,6 +512,7 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import BigNumber from 'bignumber.js';
 import { useDebounceFn } from '@vueuse/core';
 import { useTemplateRef } from 'vue';
+import { isValidNumericInput } from '~/utils/validate';
 
 interface Vault {
   amount: bigint;
@@ -812,6 +821,17 @@ const stakedMaxSelected = ref<MaxStakeOption>(
   stakedMaxOptions[0] as MaxStakeOption
 );
 
+const amountExceedsWallet = computed(() => {
+  if (stakeAmount.value === '0') return false;
+  if (!tokenBalance.value?.value) return false;
+
+  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
+  const walletBalance = new BigNumber(
+    parseEther(formatEtherNoRound(tokenBalance.value.value)).toString()
+  );
+  return amount.isGreaterThan(walletBalance);
+});
+
 const amountExceedsAvailable = computed(() => {
   if (stakeAmount.value === '0') return false;
   if (!hodlerInfo.value?.[0]) return false;
@@ -851,6 +871,45 @@ const validateMaxStake = () => {
     return !!tokenBalance.value?.value;
   } else {
     return !!hodlerInfo.value?.[0];
+  }
+};
+
+const isValidStakeInput = () => {
+  if (!stakeInput.value || !isValidNumericInput(stakeInput.value)) return false;
+  const cleanedValue = stakeInput.value.replace(/,/g, '').trim();
+  const amount = new BigNumber(parseEther(cleanedValue).toString());
+  const walletBalance = tokenBalance.value?.value
+    ? new BigNumber(tokenBalance.value.value.toString())
+    : new BigNumber(0);
+  return amount.isGreaterThan(0) && amount.isLessThanOrEqualTo(walletBalance);
+};
+
+const isValidUnstakeInput = () => {
+  if (!unstakeInput.value || !isValidNumericInput(unstakeInput.value))
+    return false;
+  const cleanedValue = unstakeInput.value.replace(/,/g, '').trim();
+  const amount = new BigNumber(parseEther(cleanedValue).toString());
+  const stakedAmount = selectedOperator.value?.amount
+    ? new BigNumber(selectedOperator.value.amount.toString())
+    : new BigNumber(0);
+  return amount.isGreaterThan(0) && amount.isLessThanOrEqualTo(stakedAmount);
+};
+
+const restrictKeypress = (event: KeyboardEvent) => {
+  const allowedKeys = /[0-9.,]/;
+  const input = event.target as HTMLInputElement;
+  const value = input.value;
+  // Prevent multiple decimals
+  if (event.key === '.' && value.includes('.')) {
+    event.preventDefault();
+    return;
+  }
+  // Allow control keys (e.g., Backspace, Delete, Arrow keys)
+  if (
+    event.key.length === 1 && // Only check single-character keys
+    !allowedKeys.test(event.key)
+  ) {
+    event.preventDefault();
   }
 };
 
@@ -1201,12 +1260,12 @@ const updateOperators = async () => {
   }
   try {
     const operatorsMap = new Map(
-      operatorWithDomains.value?.map((op) => [op.address.toUpperCase(), op]) ||
+      operatorsWithDomains.value?.map((op) => [op.address.toUpperCase(), op]) ||
         []
     );
 
     const operators =
-      operatorWithDomains.value?.map((op) => ({
+      operatorsWithDomains.value?.map((op) => ({
         ...op,
         operator: op.address as `0x${string}`,
         amount: 0n,
@@ -1354,7 +1413,7 @@ const getAllOperators = async () => {
 
     const data: OperatorWithDomain[] = await response.json();
 
-    // console.log('Fetched relay operators:', data);
+    console.log('Fetched relay operators:', data);
     return data;
   } catch (error) {
     console.error('Error fetching operators:', error);
@@ -1365,11 +1424,11 @@ const { cacheOperators, getCachedOperators, clearCachedOperators } =
   useOperatorCache();
 
 const {
-  data: operatorWithDomains,
-  isPending: operatorWithDomainsPending,
-  isSuccess: operatorWithDomainsSuccess,
+  data: operatorsWithDomains,
+  isPending: operatorsWithDomainsPending,
+  isSuccess: operatorsWithDomainsSuccess,
 } = useQuery({
-  queryKey: ['operatorWithDomains'],
+  queryKey: ['operatorsWithDomains'],
   queryFn: getAllOperators,
   enabled: computed(() => currentTab.value === 'operators'),
   initialData: () => {
@@ -1383,9 +1442,9 @@ const {
   gcTime: Infinity,
 });
 
-watch(operatorWithDomainsSuccess, (newData) => {
-  if (newData && operatorWithDomains.value?.length) {
-    cacheOperators(operatorWithDomains.value);
+watch(operatorsWithDomainsSuccess, (newData) => {
+  if (newData && operatorsWithDomains.value?.length) {
+    cacheOperators(operatorsWithDomains.value);
   }
 });
 
@@ -1393,7 +1452,7 @@ onMounted(async () => {
   if (process.client && currentTab.value === 'operators') {
     const cached = await getCachedOperators();
     if (cached) {
-      queryClient.setQueryData(['operatorWithDomains'], cached);
+      queryClient.setQueryData(['operatorsWithDomains'], cached);
     }
   }
 });

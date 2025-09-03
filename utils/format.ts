@@ -65,3 +65,14 @@ export const formatAvailableAt = (availableAt: bigint, block: Block) => {
 
   return `${days}D ${hours}H ${minutes}M`;
 };
+
+export const formatTimeAgo = (timestamp: number): string => {
+  const now = Date.now();
+  const diffMs = now - timestamp;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor(
+    (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+  );
+  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${diffDays}D ${diffHours}H ${diffMinutes}M`;
+};
