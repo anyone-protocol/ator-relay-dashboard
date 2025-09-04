@@ -53,7 +53,7 @@ export type LastRoundData = {
     Reward: {
       Total: string;
       OperatorTotal: string;
-      Delegatetotal: string;
+      DelegateTotal: string;
       Network: string;
       Hardware: string;
       Uptime: string;

@@ -741,13 +741,19 @@ const block = await getBlock(config);
       </template>
       <template #previousDistribution-data="{ row }: { row: RelayRow }">
         <div class="relative flex gap-1 items-center">
-          {{
-            formatEtherNoRound(
-              new BigNumber(
-                lastRound[row.fingerprint].Details.Reward.Total || '0'
-              ).toString()
-            ) || '-'
-          }}
+          <div>
+            <span v-if="lastRound[row.fingerprint]?.Details?.Reward?.Total">
+              {{
+                formatEtherNoRound(
+                  new BigNumber(
+                    lastRound[row.fingerprint].Details.Reward.Total
+                  ).toString()
+                )
+              }}
+            </span>
+            <span v-else>-</span>
+            <Ticker class="text-[9px] leading-tight ml-1" />
+          </div>
           <Popover
             placement="right"
             :arrow="false"
@@ -760,106 +766,147 @@ const block = await getBlock(config);
                   class="text-xs font-normal text-green-600 dark:text-green-300"
                 >
                   <span class="text-gray-800 dark:text-white"
-                    >Base Tokens:</span
+                    >Base Tokens:
+                  </span>
+                  <span
+                    v-if="lastRound[row.fingerprint]?.Details?.Reward?.Total"
                   >
-                  {{
-                    `${formatEtherNoRound(
-                      new BigNumber(
-                        lastRound[row.fingerprint].Details.Reward.Total || '0'
-                      ).toString()
-                    )} $ANYONE` || '-'
-                  }}
+                    {{
+                      `${formatEtherNoRound(
+                        new BigNumber(
+                          lastRound[row.fingerprint].Details.Reward.Total
+                        ).toString()
+                      )} $ANYONE`
+                    }}
+                  </span>
+                  <span v-else>-</span>
                 </div>
                 <div
                   class="text-xs font-normal text-gray-600 dark:text-gray-300"
                 >
                   <span class="text-gray-800 dark:text-white"
-                    >Family Multiplier:</span
+                    >Family Multiplier:
+                  </span>
+                  <span
+                    v-if="
+                      lastRound[row.fingerprint]?.Details?.Variables
+                        ?.FamilyMultiplier
+                    "
                   >
-                  {{
-                    formatEtherNoRound(
-                      new BigNumber(
-                        lastRound[row.fingerprint].Details.Variables
-                          .FamilyMultiplier || '0'
-                      ).toString()
-                    ) || '-'
-                  }}
+                    {{
+                      formatEtherNoRound(
+                        new BigNumber(
+                          lastRound[
+                            row.fingerprint
+                          ].Details.Variables.FamilyMultiplier
+                        ).toString()
+                      )
+                    }}
+                  </span>
+                  <span v-else>-</span>
                 </div>
                 <div
                   class="text-xs font-normal text-gray-600 dark:text-gray-300 mb-2"
                 >
                   <span class="text-gray-800 dark:text-white"
-                    >Region Multiplier:</span
+                    >Region Multiplier:
+                  </span>
+                  <span
+                    v-if="
+                      lastRound[row.fingerprint]?.Details?.Variables
+                        ?.LocationMultiplier
+                    "
                   >
-                  {{
-                    formatEtherNoRound(
-                      new BigNumber(
-                        lastRound[row.fingerprint].Details.Variables
-                          .LocationMultiplier || '0'
-                      ).toString()
-                    ) || '-'
-                  }}
+                    {{
+                      formatEtherNoRound(
+                        new BigNumber(
+                          lastRound[
+                            row.fingerprint
+                          ].Details.Variables.LocationMultiplier
+                        ).toString()
+                      )
+                    }}
+                  </span>
+                  <span v-else>-</span>
                 </div>
                 <div
                   class="text-xs font-normal text-cyan-600 dark:text-cyan-300"
                 >
                   <span class="text-gray-800 dark:text-white"
-                    >Hardware Bonus:</span
+                    >Hardware Bonus:
+                  </span>
+                  <span
+                    v-if="lastRound[row.fingerprint]?.Details?.Reward?.Hardware"
                   >
-                  {{
-                    `${formatEtherNoRound(
-                      new BigNumber(
-                        lastRound[row.fingerprint].Details.Reward.Hardware ||
-                          '0'
-                      ).toString()
-                    )} $ANYONE` || '-'
-                  }}
+                    {{
+                      `${formatEtherNoRound(
+                        new BigNumber(
+                          lastRound[row.fingerprint].Details.Reward.Hardware
+                        ).toString()
+                      )} $ANYONE`
+                    }}
+                  </span>
+                  <span v-else>-</span>
                 </div>
                 <div
                   class="text-xs font-normal text-indigo-700 dark:text-violet-300"
                 >
                   <span class="text-gray-800 dark:text-white"
-                    >Uptime Bonus:</span
+                    >Uptime Bonus:
+                  </span>
+                  <span
+                    v-if="lastRound[row.fingerprint]?.Details?.Reward?.Uptime"
                   >
-                  {{
-                    `${formatEtherNoRound(
-                      new BigNumber(
-                        lastRound[row.fingerprint].Details.Reward.Uptime || '0'
-                      ).toString()
-                    )} $ANYONE` || '-'
-                  }}
+                    {{
+                      `${formatEtherNoRound(
+                        new BigNumber(
+                          lastRound[row.fingerprint].Details.Reward.Uptime
+                        ).toString()
+                      )} $ANYONE`
+                    }}
+                  </span>
+                  <span v-else>-</span>
                 </div>
                 <div
                   class="text-xs font-normal text-red-400 dark:text-red-400 mb-2"
                 >
-                  <span class="text-gray-800 dark:text-white">Exit Bonus:</span>
-                  {{
-                    `${formatEtherNoRound(
-                      new BigNumber(
-                        lastRound[row.fingerprint].Details.Reward.ExitBonus ||
-                          '0'
-                      ).toString()
-                    )} $ANYONE` || '-'
-                  }}
+                  <span class="text-gray-800 dark:text-white"
+                    >Exit Bonus:
+                  </span>
+                  <span
+                    v-if="
+                      lastRound[row.fingerprint]?.Details?.Reward?.ExitBonus
+                    "
+                  >
+                    {{
+                      `${formatEtherNoRound(
+                        new BigNumber(
+                          lastRound[row.fingerprint].Details.Reward.ExitBonus
+                        ).toString()
+                      )} $ANYONE`
+                    }}
+                  </span>
+                  <span v-else>-</span>
                 </div>
-
                 <div
                   class="text-xs font-normal text-stone-700 dark:text-stone-300"
                 >
-                  <span class="text-gray-800 dark:text-white">Period:</span>
-                  {{
-                    lastRound[row.fingerprint].Period / 60 + ' minutes' || '-'
-                  }}
+                  <span class="text-gray-800 dark:text-white">Period: </span>
+                  <span v-if="lastRound[row.fingerprint]?.Period">
+                    {{ lastRound[row.fingerprint].Period / 60 + ' minutes' }}
+                  </span>
+                  <span v-else>-</span>
                 </div>
                 <div
                   class="text-xs font-normal text-stone-700 dark:text-stone-300"
                 >
                   <span class="text-gray-800 dark:text-white"
-                    >Last Distribution:</span
-                  >
-                  {{
-                    formatTimeAgo(lastRound[row.fingerprint].Timestamp) || '-'
-                  }}
+                    >Last Distribution:
+                  </span>
+                  <span v-if="lastRound[row.fingerprint]?.Timestamp">
+                    {{ formatTimeAgo(lastRound[row.fingerprint].Timestamp) }}
+                  </span>
+                  <span v-else>-</span>
                 </div>
                 <div
                   class="text-xs font-normal text-stone-700 dark:text-stone-300"
@@ -867,20 +914,24 @@ const block = await getBlock(config);
                   <span class="text-gray-800 dark:text-white"
                     >Delegate Rewards:
                   </span>
-                  <span class="text-gray-800 dark:text-white">{{
-                    formatEtherNoRound(
-                      new BigNumber(
-                        lastRound[row.fingerprint].Details.Reward
-                          .Delegatetotal || '0'
-                      ).toString()
-                    ) || '-'
-                  }}</span>
+                  <span
+                    v-if="
+                      lastRound[row.fingerprint]?.Details?.Reward?.DelegateTotal
+                    "
+                  >
+                    {{
+                      formatEtherNoRound(
+                        new BigNumber(
+                          lastRound[
+                            row.fingerprint
+                          ].Details.Reward.DelegateTotal
+                        ).toString()
+                      )
+                    }}
+                  </span>
+                  <span v-else>-</span>
                 </div>
               </div>
-              <!-- <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
-                <span class="text-gray-800 dark:text-white">Locked:</span> Your
-                lock tx is awaiting Arweave confirmation.
-              </div> -->
             </template>
             <template #trigger>
               <div class="-mt-6 cursor-context-menu hover:text-[#24adc3]">
