@@ -19,6 +19,7 @@ import { watchAccount } from '@wagmi/core';
 import { defineProps } from 'vue';
 import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
 import { useHodler } from '~/composables/hodler';
+import { useQueries } from '@tanstack/vue-query';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -35,9 +36,69 @@ const hodlerStore = useHolderStore();
 const isHovered = ref(false);
 const isUnlocking = ref(false);
 
+// The user's relays
+const fingerprints = computed(() => {
+  return allRelays.value.map((relay) => relay.fingerprint);
+});
+
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount({ config } as any);
 const registerModalOpen = ref(false);
+const runtimeConfig = useRuntimeConfig();
+const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
+
+const getLastRoundData = async (fingerprint: string) => {
+  console.log('Fetching last round data for fingerprint:', fingerprint);
+  try {
+    const { result } = await sendAosDryRun({
+      processId: relayRewardsProcessId,
+      tags: [
+        { name: 'Action', value: 'Last-Round-Data' },
+        { name: 'Fingerprint', value: fingerprint },
+      ],
+    });
+
+    if (result.Error) {
+      console.error('AOS Error: ' + result.Error);
+      return null;
+    }
+    if (!result.Messages.length || !result.Messages[0].Data) {
+      console.error(`No data found for fingerprint: ${fingerprint}`);
+      return null;
+    }
+
+    console.log('Last round result:', result.Messages[0].Data);
+    return JSON.parse(result.Messages[0].Data) as LastRoundData;
+  } catch (error) {
+    console.error('Error fetching last round data:', error);
+    return null;
+  }
+};
+
+const lastRoundResults = useQueries({
+  queries: computed(() =>
+    fingerprints.value.map((fp) => ({
+      queryKey: ['lastRound', fp],
+      queryFn: () => getLastRoundData(fp),
+      enabled: !!fp,
+    }))
+  ),
+});
+
+const lastRound = computed(() => {
+  const rounds: Record<string, LastRoundData> = {};
+  lastRoundResults.value.forEach((query, index) => {
+    console.log('Last round query result:', toRaw(query.data));
+    if (query.data) {
+      rounds[fingerprints.value[index]] = query.data;
+    }
+  });
+  return rounds;
+});
+
+const lastRoundPending = computed(() =>
+  lastRoundResults.value.some((q) => q.isPending)
+);
 
 onMounted(() => {
   // refresh everything every 60 seconds
@@ -154,10 +215,6 @@ const timestamp = computed(
   () => metricsStore.relays.timestamp && new Date(metricsStore.relays.timestamp)
 );
 
-// The user's relays
-const fingerprints = computed(() => {
-  return allRelays.value.map((relay) => relay.fingerprint);
-});
 const relayAction = async (
   action: 'claim' | 'renounce',
   fingerprint: string
@@ -613,118 +670,186 @@ const handleUnlockClick = async (fingerprint: string) => {
           </div>
         </div>
         <div>
-          <span>
+          <span v-if="lastRound[row.fingerprint]?.Details?.Reward?.Total">
             {{
-              // facilitatorStore?.distributionPerRelay?.[row.fingerprint] ||
-              '-'
+              formatEtherNoRound(
+                new BigNumber(
+                  lastRound[row.fingerprint].Details.Reward.Total
+                ).toString()
+              )
             }}
-
-            <Popover placement="left" :arrow="false" mode="hover">
-              <template #content>
-                <div class="p-1 px-4">
-                  <div
-                    class="text-xs font-normal text-green-600 dark:text-green-300"
-                  >
-                    <span class="text-gray-800 dark:text-white"
-                      >Base Tokens:</span
-                    >
-
-                    {{
-                      // facilitatorStore?.baseTokensPerRelay?.[row.fingerprint] ||
-                      '-'
-                    }}
-                    $ANYONE
-                  </div>
-                  <div
-                    class="text-xs font-normal text-gray-600 dark:text-gray-300"
-                  >
-                    <span class="text-gray-800 dark:text-white"
-                      >Family Multiplier:</span
-                    >
-                    {{
-                      // facilitatorStore?.multipliersPerRelay?.[row.fingerprint]?.family ||
-                      '-'
-                    }}x
-                  </div>
-                  <div
-                    class="text-xs font-normal text-gray-600 dark:text-gray-300 mb-2"
-                  >
-                    <span class="text-gray-800 dark:text-white"
-                      >Region Multiplier:</span
-                    >
-                    {{
-                      // facilitatorStore?.multipliersPerRelay?.[row.fingerprint]?.region ||
-                      '-'
-                    }}x
-                  </div>
-                  <div
-                    class="text-xs font-normal text-cyan-600 dark:text-cyan-300"
-                  >
-                    <span class="text-gray-800 dark:text-white"
-                      >Hardware Bonus:</span
-                    >
-                    {{
-                      // facilitatorStore?.bonusesPerRelay?.[row.fingerprint]?.hardware ||
-                      '-'
-                    }}
-                    $ANYONE
-                  </div>
-                  <div
-                    class="text-xs font-normal text-indigo-700 dark:text-violet-300"
-                  >
-                    <span class="text-gray-800 dark:text-white"
-                      >Uptime Bonus:</span
-                    >
-                    {{
-                      // facilitatorStore?.bonusesPerRelay?.[row.fingerprint]?.quality ||
-                      '-'
-                    }}
-                    $ANYONE
-                  </div>
-                  <div
-                    class="text-xs font-normal text-red-400 dark:text-red mb-2"
-                  >
-                    <span class="text-gray-800 dark:text-white"
-                      >Exit Bonus:</span
-                    >
-                    {{
-                      // facilitatorStore?.exitBonusPerRelay?.[row.fingerprint] ||
-                      '-'
-                    }}
-                  </div>
-                  <div
-                    class="text-xs font-normal text-stone-700 dark:text-stone-300"
-                  >
-                    <span class="text-gray-800 dark:text-white">Period:</span>
-                    {{
-                      // facilitatorStore?.previousDistributions[0]?.period / 60 +' minutes' ||
-                      '-'
-                    }}
-                  </div>
-                  <div
-                    class="text-xs font-normal text-stone-700 dark:text-stone-300"
-                  >
-                    <span class="text-gray-800 dark:text-white"
-                      >Last Distribution:</span
-                    >
-                    {{
-                      // facilitatorStore?.lastDistributionTimePerRelay?.[row.fingerprint] ||
-                      '-'
-                    }}
-                  </div>
-                </div>
-                <!-- <div class="text-xs font-normal text-gray-600 dark:text-gray-300">
-                <span class="text-gray-800 dark:text-white">Locked:</span> Your
-                lock tx is awaiting Arweave confirmation.
-              </div> -->
-              </template>
-              <template #trigger>
-                <div class="-mt-6 cursor-context-menu hover:text-[#24adc3]">
-                  <Icon name="heroicons:exclamation-circle" />
-                </div>
-              </template>
-            </Popover>
+            <Ticker class="text-[9px] leading-tight ml-1" />
           </span>
+          <span v-else>-</span>
+          <Popover
+            placement="left"
+            :arrow="false"
+            mode="hover"
+            :disabled="lastRoundPending"
+          >
+            <template #content>
+              <div class="p-1 px-4">
+                <div
+                  class="text-xs font-normal text-green-600 dark:text-green-300"
+                >
+                  <span class="text-gray-800 dark:text-white"
+                    >Base Tokens:
+                  </span>
+                  <span
+                    v-if="lastRound[row.fingerprint]?.Details?.Reward?.Total"
+                  >
+                    {{
+                      `${formatEtherNoRound(new BigNumber(lastRound[row.fingerprint].Details.Reward.Total).toString())} $ANYONE`
+                    }}
+                  </span>
+                  <span v-else>-</span>
+                </div>
+                <div
+                  class="text-xs font-normal text-gray-600 dark:text-gray-300"
+                >
+                  <span class="text-gray-800 dark:text-white"
+                    >Family Multiplier:
+                  </span>
+                  <span
+                    v-if="
+                      lastRound[row.fingerprint]?.Details?.Variables
+                        ?.FamilyMultiplier
+                    "
+                  >
+                    {{
+                      formatEtherNoRound(
+                        new BigNumber(
+                          lastRound[
+                            row.fingerprint
+                          ].Details.Variables.FamilyMultiplier
+                        ).toString()
+                      )
+                    }}
+                  </span>
+                  <span v-else>-</span>
+                </div>
+                <div
+                  class="text-xs font-normal text-gray-600 dark:text-gray-300 mb-2"
+                >
+                  <span class="text-gray-800 dark:text-white"
+                    >Region Multiplier:
+                  </span>
+                  <span
+                    v-if="
+                      lastRound[row.fingerprint]?.Details?.Variables
+                        ?.LocationMultiplier
+                    "
+                  >
+                    {{
+                      formatEtherNoRound(
+                        new BigNumber(
+                          lastRound[
+                            row.fingerprint
+                          ].Details.Variables.LocationMultiplier
+                        ).toString()
+                      )
+                    }}
+                  </span>
+                  <span v-else>-</span>
+                </div>
+                <div
+                  class="text-xs font-normal text-cyan-600 dark:text-cyan-300"
+                >
+                  <span class="text-gray-800 dark:text-white"
+                    >Hardware Bonus:
+                  </span>
+                  <span
+                    v-if="lastRound[row.fingerprint]?.Details?.Reward?.Hardware"
+                  >
+                    {{
+                      `${formatEtherNoRound(new BigNumber(lastRound[row.fingerprint].Details.Reward.Hardware).toString())} $ANYONE`
+                    }}
+                  </span>
+                  <span v-else>-</span>
+                </div>
+                <div
+                  class="text-xs font-normal text-indigo-700 dark:text-violet-300"
+                >
+                  <span class="text-gray-800 dark:text-white"
+                    >Uptime Bonus:
+                  </span>
+                  <span
+                    v-if="lastRound[row.fingerprint]?.Details?.Reward?.Uptime"
+                  >
+                    {{
+                      `${formatEtherNoRound(new BigNumber(lastRound[row.fingerprint].Details.Reward.Uptime).toString())} $ANYONE`
+                    }}
+                  </span>
+                  <span v-else>-</span>
+                </div>
+                <div
+                  class="text-xs font-normal text-red-400 dark:text-red-400 mb-2"
+                >
+                  <span class="text-gray-800 dark:text-white"
+                    >Exit Bonus:
+                  </span>
+                  <span
+                    v-if="
+                      lastRound[row.fingerprint]?.Details?.Reward?.ExitBonus
+                    "
+                  >
+                    {{
+                      `${formatEtherNoRound(new BigNumber(lastRound[row.fingerprint].Details.Reward.ExitBonus).toString())} $ANYONE`
+                    }}
+                  </span>
+                  <span v-else>-</span>
+                </div>
+                <div
+                  class="text-xs font-normal text-stone-700 dark:text-stone-300"
+                >
+                  <span class="text-gray-800 dark:text-white">Period: </span>
+                  <span v-if="lastRound[row.fingerprint]?.Period">
+                    {{ lastRound[row.fingerprint].Period / 60 + ' minutes' }}
+                  </span>
+                  <span v-else>-</span>
+                </div>
+                <div
+                  class="text-xs font-normal text-stone-700 dark:text-stone-300"
+                >
+                  <span class="text-gray-800 dark:text-white"
+                    >Last Distribution:
+                  </span>
+                  <span v-if="lastRound[row.fingerprint]?.Timestamp">
+                    {{ formatTimeAgo(lastRound[row.fingerprint].Timestamp) }}
+                  </span>
+                  <span v-else>-</span>
+                </div>
+                <div
+                  class="text-xs font-normal text-stone-700 dark:text-stone-300"
+                >
+                  <span class="text-gray-800 dark:text-white"
+                    >Delegate Rewards:
+                  </span>
+                  <span
+                    v-if="
+                      lastRound[row.fingerprint]?.Details?.Reward?.DelegateTotal
+                    "
+                  >
+                    {{
+                      formatEtherNoRound(
+                        new BigNumber(
+                          lastRound[
+                            row.fingerprint
+                          ].Details.Reward.DelegateTotal
+                        ).toString()
+                      )
+                    }}
+                  </span>
+                  <span v-else>-</span>
+                </div>
+              </div>
+            </template>
+            <template #trigger>
+              <div class="-mt-6 cursor-context-menu hover:text-[#24adc3]">
+                <Icon name="heroicons:exclamation-circle" />
+              </div>
+            </template>
+          </Popover>
         </div>
       </div>
       <div class="flex justify-between items-center mt-2">
