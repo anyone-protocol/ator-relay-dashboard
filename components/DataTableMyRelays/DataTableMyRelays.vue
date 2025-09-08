@@ -769,12 +769,12 @@ const block = await getBlock(config);
                     >Base Tokens:
                   </span>
                   <span
-                    v-if="lastRound[row.fingerprint]?.Details?.Reward?.Total"
+                    v-if="lastRound[row.fingerprint]?.Details?.Reward?.Network"
                   >
                     {{
                       `${formatEtherNoRound(
                         new BigNumber(
-                          lastRound[row.fingerprint].Details.Reward.Total
+                          lastRound[row.fingerprint].Details.Reward.Network
                         ).toString()
                       )} $ANYONE`
                     }}
