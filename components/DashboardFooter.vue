@@ -19,37 +19,37 @@ const isOpen = ref(false);
 
 const contractLinks = [
   {
-    name: 'Operator Registry',
+    name: 'Operator Registry Process',
     address: runtimeConfig.public.operatorRegistryProcessId,
     type: 'ao',
   },
   {
-    name: 'Facilitator',
-    address: runtimeConfig.public.facilitatorContract,
-    type: 'evm',
-  },
-  {
-    name: 'Hodler',
+    name: 'Sepolia Hodler Contract',
     address: runtimeConfig.public.hodlerContract,
     type: 'evm',
   },
   {
-    name: 'Sepolia ANYONE Token',
+    name: 'Sepolia ANyONe Token',
     address: runtimeConfig.public.sepoliaAtorTokenContract,
     type: 'evm',
   },
   {
-    name: 'Relay Rewards',
+    name: 'Relay Rewards Process',
     address: runtimeConfig.public.relayRewardsProcessId,
     type: 'ao',
   },
   {
-    name: 'Metrics Deployer',
+    name: 'Staking Rewards Process',
+    address: runtimeConfig.public.stakingRewardsProcessId,
+    type: 'ao',
+  },
+  {
+    name: 'Metrics Uploader',
     address: runtimeConfig.public.metricsDeployer,
     type: 'viewblock',
   },
   {
-    name: 'Distribution Deployer',
+    name: 'Distribution Uploader',
     address: runtimeConfig.public.distributionDeployer,
     type: 'viewblock',
   },
