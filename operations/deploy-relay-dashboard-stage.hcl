@@ -22,12 +22,6 @@ job "deploy-relay-dashboard-stage" {
         role = "any1-nomad-workloads-controller"
       }
 
-      identity {
-        name = "vault_default"
-        aud  = ["any1-infra"]
-        ttl  = "1h"
-      }
-
       config {
         image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.commit_sha]]"
         image_pull_timeout = "45m"
@@ -66,7 +60,7 @@ job "deploy-relay-dashboard-stage" {
         PHASE="stage"
         NODE_OPTIONS="--max-old-space-size=4096"
         DASHBOARD_VERSION="[[.commit_sha]]"
-        BUMP="redeploy-for-new-operator-registry-Ori7-Ejn8fxQCanbhNHvWSvkeR6xOFUnyxCFYPmOUzg"
+        BUMP="0"
       }
 
       template {
@@ -85,6 +79,7 @@ job "deploy-relay-dashboard-stage" {
         NUXT_PUBLIC_RELAY_REWARDS_PROCESS_ID="{{ key "smart-contracts/stage/relay-rewards-address" }}"
         NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/stage/validator-address-base64" }}"
         NUXT_PUBLIC_FACILITATOR_CONTRACT="{{ key "facilitator/sepolia/stage/address" }}"
+        NUXT_PUBLIC_HODLER_CONTRACT="{{ key "hodler/sepolia/stage/address" }}"
         NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/sepolia/stage/address" }}"
         NUXT_PUBLIC_REGISTRATOR_CONTRACT="{{ key "registrator/sepolia/stage/address" }}"
         {{ with secret "kv/stage-protocol/deploy-relay-dashboard-stage" }}
