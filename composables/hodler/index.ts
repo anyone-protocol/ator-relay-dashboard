@@ -563,7 +563,7 @@ export class Hodler {
       //   ethers.formatEther(currentGas.toString())
       // );
 
-      const gasEstimate = ethers.parseEther('0.00001');
+      const gasEstimate = ethers.parseEther('0.0001');
 
       if (
         new BigNumber((currentGas as bigint).toString()).lt(
