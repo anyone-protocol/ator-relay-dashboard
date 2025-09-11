@@ -563,39 +563,27 @@ export class Hodler {
       //   ethers.formatEther(currentGas.toString())
       // );
 
-      const gasEstimate = ethers.parseEther('0.0001');
+      const gasEstimate = ethers.parseEther('0.00012');
+      const value = gasEstimate.toString();
+      const to = await this.contract.getAddress();
 
-      if (
-        new BigNumber((currentGas as bigint).toString()).lt(
-          new BigNumber(gasEstimate.toString())
-        )
-      ) {
-        try {
-          const value = gasEstimate.toString();
+      const fundingResult = await this.signer.sendTransaction({
+        to,
+        value,
+      });
 
-          const to = await this.contract.getAddress();
+      await fundingResult.wait();
+      // console.log('Funding transaction sent:', fundingResult);
 
-          const fundingResult = await this.signer.sendTransaction({
-            to,
-            value,
-          });
+      // Note: Redeem is an alternative option for transfer.
+      // It doesn't add gas budget, and it pulls the funds directly into account.
 
-          // console.log('Funding transaction sent:', fundingResult);
-        } catch (error) {
-          throw new Error(error as any);
-        }
-      }
+      // const result = await this.contract.redeem();
+      // console.log('Redeem transaction sent:', result);
+      // await result.wait();
+      // console.log('Redeem transaction confirmed');
 
-      //artificial delay to ensure gas budget is updated before redeeming
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-
-      const result = await this.contract.redeem();
-      console.log('Redeem transaction sent:', result);
-
-      await result.wait();
-      console.log('Redeem transaction confirmed');
-
-      return result;
+      return fundingResult;
     } catch (error) {
       const msg = (error as Error)?.message;
       console.log('msg', msg);
@@ -612,11 +600,11 @@ export class Hodler {
           icon: 'i-heroicons-x-circle',
           color: 'amber',
           title: 'Error',
-          description: `Error redeeming rewards: ${msg}`,
+          description: `Error claiming rewards: ${msg}`,
         });
       }
 
-      this.logger.error('Error redeeming rewards', error);
+      this.logger.error('Error claiming rewards', error);
     }
 
     return null;
