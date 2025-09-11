@@ -1,80 +1,50 @@
 <template>
-  <div class="hidden lg:flex items-center gap-2 ml-auto mr-7">
-    <div class="grid grid-rows-[1fr 2fr] border-l-2 border-cyan-600 pl-3">
-      <span class="text-[9px] text-neutral-600 dark:text-neutral-300"
-        >WALLET</span
-      >
-      <div class="inline-flex items-baseline gap-2">
-        <template v-if="balancePending">
-          <USkeleton class="w-full h-8" />
-        </template>
-        <template v-else>
-          <div class="flex flex-col">
-            <span class="text-lg leading-tight">
-              <template v-if="isConnected">
-                {{ formatEtherNoRound(tokenBalance.value) }}
-              </template>
-              <template v-else> -- </template>
-            </span>
-            <Ticker class="text-[9px] leading-tight" />
-          </div>
-        </template>
-      </div>
+  <div
+    class="hidden lg:grid grid-rows-[1fr 2fr] border-r-2 border-cyan-600 items-end pr-3 mr-3 h-full"
+  >
+    <p class="justify-self-end text-[9px] mb-auto">WALLET</p>
+    <div class="inline-flex items-baseline justify-end gap-2">
+      <template v-if="tokenBalancePending">
+        <USkeleton class="w-full h-8" />
+      </template>
+      <template v-else>
+        <div class="flex flex-col items-end">
+          <span class="text-lg leading-tight">
+            <template v-if="isConnected">
+              {{ formatEtherNoRound(tokenBalance?.value.toString() || '0') }}
+            </template>
+            <template v-else> -- </template>
+          </span>
+          <Ticker class="text-[9px] leading-tight" />
+        </div>
+      </template>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useUserStore } from '@/stores/useUserStore';
-import { useAccount } from '@wagmi/vue';
+import { useAccount, useBalance } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
 import Ticker from './ui-kit/Ticker.vue';
+import { getChainId } from '@wagmi/core';
 
-const { isConnected } = useAccount({ config } as any);
+const runtimeConfig = useRuntimeConfig();
+const { isConnected, address } = useAccount({ config } as any);
+const userAddress = computed(() => address.value);
+const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 
-const userStore = useUserStore();
-const { address, tokenBalance, tokenBalanceUsd } = storeToRefs(userStore);
+const chainId = getChainId(config);
 
-const balancePending = ref(false);
-const balanceUsdPending = ref(false);
-const balanceError = ref(null as any);
-const balanceUsdError = ref(null as any);
+const tokenContract = runtimeConfig.public
+  .sepoliaAtorTokenContract as `0x${string}`;
 
-const fetchBalances = async (forceRefresh = false) => {
-  try {
-    balancePending.value = true;
-
-    await userStore.getTokenBalance(forceRefresh);
-    balancePending.value = false;
-  } catch (error) {
-    balanceError.value = error;
-  }
-
-  try {
-    balanceUsdPending.value = true;
-    await userStore.getUsdTokenBalance(forceRefresh);
-    balanceUsdPending.value = false;
-  } catch (error) {
-    balanceUsdError.value = error;
-  }
-};
-
-watch(
-  () => userStore.userData.address,
-  async (newAddress?: string) => {
-    if (newAddress) {
-      console.log('new address', newAddress);
-      fetchBalances(true);
-    }
-  }
-);
-
-onMounted(() => {
-  fetchBalances();
-  setInterval(fetchBalances, 1000 * 60 * 5);
+const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
+  address: address.value,
+  // need to confirm whether to set dynamically or use only mainnet
+  chainId: chainId,
+  token: tokenContract,
+  query: {
+    enabled: computed(() => !!address.value),
+  },
 });
-
-defineProps<{
-  showTicker?: boolean;
-}>();
 </script>
