@@ -202,49 +202,7 @@
                   :model-value="selectedOperator?.operator"
                 />
                 <div class="flex flex-col gap-2">
-                  <div class="flex items-center justify-between">
-                    <div class="text-neutral-400 text-sm">Amount to stake:</div>
-                    <div class="flex justify-end gap-1 items-center">
-                      <div
-                        class="flex items-center ring-1 ring-neutral-200 dark:ring-neutral-700 focus-within::ring-2 focus-within:ring-primary-500 dark:focus-within:ring-primary-400 rounded-sm overflow-hidden"
-                      >
-                        <div
-                          class="text-xs font-normal p-1 text-neutral-400 dark:text-neutral-400 bg-neutral-200 dark:bg-neutral-800/60"
-                        >
-                          {{
-                            stakedMaxSelected === 'wallet'
-                              ? formatEtherNoRound(tokenBalance?.value || '0')
-                              : formatEtherNoRound(hodlerInfo?.[0] || '0')
-                          }}
-                        </div>
-                        <div
-                          class="w-[1px] h-6 bg-neutral-300 dark:bg-neutral-700"
-                        ></div>
-                        <USelect
-                          :options="stakedMaxOptions"
-                          v-model="stakedMaxSelected"
-                          size="2xs"
-                          variant="none"
-                        />
-                      </div>
-                      <Popover
-                        placement="top"
-                        :arrow="false"
-                        class="h-max grid place-items-center"
-                      >
-                        <template #content>
-                          <span class="text-xs font-normal">
-                            Choose if you want to set the max amount from tokens
-                            in your wallet or available balance.
-                          </span>
-                        </template>
-                        <template #trigger>
-                          <Icon name="heroicons:exclamation-circle" class="" />
-                        </template>
-                      </Popover>
-                    </div>
-                  </div>
-                  <div class="relative">
+                  <div class="relative mb-1">
                     <UInput
                       :disabled="isSubmitting"
                       v-model="stakeInput"
@@ -265,24 +223,22 @@
                     </UButton>
                   </div>
                   <span
-                    v-if="amountExceedsWallet"
-                    class="text-xs text-red-600 dark:text-red-300"
+                    v-if="stakeMessage.text"
+                    class="text-xs"
+                    :class="{
+                      'text-cyan-600 dark:text-cyan-300':
+                        stakeMessage.type === 'info',
+                      'text-amber-600 dark:text-amber-300':
+                        stakeMessage.type === 'error',
+                    }"
                   >
-                    Chosen amount exceeds wallet balance.
+                    {{ stakeMessage.text }}
                   </span>
                   <span
-                    v-if="amountExceedsAvailable && !amountExceedsWallet"
+                    v-else-if="lessThanMinimumStake"
                     class="text-xs text-amber-600 dark:text-amber-300"
                   >
-                    Chosen amount exceeds available balance. Amount will be
-                    taken from wallet.
-                  </span>
-                  <span
-                    v-else-if="amountIsLessThanAvailable"
-                    class="text-xs text-amber-600 dark:text-amber-300"
-                  >
-                    Enough available tokens. Amount will be taken from available
-                    balance.
+                    Less than minimum stake. You must stake at least 1 token.
                   </span>
                   <div class="flex justify-end gap-3 mt-5">
                     <UButton
@@ -814,74 +770,82 @@ const vaultColumns = [
   },
 ];
 
-type MaxStakeOption = 'wallet' | 'available';
-
-const stakedMaxOptions = ['wallet', 'available'];
-const stakedMaxSelected = ref<MaxStakeOption>(
-  stakedMaxOptions[0] as MaxStakeOption
-);
-
-const amountExceedsWallet = computed(() => {
-  if (stakeAmount.value === '0') return false;
-  if (!tokenBalance.value?.value) return false;
-
-  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
-  const walletBalance = new BigNumber(
-    parseEther(formatEtherNoRound(tokenBalance.value.value)).toString()
-  );
-  return amount.isGreaterThan(walletBalance);
-});
-
-const amountExceedsAvailable = computed(() => {
-  if (stakeAmount.value === '0') return false;
-  if (!hodlerInfo.value?.[0]) return false;
-
-  const available = new BigNumber(
-    parseEther(formatEtherNoRound(hodlerInfo.value[0])).toString()
-  );
-  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
-
-  if (stakedMaxSelected.value === 'available' && amount.gt(available)) {
-    return true;
-  }
-  return false;
-});
-
-const amountIsLessThanAvailable = computed(() => {
-  if (stakeAmount.value === '0') return false;
-  if (!hodlerInfo.value?.[0]) return false;
-
-  const available = new BigNumber(
-    parseEther(formatEtherNoRound(hodlerInfo.value[0])).toString()
-  );
-  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
-
+const stakeMessage = computed(() => {
   if (
-    stakedMaxSelected.value === 'wallet' &&
-    available.minus(amount).isGreaterThan(0)
-  ) {
-    return true;
+    new BigNumber(stakeAmount.value).lt(1) ||
+    !isValidNumericInput(stakeInput.value)
+  )
+    return { text: '', type: 'info' };
+
+  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
+  const available = hodlerInfo.value?.[0]
+    ? new BigNumber(hodlerInfo.value[0].toString())
+    : new BigNumber(0);
+  const walletBalance = tokenBalance.value?.value
+    ? new BigNumber(tokenBalance.value.value.toString())
+    : new BigNumber(0);
+
+  if (amount.lte(available)) {
+    return {
+      text: `Using ${formatEtherNoRound(amount.toString())} tokens available in contract (max. ${formatEtherNoRound(available.toString())})`,
+      type: 'info',
+    };
+  } else if (amount.lte(walletBalance)) {
+    return {
+      text: `Using ${formatEtherNoRound(amount.toString())} tokens from wallet (max. ${formatEtherNoRound(walletBalance.toString())})`,
+      type: 'info',
+    };
+  } else {
+    return {
+      text: 'Chosen amount exceeds both contract and wallet balance.',
+      type: 'error',
+    };
   }
-  return false;
 });
 
 const validateMaxStake = () => {
-  if (stakedMaxSelected.value === 'wallet') {
-    // console.log('token balance: ', tokenBalance.value?.value);
-    return !!tokenBalance.value?.value;
-  } else {
-    return !!hodlerInfo.value?.[0];
-  }
+  const available = hodlerInfo.value?.[0]
+    ? new BigNumber(hodlerInfo.value[0].toString())
+    : new BigNumber(0);
+  const walletBalance = tokenBalance.value?.value
+    ? new BigNumber(tokenBalance.value.value.toString())
+    : new BigNumber(0);
+  return available.gte(1) || walletBalance.gte(1);
 };
+
+const lessThanMinimumStake = computed(() => {
+  if (!stakeAmount.value || stakeAmount.value === '0') return false;
+  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
+  return amount.isLessThan(parseEther('1').toString());
+});
 
 const isValidStakeInput = () => {
   if (!stakeInput.value || !isValidNumericInput(stakeInput.value)) return false;
+
+  console.log('validating stake input...');
+
   const cleanedValue = stakeInput.value.replace(/,/g, '').trim();
   const amount = new BigNumber(parseEther(cleanedValue).toString());
   const walletBalance = tokenBalance.value?.value
     ? new BigNumber(tokenBalance.value.value.toString())
     : new BigNumber(0);
-  return amount.isGreaterThan(0) && amount.isLessThanOrEqualTo(walletBalance);
+
+  const availableBalance = hodlerInfo.value?.[0]
+    ? new BigNumber(hodlerInfo.value[0].toString())
+    : new BigNumber(0);
+
+  if (amount.isNaN()) return false;
+
+  console.log('amount: ', amount.toString());
+  console.log('walletBalance: ', walletBalance.toString());
+  console.log('availableBalance: ', availableBalance.toString());
+
+  const formattedAmount = formatEtherNoRound(amount.toString());
+
+  return (
+    new BigNumber(formattedAmount).gte(1) &&
+    (amount.lte(walletBalance) || amount.lte(availableBalance))
+  );
 };
 
 const isValidUnstakeInput = () => {
@@ -942,23 +906,18 @@ const handleCloseStakeDialog = () => {
 };
 
 const setMaxStake = () => {
-  if (stakedMaxSelected.value === 'wallet') {
-    // console.log('token balance: ', tokenBalance.value?.value);
+  const available = hodlerInfo.value?.[0]
+    ? new BigNumber(hodlerInfo.value[0].toString())
+    : new BigNumber(0);
+  const walletBalance = tokenBalance.value?.value
+    ? new BigNumber(tokenBalance.value.value.toString())
+    : new BigNumber(0);
 
-    stakeInput.value = tokenBalance.value?.value
-      ? formatEtherNoRound(tokenBalance.value.value)
-      : '0';
-    setTimeout(() => {
-      maxStakeAmount.value = tokenBalance.value?.value.toString() || '0';
-    }, 50);
-  } else {
-    stakeInput.value = hodlerInfo.value?.[0]
-      ? formatEtherNoRound(hodlerInfo.value?.[0])
-      : '0';
-    setTimeout(() => {
-      maxStakeAmount.value = hodlerInfo.value?.[0]?.toString() || '0';
-    }, 50);
-  }
+  const maxSource = available.gte(walletBalance) ? available : walletBalance;
+  stakeInput.value = formatEtherNoRound(maxSource.toString());
+  setTimeout(() => {
+    maxStakeAmount.value = maxSource.toString();
+  }, 50);
 };
 
 const setMaxUnstake = () => {
