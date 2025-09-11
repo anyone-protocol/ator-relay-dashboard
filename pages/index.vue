@@ -35,7 +35,7 @@
               color="cyan"
               size="xl"
             >
-              {{ isWithdrawing ? 'Withdrawing...' : 'Withdraw available' }}
+              {{ isWithdrawing ? 'Withdrawing...' : (availableTokens.isZero()) ? 'Nothing to withdraw' : 'Withdraw available' }}
             </UButton>
 
             <UModal v-model="withdrawDialogOpen">
@@ -306,7 +306,7 @@
             </p> -->
               <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
                 <div class="flex flex-col items-start gap-2">
-                  <h3 class="text-sm">Total redeemed rewards</h3>
+                  <h3 class="text-sm">Total claimed rewards</h3>
                 </div>
                 <template v-if="claimedPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
@@ -347,7 +347,7 @@
               <div
                 class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
               >
-                <h3 class="text-sm">Total redeemable rewards</h3>
+                <h3 class="text-sm">Total claimable rewards</h3>
                 <template v-if="claimablePending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
                 </template>
@@ -451,8 +451,8 @@
                     size="xl"
                   >
                     <span v-if="isRedeemLoading">Processing...</span>
-                    <span v-else-if="hasClaimableRewards">Collect Rewards</span>
-                    <span v-else>No rewards</span>
+                    <span v-else-if="hasClaimableRewards">Claim Rewards</span>
+                    <span v-else>Nothing to claim</span>
                   </UButton>
                   <div v-if="progressLoading" class="text-center">
                     <UProgress animation="carousel">
@@ -587,7 +587,7 @@ const { tokenBalance } = storeToRefs(userStore);
 
 const redeemLabel = computed(() => {
   if (totalVaultClaimable.value.gt(0)) {
-    return `Redeem ${formatEtherNoRound(totalVaultClaimable.value.toString())} expired`;
+    return `Redeem ${formatEtherNoRound(totalVaultClaimable.value.toString())} from vaults`;
   }
   return 'Nothing to redeem';
 });
