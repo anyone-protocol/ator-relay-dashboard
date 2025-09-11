@@ -607,8 +607,8 @@ const stakedOperators = computed(() => {
       operator: `0x${stake.operator.slice(2).toUpperCase()}`,
       amount: stake.amount,
       redeemableRewards: reward
-        ? formatEtherNoRound(reward.redeemable)
-        : '0.00',
+        ? formatEtherNoRound(reward.redeemable, 3)
+        : '0.000',
     };
   });
   return stakes;

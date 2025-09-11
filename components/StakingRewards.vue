@@ -29,7 +29,11 @@
           <div class="flex gap-1 items-baseline">
             <span class="text-lg md:text-xl">
               <template v-if="isConnected">
-                {{ formatEtherNoRound(claimableRewards || '0') }}
+                {{
+                  claimableRewards && new BigNumber(claimableRewards).gt(0)
+                    ? formatEtherNoRound(claimableRewards, 3)
+                    : '0.000'
+                }}
               </template>
               <template v-else>--</template>
             </span>
@@ -59,6 +63,7 @@ import { config } from '@/config/wagmi.config';
 import Card from './ui-kit/Card.vue';
 import Ticker from './ui-kit/Ticker.vue';
 import Popover from './ui-kit/Popover.vue';
+import BigNumber from 'bignumber.js';
 
 const { isConnected, address } = useAccount({ config } as any);
 
