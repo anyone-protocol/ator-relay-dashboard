@@ -61,6 +61,31 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "controllerAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "oldValue",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newValue",
+        "type": "uint256"
+      }
+    ],
+    "name": "DefaultRedeemCostUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "controller",
         "type": "address"
       },
@@ -103,20 +128,32 @@
       },
       {
         "indexed": false,
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "lockDuration",
-        "type": "uint256"
+        "type": "uint64"
       },
       {
         "indexed": false,
         "internalType": "uint256",
+        "name": "minStakeSize",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
         "name": "stakeDuration",
-        "type": "uint256"
+        "type": "uint64"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "governanceDuration",
+        "type": "uint64"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "governanceDuration",
+        "name": "defaultRedeemCost",
         "type": "uint256"
       }
     ],
@@ -215,6 +252,31 @@
       }
     ],
     "name": "Locked",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "controller",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "oldValue",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newValue",
+        "type": "uint256"
+      }
+    ],
+    "name": "MinStakeSizeUpdated",
     "type": "event"
   },
   {
@@ -590,12 +652,25 @@
   },
   {
     "inputs": [],
-    "name": "GOVERNANCE_DURATION",
+    "name": "DEFAULT_REDEEM_COST",
     "outputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "GOVERNANCE_DURATION",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
       }
     ],
     "stateMutability": "view",
@@ -606,6 +681,19 @@
     "name": "LOCK_DURATION",
     "outputs": [
       {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "LOCK_SIZE",
+    "outputs": [
+      {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
@@ -616,7 +704,7 @@
   },
   {
     "inputs": [],
-    "name": "LOCK_SIZE",
+    "name": "MIN_STAKE_SIZE",
     "outputs": [
       {
         "internalType": "uint256",
@@ -645,9 +733,9 @@
     "name": "STAKE_DURATION",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "",
-        "type": "uint256"
+        "type": "uint64"
       }
     ],
     "stateMutability": "view",
@@ -872,14 +960,14 @@
             "type": "uint256"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint64",
             "name": "availableAt",
-            "type": "uint256"
+            "type": "uint64"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint8",
             "name": "kind",
-            "type": "uint256"
+            "type": "uint8"
           },
           {
             "internalType": "string",
@@ -1018,24 +1106,34 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "_lockDuration",
-        "type": "uint256"
+        "type": "uint64"
       },
       {
         "internalType": "uint256",
+        "name": "_minStakeSize",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint64",
         "name": "_stakeDuration",
-        "type": "uint256"
+        "type": "uint64"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "_governanceDuration",
-        "type": "uint256"
+        "type": "uint64"
       },
       {
         "internalType": "address",
         "name": "_rewardsPoolAddress",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_defaultRedeemCost",
+        "type": "uint256"
       }
     ],
     "name": "initialize",
@@ -1207,8 +1305,21 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_seconds",
+        "name": "_amount",
         "type": "uint256"
+      }
+    ],
+    "name": "setDefaultRedeemCost",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "_seconds",
+        "type": "uint64"
       }
     ],
     "name": "setGovernanceDuration",
@@ -1219,9 +1330,9 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "_seconds",
-        "type": "uint256"
+        "type": "uint64"
       }
     ],
     "name": "setLockDuration",
@@ -1246,8 +1357,21 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_seconds",
+        "name": "_size",
         "type": "uint256"
+      }
+    ],
+    "name": "setMinStakeSize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "_seconds",
+        "type": "uint64"
       }
     ],
     "name": "setStakeDuration",
