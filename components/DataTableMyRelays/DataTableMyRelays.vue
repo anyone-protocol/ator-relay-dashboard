@@ -908,29 +908,6 @@ const block = await getBlock(config);
                   </span>
                   <span v-else>-</span>
                 </div>
-                <div
-                  class="text-xs font-normal text-stone-700 dark:text-stone-300"
-                >
-                  <span class="text-gray-800 dark:text-white"
-                    >Delegate Rewards:
-                  </span>
-                  <span
-                    v-if="
-                      lastRound[row.fingerprint]?.Details?.Reward?.DelegateTotal
-                    "
-                  >
-                    {{
-                      formatEtherNoRound(
-                        new BigNumber(
-                          lastRound[
-                            row.fingerprint
-                          ].Details.Reward.DelegateTotal
-                        ).toString()
-                      )
-                    }}
-                  </span>
-                  <span v-else>-</span>
-                </div>
               </div>
             </template>
             <template #trigger>
