@@ -197,10 +197,32 @@ export const useStakingRewards = () => {
       // logger.info('Staking snapshot results:', results);
       const snapshotId = results.data.data.transactions.edges[0]?.node.id;
 
-      const snapshotRes = await arweave.api.get(`/${snapshotId}/data`);
-      const snapshotData: StakingSnapshot = snapshotRes.data;
-      logger.info('Staking snapshot data:', snapshotData);
-      return snapshotData;
+      if (!snapshotId) {
+        throw new Error('No snapshot ID found.');
+      }
+
+      try {
+        const snapshotRes = await arweave.api.get(`/${snapshotId}/data`);
+        const snapshotData: StakingSnapshot = snapshotRes.data;
+        logger.info('Staking snapshot data:', snapshotData);
+        return snapshotData;
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          const fallbackSnapshotId =
+            results.data.data.transactions.edges[1]?.node.id;
+          if (!fallbackSnapshotId) {
+            throw new Error('No fallback snapshot ID found.');
+          }
+          const fallbackSnapshotRes = await arweave.api.get(
+            `/${fallbackSnapshotId}/data`
+          );
+          const fallbackSnapshotData: StakingSnapshot =
+            fallbackSnapshotRes.data;
+          logger.info('Fallback staking snapshot data:', fallbackSnapshotData);
+          return fallbackSnapshotData;
+        }
+        throw error;
+      }
     } catch (error) {
       logger.error('Error fetching staking snapshot:', error);
       throw error;
