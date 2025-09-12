@@ -92,7 +92,7 @@
             :columns="operatorColumns"
             :rows="
               currentTab === 'operators'
-                ? visibleOperators
+                ? allOperators
                 : filteredStakedOperators
             "
           >
@@ -459,7 +459,7 @@ import {
 import { hodlerAbi } from '../assets/abi/hodler';
 import { tokenAbi } from '../assets/abi/token';
 import { getAddress, parseEther } from 'viem';
-import { useClipboard } from '@vueuse/core';
+import { useClipboard, useVirtualList } from '@vueuse/core';
 import { getBlock, getChainId } from '@wagmi/core';
 import { config } from '~/config/wagmi.config';
 import Popover from '~/components/ui-kit/Popover.vue';
@@ -1413,66 +1413,6 @@ onMounted(async () => {
     if (cached) {
       queryClient.setQueryData(['operatorsWithDomains'], cached);
     }
-  }
-});
-
-const operatorTableRef = useTemplateRef('operatorTableRef');
-const visibleItems = ref(50);
-const itemsPerLoad = 50;
-
-const visibleOperators = computed(() => {
-  return (
-    currentTab.value === 'operators'
-      ? allOperators.value
-      : filteredStakedOperators.value
-  ).slice(0, visibleItems.value);
-});
-
-const hasMoreItems = computed(() => {
-  return (
-    visibleItems.value <
-    (currentTab.value === 'operators'
-      ? allOperators.value
-      : filteredStakedOperators.value
-    ).length
-  );
-});
-
-const handleScroll = () => {
-  if (!operatorTableRef.value) return;
-
-  const wrapper = operatorTableRef.value.$el;
-  const { scrollTop, scrollHeight, clientHeight } = wrapper;
-
-  // console.log('Scroll event:', { visibleItems: visibleItems.value });
-
-  if (scrollHeight - scrollTop - clientHeight < 100 && hasMoreItems.value) {
-    // console.log('Loading more items...');
-    visibleItems.value += itemsPerLoad;
-    nextTick(() => {
-      wrapper.scrollTop = scrollTop; // Maintain scroll position
-    });
-  }
-};
-
-watch(
-  [allOperators, filteredStakedOperators, currentTab],
-  async () => {
-    if (process.client && operatorTableRef.value) {
-      await nextTick(); // Ensure DOM is updated
-      visibleItems.value = 50; // Reset on tab change
-      operatorTableRef.value.$el.addEventListener('scroll', handleScroll);
-      return () => {
-        operatorTableRef.value?.$el.removeEventListener('scroll', handleScroll);
-      };
-    }
-  },
-  { immediate: true }
-);
-
-onUnmounted(() => {
-  if (process.client && operatorTableRef.value) {
-    operatorTableRef.value.$el.removeEventListener('scroll', handleScroll);
   }
 });
 </script>
