@@ -705,7 +705,7 @@ const operatorColumns = computed(() => {
       { key: 'amount', label: 'Your stake', sortable: true },
       { key: 'total', label: 'Total Stakes', sortable: true },
       { key: 'running', label: 'Running', sortable: true },
-      { key: 'domains', label: 'Domains' },
+      { key: 'domains', label: 'Domains', sortable: true },
       { key: 'redeemableRewards', label: 'Rewards', sortable: true },
       { key: 'actions', label: 'Actions' },
     ];
@@ -715,7 +715,7 @@ const operatorColumns = computed(() => {
     { key: 'amount', label: 'Your stake', sortable: true },
     { key: 'total', label: 'Total Stakes', sortable: true },
     { key: 'running', label: 'Running', sortable: true },
-    { key: 'domains', label: 'Domains' },
+    { key: 'domains', label: 'Domains', sortable: true },
     { key: 'actions', label: 'Actions' },
   ];
 });
