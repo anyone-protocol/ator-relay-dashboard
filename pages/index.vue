@@ -9,10 +9,28 @@
             class="flex justify-between items-start lg:items-start flex-col lg:flex-row mb-2 lg:mb-0 lg:justify-between"
           >
             <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <h3>
-                <!-- <Icon name="material-symbols:lock" /> -->
-                Total Contract Balance
-              </h3>
+              <span class="flex gap-1 items-center">
+                <h3>
+                  <!-- <Icon name="material-symbols:lock" /> -->
+                  Total Contract Balance
+                </h3>
+                <Popover
+                  placement="top"
+                  :arrow="false"
+                  class="h-max grid place-items-center"
+                >
+                  <template #content>
+                    <span class="text-xs font-normal text-nowrap">
+                      Your total amount of tokens in the protocol: <br />
+                      <strong>Available</strong>, <strong>Locked</strong>,
+                      <strong>Staked</strong> and <strong>Vaulted</strong>.
+                    </span>
+                  </template>
+                  <template #trigger>
+                    <Icon name="heroicons:exclamation-circle" />
+                  </template>
+                </Popover>
+              </span>
               <div class="inline-flex flex-col items-baseline">
                 <template v-if="isPending">
                   <USkeleton class="w-[15rem] h-10" />
