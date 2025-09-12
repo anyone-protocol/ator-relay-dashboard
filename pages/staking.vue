@@ -32,7 +32,7 @@
                   </template>
                 </Popover>
               </div>
-              <div class="inline-flex items-baseline justify-end gap-2">
+              <div class="inline-flex items-baseline gap-2">
                 <template v-if="vaultsPending">
                   <USkeleton class="w-[8rem] h-6" />
                 </template>
