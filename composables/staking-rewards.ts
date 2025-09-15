@@ -157,7 +157,7 @@ export const useStakingRewards = () => {
   const queryObject = {
     query: `{
 		transactions(
-			first:1,
+			first:2,
 			tags: [
 				{
 					name: "Protocol",
@@ -194,35 +194,35 @@ export const useStakingRewards = () => {
   const getStakingSnapshot = async () => {
     try {
       const results = await arweave.api.post('/graphql', queryObject);
-      // logger.info('Staking snapshot results:', results);
       const snapshotId = results.data.data.transactions.edges[0]?.node.id;
 
       if (!snapshotId) {
         throw new Error('No snapshot ID found.');
       }
 
-      try {
-        const snapshotRes = await arweave.api.get(`/${snapshotId}/data`);
+      const snapshotRes = await arweave.api.get(`/${snapshotId}/data`);
+      if (snapshotRes.ok) {
         const snapshotData: StakingSnapshot = snapshotRes.data;
         logger.info('Staking snapshot data:', snapshotData);
         return snapshotData;
-      } catch (error: any) {
-        if (error.response?.status === 404) {
-          const fallbackSnapshotId =
-            results.data.data.transactions.edges[1]?.node.id;
-          if (!fallbackSnapshotId) {
-            throw new Error('No fallback snapshot ID found.');
-          }
-          const fallbackSnapshotRes = await arweave.api.get(
-            `/${fallbackSnapshotId}/data`
-          );
-          const fallbackSnapshotData: StakingSnapshot =
-            fallbackSnapshotRes.data;
-          logger.info('Fallback staking snapshot data:', fallbackSnapshotData);
-          return fallbackSnapshotData;
-        }
-        throw error;
       }
+
+      logger.info('Snapshot not found. Fetching fallback...');
+
+      const fallbackSnapshotId =
+        results.data.data.transactions.edges[1]?.node.id;
+      if (!fallbackSnapshotId) {
+        throw new Error('No fallback snapshot ID found.');
+      }
+      const fallbackSnapshotRes = await arweave.api.get(
+        `/${fallbackSnapshotId}/data`
+      );
+      if (!fallbackSnapshotRes.ok) {
+        throw new Error('Fallback snapshot request failed.');
+      }
+      const fallbackSnapshotData: StakingSnapshot = fallbackSnapshotRes.data;
+      logger.info('Fallback staking snapshot data:', fallbackSnapshotData);
+      return fallbackSnapshotData;
     } catch (error) {
       logger.error('Error fetching staking snapshot:', error);
       throw error;
