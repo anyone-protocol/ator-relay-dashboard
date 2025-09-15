@@ -201,6 +201,24 @@
                   :disabled="true"
                   :model-value="selectedOperator?.operator"
                 />
+                <div class="w-full flex flex-col items-end gap-1 mb-2">
+                  <span class="text-xs w-max"
+                    >Wallet:
+                    <span class="text-cyan-600 dark:text-cyan-300">
+                      {{ formatEtherNoRound(tokenBalance?.value || '0') }}
+                      <Ticker class="text-[9px]" />
+                    </span>
+                  </span>
+                  <span class="text-xs w-max"
+                    >Available:
+                    <span
+                      class="text-xs w-max text-cyan-600 dark:text-cyan-300"
+                    >
+                      {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
+                      <Ticker class="text-[9px]" />
+                    </span>
+                  </span>
+                </div>
                 <div class="flex flex-col gap-2">
                   <div class="relative mb-1">
                     <UInput
@@ -984,7 +1002,11 @@ const submitStakeForm = async () => {
       hodlerInfo.value ? hodlerInfo.value[0].toString() : '0'
     );
 
-    const amountToStake = maxStakeAmount.value || amount;
+    const amountToStake = parseEther(
+      maxStakeAmount.value
+        ? formatEtherNoRound(maxStakeAmount.value)
+        : stakeAmount.value
+    ).toString();
 
     // console.log('amount: ', amount);
     // console.log('max amount: ', maxStakeAmount.value);
@@ -997,8 +1019,8 @@ const submitStakeForm = async () => {
     currentWriteAction.value = 'stake';
     if (
       allowance.value === undefined ||
-      (new BigNumber(allowance.value.toString()).lt(amount) &&
-        new BigNumber(amount).gt(available))
+      (new BigNumber(allowance.value.toString()).lt(amountToStake) &&
+        new BigNumber(amountToStake).gt(available))
     ) {
       // console.log('Approving tokens...');
       await writeContractAsync({
@@ -1126,45 +1148,6 @@ const claimable = async (available: bigint) => {
   // console.log('block_timestamp: ', timestamp);
   // console.log('available_timestamp: ', available);
   return available < timestamp - BigInt(TIMESTAMP_BUFFER);
-};
-
-const claimTokens = async (available: bigint) => {
-  if (!isConnected) {
-    toast.add({
-      title: 'Please connect your wallet to claim tokens',
-      color: 'red',
-    });
-    return;
-  }
-
-  if (!claimable(available)) {
-    toast.add({
-      title: `You can't claim these tokens yet`,
-      color: 'red',
-    });
-    return;
-  }
-
-  try {
-    currentWriteAction.value = 'openExpired';
-    toast.add({
-      title: `Claiming ${totalClaimableAmount.value} tokens from expired vaults...`,
-      color: 'blue',
-      timeout: 0,
-    });
-    await writeContractAsync({
-      address: hodlerContract,
-      abi: hodlerAbi,
-      functionName: 'openExpired',
-    });
-  } catch (error) {
-    console.error('VaultClaimError: ', error);
-    toast.remove('openExpired');
-    toast.add({
-      title: 'Failed to claim tokens from vault',
-      color: 'red',
-    });
-  }
 };
 
 const filteredStakedOperators = computed(() => {
@@ -1327,6 +1310,7 @@ watch(isConfirmed, (confirmed) => {
         color: 'green',
       });
       stakeInput.value = '';
+      maxStakeAmount.value = '';
       currentWriteAction.value = null;
       stakeDialogOpen.value = false;
       refetchStakes();
