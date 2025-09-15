@@ -201,6 +201,24 @@
                   :disabled="true"
                   :model-value="selectedOperator?.operator"
                 />
+                <div class="w-full flex flex-col items-end gap-1 mb-2">
+                  <span class="text-xs w-max"
+                    >Wallet:
+                    <span class="text-cyan-600 dark:text-cyan-300">
+                      {{ formatEtherNoRound(tokenBalance?.value || '0') }}
+                      <Ticker class="text-[9px]" />
+                    </span>
+                  </span>
+                  <span class="text-xs w-max"
+                    >Available:
+                    <span
+                      class="text-xs w-max text-cyan-600 dark:text-cyan-300"
+                    >
+                      {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
+                      <Ticker class="text-[9px]" />
+                    </span>
+                  </span>
+                </div>
                 <div class="flex flex-col gap-2">
                   <div class="relative mb-1">
                     <UInput
