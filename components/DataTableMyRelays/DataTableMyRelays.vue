@@ -747,7 +747,8 @@ const block = await getBlock(config);
                 formatEtherNoRound(
                   new BigNumber(
                     lastRound[row.fingerprint].Details.Reward.Total
-                  ).toString()
+                  ).toString(),
+                  3
                 )
               }}
             </span>
@@ -775,7 +776,8 @@ const block = await getBlock(config);
                       `${formatEtherNoRound(
                         new BigNumber(
                           lastRound[row.fingerprint].Details.Reward.Network
-                        ).toString()
+                        ).toString(),
+                        3
                       )} $ANYONE`
                     }}
                   </span>
