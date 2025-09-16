@@ -549,19 +549,17 @@ const unstakeDialogOpen = ref(false);
 const stakeInput = ref('');
 const maxStakeAmount = ref('');
 const stakeAmount = computed(() => validateTokenInput(stakeInput.value) || '0');
+const maxUnstakeAmount = ref('');
 const unstakeInput = ref('');
 const unstakeAmount = computed(
   () => validateTokenInput(unstakeInput.value) || '0'
 );
 const totalClaimableAmount = ref<bigint>(0n);
 const searchQuery = ref('');
-const operatorRegistry = useOperatorRegistry();
-// const operatorRegistryPending = ref(false);
 const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
 const selectedOperator = ref<Operator | null>(null);
 const operatorRewards = ref<OperatorRewards[]>([]);
 const hodlerAddress = computed(() => address.value);
-// for testing purposes - should get running from LastRoundMetadata
 const runningThreshold = computed(
   () => lastSnapshot.value?.Configuration.Requirements.Running
 );
@@ -909,6 +907,18 @@ watch(stakeInput, (value) => {
   }
 });
 
+watch(unstakeInput, (value) => {
+  if (value) {
+    maxUnstakeAmount.value = '';
+  }
+});
+
+watch(stakesData, (newData) => {
+  if (newData) {
+    console.log('stakesData:', toRaw(newData));
+  }
+});
+
 const handleCloseStakeDialog = () => {
   if (isStaking.value) {
     toast.add({
@@ -941,9 +951,14 @@ const setMaxStake = () => {
 const setMaxUnstake = () => {
   // console.log('setting max unstake...');
   if (selectedOperator.value?.amount) {
-    unstakeInput.value = formatEtherNoRound(
-      selectedOperator.value.amount.toString()
+    const maxAmount = formatEtherNoRound(
+      selectedOperator.value.amount.toString(),
+      18 - selectedOperator.value.amount.toString().length + 1
     );
+    unstakeInput.value = maxAmount;
+    setTimeout(() => {
+      maxUnstakeAmount.value = selectedOperator.value?.amount.toString() || '0';
+    }, 50);
   }
 };
 
@@ -997,7 +1012,6 @@ const submitStakeForm = async () => {
 
   try {
     // console.log('parsing amount...');
-    const amount = parseEther(stakeAmount.value).toString();
     const available = new BigNumber(
       hodlerInfo.value ? hodlerInfo.value[0].toString() : '0'
     );
@@ -1075,7 +1089,11 @@ const submitUnstakeForm = async () => {
 
   try {
     currentWriteAction.value = 'unstake';
-    const amount = parseEther(unstakeAmount.value.toString());
+    const amount = maxUnstakeAmount.value
+      ? maxUnstakeAmount.value
+      : parseEther(unstakeAmount.value.toString());
+
+    console.log('unstake amount: ', amount);
 
     await writeContractAsync({
       address: hodlerContract,
@@ -1153,6 +1171,7 @@ const claimable = async (available: bigint) => {
 const filteredStakedOperators = computed(() => {
   if (!isConnected.value) return [];
   return stakedOperators.value
+    .filter((op) => op.amount > 0n)
     .filter((op) => {
       if (!debouncedSearchQuery.value) return true;
       if (debouncedSearchQuery.value.startsWith('0x')) {
@@ -1321,6 +1340,7 @@ watch(isConfirmed, (confirmed) => {
         color: 'green',
       });
       unstakeInput.value = '';
+      maxUnstakeAmount.value = '';
       currentWriteAction.value = null;
       unstakeDialogOpen.value = false;
       refetchStakes();
