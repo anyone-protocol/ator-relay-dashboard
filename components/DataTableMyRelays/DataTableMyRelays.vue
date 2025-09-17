@@ -844,7 +844,8 @@ const block = await getBlock(config);
                       `${formatEtherNoRound(
                         new BigNumber(
                           lastRound[row.fingerprint].Details.Reward.Hardware
-                        ).toString()
+                        ).toString(),
+                        3
                       )} $ANYONE`
                     }}
                   </span>
@@ -863,7 +864,8 @@ const block = await getBlock(config);
                       `${formatEtherNoRound(
                         new BigNumber(
                           lastRound[row.fingerprint].Details.Reward.Uptime
-                        ).toString()
+                        ).toString(),
+                        3
                       )} $ANYONE`
                     }}
                   </span>
@@ -884,7 +886,8 @@ const block = await getBlock(config);
                       `${formatEtherNoRound(
                         new BigNumber(
                           lastRound[row.fingerprint].Details.Reward.ExitBonus
-                        ).toString()
+                        ).toString(),
+                        3
                       )} $ANYONE`
                     }}
                   </span>
