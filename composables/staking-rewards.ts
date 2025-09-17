@@ -200,7 +200,7 @@ export const useStakingRewards = () => {
         throw new Error('No snapshot ID found.');
       }
 
-      const snapshotRes = await arweave.api.get(`/${snapshotId}/data`);
+      const snapshotRes = await arweave.api.get(`/${snapshotId}`);
       if (snapshotRes.ok) {
         const snapshotData: StakingSnapshot = snapshotRes.data;
         logger.info('Staking snapshot data:', snapshotData);
@@ -215,7 +215,7 @@ export const useStakingRewards = () => {
         throw new Error('No fallback snapshot ID found.');
       }
       const fallbackSnapshotRes = await arweave.api.get(
-        `/${fallbackSnapshotId}/data`
+        `/${fallbackSnapshotId}`
       );
       if (!fallbackSnapshotRes.ok) {
         throw new Error('Fallback snapshot request failed.');
