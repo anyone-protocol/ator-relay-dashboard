@@ -1,6 +1,6 @@
 <template>
-  <div class="flex flex-col-reverse lg:flex-row gap-5 mt-4">
-    <Card>
+  <div class="flex flex-col-reverse lg:flex-row gap-5 mt-4 overflow-hidden">
+    <Card class="overflow-hidden">
       <div class="flex lg:items-center justify-between mb-6 gap-5">
         <div class="flex flex-col gap-5 md:flex-row md:items-center md:gap-10">
           <div class="flex items-center space-x-1 md:space-x-2 h-max">
@@ -82,6 +82,7 @@
         </template>
         <template v-slot:[currentTab]="{ item }">
           <UTable
+            class="max-h-[100vh] overflow-y-auto"
             id="operators-table"
             ref="operatorTableRef"
             :empty-state="{
