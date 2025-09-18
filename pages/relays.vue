@@ -1,7 +1,7 @@
 <template>
   <DashboardMobileSection title="my-relays">
-    <Card class="mt-[1rem]">
-      <div class="flex items-center mb-[1rem] justify-between">
+    <Card class="overflow-hidden min-h-0 h-full">
+      <div class="flex items-center mb-6 justify-between">
         <div class="flex items-center space-x-2">
           <Icon
             name="eos-icons:product-classes-outlined"
@@ -19,17 +19,16 @@
         </div>
       </div>
       <DataTableMyRelays
-        v-if="!isMobile"
         :currentTab="currentTab"
         @update:currentTab="handleTabChange"
         :registerModalOpen="registerModalOpen"
       />
-      <DataTableMyRelaysMobile
+      <!-- <DataTableMyRelaysMobile
         v-else
         :currentTab="currentTab"
         @update:currentTab="handleTabChange"
         :registerModalOpen="registerModalOpen"
-      />
+      /> -->
     </Card>
   </DashboardMobileSection>
   <UModal
@@ -167,7 +166,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useUserStore } from '@/stores/useUserStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import DataTableMyRelays from '@/components/DataTableMyRelays/DataTableMyRelays.vue';
-import DataTableMyRelaysMobile from '@/components/DataTableMyRelays/DataTableMyRelaysMobile.vue';
+// import DataTableMyRelaysMobile from '@/components/DataTableMyRelays/DataTableMyRelaysMobile.vue';
 import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
 import { type RelayTabType } from '@/types/relay';

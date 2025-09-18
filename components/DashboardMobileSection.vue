@@ -30,7 +30,7 @@ const onInView = ([{ isIntersecting }]: [{ isIntersecting: boolean }]) => {
     v-intersection-observer="[onInView, { threshold: 0.75 }]"
     :data-title="title"
     :id="title"
-    class="h-auto snap-always snap-center"
+    class="h-auto snap-always snap-center overflow-hidden"
   >
     <slot></slot>
   </section>

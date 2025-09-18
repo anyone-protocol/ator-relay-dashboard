@@ -665,7 +665,7 @@ const block = await getBlock(config);
       </UContainer>
     </UCard>
   </UModal>
-  <div class="-mx-4 sm:-mx-0">
+  <div class="-mx-4 sm:-mx-0 overflow-hidden">
     <UAlert
       v-if="(allRelaysError as any)?.value || (allRelaysError as any)?.value"
       class="mb-6"
@@ -678,6 +678,7 @@ const block = await getBlock(config);
     <Tabs :tabs="TABS" @onChange="handleTabChange" />
 
     <UTable
+      class="max-h-[100vh] overflow-y-auto"
       :loading="allRelaysPending || vaultsPending"
       :columns="RELAY_COLUMS[currentTab]"
       :rows="getTableData(currentTab)"
