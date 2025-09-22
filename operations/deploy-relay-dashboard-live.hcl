@@ -5,7 +5,7 @@ job "deploy-relay-dashboard-live" {
 
   constraint {
     attribute = "${meta.pool}"
-    value = "live-protocol"
+    value = "live"
   }
 
   reschedule { attempts = 0 }
@@ -15,17 +15,11 @@ job "deploy-relay-dashboard-live" {
 
     task "deploy-relay-dashboard-live-task" {
       driver = "docker"
-      
+
       consul {}
 
       vault {
         role = "any1-nomad-workloads-controller"
-      }
-
-      identity {
-        name = "vault_default"
-        aud  = ["any1-infra"]
-        ttl  = "1h"
       }
 
       config {
@@ -66,6 +60,7 @@ job "deploy-relay-dashboard-live" {
         PHASE="live"
         NODE_OPTIONS="--max-old-space-size=4096"
         DASHBOARD_VERSION="[[.commit_sha]]"
+        BUMP="0"
       }
 
       template {
@@ -82,15 +77,16 @@ job "deploy-relay-dashboard-live" {
         data = <<-EOH
         NUXT_PUBLIC_OPERATOR_REGISTRY_PROCESS_ID="{{ key "smart-contracts/live/operator-registry-address" }}"
         NUXT_PUBLIC_RELAY_REWARDS_PROCESS_ID="{{ key "smart-contracts/live/relay-rewards-address" }}"
+        NUXT_PUBLIC_STAKING_REWARDS_PROCESS_ID="{{ key "smart-contracts/live/staking-rewards-address" }}"
         NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/live/validator-address-base64" }}"
         NUXT_PUBLIC_FACILITATOR_CONTRACT="{{ key "facilitator/sepolia/live/address" }}"
+        NUXT_PUBLIC_HODLER_CONTRACT="{{ key "hodler/sepolia/live/address" }}"
         NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/sepolia/live/address" }}"
-        NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{.Data.data.SUPPORT_ADDRESS_BASE64}}"
         NUXT_PUBLIC_REGISTRATOR_CONTRACT="{{ key "registrator/sepolia/live/address" }}"
-        {{with secret "kv/live-protocol/deploy-relay-dashboard-live"}}
+        {{ with secret "kv/live-protocol/deploy-relay-dashboard-live" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
-        PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
-        {{end}}
+        PERMAWEB_KEY="{{ .Data.data.DASHBOARD_OWNER_KEY }}"
+        {{ end }}
         EOH
         destination = "secrets/file.env"
         env         = true
