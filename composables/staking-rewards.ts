@@ -161,7 +161,7 @@ export const useStakingRewards = () => {
   const queryObject = {
     query: `{
 		transactions(
-			first:2,
+			first:10,
       owners: ["${stakingSnapshotController}"],
 			tags: [
 				{
@@ -199,35 +199,23 @@ export const useStakingRewards = () => {
   const getStakingSnapshot = async () => {
     try {
       const results = await arweave.api.post('/graphql', queryObject);
-      const snapshotId = results.data.data.transactions.edges[0]?.node.id;
+      const edges = results.data.data.transactions.edges;
 
-      if (!snapshotId) {
-        throw new Error('No snapshot ID found.');
+      if (!edges || edges.length === 0) {
+        throw new Error('No transactions found.');
       }
 
-      const snapshotRes = await arweave.api.get(`/${snapshotId}`);
-      if (snapshotRes.ok) {
-        const snapshotData: StakingSnapshot = snapshotRes.data;
-        logger.info('Staking snapshot data:', snapshotData);
-        return snapshotData;
+      for (let i = 0; i < Math.min(10, edges.length); i++) {
+        const snapshotId = edges[i].node.id;
+        const snapshotRes = await arweave.api.get(`/${snapshotId}`);
+        if (snapshotRes.ok) {
+          const snapshotData: StakingSnapshot = snapshotRes.data;
+          logger.info(`Staking snapshot data from edge ${i}:`, snapshotData);
+          return snapshotData;
+        }
       }
 
-      logger.info('Snapshot not found. Fetching fallback...');
-
-      const fallbackSnapshotId =
-        results.data.data.transactions.edges[1]?.node.id;
-      if (!fallbackSnapshotId) {
-        throw new Error('No fallback snapshot ID found.');
-      }
-      const fallbackSnapshotRes = await arweave.api.get(
-        `/${fallbackSnapshotId}`
-      );
-      if (!fallbackSnapshotRes.ok) {
-        throw new Error('Fallback snapshot request failed.');
-      }
-      const fallbackSnapshotData: StakingSnapshot = fallbackSnapshotRes.data;
-      logger.info('Fallback staking snapshot data:', fallbackSnapshotData);
-      return fallbackSnapshotData;
+      throw new Error('No valid snapshot found in the first 10 edges.');
     } catch (error) {
       logger.error('Error fetching staking snapshot:', error);
       throw error;
