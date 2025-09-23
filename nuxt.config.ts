@@ -59,6 +59,7 @@ export default defineNuxtConfig({
       operatorRegistryProcessId: '_-JHiTCYy8cG4dsQDm0kHKF0I3rJit1uxbPdNqQBE_Q',
       relayRewardsProcessId: 'QZJTY63XZtHOHo_qPaEX7VdtemZh4rpj821xcanPGXA',
       stakingRewardsProcessId: 'aQ5MmpWnb4hq1XPklhuny6Q59Idl2URl0_5meNZhmRo',
+      stakingSnapshotController: '6FyQki05iUsRdoY252dE4GlGItW4jpIr_t21VA3D6Zw',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: '53a5b087ab4cb303a799325360098216',
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',
@@ -89,6 +90,12 @@ export default defineNuxtConfig({
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
 
   vite: {
+    server: {
+      hmr: {
+        host: 'localhost',
+        clientPort: 3000,
+      },
+    },
     plugins: [
       nodePolyfills(),
       // NB: Fixes "exports not defined" when using arbundles -> crypto libs
