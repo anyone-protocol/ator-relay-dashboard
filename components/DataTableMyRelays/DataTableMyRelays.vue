@@ -53,7 +53,8 @@ const fingerprints = computed(() => {
 });
 
 const getLastRoundData = async (fingerprint: string) => {
-  console.log('Fetching last round data for fingerprint:', fingerprint);
+  // console.log('Fetching last round data for fingerprint:', fingerprint);
+  return null; // Disabled temporarily
   try {
     const { result } = await sendAosDryRun({
       processId: relayRewardsProcessId,
@@ -93,7 +94,7 @@ const lastRoundResults = useQueries({
 const lastRound = computed(() => {
   const rounds: Record<string, LastRoundData> = {};
   lastRoundResults.value.forEach((query, index) => {
-    console.log('Last round query result:', toRaw(query.data));
+    // console.log('Last round query result:', toRaw(query.data));
     if (query.data) {
       rounds[fingerprints.value[index]] = query.data;
     }
