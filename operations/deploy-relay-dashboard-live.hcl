@@ -61,8 +61,6 @@ job "deploy-relay-dashboard-live" {
         NODE_OPTIONS="--max-old-space-size=4096"
         DASHBOARD_VERSION="[[.commit_sha]]"
         BUMP="0"
-        # Update this to production CU when ready
-        NUXT_PUBLIC_AO_CU_URL="https://cu.ardrive.io"
       }
 
       template {
