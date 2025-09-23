@@ -5,7 +5,7 @@ job "deploy-relay-dashboard-live" {
 
   constraint {
     attribute = "${meta.pool}"
-    value = "live"
+    value = "live-protocol"
   }
 
   reschedule { attempts = 0 }
