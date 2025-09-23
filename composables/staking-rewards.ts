@@ -153,11 +153,16 @@ export const useStakingRewards = () => {
     }
   };
 
+  const runtimeConfig = useRuntimeConfig();
+  const stakingSnapshotController =
+    runtimeConfig.public.stakingSnapshotController;
+
   const arweave = useArweave();
   const queryObject = {
     query: `{
 		transactions(
 			first:2,
+      owners: ["${stakingSnapshotController}"],
 			tags: [
 				{
 					name: "Protocol",
