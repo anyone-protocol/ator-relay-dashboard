@@ -14,12 +14,12 @@ import BigNumber from 'bignumber.js';
 import LockStatusColumn from './columns/LockStatusColumn.vue';
 import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
 import { ethers } from 'ethers';
-import { defineProps } from 'vue';
+import { defineProps, useTemplateRef } from 'vue';
 import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
 import { useHodler } from '~/composables/hodler';
 import { hodlerAbi } from '~/assets/abi/hodler';
 import { getBlock } from '@wagmi/core';
-import { debounce } from 'lodash';
+import { useDebounceFn } from '@vueuse/core';
 import { useQueries } from '@tanstack/vue-query';
 import type { LastRoundData } from '~/composables/relay-rewards';
 import Ticker from '../ui-kit/Ticker.vue';
@@ -46,68 +46,6 @@ const registerModalOpen = ref(false);
 
 const runtimeConfig = useRuntimeConfig();
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
-
-// The user's relays
-const fingerprints = computed(() => {
-  return allRelays.value.map((relay) => relay.fingerprint);
-});
-
-const getLastRoundData = async (fingerprint: string) => {
-  // console.log('Fetching last round data for fingerprint:', fingerprint);
-  return null; // Disabled temporarily
-  try {
-    const { result } = await sendAosDryRun({
-      processId: relayRewardsProcessId,
-      tags: [
-        { name: 'Action', value: 'Last-Round-Data' },
-        { name: 'Fingerprint', value: fingerprint },
-      ],
-    });
-
-    if (result.Error) {
-      console.error('AOS Error: ' + result.Error);
-      return null;
-    }
-    if (!result.Messages.length || !result.Messages[0].Data) {
-      console.error(`No data found for fingerprint: ${fingerprint}`);
-      return null;
-    }
-
-    console.log('Last round result:', result.Messages[0].Data);
-    return JSON.parse(result.Messages[0].Data) as LastRoundData;
-  } catch (error) {
-    console.error('Error fetching last round data:', error);
-    return null;
-  }
-};
-
-const lastRoundResults = useQueries({
-  queries: computed(() =>
-    fingerprints.value.map((fp) => ({
-      queryKey: ['lastRound', fp],
-      queryFn: () => getLastRoundData(fp),
-      enabled: !!fp,
-    }))
-  ),
-});
-
-const lastRound = computed(() => {
-  const rounds: Record<string, LastRoundData> = {};
-  lastRoundResults.value.forEach((query, index) => {
-    // console.log('Last round query result:', toRaw(query.data));
-    if (query.data) {
-      rounds[fingerprints.value[index]] = query.data;
-    }
-  });
-  return rounds;
-});
-
-const lastRoundPending = computed(() =>
-  lastRoundResults.value.some((q) => q.isPending)
-);
-const lastRoundSuccess = computed(() =>
-  lastRoundResults.value.every((q) => q.isSuccess)
-);
 
 // watch(lastRound, (newRounds) => {
 //   if (newRounds) {
@@ -574,11 +512,11 @@ const {
   },
 });
 
-watch(vaultsData, (newVaults) => {
-  if (newVaults) {
-    console.log('Vaults data updated:', newVaults);
-  }
-});
+// watch(vaultsData, (newVaults) => {
+//   if (newVaults) {
+//     console.log('Vaults data updated:', newVaults);
+//   }
+// });
 
 const vaults = computed(() => {
   if (!vaultsData.value) return [];
@@ -597,6 +535,134 @@ const vaults = computed(() => {
 });
 
 const block = await getBlock(config);
+
+const ITEMS_PER_LOAD = 10;
+const visibleItems = ref(ITEMS_PER_LOAD);
+const visibleRelays = computed(() => {
+  return getTableData(props.currentTab).slice(0, visibleItems.value);
+});
+
+// The user's relays
+const fingerprints = computed(() => {
+  return visibleRelays.value
+    .filter((relay) => 'fingerprint' in relay)
+    .map((relay) => relay.fingerprint);
+});
+
+const getLastRoundData = async (fingerprint: string) => {
+  // console.log('Fetching last round data for fingerprint:', fingerprint);
+  // return null;
+  try {
+    const { result } = await sendAosDryRun({
+      processId: relayRewardsProcessId,
+      tags: [
+        { name: 'Action', value: 'Last-Round-Data' },
+        { name: 'Fingerprint', value: fingerprint },
+      ],
+    });
+
+    if (result.Error) {
+      console.error('AOS Error: ' + result.Error);
+      return null;
+    }
+    if (!result.Messages.length || !result.Messages[0].Data) {
+      console.error(`No data found for fingerprint: ${fingerprint}`);
+      return null;
+    }
+
+    // console.log('Last round result:', result.Messages[0].Data);
+    return JSON.parse(result.Messages[0].Data) as LastRoundData;
+  } catch (error) {
+    console.error('Error fetching last round data:', error);
+    return null;
+  }
+};
+
+const lastRoundResults = useQueries({
+  queries: computed(() =>
+    fingerprints.value.map((fp) => ({
+      queryKey: computed(() => ['lastRound', fp]),
+      queryFn: () => getLastRoundData(fp),
+      staleTime: Infinity,
+    }))
+  ),
+  combine: (results) => {
+    return {
+      data: results.map((result) => result.data),
+      pending: results.some((result) => result.isPending),
+    };
+  },
+});
+
+const lastRound = computed(() => {
+  const rounds: Record<string, LastRoundData> = {};
+  lastRoundResults.value.data.forEach((data, index) => {
+    // console.log('Last round query result:', toRaw(query.data));
+    if (data) {
+      rounds[fingerprints.value[index]] = data;
+    }
+  });
+  return rounds;
+});
+
+const lastRoundPending = computed(() => lastRoundResults.value.pending);
+// const lastRoundSuccess = computed(() =>
+//   lastRoundResults.value.data.length
+// );
+
+const target = useTemplateRef<HTMLDivElement>('target');
+
+const relayTableRef = useTemplateRef('relayTableRef');
+const hasMoreItems = computed(() => {
+  return visibleItems.value < getTableData(props.currentTab).length;
+});
+
+const handleScroll = () => {
+  if (!relayTableRef.value) return;
+  const wrapper = relayTableRef.value.$el;
+  const { scrollTop, scrollHeight, clientHeight } = wrapper;
+  // console.log('Scroll event:', { visibleItems: visibleItems.value });
+  if (scrollHeight - scrollTop - clientHeight < 100 && hasMoreItems.value) {
+    // console.log('Loading more items...');
+    visibleItems.value += ITEMS_PER_LOAD;
+    nextTick(() => {
+      wrapper.scrollTop = scrollTop; // Maintain scroll position
+    });
+  }
+};
+
+// watch(visibleItems, (newVal) => {
+//   console.log('Visible items changed:', newVal);
+// });
+
+const debouncedHandleScroll = useDebounceFn(handleScroll, 300);
+
+watch(
+  [allRelays, claimableRelays, props.currentTab],
+  async () => {
+    if (process.client && relayTableRef.value) {
+      await nextTick(); // Ensure DOM is updated
+      visibleItems.value = ITEMS_PER_LOAD; // Reset on tab change
+      relayTableRef.value.$el.addEventListener('scroll', debouncedHandleScroll);
+      return () => {
+        relayTableRef.value?.$el.removeEventListener(
+          'scroll',
+          debouncedHandleScroll
+        );
+      };
+    }
+  },
+  { immediate: true }
+);
+
+onUnmounted(() => {
+  if (process.client && relayTableRef.value) {
+    relayTableRef.value.$el.removeEventListener(
+      'scroll',
+      debouncedHandleScroll
+    );
+  }
+});
 </script>
 
 <template>
@@ -679,10 +745,11 @@ const block = await getBlock(config);
     <Tabs :tabs="TABS" @onChange="handleTabChange" />
 
     <UTable
-      class="max-h-[100vh] overflow-y-auto"
+      ref="relayTableRef"
+      class="max-h-[50svh] md:max-h-[65svh] overflow-y-auto"
       :loading="allRelaysPending || vaultsPending"
       :columns="RELAY_COLUMS[currentTab]"
-      :rows="getTableData(currentTab)"
+      :rows="visibleRelays"
       :ui="{ td: { base: 'max-w-sm truncate' } }"
       :empty-state="{
         icon: 'i-heroicons-circle-stack-20-solid',
