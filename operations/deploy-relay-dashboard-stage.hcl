@@ -86,6 +86,7 @@ job "deploy-relay-dashboard-stage" {
         {{ with secret "kv/stage-protocol/deploy-relay-dashboard-stage" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
         PERMAWEB_KEY="{{ .Data.data.DASHBOARD_OWNER_KEY }}"
+        NUXT_PUBLIC_STAKING_SNAPSHOT_CONTROLLER="{{ .Data.data.STAKING_REWARDS_CONTROLLER_ADDRESS_ARWEAVE }}"
         {{ end }}
         EOH
         destination = "secrets/file.env"
