@@ -119,7 +119,7 @@
           </div>
 
           <div
-            class="flex gap-5 lg:gap-24 2xl:gap-32 flex-col lg:flex-row my-4 lg:my-0 lg:mt-2"
+            class="flex gap-5 lg:gap-16 xl:gap-24 2xl:gap-32 flex-col lg:flex-row my-4 lg:my-0 lg:mt-2"
           >
             <!-- <div class="border-l-4 border-cyan-600 pl-3">
               <UserBalance
