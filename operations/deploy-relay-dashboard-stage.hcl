@@ -61,6 +61,8 @@ job "deploy-relay-dashboard-stage" {
         NODE_OPTIONS="--max-old-space-size=4096"
         DASHBOARD_VERSION="[[.commit_sha]]"
         BUMP="0"
+        # Remove once CU includes our processes
+        NUXT_PUBLIC_AO_CU_URL="https://cu.ardrive.io"
       }
 
       template {
