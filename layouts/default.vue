@@ -13,7 +13,7 @@ onMounted(() => {
   >
     <div class="xl:p-6">
       <div
-        class="mx-auto w-full max-w-screen-2xl xl:rounded-xl h-[calc(100vh-0px)] sm:h-[calc(100vh-50px)] flex flex-col"
+        class="mx-auto w-full max-w-screen-2xl xl:rounded-xl h-[calc(100vh-0px)] xl:h-[calc(100vh-50px)] flex flex-col"
       >
         <DashboardHeader />
         <div
@@ -21,7 +21,7 @@ onMounted(() => {
           class="flex-1 min-h-0 overflow-y-auto px-6 lg:grid lg:grid-cols-8 lg:gap-6"
         >
           <section
-            class="relative flex flex-col gap-6 lg:col-span-8 lg:mt-6 max-h-full overflow-hidden"
+            class="relative flex flex-col gap-6 lg:col-span-8 lg:mt-6 max-h-full overflow-auto"
           >
             <slot></slot>
           </section>
