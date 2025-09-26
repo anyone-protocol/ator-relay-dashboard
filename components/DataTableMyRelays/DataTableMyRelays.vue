@@ -62,16 +62,16 @@ const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
 //   }
 // });
 
-onMounted(() => {
-  // refresh everything every 60 seconds
-  setInterval(() => {
-    if (hodler) {
-      if (userStore.userData.address) {
-        hodler.refresh();
-      }
-    }
-  }, 1000 * 60);
-});
+// onMounted(() => {
+//   // refresh everything every 60 seconds
+//   setInterval(() => {
+//     if (hodler) {
+//       if (userStore.userData.address) {
+//         hodler.refresh();
+//       }
+//     }
+//   }, 1000 * 60);
+// });
 
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
 const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
@@ -747,7 +747,7 @@ onUnmounted(() => {
     <UTable
       ref="relayTableRef"
       class="max-h-[50svh] md:max-h-[65svh] overflow-y-auto"
-      :loading="allRelaysPending || vaultsPending"
+      :loading="currentTab === 'unlocked' ? vaultsPending : allRelaysPending"
       :columns="RELAY_COLUMS[currentTab]"
       :rows="visibleRelays"
       :ui="{ td: { base: 'max-w-sm truncate' } }"
@@ -1011,7 +1011,7 @@ onUnmounted(() => {
 
       <template #consensusWeight-data="{ row }">
         <template v-if="metricsStore.relayMetricsPending">
-          <USkeleton class="w-[15rem] h-10" />
+          <USkeleton class="w-[6rem] h-8" />
         </template>
         <span
           v-else-if="
@@ -1031,7 +1031,7 @@ onUnmounted(() => {
       </template>
       <template #observedBandwidth-data="{ row }">
         <template v-if="metricsStore.relayMetricsPending">
-          <USkeleton class="w-[15rem] h-10" />
+          <USkeleton class="w-[6rem] h-8" />
         </template>
         <span
           v-else-if="
@@ -1067,9 +1067,7 @@ onUnmounted(() => {
           :is-locked="lockedRelaysMap[row.fingerprint]"
           :is-hardware="isHardwareResolved?.[row.fingerprint]"
           :is-verified="row.status === 'verified'"
-          :is-loading="
-            hodlerStore.loading || lockedRelaysPending || allRelaysPending
-          "
+          :is-loading="lockedRelaysPending"
         />
       </template>
 
@@ -1115,9 +1113,7 @@ onUnmounted(() => {
             row.status === 'verified' ||
             isHardwareResolved?.[row.fingerprint]
           "
-          :is-loading="
-            hodlerStore.loading || lockedRelaysPending || allRelaysPending
-          "
+          :is-loading="hardwareStatusPending"
           :has-registration-credit="relayCredits[row.fingerprint]"
           :registration-credits-required="registrationCreditsRequired ?? false"
           :family-verified="familyVerified[row.fingerprint]"

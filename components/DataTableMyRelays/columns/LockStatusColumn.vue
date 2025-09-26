@@ -8,7 +8,7 @@ defineProps<{
 </script>
 <template>
   <template v-if="isLoading">
-    <USkeleton class="w-[15rem] h-10" />
+    <USkeleton class="w-[6rem] h-8" />
   </template>
   <template v-else>
     <div
