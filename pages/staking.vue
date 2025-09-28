@@ -550,7 +550,7 @@ const unstakeDialogOpen = ref(false);
 const stakeInput = ref('');
 const maxStakeAmount = ref('');
 const stakeAmount = computed(() => validateTokenInput(stakeInput.value) || '0');
-const maxUnstakeAmount = ref('');
+const maxUnstakeAmount = ref<bigint>(0n);
 const unstakeInput = ref('');
 const unstakeAmount = computed(
   () => validateTokenInput(unstakeInput.value) || '0'
@@ -910,7 +910,7 @@ watch(stakeInput, (value) => {
 
 watch(unstakeInput, (value) => {
   if (value) {
-    maxUnstakeAmount.value = '';
+    maxUnstakeAmount.value = 0n;
   }
 });
 
@@ -950,15 +950,19 @@ const setMaxStake = () => {
 };
 
 const setMaxUnstake = () => {
-  // console.log('setting max unstake...');
   if (selectedOperator.value?.amount) {
+    const amountStr = selectedOperator.value.amount.toString();
+    const bigNumberValue = new BigNumber(amountStr);
+    const etherValue = bigNumberValue.div(new BigNumber('1e18')); // Convert to Ether
+    // Calculate decimals: adjust based on wei string length to show significant digits
+    const decimals = Math.max(0, 18 - (amountStr.length - 1)); // Ensure non-negative
     const maxAmount = formatEtherNoRound(
-      selectedOperator.value.amount.toString(),
-      18 - selectedOperator.value.amount.toString().length + 1
+      amountStr,
+      etherValue.isZero() ? 2 : decimals
     );
     unstakeInput.value = maxAmount;
     setTimeout(() => {
-      maxUnstakeAmount.value = selectedOperator.value?.amount.toString() || '0';
+      maxUnstakeAmount.value = selectedOperator.value?.amount || 0n;
     }, 50);
   }
 };
@@ -1091,7 +1095,7 @@ const submitUnstakeForm = async () => {
   try {
     currentWriteAction.value = 'unstake';
     const amount = maxUnstakeAmount.value
-      ? maxUnstakeAmount.value
+      ? parseEther(formatEtherNoRound(maxUnstakeAmount.value.toString()))
       : parseEther(unstakeAmount.value.toString());
 
     console.log('unstake amount: ', amount);
@@ -1109,6 +1113,7 @@ const submitUnstakeForm = async () => {
       title: 'Failed to unstake tokens',
       color: 'red',
     });
+    throw error;
   }
 };
 
@@ -1341,7 +1346,7 @@ watch(isConfirmed, (confirmed) => {
         color: 'green',
       });
       unstakeInput.value = '';
-      maxUnstakeAmount.value = '';
+      maxUnstakeAmount.value = 0n;
       currentWriteAction.value = null;
       unstakeDialogOpen.value = false;
       refetchStakes();
