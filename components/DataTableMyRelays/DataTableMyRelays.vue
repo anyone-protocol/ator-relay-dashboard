@@ -732,7 +732,7 @@ onUnmounted(() => {
       </UContainer>
     </UCard>
   </UModal>
-  <div class="-mx-4 sm:-mx-0 overflow-hidden">
+  <div class="-mx-4 sm:-mx-0 overflow-auto">
     <UAlert
       v-if="(allRelaysError as any)?.value || (allRelaysError as any)?.value"
       class="mb-6"
