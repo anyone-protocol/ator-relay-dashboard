@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col-reverse lg:flex-row gap-5 mt-4 overflow-hidden">
-    <Card class="overflow-hidden">
+    <Card class="overflow-auto">
       <div class="flex lg:items-center justify-between mb-6 gap-5">
         <div class="flex flex-col gap-5 md:flex-row md:items-center md:gap-10">
           <div class="flex items-center space-x-1 md:space-x-2 h-max">
