@@ -1095,10 +1095,10 @@ const submitUnstakeForm = async () => {
   try {
     currentWriteAction.value = 'unstake';
     const amount = maxUnstakeAmount.value
-      ? parseEther(formatEtherNoRound(maxUnstakeAmount.value.toString()))
+      ? maxUnstakeAmount.value
       : parseEther(unstakeAmount.value.toString());
 
-    console.log('unstake amount: ', amount);
+    // console.log('unstake amount: ', amount);
 
     await writeContractAsync({
       address: hodlerContract,
