@@ -631,11 +631,24 @@ const handleScroll = () => {
   }
 };
 
+const loadMoreIfNeeded = async () => {
+  await nextTick();
+  if (!relayTableRef.value) return;
+  const wrapper = relayTableRef.value.$el;
+  while (
+    hasMoreItems.value &&
+    wrapper.scrollHeight <= wrapper.clientHeight + 50
+  ) {
+    visibleItems.value += ITEMS_PER_LOAD;
+    await nextTick();
+  }
+};
+
 // watch(visibleItems, (newVal) => {
 //   console.log('Visible items changed:', newVal);
 // });
 
-const debouncedHandleScroll = useDebounceFn(handleScroll, 300);
+const debouncedHandleScroll = useDebounceFn(handleScroll, 200);
 
 watch(
   [allRelays, claimableRelays, props.currentTab],
@@ -643,6 +656,7 @@ watch(
     if (process.client && relayTableRef.value) {
       await nextTick(); // Ensure DOM is updated
       visibleItems.value = ITEMS_PER_LOAD; // Reset on tab change
+      loadMoreIfNeeded();
       relayTableRef.value.$el.addEventListener('scroll', debouncedHandleScroll);
       return () => {
         relayTableRef.value?.$el.removeEventListener(
@@ -663,6 +677,14 @@ onUnmounted(() => {
     );
   }
 });
+
+onMounted(() => {
+  window.addEventListener('resize', debouncedLoadMoreIfNeeded);
+});
+onUnmounted(() => {
+  window.removeEventListener('resize', debouncedLoadMoreIfNeeded);
+});
+const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
 </script>
 
 <template>
