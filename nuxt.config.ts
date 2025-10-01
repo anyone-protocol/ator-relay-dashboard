@@ -55,7 +55,7 @@ export default defineNuxtConfig({
   // See: https://nuxt.com/docs/guide/going-further/runtime-config
   runtimeConfig: {
     public: {
-      aoCuUrl: 'https://cu.anyone.permaweb.services',
+      aoCuUrl: 'https://cu.anyone.tech', //'https://cu.anyone.permaweb.services',
       operatorRegistryProcessId: '_-JHiTCYy8cG4dsQDm0kHKF0I3rJit1uxbPdNqQBE_Q',
       relayRewardsProcessId: 'QZJTY63XZtHOHo_qPaEX7VdtemZh4rpj821xcanPGXA',
       stakingRewardsProcessId: 'aQ5MmpWnb4hq1XPklhuny6Q59Idl2URl0_5meNZhmRo',

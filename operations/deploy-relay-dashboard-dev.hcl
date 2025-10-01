@@ -53,6 +53,7 @@ job "deploy-relay-dashboard-dev" {
       env {
         PHASE="dev"
         DASHBOARD_VERSION="[[.commit_sha]]"
+        NUXT_PUBLIC_AO_CU_URL="https://cu-dev.anyone.tech"
       }
 
       vault {
