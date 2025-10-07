@@ -332,7 +332,7 @@
                 <div class="flex flex-col items-start gap-2">
                   <h3 class="text-sm">Total claimed rewards</h3>
                 </div>
-                <template v-if="claimedPending">
+                <template v-if="hodlerInfoPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
                 </template>
                 <template v-else>
@@ -586,7 +586,7 @@ const { allRelays } = storeToRefs(userStore);
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
 const lockedPending = ref(false);
-const claimedPending = ref(true);
+// const claimedPending = ref(true);
 const claimablePending = ref(true);
 
 // watch(allRelays, (newRelays) => {
@@ -660,7 +660,7 @@ const fetchInitialData = async (
   try {
     if (!hodlerStore?.initialized || forceRefresh) {
       lockedPending.value = true;
-      claimedPending.value = true;
+      // claimedPending.value = true;
       claimablePending.value = true;
     }
 
@@ -675,7 +675,6 @@ const fetchInitialData = async (
   } finally {
     //wait 1 second before setting pending to false
     lockedPending.value = false;
-    claimedPending.value = false;
     claimablePending.value = false;
   }
 };
@@ -863,14 +862,10 @@ const {
   address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'hodlers',
-  args: [address.value as `0x${string}`],
-  query: { enabled: true },
-});
-
-watch(hodlerInfo, (info) => {
-  if (info) {
-    console.log('hodlerInfo: ', toRaw(info));
-  }
+  args: [computed(() => address.value as `0x${string}`)],
+  query: {
+    enabled: computed(() => !!address.value),
+  },
 });
 
 const totalClaimable = computed(() => {
@@ -912,7 +907,7 @@ const {
   address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'getStakes',
-  args: [address.value as `0x${string}`],
+  args: [computed(() => address.value as `0x${string}`)],
   query: {
     enabled: computed(() => !!address.value),
   },
@@ -935,7 +930,7 @@ const {
   address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'getVaults',
-  args: [address.value as `0x${string}`],
+  args: [computed(() => address.value as `0x${string}`)],
   query: {
     enabled: computed(() => !!address.value),
   },

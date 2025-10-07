@@ -887,13 +887,9 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
                     "
                   >
                     {{
-                      formatEtherNoRound(
-                        new BigNumber(
-                          lastRound[
-                            row.fingerprint
-                          ].Details.Variables.FamilyMultiplier
-                        ).toString()
-                      )
+                      lastRound[
+                        row.fingerprint
+                      ].Details.Variables.FamilyMultiplier.toFixed(2)
                     }}
                   </span>
                   <span v-else>-</span>
@@ -911,13 +907,9 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
                     "
                   >
                     {{
-                      formatEtherNoRound(
-                        new BigNumber(
-                          lastRound[
-                            row.fingerprint
-                          ].Details.Variables.LocationMultiplier
-                        ).toString()
-                      )
+                      lastRound[
+                        row.fingerprint
+                      ].Details.Variables.LocationMultiplier.toFixed(2)
                     }}
                   </span>
                   <span v-else>-</span>
