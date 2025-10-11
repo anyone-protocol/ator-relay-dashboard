@@ -562,7 +562,7 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Anyone Hardware Relay.
+                        Anyone Hardware Relays.
                       </span>
                     </template>
                     <template #trigger>
