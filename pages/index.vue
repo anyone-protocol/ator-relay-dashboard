@@ -520,7 +520,7 @@
                 class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
               >
                 <div class="flex items-center gap-1">
-                <h3 class="text-sm">Registered Relays</h3>
+                <h3 class="text-sm">Registered</h3>
                   <Popover
                     placement="top"
                     :arrow="false"
@@ -549,12 +549,12 @@
                     </span>
                   </template>
                 </div>
-              </div>
+              </div>    
               <div
                 class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
               >
               <div class="flex items-center gap-1">
-              <h3 class="text-sm">Claimed Relays</h3>
+              <h3 class="text-sm">Hardware</h3>
                   <Popover
                     placement="top"
                     :arrow="false"
@@ -562,7 +562,83 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Relays that are <strong>Claimed</strong> but not Locked.
+                        Anyone Hardware Relay.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="allRelaysPending || hardwareStatusPending">
+                    <USkeleton class="w-[10rem] h-10" />
+                  </template>
+                  <template v-else>
+                    <span v-if="isConnected" class="text-4xl font-medium">
+                      {{
+                        allRelays.filter((relay) =>
+                          relay.active && checkIsHardware(relay.fingerprint)
+                        ).length
+                      }}
+                    </span>
+                    <span v-if="!isConnected" class="text-4xl font-medium">
+                      --
+                    </span>
+                  </template>
+                </div>
+              </div>                         
+              <div
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
+              >
+              <div class="flex items-center gap-1">
+              <h3 class="text-sm">Locked</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Relays that are <strong>Locked</strong>.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="allRelaysPending || hardwareStatusPending">
+                    <USkeleton class="w-[10rem] h-10" />
+                  </template>
+                  <template v-else>
+                    <span v-if="isConnected" class="text-4xl font-medium">
+                      {{
+                        allRelays.filter((relay) =>
+                          relay.active && checkIsLocked(relay.fingerprint)    
+                        ).length
+                      }}
+                    </span>
+                    <span v-if="!isConnected" class="text-4xl font-medium">
+                      --
+                    </span>
+                  </template>
+                </div>
+              </div>      
+              <div
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
+              >
+              <div class="flex items-center gap-1">
+              <h3 class="text-sm">Claimed</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Relays that are <strong>Claimed</strong>.
                       </span>
                     </template>
                     <template #trigger>
@@ -590,12 +666,12 @@
                     </span>
                   </template>
                 </div>
-              </div>              
+              </div>    
               <div
                 class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
               >
               <div class="flex items-center gap-1">
-              <h3 class="text-sm">Locked Relays</h3>
+              <h3 class="text-sm">Active</h3>
                   <Popover
                     placement="top"
                     :arrow="false"
@@ -603,48 +679,7 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Relays that are <strong>Locked</strong> but not Claimed.
-                      </span>
-                    </template>
-                    <template #trigger>
-                      <Icon name="heroicons:exclamation-circle" />
-                    </template>
-                  </Popover>
-                </div>
-                <div class="inline-flex flex-col items-baseline">
-                  <template v-if="allRelaysPending || hardwareStatusPending">
-                    <USkeleton class="w-[10rem] h-10" />
-                  </template>
-                  <template v-else>
-                    <span v-if="isConnected" class="text-4xl font-medium">
-                      {{
-                        allRelays.filter((relay) =>
-                          checkIsHardware(relay.fingerprint)
-                            ? relay.active
-                            : relay.active &&
-                              checkIsLocked(relay.fingerprint)    
-                        ).length
-                      }}
-                    </span>
-                    <span v-if="!isConnected" class="text-4xl font-medium">
-                      --
-                    </span>
-                  </template>
-                </div>
-              </div>              
-              <div
-                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
-              >
-              <div class="flex items-center gap-1">
-              <h3 class="text-sm">Active Relays</h3>
-                  <Popover
-                    placement="top"
-                    :arrow="false"
-                    class="h-max grid place-items-center"
-                  >
-                    <template #content>
-                      <span class="text-xs font-normal">
-                        Relays that are <strong>Locked</strong> and <strong>Claimed</strong>. Anyone Hardware Relays don't require locks and is included in this total. Only Active Relays earns rewards.
+                        Relays that are <strong>Locked</strong> and <strong>Claimed</strong>. Anyone Hardware Relays don't require locks and is included in this total. Only the <strong>Active Relays</strong> earns rewards.
                       </span>
                     </template>
                     <template #trigger>
