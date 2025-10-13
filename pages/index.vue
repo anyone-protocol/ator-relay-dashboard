@@ -542,8 +542,8 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        All relay fingerprints regardless of state that are
-                        referenced to this wallet.
+                        Total Relays that are referenced to this wallet,
+                        regardless of state.
                       </span>
                     </template>
                     <template #trigger>
@@ -577,7 +577,7 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Anyone Hardware Relay.
+                        Total Anyone Hardware Relays.
                       </span>
                     </template>
                     <template #trigger>
@@ -616,7 +616,7 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Relays that are <strong>Locked</strong>.
+                        Total Relays that are <strong>Locked</strong>.
                       </span>
                     </template>
                     <template #trigger>
@@ -655,7 +655,7 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Relays that are <strong>Claimed</strong>.
+                        Total Relays that are <strong>Claimed</strong>.
                       </span>
                     </template>
                     <template #trigger>
@@ -695,10 +695,9 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Relays that are <strong>Locked</strong> and
-                        <strong>Claimed</strong>. Anyone Hardware Relays don't
-                        require locks and is included in this total. Only the
-                        <strong>Active Relays</strong> earns rewards.
+                        Total Relays that are <strong>Locked</strong> or
+                        <strong>Hardware</strong> and <strong>Claimed</strong>.
+                        Only the <strong>Active Relays</strong> earns rewards.
                       </span>
                     </template>
                     <template #trigger>
