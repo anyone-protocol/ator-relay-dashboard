@@ -142,9 +142,9 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Available tokens in the protocol smart contract. These
-                        tokens are separate to your wallet balance and can be
-                        locked, staked or withdrawn back to your wallet.
+                        Available tokens in the smart contract. These tokens are
+                        separate to your wallet balance and can be locked,
+                        staked or withdrawn back to your wallet.
                       </span>
                     </template>
                     <template #trigger>
@@ -184,7 +184,9 @@
                       <span class="text-xs font-normal">
                         Tokens locked for your own relays, or delegated to other
                         relays. Manage them from the
-                        <RouterLink to="/relays"
+                        <RouterLink
+                          to="/relays"
+                          style="text-decoration: underline"
                           ><strong>Relays</strong>
                         </RouterLink>
                         tab.
@@ -227,7 +229,9 @@
                       <span class="text-xs font-normal">
                         Your total staked tokens, including relay rewards which
                         are auto-compounded. Manage them from the
-                        <RouterLink to="/staking"
+                        <RouterLink
+                          to="/staking"
+                          style="text-decoration: underline"
                           ><strong>Staking</strong>
                         </RouterLink>
                         tab.
@@ -438,6 +442,34 @@
                       class="w-2 h-2 bg-red-600 rounded-full text-xs"
                     ></span>
                     <span>Mainnet balance too low</span>
+                    <Popover
+                      placement="top"
+                      :arrow="false"
+                      class="h-max grid place-items-center"
+                    >
+                      <template #content>
+                        <div class="text-xs font-normal">
+                          <span class="text-xs font-normal">
+                            Your wallet <strong>must</strong> hold 100 $ANYONE
+                            tokens on Ethereum mainnet for every
+                            <strong>Active Relay</strong> (Excluding Anyone
+                            hardware relays) or the eligble airdrop will be
+                            forfeited.
+                            <br />
+                            Current balance:
+                            <b>{{
+                              (
+                                Number(tokenBalance.value) /
+                                Math.pow(10, tokenBalance.decimals)
+                              ).toFixed(0)
+                            }}</b>
+                          </span>
+                        </div>
+                      </template>
+                      <template #trigger>
+                        <Icon name="heroicons:exclamation-circle" />
+                      </template>
+                    </Popover>
                   </div>
                 </template>
               </div>
@@ -496,12 +528,29 @@
               </div>
             </div>
           </Card>
-          <Card title="Your relays" icon="eos-icons:product-classes-outlined">
-            <div class="flex flex-col lg:flex-row gap-16 mt-12">
+          <Card title="Your Relays" icon="eos-icons:product-classes-outlined">
+            <div class="flex flex-col lg:flex-row gap-10 mt-10">
               <div
                 class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
               >
-                <h3 class="text-sm">Registered Relays</h3>
+                <div class="flex items-center gap-1">
+                  <h3 class="text-sm">Registered</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Total Relays that are referenced to this wallet,
+                        regardless of state.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
                 <div class="inline-flex flex-col items-baseline">
                   <template v-if="allRelaysPending">
                     <USkeleton class="w-[10rem] h-10" />
@@ -519,7 +568,143 @@
               <div
                 class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
               >
-                <h3 class="text-sm">Active Relays</h3>
+                <div class="flex items-center gap-1">
+                  <h3 class="text-sm">Hardware</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Total Anyone Hardware Relays.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="allRelaysPending || hardwareStatusPending">
+                    <USkeleton class="w-[10rem] h-10" />
+                  </template>
+                  <template v-else>
+                    <span v-if="isConnected" class="text-4xl font-medium">
+                      {{
+                        allRelays.filter(
+                          (relay) =>
+                            relay.active && checkIsHardware(relay.fingerprint)
+                        ).length
+                      }}
+                    </span>
+                    <span v-if="!isConnected" class="text-4xl font-medium">
+                      --
+                    </span>
+                  </template>
+                </div>
+              </div>
+              <div
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
+              >
+                <div class="flex items-center gap-1">
+                  <h3 class="text-sm">Locked</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Total Relays that are <strong>Locked</strong>.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="allRelaysPending || hardwareStatusPending">
+                    <USkeleton class="w-[10rem] h-10" />
+                  </template>
+                  <template v-else>
+                    <span v-if="isConnected" class="text-4xl font-medium">
+                      {{
+                        allRelays.filter(
+                          (relay) =>
+                            relay.active && checkIsLocked(relay.fingerprint)
+                        ).length
+                      }}
+                    </span>
+                    <span v-if="!isConnected" class="text-4xl font-medium">
+                      --
+                    </span>
+                  </template>
+                </div>
+              </div>
+              <div
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
+              >
+                <div class="flex items-center gap-1">
+                  <h3 class="text-sm">Claimed</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Total Relays that are <strong>Claimed</strong>.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
+                <div class="inline-flex flex-col items-baseline">
+                  <template v-if="allRelaysPending || hardwareStatusPending">
+                    <USkeleton class="w-[10rem] h-10" />
+                  </template>
+                  <template v-else>
+                    <span v-if="isConnected" class="text-4xl font-medium">
+                      {{
+                        allRelays.filter((relay) =>
+                          checkIsHardware(relay.fingerprint)
+                            ? relay.active && relay.status === 'verified'
+                            : relay.active && relay.status === 'verified'
+                        ).length
+                      }}
+                    </span>
+                    <span v-if="!isConnected" class="text-4xl font-medium">
+                      --
+                    </span>
+                  </template>
+                </div>
+              </div>
+              <div
+                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
+              >
+                <div class="flex items-center gap-1">
+                  <h3 class="text-sm">Active</h3>
+                  <Popover
+                    placement="top"
+                    :arrow="false"
+                    class="h-max grid place-items-center"
+                  >
+                    <template #content>
+                      <span class="text-xs font-normal">
+                        Total Relays that are <strong>Locked</strong> or
+                        <strong>Hardware</strong> and <strong>Claimed</strong>.
+                        Only the <strong>Active Relays</strong> earns rewards.
+                      </span>
+                    </template>
+                    <template #trigger>
+                      <Icon name="heroicons:exclamation-circle" />
+                    </template>
+                  </Popover>
+                </div>
                 <div class="inline-flex flex-col items-baseline">
                   <template v-if="allRelaysPending || hardwareStatusPending">
                     <USkeleton class="w-[10rem] h-10" />
