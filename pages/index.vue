@@ -549,7 +549,7 @@
                     </span>
                   </template>
                 </div>
-              </div>    
+              </div>
               <div
                 class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
               >
@@ -679,7 +679,7 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Total Relays that are <strong>Locked</strong> or <strong>Hardware</strong> and <strong>Claimed</strong>. Only the <strong>Active Relays</strong> earns rewards.
+                        Total number of relays that are <strong>Locked</strong> or <strong>hardware-based</strong> and have been <strong>Claimed</strong>. Only active relays earn rewards.
                       </span>
                     </template>
                     <template #trigger>
