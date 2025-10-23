@@ -1,9 +1,9 @@
 // https://docs.walletconnect.com/web3modal/vue/about
 export const metadata = {
-  name: 'AnyOne Dashboard',
+  name: 'Anyone Dashboard',
   description:
-    'AnyOne empowers the adoption and strength of the Tor network. AnyOne Proof-of-Uptime and relay hardware allow users to earn passively while contributing to Tor.',
-  url: 'https://ator-dashboard.ar-io.dev/',
+    'The Anyone dashboard is purpose-built for relay operators - those who maintain the nodes of the Anyone Network - and stakers - holders of the ANYONE token who can delegate their trust to operators.',
+  url: 'https://dashboard.anyone.io/',
   icons: ['/images/ator-logo.png'],
 };
 
