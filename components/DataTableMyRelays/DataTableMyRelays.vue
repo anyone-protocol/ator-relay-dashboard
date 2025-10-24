@@ -1,7 +1,11 @@
 <script lang="ts" setup>
 import { useAccount, useReadContract } from '@wagmi/vue';
 import { config } from '@/config/wagmi.config';
-import { type RelayRow, type RelayTabType } from '@/types/relay';
+import {
+  type RelayMeta,
+  type RelayRow,
+  type RelayTabType,
+} from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 
@@ -16,13 +20,16 @@ import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
 import { ethers } from 'ethers';
 import { defineProps, useTemplateRef } from 'vue';
 import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
-import { useHodler } from '~/composables/hodler';
+// import { useHodler } from '~/composables/hodler';
 import { hodlerAbi } from '~/assets/abi/hodler';
 import { getBlock } from '@wagmi/core';
 import { useDebounceFn } from '@vueuse/core';
 import { useQueries } from '@tanstack/vue-query';
 import type { LastRoundData } from '~/composables/relay-rewards';
 import Ticker from '../ui-kit/Ticker.vue';
+import { useRelays } from '~/composables/queries/useRelays';
+import { useRelayMetrics } from '~/composables/queries/useRelayMetrics';
+import { useRelayMutations } from '@/composables/mutations/useRelayMutations';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -33,55 +40,102 @@ const toast = useToast();
 const userStore = useUserStore();
 const metricsStore = useMetricsStore();
 const hodlerStore = useHolderStore();
-const operatorRegistry = useOperatorRegistry();
-const hodler = useHodler();
+// const operatorRegistry = useOperatorRegistry();
+// const hodler = useHodler();
 
 const isHovered = ref(false);
 const isUnlocking = ref(false);
 
-const { allRelays, claimableRelays } = storeToRefs(userStore);
-
 const { address, isConnected } = useAccount({ config } as any);
+
+const {
+  data: relaysData,
+  isPending: relaysPending,
+  isError: relaysErrored,
+  error: relaysError,
+} = useRelays(computed(() => address.value));
+
+// 2. Extract all fingerprints
+const allFingerprints = computed(() => {
+  if (!relaysData.value) return [];
+  return [...relaysData.value.verified, ...relaysData.value.claimable];
+});
+
+// 3. Fetch metrics for all fingerprints
+const { data: metricsData, isPending: metricsPending } =
+  useRelayMetrics(allFingerprints);
+
+// Helper function to convert RelayMeta to RelayRow properties
+const mapMetricsToRow = (metrics: RelayMeta | undefined) => {
+  if (!metrics) {
+    return {
+      consensusWeight: 0,
+      observedBandwidth: 0,
+      nickname: '',
+      active: false,
+    };
+  }
+
+  return {
+    consensusWeight: Number(metrics.consensus_weight) || 0,
+    observedBandwidth: metrics.observed_bandwidth || 0,
+    nickname: metrics.nickname || '',
+    active: metrics.running || false,
+  };
+};
+
+// 4. Combine into RelayRow objects
+const allRelays = computed<RelayRow[]>(() => {
+  if (!relaysData.value) return [];
+
+  const verified: RelayRow[] = relaysData.value.verified.map((fp) => ({
+    fingerprint: fp,
+    status: 'verified',
+    ...mapMetricsToRow(metricsData.value?.[fp]),
+    class: '',
+    isWorking: false,
+  }));
+
+  const claimable: RelayRow[] = relaysData.value.claimable.map((fp) => ({
+    fingerprint: fp,
+    status: 'claimable',
+    ...mapMetricsToRow(metricsData.value?.[fp]),
+    class: '',
+    isWorking: false,
+  }));
+
+  return [...verified, ...claimable];
+});
+
+// Separate computed for claimable only
+const claimableRelays = computed<RelayRow[]>(() => {
+  if (!relaysData.value) return [];
+
+  return relaysData.value.claimable.map((fp) => ({
+    fingerprint: fp,
+    status: 'claimable',
+    ...mapMetricsToRow(metricsData.value?.[fp]),
+    class: '',
+    isWorking: false,
+  }));
+});
+
+// const { allRelays, claimableRelays } = storeToRefs(userStore);
+
 const registerModalOpen = ref(false);
 
 const runtimeConfig = useRuntimeConfig();
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
 
-// watch(lastRound, (newRounds) => {
-//   if (newRounds) {
-//     console.log('Last round data:', toRaw(newRounds));
-
-//     fingerprints.value.forEach((fp) => {
-//       if (newRounds[fp]) {
-//         console.log(
-//           `Last round details for ${fp}:`,
-//           toRaw(newRounds[fp].Details)
-//         );
-//       }
-//     });
-//   }
-// });
-
-// onMounted(() => {
-//   // refresh everything every 60 seconds
-//   setInterval(() => {
-//     if (hodler) {
-//       if (userStore.userData.address) {
-//         hodler.refresh();
-//       }
-//     }
-//   }, 1000 * 60);
-// });
-
 // Fetching and refreshing the relay data from Warp - stored in Pinia user store
-const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
-  'verifiedRelays',
-  () => userStore.createRelayCache(),
-  {
-    server: false,
-    watch: [address],
-  }
-);
+// const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
+//   'verifiedRelays',
+//   () => userStore.createRelayCache(),
+//   {
+//     server: false,
+//     watch: [address],
+//   }
+// );
 
 const relayCredits = ref<Record<string, boolean | undefined>>({});
 const familyVerified = ref<Record<string, boolean>>({});
@@ -154,7 +208,7 @@ const fingerPrintRegisterError = ref<string | null>(null);
 
 const relayActionOngoing = ref<boolean>(false);
 
-if ((allRelaysError as any).value?.cause?.message == 'rate limited') {
+if ((relaysError as any).value?.cause?.message == 'rate limited') {
   toast.add({
     id: 'claimable-relays-error',
     icon: 'i-heroicons-exclamation-triangle',
@@ -169,6 +223,9 @@ const timestamp = computed(
   () => metricsStore.relays.timestamp && new Date(metricsStore.relays.timestamp)
 );
 
+const { lockMutation, unlockMutation, claimMutation, renounceMutation } =
+  useRelayMutations();
+
 const relayAction = async (
   action: 'claim' | 'renounce',
   fingerprint: string
@@ -176,121 +233,101 @@ const relayAction = async (
   const selectedRow = allRelays.value.find(
     (row) => row.fingerprint === fingerprint
   );
-  selectedRow!.isWorking = true;
+  if (!selectedRow) return;
+
+  selectedRow.isWorking = true;
   relayActionOngoing.value = true;
-  selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
+  selectedRow.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
-    let actionPromise;
+    let result;
     switch (action) {
       case 'claim':
-        // actionPromise = registry.claim(fingerprint);
-        actionPromise = operatorRegistry.claim(fingerprint);
+        result = await claimMutation.mutateAsync(fingerprint);
         break;
-
       case 'renounce':
-        // actionPromise = registry.renounce(fingerprint);
-        actionPromise = operatorRegistry.renounce(fingerprint);
+        result = await renounceMutation.mutateAsync(fingerprint);
         break;
-
       default:
         throw new Error('Invalid action');
     }
 
-    actionPromise
-      .then(async (res) => {
-        if (!res) {
-          selectedRow!.class = '';
-          selectedRow!.isWorking = false;
-          relayActionOngoing.value = false;
-          return;
+    if (!result) {
+      selectedRow.class = '';
+      selectedRow.isWorking = false;
+      relayActionOngoing.value = false;
+      return;
+    }
+
+    // Wait a bit for the transaction to process
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    // The mutation already invalidated queries, so data should be fresh
+    // Check if the relay status has updated
+    const maxRetries = 3;
+    let retryCount = 0;
+
+    const checkStatus = async (): Promise<boolean> => {
+      retryCount++;
+
+      // Give queries time to refetch
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const index = allRelays.value.findIndex(
+        (row) => row.fingerprint === fingerprint
+      );
+
+      if (action === 'claim') {
+        if (index !== -1 && allRelays.value[index].status === 'verified') {
+          return true; // Success
         }
-
-        const maxRetries = 3;
-        let retryCount = 0;
-
-        // Exponential backoff retry function
-        const retryWithBackoff = async (retryDelay: number) => {
-          retryCount++;
-
-          // Refresh relays after delay
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
-
-          await userStore.createRelayCache();
-
-          // Check if the relay status has updated
-          const index = allRelays.value.findIndex(
-            (row) => row.fingerprint === fingerprint
-          );
-
-          if (action === 'claim') {
-            if (index !== -1 && allRelays.value[index].status === 'verified') {
-              // Relay is successfully claimed
-
-              toast.add({
-                icon: 'i-heroicons-check-circle',
-                color: 'primary',
-                title: 'Success',
-                timeout: 0,
-                description: `Successfully ${
-                  VERBS[action].pastTense
-                } relay ${truncatedAddress(fingerprint)}!`,
-              });
-              return; // Exit on success
-            }
-          } else if (action === 'renounce') {
-            if (index === -1) {
-              // Relay is successfully removed after renounce
-              toast.add({
-                icon: 'i-heroicons-check-circle',
-                color: 'primary',
-                title: 'Success',
-                timeout: 0,
-                description: `Successfully ${
-                  VERBS[action].pastTense
-                } relay ${truncatedAddress(fingerprint)}!`,
-              });
-              return; // Exit on success
-            }
-          }
-
-          if (retryCount < maxRetries) {
-            const newRetryDelay = retryDelay * 2; // Exponential backoff
-            console.log(`Retrying... (Attempt ${retryCount + 1})`);
-            await retryWithBackoff(newRetryDelay);
-          } else {
-            console.log('Max retries reached. Relay status did not update.');
-            toast.add({
-              icon: 'i-heroicons-x-circle',
-              color: 'amber',
-              title: 'Error',
-              description: `Failed to update relay status after multiple attempts.`,
-            });
-          }
-        };
-
-        await retryWithBackoff(5000);
-      })
-      .catch((error) => {
-        if (error?.code !== 'ACTION_REJECTED') {
-          toast.add({
-            icon: 'i-heroicons-x-circle',
-            color: 'amber',
-            title: 'Error',
-            description: `Error ${
-              VERBS[action].presentTense
-            } relay ${truncatedAddress(fingerprint)}!`,
-          });
+      } else if (action === 'renounce') {
+        if (index === -1) {
+          return true; // Success - relay removed
         }
-      })
-      .finally(() => {
-        selectedRow!.class = '';
-        selectedRow!.isWorking = false;
-        relayActionOngoing.value = false;
+      }
+
+      if (retryCount < maxRetries) {
+        return await checkStatus();
+      }
+
+      return false; // Max retries reached
+    };
+
+    const success = await checkStatus();
+
+    if (success) {
+      toast.add({
+        icon: 'i-heroicons-check-circle',
+        color: 'primary',
+        title: 'Success',
+        timeout: 0,
+        description: `Successfully ${
+          VERBS[action].pastTense
+        } relay ${truncatedAddress(fingerprint)}!`,
       });
-  } catch (error) {
-    selectedRow!.class = '';
-    selectedRow!.isWorking = false;
+    } else {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Warning',
+        description: `Action completed but status update pending. Please refresh.`,
+      });
+    }
+  } catch (error: any) {
+    if (error?.code !== 'ACTION_REJECTED') {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: `Error ${
+          VERBS[action].presentTense
+        } relay ${truncatedAddress(fingerprint)}!`,
+      });
+    }
+  } finally {
+    selectedRow.class = '';
+    selectedRow.isWorking = false;
     relayActionOngoing.value = false;
   }
 };
@@ -351,45 +388,55 @@ const handleLockRelay = async (fingerprint: string) => {
   const selectedRow = allRelays.value.find(
     (row) => row.fingerprint === fingerprint
   );
-  selectedRow!.isWorking = true;
+  if (!selectedRow) return;
+
+  selectedRow.isWorking = true;
   relayActionOngoing.value = true;
-  selectedRow!.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
-
-  const maxTries = 3;
-
-  // retry untill maxRetry or the registrationcredit is removed
-  const searchWithBackoff = async (currentTry: number) => {
-    if (currentTry > maxTries) {
-      return;
-    }
-
-    userStore.createRelayCache().then(async () => {
-      await fetchRegistrationCredit();
-      if (relayCredits.value[fingerprint] === false) {
-        console.log('Registration credit removed at attempt: ', currentTry);
-        return;
-      }
-    });
-
-    console.log(`Didn't remove lock yet... (Attempt ${currentTry})`);
-
-    setTimeout(() => {
-      searchWithBackoff(currentTry + 1);
-    }, 5000 * currentTry);
-  };
+  selectedRow.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
-    const hodler = useHodler();
-    hodler?.lock(fingerprint, '').then(async (result) => {
-      searchWithBackoff(0);
+    await lockMutation.mutateAsync({ fingerprint, ethAddress: '' });
 
-      selectedRow!.class = '';
-      selectedRow!.isWorking = false;
-      relayActionOngoing.value = false;
+    // Wait and check for registration credit removal
+    const maxTries = 3;
+    let currentTry = 0;
+
+    const checkCredit = async (): Promise<boolean> => {
+      currentTry++;
+
+      if (currentTry > maxTries) {
+        return false;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 5000 * currentTry));
+      await fetchRegistrationCredit();
+
+      if (relayCredits.value[fingerprint] === false) {
+        console.log('Registration credit removed at attempt: ', currentTry);
+        return true;
+      }
+
+      return await checkCredit();
+    };
+
+    await checkCredit();
+
+    toast.add({
+      icon: 'i-heroicons-check-circle',
+      color: 'primary',
+      title: 'Success',
+      description: `Successfully locked relay!`,
     });
-  } catch {
-    selectedRow!.class = '';
-    selectedRow!.isWorking = false;
+  } catch (error) {
+    toast.add({
+      icon: 'i-heroicons-x-circle',
+      color: 'amber',
+      title: 'Error',
+      description: `Error locking relay`,
+    });
+  } finally {
+    selectedRow.class = '';
+    selectedRow.isWorking = false;
     relayActionOngoing.value = false;
   }
 };
@@ -400,9 +447,7 @@ const handleLockRemote = async () => {
     return;
   }
 
-  // check for empty
   if (fingerPrintRegister.value == '' || ethAddress.value == '') {
-    toast.remove('invalid-evm-address');
     toast.add({
       id: 'invalid-evm-address',
       icon: 'i-heroicons-x-circle',
@@ -414,7 +459,6 @@ const handleLockRemote = async () => {
   }
 
   if (!ethers.isAddress(ethAddress.value)) {
-    toast.remove('invalid-evm-address');
     toast.add({
       id: 'invalid-evm-address',
       icon: 'i-heroicons-x-circle',
@@ -426,24 +470,28 @@ const handleLockRemote = async () => {
   }
 
   try {
-    const hodler = useHodler();
-    const success = await hodler?.lock(
-      fingerPrintRegister.value,
-      ethAddress.value
-    );
-    if (success != null && typeof success != typeof Error) {
-      registerModalOpen.value = false;
-    } else {
-      toast.remove('invalid-evm-address');
-      toast.add({
-        id: 'invalid-evm-address',
-        icon: 'i-heroicons-x-circle',
-        color: 'amber',
-        title: 'Error',
-        description: `Error registering relay`,
-      });
-    }
-  } catch (error: any) {}
+    await lockMutation.mutateAsync({
+      fingerprint: fingerPrintRegister.value,
+      ethAddress: ethAddress.value,
+    });
+
+    registerModalOpen.value = false;
+
+    toast.add({
+      icon: 'i-heroicons-check-circle',
+      color: 'primary',
+      title: 'Success',
+      description: `Successfully registered relay!`,
+    });
+  } catch (error: any) {
+    toast.add({
+      id: 'invalid-evm-address',
+      icon: 'i-heroicons-x-circle',
+      color: 'amber',
+      title: 'Error',
+      description: `Error registering relay`,
+    });
+  }
 };
 
 const filterUniqueRelays = (relays: RelayRow[]) => {
@@ -459,11 +507,16 @@ const filterUniqueRelays = (relays: RelayRow[]) => {
 const getTableData = (tab: RelayTabType) => {
   switch (tab) {
     case 'locked':
-      return Object.keys(hodlerStore.locks).map((fingerprint) => ({
-        fingerprint,
-        nickname: userStore.relaysMeta?.[fingerprint]?.nickname || '-',
-        observedBandwidth: getObservedBandwidth(fingerprint),
-      }));
+      return Object.keys(hodlerStore.locks).map((fingerprint) => {
+        const metrics = metricsData.value?.[fingerprint];
+        return {
+          fingerprint,
+          nickname: metrics?.nickname || '-',
+          consensusWeight: Number(metrics?.consensus_weight) || 0,
+          observedBandwidth: metrics?.observed_bandwidth || 0,
+          active: metrics?.running || false,
+        };
+      });
     case 'all':
       return filterUniqueRelays(allRelays.value);
     case 'claimable':
@@ -473,11 +526,10 @@ const getTableData = (tab: RelayTabType) => {
   }
 };
 
-const getObservedBandwidth = (fingerprint: string) => {
+const getObservedBandwidth = (row: RelayRow) => {
   return (
-    BigNumber(userStore?.relaysMeta?.[fingerprint]?.observed_bandwidth)
-      .dividedBy(Math.pow(1024, 2))
-      .toFormat(3) + ' MB/s'
+    BigNumber(row.observedBandwidth).dividedBy(Math.pow(1024, 2)).toFormat(3) +
+    ' MB/s'
   );
 };
 
@@ -485,12 +537,23 @@ const getObservedBandwidth = (fingerprint: string) => {
 
 const handleUnlockClick = async (fingerprint: string) => {
   isUnlocking.value = true;
-  const hodler = useHodler();
+
   try {
-    await hodler?.unlock(fingerprint, userStore.userData.address!);
-    // Refresh the relays
-    await userStore.createRelayCache();
+    await unlockMutation.mutateAsync(fingerprint);
+
+    toast.add({
+      icon: 'i-heroicons-check-circle',
+      color: 'primary',
+      title: 'Success',
+      description: `Successfully unlocked relay!`,
+    });
   } catch (error) {
+    toast.add({
+      icon: 'i-heroicons-x-circle',
+      color: 'amber',
+      title: 'Error',
+      description: `Error unlocking relay`,
+    });
   } finally {
     isUnlocking.value = false;
   }
@@ -583,7 +646,8 @@ const lastRoundResults = useQueries({
     fingerprints.value.map((fp) => ({
       queryKey: computed(() => ['lastRound', fp]),
       queryFn: () => getLastRoundData(fp),
-      staleTime: Infinity,
+      staleTime: 30 * 60 * 1000,
+      gcTime: 60 * 60 * 1000,
     }))
   ),
   combine: (results) => {
@@ -756,7 +820,7 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
   </UModal>
   <div class="-mx-4 sm:-mx-0 overflow-auto">
     <UAlert
-      v-if="(allRelaysError as any)?.value || (allRelaysError as any)?.value"
+      v-if="relaysErrored"
       class="mb-6"
       icon="i-heroicons-exclamation-triangle"
       description="There was an error retrieving relays. We'll load what we can."
@@ -769,7 +833,7 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
     <UTable
       ref="relayTableRef"
       class="max-h-[50svh] md:max-h-[65svh] overflow-y-auto"
-      :loading="currentTab === 'unlocked' ? vaultsPending : allRelaysPending"
+      :loading="currentTab === 'unlocked' ? vaultsPending : relaysPending"
       :columns="RELAY_COLUMS[currentTab]"
       :rows="visibleRelays"
       :ui="{ td: { base: 'max-w-sm truncate' } }"
@@ -808,11 +872,11 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
           </UDropdown>
         </div>
       </template>
-      <template #fingerprint-data="{ row }">
+      <template #fingerprint-data="{ row }: { row: RelayRow }">
         <span class="monospace">{{ row.fingerprint }}</span>
       </template>
-      <template #nickname-data="{ row }">
-        {{ userStore?.relaysMeta?.[row.fingerprint]?.nickname || '-' }}
+      <template #nickname-data="{ row }: { row: RelayRow }">
+        {{ row.nickname || '-' }}
       </template>
       <template #previousDistribution-header="{ column }">
         <div class="flex gap-1 items-center">
@@ -1007,33 +1071,20 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
         </div>
       </template>
 
-      <template #active-data="{ row }">
+      <template #active-data="{ row }: { row: RelayRow }">
         <div class="flex items-center">
-          <span
-            v-if="userStore?.relaysMeta?.[row.fingerprint]?.running === true"
-            class="status-active"
-          ></span>
-          <span
-            v-else-if="
-              userStore?.relaysMeta?.[row.fingerprint]?.running === false
-            "
-            class="status-inactive"
-          ></span>
+          <span v-if="row.active === true" class="status-active"></span>
+          <span v-else-if="row.active === false" class="status-inactive"></span>
           <span v-else>-</span>
         </div>
       </template>
 
-      <template #consensusWeight-data="{ row }">
-        <template v-if="metricsStore.relayMetricsPending">
+      <template #consensusWeight-data="{ row }: { row: RelayRow }">
+        <template v-if="metricsPending">
           <USkeleton class="w-[6rem] h-8" />
         </template>
-        <span
-          v-else-if="
-            userStore?.relaysMeta?.[row.fingerprint]?.consensus_weight !==
-            undefined
-          "
-        >
-          {{ userStore?.relaysMeta?.[row.fingerprint]?.consensus_weight }}
+        <span v-else-if="row.consensusWeight !== undefined">
+          {{ row.consensusWeight }}
         </span>
         <span v-else class="text-sm flex items-center gap-2">
           <Icon
@@ -1043,17 +1094,12 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
           Unable to fetch
         </span>
       </template>
-      <template #observedBandwidth-data="{ row }">
-        <template v-if="metricsStore.relayMetricsPending">
+      <template #observedBandwidth-data="{ row }: { row: RelayRow }">
+        <template v-if="metricsPending">
           <USkeleton class="w-[6rem] h-8" />
         </template>
-        <span
-          v-else-if="
-            userStore?.relaysMeta?.[row.fingerprint]?.observed_bandwidth !==
-            undefined
-          "
-        >
-          {{ getObservedBandwidth(row.fingerprint) }}
+        <span v-else-if="row.observedBandwidth !== undefined">
+          {{ getObservedBandwidth(row) }}
         </span>
         <span v-else class="text-sm flex items-center gap-2">
           <Icon
