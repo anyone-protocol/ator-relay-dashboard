@@ -26,11 +26,8 @@ export const useRelayMutations = () => {
       return await hodler.lock(fingerprint, ethAddress);
     },
     onSuccess: () => {
-      // Invalidate relays to refetch verified/claimable status
       queryClient.invalidateQueries({ queryKey: ['relays', address.value] });
-      // Invalidate metrics as locking might affect some metrics
       queryClient.invalidateQueries({ queryKey: ['relayMetrics'] });
-      // Invalidate last round data as locking affects rewards
       queryClient.invalidateQueries({ queryKey: ['lastRound'] });
     },
     onError: (error) => {
@@ -49,11 +46,8 @@ export const useRelayMutations = () => {
       return await hodler.unlock(fingerprint, userStore.userData.address);
     },
     onSuccess: () => {
-      // Invalidate relays to refetch status
       queryClient.invalidateQueries({ queryKey: ['relays', address.value] });
-      // Invalidate metrics
       queryClient.invalidateQueries({ queryKey: ['relayMetrics'] });
-      // Invalidate last round data
       queryClient.invalidateQueries({ queryKey: ['lastRound'] });
     },
     onError: (error) => {
@@ -66,9 +60,7 @@ export const useRelayMutations = () => {
       return await operatorRegistry.claim(fingerprint);
     },
     onSuccess: () => {
-      // Invalidate relays - claiming moves relay from claimable to verified
       queryClient.invalidateQueries({ queryKey: ['relays', address.value] });
-      // Metrics might update after claiming
       queryClient.invalidateQueries({ queryKey: ['relayMetrics'] });
     },
     onError: (error) => {
@@ -81,11 +73,8 @@ export const useRelayMutations = () => {
       return await operatorRegistry.renounce(fingerprint);
     },
     onSuccess: () => {
-      // Invalidate relays - renouncing removes the relay
       queryClient.invalidateQueries({ queryKey: ['relays', address.value] });
-      // Invalidate metrics for this relay
       queryClient.invalidateQueries({ queryKey: ['relayMetrics'] });
-      // Invalidate last round data for this relay
       queryClient.invalidateQueries({ queryKey: ['lastRound'] });
     },
     onError: (error) => {

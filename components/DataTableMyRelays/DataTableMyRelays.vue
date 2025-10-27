@@ -8,19 +8,15 @@ import {
 } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
-
 import Tabs from '../ui-kit/Tabs.vue';
 import Tooltip from '../ui-kit/Tooltip.vue';
 import Popover from '../ui-kit/Popover.vue';
-
 import BigNumber from 'bignumber.js';
-
 import LockStatusColumn from './columns/LockStatusColumn.vue';
 import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
 import { ethers } from 'ethers';
 import { defineProps, useTemplateRef } from 'vue';
 import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
-// import { useHodler } from '~/composables/hodler';
 import { hodlerAbi } from '~/assets/abi/hodler';
 import { getBlock } from '@wagmi/core';
 import { useDebounceFn } from '@vueuse/core';
@@ -40,8 +36,6 @@ const toast = useToast();
 const userStore = useUserStore();
 const metricsStore = useMetricsStore();
 const hodlerStore = useHolderStore();
-// const operatorRegistry = useOperatorRegistry();
-// const hodler = useHodler();
 
 const isHovered = ref(false);
 const isUnlocking = ref(false);
@@ -55,17 +49,14 @@ const {
   error: relaysError,
 } = useRelays(computed(() => address.value));
 
-// 2. Extract all fingerprints
 const allFingerprints = computed(() => {
   if (!relaysData.value) return [];
   return [...relaysData.value.verified, ...relaysData.value.claimable];
 });
 
-// 3. Fetch metrics for all fingerprints
 const { data: metricsData, isPending: metricsPending } =
   useRelayMetrics(allFingerprints);
 
-// Helper function to convert RelayMeta to RelayRow properties
 const mapMetricsToRow = (metrics: RelayMeta | undefined) => {
   if (!metrics) {
     return {
@@ -84,7 +75,6 @@ const mapMetricsToRow = (metrics: RelayMeta | undefined) => {
   };
 };
 
-// 4. Combine into RelayRow objects
 const allRelays = computed<RelayRow[]>(() => {
   if (!relaysData.value) return [];
 
@@ -107,7 +97,6 @@ const allRelays = computed<RelayRow[]>(() => {
   return [...verified, ...claimable];
 });
 
-// Separate computed for claimable only
 const claimableRelays = computed<RelayRow[]>(() => {
   if (!relaysData.value) return [];
 
@@ -126,16 +115,6 @@ const registerModalOpen = ref(false);
 
 const runtimeConfig = useRuntimeConfig();
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
-
-// Fetching and refreshing the relay data from Warp - stored in Pinia user store
-// const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
-//   'verifiedRelays',
-//   () => userStore.createRelayCache(),
-//   {
-//     server: false,
-//     watch: [address],
-//   }
-// );
 
 const relayCredits = ref<Record<string, boolean | undefined>>({});
 const familyVerified = ref<Record<string, boolean>>({});
@@ -262,15 +241,12 @@ const relayAction = async (
     // Wait a bit for the transaction to process
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    // The mutation already invalidated queries, so data should be fresh
-    // Check if the relay status has updated
     const maxRetries = 3;
     let retryCount = 0;
 
     const checkStatus = async (): Promise<boolean> => {
       retryCount++;
 
-      // Give queries time to refetch
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const index = allRelays.value.findIndex(
@@ -279,11 +255,11 @@ const relayAction = async (
 
       if (action === 'claim') {
         if (index !== -1 && allRelays.value[index].status === 'verified') {
-          return true; // Success
+          return true;
         }
       } else if (action === 'renounce') {
         if (index === -1) {
-          return true; // Success - relay removed
+          return true;
         }
       }
 
@@ -291,7 +267,7 @@ const relayAction = async (
         return await checkStatus();
       }
 
-      return false; // Max retries reached
+      return false;
     };
 
     const success = await checkStatus();
@@ -332,8 +308,6 @@ const relayAction = async (
   }
 };
 
-// Table columns and actions
-
 const getVerifiedItems = (row: RelayRow) => {
   // if locked, show unlock and claimed, else show renounce
 
@@ -350,7 +324,6 @@ const getVerifiedItems = (row: RelayRow) => {
 
   if (isLocked) {
     items.push({
-      // unlock relay
       label: 'Unlock',
       icon: 'i-heroicons-lock-open-20-solid',
       click: () => handleUnlockClick(row.fingerprint),
@@ -575,12 +548,6 @@ const {
   },
 });
 
-// watch(vaultsData, (newVaults) => {
-//   if (newVaults) {
-//     console.log('Vaults data updated:', newVaults);
-//   }
-// });
-
 const vaults = computed(() => {
   if (!vaultsData.value) return [];
   const data = vaultsData.value
@@ -605,7 +572,6 @@ const visibleRelays = computed(() => {
   return getTableData(props.currentTab).slice(0, visibleItems.value);
 });
 
-// The user's relays
 const fingerprints = computed(() => {
   return visibleRelays.value
     .filter((relay) => 'fingerprint' in relay)
@@ -707,10 +673,6 @@ const loadMoreIfNeeded = async () => {
     await nextTick();
   }
 };
-
-// watch(visibleItems, (newVal) => {
-//   console.log('Visible items changed:', newVal);
-// });
 
 const debouncedHandleScroll = useDebounceFn(handleScroll, 200);
 
