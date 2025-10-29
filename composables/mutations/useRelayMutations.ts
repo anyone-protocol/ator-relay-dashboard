@@ -8,7 +8,6 @@ import { useUserStore } from '~/stores/useUserStore';
 export const useRelayMutations = () => {
   const queryClient = useQueryClient();
   const operatorRegistry = useOperatorRegistry();
-  const hodler = useHodler();
   const userStore = useUserStore();
   const { address } = useAccount({ config } as any);
 
@@ -20,10 +19,17 @@ export const useRelayMutations = () => {
       fingerprint: string;
       ethAddress: string;
     }) => {
+      const hodler = useHodler();
       if (!hodler) {
         throw new Error('Hodler not available');
       }
-      return await hodler.lock(fingerprint, ethAddress);
+      const result = await hodler.lock(fingerprint, ethAddress);
+
+      if (!result) {
+        throw new Error('ACTION_REJECTED');
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['relays', address.value] });
@@ -37,6 +43,7 @@ export const useRelayMutations = () => {
 
   const unlockMutation = useMutation({
     mutationFn: async (fingerprint: string) => {
+      const hodler = useHodler(); // Get it fresh when mutation runs
       if (!hodler) {
         throw new Error('Hodler not available');
       }
