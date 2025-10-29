@@ -529,7 +529,7 @@
             </div>
           </Card>
           <Card title="Your Relays" icon="eos-icons:product-classes-outlined">
-            <div class="flex flex-col lg:flex-row gap-10 mt-10">
+            <div class="flex flex-col lg:grid grid-cols-3 gap-10 mt-10">
               <div
                 class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
               >
@@ -553,7 +553,7 @@
                 </div>
                 <div class="inline-flex flex-col items-baseline">
                   <template v-if="allRelaysPending">
-                    <USkeleton class="w-[10rem] h-10" />
+                    <USkeleton class="w-[6rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
@@ -587,7 +587,7 @@
                 </div>
                 <div class="inline-flex flex-col items-baseline">
                   <template v-if="allRelaysPending || hardwareStatusPending">
-                    <USkeleton class="w-[10rem] h-10" />
+                    <USkeleton class="w-[6rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
@@ -626,7 +626,7 @@
                 </div>
                 <div class="inline-flex flex-col items-baseline">
                   <template v-if="allRelaysPending || hardwareStatusPending">
-                    <USkeleton class="w-[10rem] h-10" />
+                    <USkeleton class="w-[6rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
@@ -665,7 +665,7 @@
                 </div>
                 <div class="inline-flex flex-col items-baseline">
                   <template v-if="allRelaysPending || hardwareStatusPending">
-                    <USkeleton class="w-[10rem] h-10" />
+                    <USkeleton class="w-[6rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
@@ -707,7 +707,7 @@
                 </div>
                 <div class="inline-flex flex-col items-baseline">
                   <template v-if="allRelaysPending || hardwareStatusPending">
-                    <USkeleton class="w-[10rem] h-10" />
+                    <USkeleton class="w-[6rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
