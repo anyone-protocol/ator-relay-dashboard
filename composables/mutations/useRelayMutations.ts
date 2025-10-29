@@ -43,14 +43,23 @@ export const useRelayMutations = () => {
 
   const unlockMutation = useMutation({
     mutationFn: async (fingerprint: string) => {
-      const hodler = useHodler(); // Get it fresh when mutation runs
+      const hodler = useHodler();
       if (!hodler) {
         throw new Error('Hodler not available');
       }
       if (!userStore.userData.address) {
         throw new Error('User address not available');
       }
-      return await hodler.unlock(fingerprint, userStore.userData.address);
+      const result = await hodler.unlock(
+        fingerprint,
+        userStore.userData.address
+      );
+
+      if (!result) {
+        throw new Error('ACTION_REJECTED');
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['relays', address.value] });

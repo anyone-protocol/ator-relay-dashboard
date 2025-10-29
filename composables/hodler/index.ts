@@ -436,7 +436,7 @@ export class Hodler {
             title: 'Error',
             description: `Error unlocking relay: You have insufficient $ANYONE tokens`,
           });
-        } else if (!msg.includes('User denied transaction signature.')) {
+        } else if (!msg.includes('User rejected the request')) {
           toast.add({
             icon: 'i-heroicons-x-circle',
             color: 'amber',
