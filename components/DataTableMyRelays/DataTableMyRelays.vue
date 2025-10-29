@@ -836,9 +836,10 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
             :popper="{ placement: 'left-end' }"
           >
             <UButton
-              color="gray"
+              size="xs"
               variant="ghost"
               icon="i-heroicons-ellipsis-horizontal-20-solid"
+              class="bg-neutral-100 hover:bg-neutral-200/50 text-neutral-950 dark:bg-neutral-800 hover:dark:bg-neutral-700/50 dark:text-white"
             />
           </UDropdown>
         </div>
