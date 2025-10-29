@@ -26,11 +26,11 @@ const props = defineProps<{
     <div class="max-w-34 min-w-[140px]" v-if="props.row">
       <UButton
         v-if="!props.isLocked"
-        size="xl"
+        size="md"
         color="orange"
         variant="outline"
         label="Claimed"
-        class="flex-col text-xs"
+        class="flex-col text-xs w-auto px-5"
         @click="emit('onLockRelay', props.row.fingerprint)"
         :disabled="row?.isWorking || props.relayActionOngoing"
         block
@@ -45,7 +45,8 @@ const props = defineProps<{
           props.hasRegistrationCredit &&
           props.familyVerified
         "
-        size="xl"
+        class="w-auto px-5"
+        size="md"
         color="green"
         variant="solid"
         label="Claim Now"
@@ -61,7 +62,7 @@ const props = defineProps<{
           !props.hasRegistrationCredit &&
           props.registrationCreditsRequired
         "
-        size="xl"
+        size="md"
         color="green"
         variant="outline"
         label="Waiting..."
@@ -76,11 +77,11 @@ const props = defineProps<{
           !props.familyVerified &&
           props.familyRequired
         "
-        size="xl"
+        size="md"
         color="green"
         variant="outline"
         label="Family Not Verified"
-        class="flex-col text-xs"
+        class="flex-col text-xs w-auto px-5"
         :trailing="false"
         :disabled="true"
         block
@@ -92,7 +93,8 @@ const props = defineProps<{
       <UButton
         v-else-if="props.row.status === 'verified' || props.isLocked"
         icon="i-heroicons-check-circle-solid"
-        size="xl"
+        class="w-auto px-5"
+        size="md"
         color="green"
         variant="outline"
         label="Claimed"

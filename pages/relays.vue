@@ -1,5 +1,5 @@
 <template>
-  <DashboardMobileSection title="my-relays">
+  <DashboardMobileSection title="my-relays" class="mt-4">
     <Card class="overflow-auto min-h-0 h-full">
       <div class="flex items-center mb-6 justify-between">
         <div class="flex items-center space-x-2">

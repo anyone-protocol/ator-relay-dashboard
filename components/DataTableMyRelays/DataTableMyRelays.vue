@@ -39,6 +39,8 @@ const hodlerStore = useHolderStore();
 
 const isHovered = ref(false);
 const isUnlocking = ref(false);
+const workingRelays = ref<Record<string, boolean>>({});
+const relayClasses = ref<Record<string, string>>({});
 
 const { address, isConnected } = useAccount({ config } as any);
 
@@ -82,16 +84,16 @@ const allRelays = computed<RelayRow[]>(() => {
     fingerprint: fp,
     status: 'verified',
     ...mapMetricsToRow(metricsData.value?.[fp]),
-    class: '',
-    isWorking: false,
+    class: relayClasses.value[fp] || '',
+    isWorking: workingRelays.value[fp] || false,
   }));
 
   const claimable: RelayRow[] = relaysData.value.claimable.map((fp) => ({
     fingerprint: fp,
     status: 'claimable',
     ...mapMetricsToRow(metricsData.value?.[fp]),
-    class: '',
-    isWorking: false,
+    class: relayClasses.value[fp] || '',
+    isWorking: workingRelays.value[fp] || false,
   }));
 
   return [...verified, ...claimable];
@@ -358,19 +360,16 @@ const handleTabChange = (key: string) => {
 };
 
 const handleLockRelay = async (fingerprint: string) => {
-  const selectedRow = allRelays.value.find(
-    (row) => row.fingerprint === fingerprint
-  );
-  if (!selectedRow) return;
-
-  selectedRow.isWorking = true;
+  workingRelays.value[fingerprint] = true;
   relayActionOngoing.value = true;
-  selectedRow.class = 'animate-pulse bg-green-100 dark:bg-zinc-600';
+  relayClasses.value[fingerprint] =
+    'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
+    // This will throw if user cancels
     await lockMutation.mutateAsync({ fingerprint, ethAddress: '' });
 
-    // Wait and check for registration credit removal
+    // Only run credit check if mutation succeeded
     const maxTries = 3;
     let currentTry = 0;
 
@@ -381,7 +380,7 @@ const handleLockRelay = async (fingerprint: string) => {
         return false;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 5000 * currentTry));
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // Reduced to 3s fixed delay
       await fetchRegistrationCredit();
 
       if (relayCredits.value[fingerprint] === false) {
@@ -400,16 +399,26 @@ const handleLockRelay = async (fingerprint: string) => {
       title: 'Success',
       description: `Successfully locked relay!`,
     });
-  } catch (error) {
-    toast.add({
-      icon: 'i-heroicons-x-circle',
-      color: 'amber',
-      title: 'Error',
-      description: `Error locking relay`,
-    });
+  } catch (error: any) {
+    // Check if user rejected the transaction
+    if (
+      error?.message === 'ACTION_REJECTED' ||
+      error?.code === 'ACTION_REJECTED' ||
+      error?.code === 4001
+    ) {
+      console.log('User cancelled transaction');
+      // Don't show error toast for user cancellation since this is handled in hodler.lock
+    } else {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: `Error locking relay`,
+      });
+    }
   } finally {
-    selectedRow.class = '';
-    selectedRow.isWorking = false;
+    delete workingRelays.value[fingerprint];
+    delete relayClasses.value[fingerprint];
     relayActionOngoing.value = false;
   }
 };
@@ -827,15 +836,16 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
             :popper="{ placement: 'left-end' }"
           >
             <UButton
-              color="gray"
+              size="xs"
               variant="ghost"
               icon="i-heroicons-ellipsis-horizontal-20-solid"
+              class="bg-neutral-100 hover:bg-neutral-200/50 text-neutral-950 dark:bg-neutral-800 hover:dark:bg-neutral-700/50 dark:text-white"
             />
           </UDropdown>
         </div>
       </template>
       <template #fingerprint-data="{ row }: { row: RelayRow }">
-        <span class="monospace">{{ row.fingerprint }}</span>
+        <span>{{ row.fingerprint }}</span>
       </template>
       <template #nickname-data="{ row }: { row: RelayRow }">
         {{ row.nickname || '-' }}
@@ -1035,8 +1045,8 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
 
       <template #active-data="{ row }: { row: RelayRow }">
         <div class="flex items-center">
-          <span v-if="row.active === true" class="status-active"></span>
-          <span v-else-if="row.active === false" class="status-inactive"></span>
+          <span v-if="row.active === true" class="text-green-500">●</span>
+          <span v-else-if="row.active === false" class="text-red-500">●</span>
           <span v-else>-</span>
         </div>
       </template>

@@ -54,13 +54,13 @@ export default defineAppConfig({
       },
     },
     dropdown: {
-      background: 'dark:bg-neutral-800/80 backdrop-blur-sm',
-      ring: 'ring-neutral-200 dark:ring-neutral-700',
+      background: 'dark:bg-neutral-900/70 backdrop-blur-md shadow-md',
+      ring: 'ring-neutral-100 dark:ring-neutral-800',
       divide: 'divide-neutral-200 dark:divide-neutral-700',
       item: {
-        active: 'bg-cyan-400 dark:bg-cyan-500 text-cyan-900 dark:text-white',
+        active: 'bg-cyan-200 dark:bg-cyan-500 text-cyan-900 dark:text-white',
         icon: {
-          active: 'text-neutral-500 dark:text-neutral-400',
+          active: 'text-cyan-900 dark:text-white',
         },
       },
     },
