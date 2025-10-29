@@ -328,7 +328,7 @@ const getVerifiedItems = (row: RelayRow) => {
     items.push({
       label: 'Unlock',
       icon: 'i-heroicons-lock-open-20-solid',
-      click: () => handleUnlockClick(row.fingerprint),
+      click: () => handleUnlockRelay(row.fingerprint),
     });
   } else if (!isHardware) {
     items.push({
@@ -366,10 +366,8 @@ const handleLockRelay = async (fingerprint: string) => {
     'animate-pulse bg-green-100 dark:bg-zinc-600';
 
   try {
-    // This will throw if user cancels
     await lockMutation.mutateAsync({ fingerprint, ethAddress: '' });
 
-    // Only run credit check if mutation succeeded
     const maxTries = 3;
     let currentTry = 0;
 
@@ -400,7 +398,6 @@ const handleLockRelay = async (fingerprint: string) => {
       description: `Successfully locked relay!`,
     });
   } catch (error: any) {
-    // Check if user rejected the transaction
     if (
       error?.message === 'ACTION_REJECTED' ||
       error?.code === 'ACTION_REJECTED' ||
@@ -517,7 +514,7 @@ const getObservedBandwidth = (row: RelayRow) => {
 
 // console.log();
 
-const handleUnlockClick = async (fingerprint: string) => {
+const handleUnlockRelay = async (fingerprint: string) => {
   isUnlocking.value = true;
 
   try {
@@ -529,13 +526,22 @@ const handleUnlockClick = async (fingerprint: string) => {
       title: 'Success',
       description: `Successfully unlocked relay!`,
     });
-  } catch (error) {
-    toast.add({
-      icon: 'i-heroicons-x-circle',
-      color: 'amber',
-      title: 'Error',
-      description: `Error unlocking relay`,
-    });
+  } catch (error: any) {
+    if (
+      error?.message === 'ACTION_REJECTED' ||
+      error?.code === 'ACTION_REJECTED' ||
+      error?.code === 4001
+    ) {
+      console.log('User cancelled transaction');
+      // Don't show error toast for user cancellation since this is handled in hodler.unlock
+    } else {
+      toast.add({
+        icon: 'i-heroicons-x-circle',
+        color: 'amber',
+        title: 'Error',
+        description: `Error unlocking relay`,
+      });
+    }
   } finally {
     isUnlocking.value = false;
   }
@@ -1163,7 +1169,7 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
           label="Unlock"
           :trailing="false"
           :disabled="isUnlocking"
-          @click="handleUnlockClick(row.fingerprint)"
+          @click="handleUnlockRelay(row.fingerprint)"
           @mouseover="isHovered = true"
           @mouseleave="isHovered = false"
         />
