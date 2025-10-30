@@ -320,7 +320,7 @@
         >
           <Card title="Rewards History" icon="eos-icons:trusted-organization">
             <div
-              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 mb-2 lg:mb-0"
+              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 lg:gap-2 mb-2 lg:mb-0"
             >
               <!-- <p class="mb-4 text-sm">
               Earn rewards by contributing relays to the ANYONE network.
@@ -398,13 +398,13 @@
             </div>
 
             <div
-              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 mb-2 lg:mb-0"
+              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 lg:gap-2 mb-2 lg:mb-0"
             >
               <div
-                class="mb-4 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
+                class="mb-4 lg:mb-0 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
               >
                 <div class="flex items-center gap-1">
-                  <h3 class="text-sm">Eligible for next airdrop</h3>
+                  <h3 class="text-sm text-nowrap">Eligible for next airdrop</h3>
                   <Popover
                     placement="top"
                     :arrow="false"
@@ -441,7 +441,9 @@
                     <span
                       class="w-2 h-2 bg-red-600 rounded-full text-xs"
                     ></span>
-                    <span>Mainnet balance too low</span>
+                    <span class="text-xs text-nowrap"
+                      >Mainnet balance too low</span
+                    >
                     <Popover
                       placement="top"
                       :arrow="false"
@@ -467,7 +469,10 @@
                         </div>
                       </template>
                       <template #trigger>
-                        <Icon name="heroicons:exclamation-circle" />
+                        <Icon
+                          name="heroicons:exclamation-circle"
+                          class="size-3"
+                        />
                       </template>
                     </Popover>
                   </div>
@@ -475,7 +480,7 @@
               </div>
 
               <div
-                class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3 flex-shrink-0"
+                class="mb-4 lg:mb-0 flex flex-col justify-start border-l-4 border-cyan-600 pl-3 flex-shrink-0"
               >
                 <h3 class="text-sm">Relay rewards</h3>
                 <template v-if="relayRewardsPending">
