@@ -4,7 +4,7 @@ import { TurboFactory } from '@ardrive/turbo-sdk'
 import { logger } from './util/logger.mjs'
 
 // ar://anyone process id (latest)
-const processId = 'dko67T5bT9J4KjNVy5kzEZDMLTTyZ71-rXE23ZOpCt0'
+const processId = 'MI3R01E2jfo2ailiPXDBLqHlcnUlRfrlGjR0ATjsMi0'
 const DEPLOY_FOLDER = `${process.cwd()}/.output/public`
 const gatewayUrl = process.env.GATEWAY || 'https://ar.anyone.tech'
 const url = process.env.BUNDLER || 'https://ar.anyone.tech/bundler'
