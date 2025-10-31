@@ -1,10 +1,9 @@
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
-import { replaceCodePlugin } from './plugins/vite-plugin-replace';
+import * as replaceModule from './plugins/vite-plugin-replace/index.js';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
-
   ssr: false,
 
   router: {
@@ -87,6 +86,7 @@ export default defineNuxtConfig({
       version: '2.0.14',
     },
   },
+
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
 
   vite: {
@@ -100,7 +100,7 @@ export default defineNuxtConfig({
       nodePolyfills(),
       // NB: Fixes "exports not defined" when using arbundles -> crypto libs
       //     see https://github.com/davidmyersdev/vite-plugin-node-polyfills/issues/92#issuecomment-2228168969
-      replaceCodePlugin({
+      replaceModule.replaceCodePlugin?.({
         replacements: [
           {
             from: `if ((crypto && crypto.getRandomValues) || !process.browser) {
@@ -117,4 +117,6 @@ exports.randomFillSync = randomFillSync`,
       }),
     ],
   },
+
+  compatibilityDate: '2025-10-30',
 });
