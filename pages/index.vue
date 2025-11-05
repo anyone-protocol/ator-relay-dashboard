@@ -414,6 +414,13 @@
                       <div class="text-xs font-normal">
                         Total number of redeemed tokens, minus any tokens
                         received or forfeited from previous airdrops.
+                        <span
+                          v-if="hasClaimableStakingRewards"
+                          class="block mt-2"
+                        >
+                          You are eligible for a 10% bonus on this airdrop
+                          reward thanks to participation in staking.
+                        </span>
                       </div>
                     </template>
                     <template #trigger>
@@ -894,18 +901,49 @@ watch(
   }
 );
 
+const {
+  data: stakingRewards,
+  isPending: stakingRewardsPending,
+  refetch: refetchStakingRewards,
+} = useQuery({
+  queryKey: ['claimableRewards', address],
+  queryFn: async () => {
+    if (!address.value) return '0';
+
+    return getTotalClaimableStakingRewards(address.value);
+  },
+  enabled: computed(() => !!address.value),
+});
+
 const calculatedAirdropPending = ref(false);
+
+const hasClaimableStakingRewards = computed(() => {
+  return (
+    stakingRewards.value && new BigNumber(stakingRewards.value).isGreaterThan(0)
+  );
+});
 
 //watch and do the calculate airdrop
 watch(
-  () => [hodlerStore.claimData.totalClaimed, hodlerStore.airDropTokens],
+  () => [
+    hodlerStore.claimData.totalClaimed,
+    hodlerStore.airDropTokens,
+    stakingRewards.value,
+  ],
   ([totalClaimedTokens, airDropTokens]) => {
     calculatedAirdropPending.value = true;
     if (totalClaimedTokens && airDropTokens) {
-      hodlerStore.calculatedAirdrop = calculateAirdrop(
-        totalClaimedTokens,
-        airDropTokens
-      );
+      const baseAirdrop = calculateAirdrop(totalClaimedTokens, airDropTokens);
+
+      // Apply 10% bonus if user has claimable staking rewards
+      if (hasClaimableStakingRewards.value) {
+        hodlerStore.calculatedAirdrop = new BigNumber(baseAirdrop)
+          .multipliedBy(1.1)
+          .toString(10);
+      } else {
+        hodlerStore.calculatedAirdrop = baseAirdrop;
+      }
+
       calculatedAirdropPending.value = false;
     }
   }
@@ -995,20 +1033,6 @@ const currentWriteAction = ref<'withdraw' | 'openExpired' | null>(null);
 
 const { getTotalClaimableStakingRewards, claimStakingRewards } =
   useStakingRewards();
-
-const {
-  data: stakingRewards,
-  isPending: stakingRewardsPending,
-  refetch: refetchStakingRewards,
-} = useQuery({
-  queryKey: ['claimableRewards', address],
-  queryFn: async () => {
-    if (!address.value) return '0';
-
-    return getTotalClaimableStakingRewards(address.value);
-  },
-  enabled: computed(() => !!address.value),
-});
 
 const {
   data: hash,
