@@ -1,5 +1,5 @@
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
-import * as replaceModule from './plugins/vite-plugin-replace/index.js';
+import { replaceCodePlugin } from './plugins/vite-plugin-replace';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -83,7 +83,7 @@ export default defineNuxtConfig({
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '2.0.15',
+      version: '2.0.16',
     },
   },
 
@@ -100,7 +100,7 @@ export default defineNuxtConfig({
       nodePolyfills(),
       // NB: Fixes "exports not defined" when using arbundles -> crypto libs
       //     see https://github.com/davidmyersdev/vite-plugin-node-polyfills/issues/92#issuecomment-2228168969
-      replaceModule.replaceCodePlugin?.({
+      replaceCodePlugin({
         replacements: [
           {
             from: `if ((crypto && crypto.getRandomValues) || !process.browser) {
