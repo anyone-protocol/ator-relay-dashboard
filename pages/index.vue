@@ -461,7 +461,7 @@
                           <span class="text-xs font-normal">
                             Your wallet <strong>must</strong> hold 100 $ANYONE
                             tokens on Ethereum mainnet for every
-                            <strong>Active Relay</strong> (Excluding Anyone
+                            <strong>Claimed</strong> Relay (Excluding Anyone
                             hardware relays) or the eligble airdrop will be
                             forfeited.
                             <br />
@@ -576,7 +576,7 @@
                     </span>
                   </template>
                 </div>
-              </div>
+              </div>    
               <div
                 class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3 h-full"
               >
@@ -707,9 +707,7 @@
                   >
                     <template #content>
                       <span class="text-xs font-normal">
-                        Total Relays that are <strong>Locked</strong> or
-                        <strong>Hardware</strong> and <strong>Claimed</strong>.
-                        Only the <strong>Active Relays</strong> earns rewards.
+                        Total Relays that are <strong>Locked</strong> or <strong>Hardware-based</strong> and have been <strong>Claimed</strong>. Only <strong>Active Relays</strong> earns rewards.
                       </span>
                     </template>
                     <template #trigger>
