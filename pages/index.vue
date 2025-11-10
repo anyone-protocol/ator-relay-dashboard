@@ -452,7 +452,7 @@
                           <span class="text-xs font-normal">
                             Your wallet <strong>must</strong> hold 100 $ANYONE
                             tokens on Ethereum mainnet for every
-                            <strong>Active Relay</strong> (Excluding Anyone
+                            <strong>Claimed</strong> Relay (Excluding Anyone
                             hardware relays) or the eligble airdrop will be
                             forfeited.
                             <br />
