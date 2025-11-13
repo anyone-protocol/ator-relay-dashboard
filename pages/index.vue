@@ -11,7 +11,6 @@
             <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
               <span class="flex gap-1 items-center">
                 <h3>
-                  <!-- <Icon name="material-symbols:lock" /> -->
                   Total Contract Balance
                 </h3>
                 <Popover
@@ -121,13 +120,6 @@
           <div
             class="flex gap-5 lg:gap-16 xl:gap-24 2xl:gap-32 flex-col lg:flex-row my-4 lg:my-0 lg:mt-2"
           >
-            <!-- <div class="border-l-4 border-cyan-600 pl-3">
-              <UserBalance
-                class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-medium text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
-              >
-                <Ticker />
-              </UserBalance>
-            </div> -->
             <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
               <div
                 class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
@@ -322,16 +314,6 @@
             <div
               class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 lg:gap-2 mb-2 lg:mb-0"
             >
-              <!-- <p class="mb-4 text-sm">
-              Earn rewards by contributing relays to the ANYONE network.
-              <a
-                href="https://docs.anyone.io/rewards"
-                target="_blank"
-                class="dark:text-cyan-200 text-cyan-500 underline"
-              >
-                Find Out More
-              </a>
-            </p> -->
               <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
                 <div class="flex flex-col items-start gap-2">
                   <h3 class="text-sm">Total claimed rewards</h3>
@@ -738,7 +720,6 @@ import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
-import { useDistribution } from '@/composables/distribution';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
@@ -761,7 +742,6 @@ import {
 
 const userStore = useUserStore();
 const hodlerStore = useHolderStore();
-const { claimData } = storeToRefs(hodlerStore);
 const { isConnected, address } = useAccount({ config } as any);
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
@@ -771,7 +751,6 @@ const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 
 const toast = useToast();
 
-const isLoading = ref(true);
 const { tokenBalance } = storeToRefs(userStore);
 
 const redeemLabel = computed(() => {
@@ -862,31 +841,17 @@ watch(allRelaysQuery, async (allRelays) => {
   hasEnoughBalancePending.value = false;
 });
 
-// Initialize hodler on mount
+// Initialize on mount
 onMounted(async () => {
-  isLoading.value = true;
-
   try {
-    initHodler();
-
     await Promise.all([
       userStore.getTokenBalance(),
       useRelayRewards().refresh(),
     ]);
   } catch (error) {
     console.error('Error during onMounted execution', error);
-  } finally {
-    isLoading.value = false;
   }
 });
-
-// Refetch when address changes
-watch(
-  () => userStore.userData.address,
-  async () => {
-    // TanStack Query will automatically refetch when queryKey changes
-  }
-);
 
 const {
   data: stakingRewards,
@@ -1001,14 +966,6 @@ const calculatedAirdrop = computed(() => {
   }
 });
 
-// Keep for backward compatibility if needed elsewhere
-watch(
-  () => calculatedAirdrop.value,
-  (newValue) => {
-    hodlerStore.calculatedAirdrop = newValue;
-  }
-);
-
 const handleClaimAllRewards = async () => {
   isRedeemLoading.value = true;
   progressLoading.value = 1;
@@ -1021,25 +978,8 @@ const handleClaimAllRewards = async () => {
     }
 
     const response = await hodler.claim();
-    // console.log('Claim response: ', response);
     if (response) {
-      // toast.add({
-      //   icon: 'i-heroicons-information-circle',
-      //   color: 'blue',
-      //   title: 'Please wait',
-      //   description:
-      //     'Please wait for the data to refresh, this may take a few seconds',
-      //   timeout: 13000,
-      // });
-
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      await Promise.all([
-        // useRelayRewards().refreshAuthedUserClaimableTokens(),
-        useDistribution().airdropTokens(userStore.userData.address as string),
-      ]);
-
-      // toast.remove('Please wait');
 
       toast.add({
         icon: 'i-heroicons-check-circle',
@@ -1047,13 +987,6 @@ const handleClaimAllRewards = async () => {
         title: 'Success',
         description: 'Rewards redeemed successfully',
       });
-
-      // toast.add({
-      //   icon: 'i-heroicons-check-circle',
-      //   color: 'blue',
-      //   title: 'Data refreshed',
-      //   description: 'Data has been refreshed',
-      // });
     } else {
       throw new Error('No response from claim');
     }
@@ -1144,12 +1077,6 @@ const hasClaimableRewards = computed(() => {
   if (!hodlerInfo.value) return false;
   return totalClaimable.value.isGreaterThan(0);
 });
-
-// watch(hodlerInfo, (info) => {
-//   if (info) {
-//     console.log('hodlerInfo: ', toRaw(info));
-//   }
-// });
 
 const availableTokens = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
@@ -1398,8 +1325,6 @@ const submitWithdrawForm = async () => {
     return;
   }
 
-  // console.log('withdraw amount: ', withdrawAmount.value);
-
   if (!withdrawAmount.value || Number(withdrawAmount.value) <= 0) {
     toast.add({
       title: 'Enter a valid withdraw amount',
@@ -1446,7 +1371,6 @@ const {
         { name: 'Address', value: address.value },
       ],
     });
-    // console.log('getRewardedRelayRewards result: ', result);
 
     if (!result?.Messages[0]?.Data) {
       noClaimableData.value = true;
