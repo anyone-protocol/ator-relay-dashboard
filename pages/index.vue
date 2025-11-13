@@ -428,21 +428,23 @@
                     </template>
                   </Popover>
                 </div>
-                <template v-if="calculatedAirdropPending">
+                <template v-if="airdropPending || hodlerInfoPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
                 </template>
                 <template v-else>
                   <span v-if="isConnected" class="text-3xl font-medium">
-                    {{
-                      formatEtherNoRound(hodlerStore.calculatedAirdrop || '0')
-                    }}
+                    {{ formatEtherNoRound(calculatedAirdrop) }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
                   </span>
                   <Ticker class="text-sm" />
                   <div
-                    v-if="isConnected && !hasEnoughBalancePending && !hasEnoughBalance"
+                    v-if="
+                      isConnected &&
+                      !hasEnoughBalancePending &&
+                      !hasEnoughBalance
+                    "
                     class="flex items-center gap-2 mt-2"
                   >
                     <span
@@ -764,6 +766,9 @@ const { isConnected, address } = useAccount({ config } as any);
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
 
+const runtimeConfig = useRuntimeConfig();
+const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
+
 const toast = useToast();
 
 const isLoading = ref(true);
@@ -827,9 +832,7 @@ const activeCount = computed(() => {
 });
 
 const activeCountPending = computed(
-  () =>
-    isConnected.value &&
-    (relayDataPending.value || locksPending.value)
+  () => isConnected.value && (relayDataPending.value || locksPending.value)
 );
 
 // Pending states - only show loading when connected
@@ -869,7 +872,6 @@ onMounted(async () => {
     await Promise.all([
       userStore.getTokenBalance(),
       useRelayRewards().refresh(),
-      useDistribution().airdropTokens(address.value || ''),
     ]);
   } catch (error) {
     console.error('Error during onMounted execution', error);
@@ -904,7 +906,51 @@ const stakingRewardsPending = computed(
   () => isConnected.value && stakingRewardsPendingRaw.value
 );
 
-const calculatedAirdropPending = ref(false);
+// Fetch airdrop data from Supabase
+const { data: airdropData, isPending: airdropPendingRaw } = useQuery({
+  queryKey: ['airdropTokens', address],
+  queryFn: async () => {
+    if (!address.value) return '0';
+
+    const runtimeConfig = useRuntimeConfig();
+    const AIRDROP_API_URL = runtimeConfig.public.airdropApi;
+    const VARIATION_API_URL = runtimeConfig.public.variationApi;
+
+    try {
+      const [airdropResponse, variationResponse] = await Promise.all([
+        fetch(AIRDROP_API_URL),
+        fetch(VARIATION_API_URL),
+      ]);
+
+      const airdropDataArray = await airdropResponse.json();
+      const variationDataArray = await variationResponse.json();
+
+      const userAirdrop = airdropDataArray.find(
+        (entry: { id: string; airdrop: number }) =>
+          entry.id.toLowerCase() === address.value?.toLowerCase()
+      );
+
+      const variation = variationDataArray.find(
+        (entry: { id: string; variation: number }) =>
+          entry.id.toLowerCase() === address.value?.toLowerCase()
+      );
+
+      const airDropValue = new BigNumber(userAirdrop?.airdrop ?? '0');
+      const variationValue = new BigNumber(variation?.variation ?? '0');
+      const result = airDropValue.minus(variationValue).toString();
+
+      return result;
+    } catch (error) {
+      console.error('Error fetching airdrop data:', error);
+      return '0';
+    }
+  },
+  enabled: computed(() => !!address.value),
+});
+
+const airdropPending = computed(
+  () => isConnected.value && airdropPendingRaw.value
+);
 
 const hasClaimableStakingRewards = computed(() => {
   return (
@@ -912,29 +958,54 @@ const hasClaimableStakingRewards = computed(() => {
   );
 });
 
-//watch and do the calculate airdrop
+const {
+  data: hodlerInfo,
+  isPending: hodlerInfoPendingRaw,
+  refetch: refetchHolderInfo,
+} = useReadContract({
+  address: hodlerContract,
+  abi: hodlerAbi,
+  functionName: 'hodlers',
+  args: [computed(() => address.value as `0x${string}`)],
+  query: {
+    enabled: computed(() => !!address.value),
+  },
+});
+
+const hodlerInfoPending = computed(
+  () => isConnected.value && hodlerInfoPendingRaw.value
+);
+
+// Total claimed tokens for airdrop calculation (claimedRelayRewards only)
+const totalClaimedForAirdrop = computed(() => {
+  if (!hodlerInfo.value) return '0';
+  return new BigNumber(hodlerInfo.value[4].toString() || '0')
+    .dividedBy(Math.pow(10, 18))
+    .toString();
+});
+
+// Calculate airdrop eligibility
+const calculatedAirdrop = computed(() => {
+  if (!totalClaimedForAirdrop.value || !airdropData.value) return '0';
+
+  const baseAirdrop = calculateAirdrop(
+    totalClaimedForAirdrop.value,
+    airdropData.value
+  );
+
+  // Apply 10% bonus if user has claimable staking rewards
+  if (hasClaimableStakingRewards.value) {
+    return new BigNumber(baseAirdrop).multipliedBy(1.1).toString(10);
+  } else {
+    return baseAirdrop;
+  }
+});
+
+// Keep for backward compatibility if needed elsewhere
 watch(
-  () => [
-    hodlerStore.claimData.totalClaimed,
-    hodlerStore.airDropTokens,
-    stakingRewards.value,
-  ],
-  ([totalClaimedTokens, airDropTokens]) => {
-    calculatedAirdropPending.value = true;
-    if (totalClaimedTokens && airDropTokens) {
-      const baseAirdrop = calculateAirdrop(totalClaimedTokens, airDropTokens);
-
-      // Apply 10% bonus if user has claimable staking rewards
-      if (hasClaimableStakingRewards.value) {
-        hodlerStore.calculatedAirdrop = new BigNumber(baseAirdrop)
-          .multipliedBy(1.1)
-          .toString(10);
-      } else {
-        hodlerStore.calculatedAirdrop = baseAirdrop;
-      }
-
-      calculatedAirdropPending.value = false;
-    }
+  () => calculatedAirdrop.value,
+  (newValue) => {
+    hodlerStore.calculatedAirdrop = newValue;
   }
 );
 
@@ -1005,8 +1076,6 @@ const handleClaimAllRewards = async () => {
   }
 };
 
-const runtimeConfig = useRuntimeConfig();
-const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 const withdrawInput = ref('');
 const withdrawAmount = computed(
   () => validateTokenInput(withdrawInput.value) || '0'
@@ -1056,24 +1125,6 @@ watch(isConfirmed, (confirmed) => {
     currentWriteAction.value = null;
   }
 });
-
-const {
-  data: hodlerInfo,
-  isPending: hodlerInfoPendingRaw,
-  refetch: refetchHolderInfo,
-} = useReadContract({
-  address: hodlerContract,
-  abi: hodlerAbi,
-  functionName: 'hodlers',
-  args: [computed(() => address.value as `0x${string}`)],
-  query: {
-    enabled: computed(() => !!address.value),
-  },
-});
-
-const hodlerInfoPending = computed(
-  () => isConnected.value && hodlerInfoPendingRaw.value
-);
 
 const totalClaimable = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
@@ -1165,15 +1216,16 @@ const vaultsPending = computed(
   () => isConnected.value && vaultsPendingRaw.value
 );
 
-const locksPending = computed(
-  () => isConnected.value && locksPendingRaw.value
-);
+const locksPending = computed(() => isConnected.value && locksPendingRaw.value);
 
 // Transform locks data from raw contract return to processed format
 const processedLocks = computed(() => {
   if (!locksData.value) return {};
 
-  const locksResult: Record<string, { fingerprint: string; operator: string; amount: string }> = {};
+  const locksResult: Record<
+    string,
+    { fingerprint: string; operator: string; amount: string }
+  > = {};
 
   for (let i = 0; i < locksData.value.length; i++) {
     const lock = locksData.value[i];
