@@ -792,7 +792,7 @@ const lockedRelaysQuery = useLockedRelaysQuery(address);
 
 // Compute locked count separately
 const lockedCount = computed(() => {
-  const locks = lockedRelaysQuery.data.value;
+  const locks = processedLocks.value;
   const allRelays = allRelaysQuery.value;
 
   if (!locks || !allRelays) return 0;
@@ -803,12 +803,12 @@ const lockedCount = computed(() => {
 });
 
 const lockedCountPending = computed(
-  () => isConnected.value && lockedRelaysQuery.isPending.value
+  () => isConnected.value && locksPending.value
 );
 
 // Active relays count (hardware/locked that are claimed)
 const activeCount = computed(() => {
-  const locks = lockedRelaysQuery.data.value;
+  const locks = processedLocks.value;
   const hardwareStatus = hardwareStatusQuery.value;
   const allRelays = allRelaysQuery.value;
 
@@ -829,7 +829,7 @@ const activeCount = computed(() => {
 const activeCountPending = computed(
   () =>
     isConnected.value &&
-    (relayDataPending.value || lockedRelaysQuery.isPending.value)
+    (relayDataPending.value || locksPending.value)
 );
 
 // Pending states - only show loading when connected
