@@ -198,12 +198,12 @@
                   </Popover>
                 </div>
                 <div class="inline-flex flex-col items-baseline">
-                  <template v-if="hodlerInfoPending">
+                  <template v-if="locksPending">
                     <USkeleton class="w-[10rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-3xl font-medium">
-                      {{ Number(hodlerStore.lockedTokens).toFixed(2) }}
+                      {{ totalLockedTokens.toFixed(2) }}
                     </span>
                     <span v-if="!isConnected" class="text-3xl font-medium">
                       --
@@ -1147,9 +1147,58 @@ const {
   },
 });
 
+const {
+  data: locksData,
+  isPending: locksPendingRaw,
+  refetch: refetchLocks,
+} = useReadContract({
+  address: hodlerContract,
+  abi: hodlerAbi,
+  functionName: 'getLocks',
+  args: [computed(() => address.value as `0x${string}`)],
+  query: {
+    enabled: computed(() => !!address.value),
+  },
+});
+
 const vaultsPending = computed(
   () => isConnected.value && vaultsPendingRaw.value
 );
+
+const locksPending = computed(
+  () => isConnected.value && locksPendingRaw.value
+);
+
+// Transform locks data from raw contract return to processed format
+const processedLocks = computed(() => {
+  if (!locksData.value) return {};
+
+  const locksResult: Record<string, { fingerprint: string; operator: string; amount: string }> = {};
+
+  for (let i = 0; i < locksData.value.length; i++) {
+    const lock = locksData.value[i];
+    const fingerprint = lock.fingerprint as string;
+    const operator = lock.operator as string;
+    const amount = new BigNumber(lock.amount.toString())
+      .dividedBy(Math.pow(10, 18))
+      .toFixed(3);
+    locksResult[fingerprint] = {
+      fingerprint,
+      operator,
+      amount,
+    };
+  }
+
+  return locksResult;
+});
+
+// Calculate total locked tokens from processed locks
+const totalLockedTokens = computed(() => {
+  const locks = processedLocks.value;
+  return Object.values(locks).reduce((acc, lock) => {
+    return acc.plus(new BigNumber(lock.amount));
+  }, new BigNumber(0));
+});
 
 const totalVaulted = computed(() => {
   if (!vaultsData.value) return BigNumber(0);
@@ -1193,9 +1242,9 @@ const totalContract = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
 
   const available = new BigNumber(hodlerInfo.value[0].toString() || '0');
-  const totalLocked = new BigNumber(
-    hodlerStore.lockedTokens.toString() || '0'
-  ).multipliedBy(new BigNumber(10).pow(18));
+  const totalLocked = totalLockedTokens.value.multipliedBy(
+    new BigNumber(10).pow(18)
+  );
 
   return available.plus(
     totalVaulted.value.plus(totalStaked.value).plus(totalLocked)
@@ -1208,6 +1257,7 @@ const isPending = computed(() => {
   return (
     hodlerInfoPending.value ||
     vaultsPending.value ||
+    locksPending.value ||
     lockedRelaysQuery.isPending.value ||
     stakesPending.value
   );
