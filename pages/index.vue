@@ -10,9 +10,7 @@
           >
             <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
               <span class="flex gap-1 items-center">
-                <h3>
-                  Total Contract Balance
-                </h3>
+                <h3>Total Contract Balance</h3>
                 <Popover
                   placement="top"
                   :arrow="false"
@@ -397,7 +395,7 @@
                         Total number of redeemed tokens, minus any tokens
                         received or forfeited from previous airdrops.
                         <span
-                          v-if="hasClaimableStakingRewards"
+                          v-if="hasClaimedStakingRewards"
                           class="block mt-2"
                         >
                           You are eligible for a 10% bonus on this airdrop
@@ -917,10 +915,9 @@ const airdropPending = computed(
   () => isConnected.value && airdropPendingRaw.value
 );
 
-const hasClaimableStakingRewards = computed(() => {
-  return (
-    stakingRewards.value && new BigNumber(stakingRewards.value).isGreaterThan(0)
-  );
+const hasClaimedStakingRewards = computed(() => {
+  if (!hodlerInfo.value) return false;
+  return new BigNumber(hodlerInfo.value[5].toString() || '0').isGreaterThan(0);
 });
 
 const {
@@ -959,7 +956,7 @@ const calculatedAirdrop = computed(() => {
   );
 
   // Apply 10% bonus if user has claimable staking rewards
-  if (hasClaimableStakingRewards.value) {
+  if (hasClaimedStakingRewards.value) {
     return new BigNumber(baseAirdrop).multipliedBy(1.1).toString(10);
   } else {
     return baseAirdrop;
