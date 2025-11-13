@@ -10,10 +10,7 @@
           >
             <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
               <span class="flex gap-1 items-center">
-                <h3>
-                  <!-- <Icon name="material-symbols:lock" /> -->
-                  Total Contract Balance
-                </h3>
+                <h3>Total Contract Balance</h3>
                 <Popover
                   placement="top"
                   :arrow="false"
@@ -121,13 +118,6 @@
           <div
             class="flex gap-5 lg:gap-16 xl:gap-24 2xl:gap-32 flex-col lg:flex-row my-4 lg:my-0 lg:mt-2"
           >
-            <!-- <div class="border-l-4 border-cyan-600 pl-3">
-              <UserBalance
-                class="bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-6xl font-medium text-transparent drop-shadow-lg dark:from-gray-200 dark:to-gray-500"
-              >
-                <Ticker />
-              </UserBalance>
-            </div> -->
             <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
               <div
                 class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
@@ -198,12 +188,12 @@
                   </Popover>
                 </div>
                 <div class="inline-flex flex-col items-baseline">
-                  <template v-if="lockedPending">
+                  <template v-if="locksPending">
                     <USkeleton class="w-[10rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-3xl font-medium">
-                      {{ Number(hodlerStore.lockedTokens).toFixed(2) }}
+                      {{ totalLockedTokens.toFixed(2) }}
                     </span>
                     <span v-if="!isConnected" class="text-3xl font-medium">
                       --
@@ -322,16 +312,6 @@
             <div
               class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 lg:gap-2 mb-2 lg:mb-0"
             >
-              <!-- <p class="mb-4 text-sm">
-              Earn rewards by contributing relays to the ANYONE network.
-              <a
-                href="https://docs.anyone.io/rewards"
-                target="_blank"
-                class="dark:text-cyan-200 text-cyan-500 underline"
-              >
-                Find Out More
-              </a>
-            </p> -->
               <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
                 <div class="flex flex-col items-start gap-2">
                   <h3 class="text-sm">Total claimed rewards</h3>
@@ -376,7 +356,7 @@
                 class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
               >
                 <h3 class="text-sm">Total claimable rewards</h3>
-                <template v-if="claimablePending">
+                <template v-if="stakingRewardsPending || relayRewardsPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
                 </template>
                 <template v-else>
@@ -415,7 +395,7 @@
                         Total number of redeemed tokens, minus any tokens
                         received or forfeited from previous airdrops.
                         <span
-                          v-if="hasClaimableStakingRewards"
+                          v-if="hasClaimedStakingRewards"
                           class="block mt-2"
                         >
                           You are eligible for a 10% bonus on this airdrop
@@ -428,21 +408,23 @@
                     </template>
                   </Popover>
                 </div>
-                <template v-if="calculatedAirdropPending">
+                <template v-if="airdropPending || hodlerInfoPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
                 </template>
                 <template v-else>
                   <span v-if="isConnected" class="text-3xl font-medium">
-                    {{
-                      formatEtherNoRound(hodlerStore.calculatedAirdrop || '0')
-                    }}
+                    {{ formatEtherNoRound(calculatedAirdrop) }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
                   </span>
                   <Ticker class="text-sm" />
                   <div
-                    v-if="!hasEnoughBalancePending && !hasEnoughBalance"
+                    v-if="
+                      isConnected &&
+                      !hasEnoughBalancePending &&
+                      !hasEnoughBalance
+                    "
                     class="flex items-center gap-2 mt-2"
                   >
                     <span
@@ -564,12 +546,12 @@
                   </Popover>
                 </div>
                 <div class="inline-flex flex-col items-baseline">
-                  <template v-if="allRelaysPending">
+                  <template v-if="registeredCountPending">
                     <USkeleton class="w-[6rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
-                      {{ allRelays.length }}
+                      {{ registeredCount }}
                     </span>
                     <span v-if="!isConnected" class="text-4xl font-medium">
                       --
@@ -598,17 +580,12 @@
                   </Popover>
                 </div>
                 <div class="inline-flex flex-col items-baseline">
-                  <template v-if="allRelaysPending || hardwareStatusPending">
+                  <template v-if="hardwareCountPending">
                     <USkeleton class="w-[6rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
-                      {{
-                        allRelays.filter(
-                          (relay) =>
-                            relay.active && checkIsHardware(relay.fingerprint)
-                        ).length
-                      }}
+                      {{ hardwareCount }}
                     </span>
                     <span v-if="!isConnected" class="text-4xl font-medium">
                       --
@@ -637,17 +614,12 @@
                   </Popover>
                 </div>
                 <div class="inline-flex flex-col items-baseline">
-                  <template v-if="allRelaysPending || hardwareStatusPending">
+                  <template v-if="lockedCountPending">
                     <USkeleton class="w-[6rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
-                      {{
-                        allRelays.filter(
-                          (relay) =>
-                            relay.active && checkIsLocked(relay.fingerprint)
-                        ).length
-                      }}
+                      {{ lockedCount }}
                     </span>
                     <span v-if="!isConnected" class="text-4xl font-medium">
                       --
@@ -676,18 +648,12 @@
                   </Popover>
                 </div>
                 <div class="inline-flex flex-col items-baseline">
-                  <template v-if="allRelaysPending || hardwareStatusPending">
+                  <template v-if="claimedCountPending">
                     <USkeleton class="w-[6rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
-                      {{
-                        allRelays.filter((relay) =>
-                          checkIsHardware(relay.fingerprint)
-                            ? relay.active && relay.status === 'verified'
-                            : relay.active && relay.status === 'verified'
-                        ).length
-                      }}
+                      {{ claimedCount }}
                     </span>
                     <span v-if="!isConnected" class="text-4xl font-medium">
                       --
@@ -718,20 +684,12 @@
                   </Popover>
                 </div>
                 <div class="inline-flex flex-col items-baseline">
-                  <template v-if="allRelaysPending || hardwareStatusPending">
+                  <template v-if="activeCountPending">
                     <USkeleton class="w-[6rem] h-10" />
                   </template>
                   <template v-else>
                     <span v-if="isConnected" class="text-4xl font-medium">
-                      {{
-                        allRelays.filter((relay) =>
-                          checkIsHardware(relay.fingerprint)
-                            ? relay.active && relay.status === 'verified'
-                            : relay.active &&
-                              relay.status === 'verified' &&
-                              checkIsLocked(relay.fingerprint)
-                        ).length
-                      }}
+                      {{ activeCount }}
                     </span>
                     <span v-if="!isConnected" class="text-4xl font-medium">
                       --
@@ -760,7 +718,6 @@ import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import Button from '@/components/ui-kit/Button.vue';
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
-import { useDistribution } from '@/composables/distribution';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
 import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
@@ -772,38 +729,26 @@ import { parseEther } from 'viem';
 import { getBlock } from '@wagmi/core';
 import { useQuery } from '@tanstack/vue-query';
 import { RouterLink } from 'vue-router';
-import { fetchHardwareStatus } from '~/composables/utils/useHardwareStatus';
+import {
+  useRelayMetricsQueries,
+  useHardwareRelaysCountQuery,
+} from '~/composables/queries/useRelayQueries';
+import {
+  useLockedRelaysQuery,
+  useLockedRelaysCountQuery,
+} from '~/composables/queries/useLockedRelaysQuery';
 
 const userStore = useUserStore();
-// const registratorStore = useRegistratorStore();
 const hodlerStore = useHolderStore();
-const { claimData } = storeToRefs(hodlerStore);
 const { isConnected, address } = useAccount({ config } as any);
-const { allRelays } = storeToRefs(userStore);
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
-const lockedPending = ref(false);
-// const claimedPending = ref(true);
-const claimablePending = ref(true);
 
-// watch(allRelays, (newRelays) => {
-//   if (newRelays && newRelays.length > 0) {
-//     console.log('allRelays amount: ', toRaw(allRelays.value.length));
-//   }
-// });
+const runtimeConfig = useRuntimeConfig();
+const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 
 const toast = useToast();
 
-const isLoading = ref(true);
-
-const { error: allRelaysError, pending: allRelaysPending } = useAsyncData(
-  'verifiedRelays',
-  () => userStore.createRelayCache(),
-  {
-    server: false,
-    watch: [address],
-  }
-);
 const { tokenBalance } = storeToRefs(userStore);
 
 const redeemLabel = computed(() => {
@@ -813,97 +758,102 @@ const redeemLabel = computed(() => {
   return 'Nothing to redeem';
 });
 
+// Initialize relay metrics queries with TanStack Query
 const {
-  locks: lockedRelays,
-  loading: lockedRelaysPending,
-  lockedTokens,
-} = storeToRefs(hodlerStore);
+  relayInfoQuery,
+  allRelaysQuery,
+  hardwareStatusQuery,
+  registeredCountQuery,
+  hardwareCountQuery,
+  claimedCountQuery,
+  isPending: relayDataPending,
+} = useRelayMetricsQueries(address);
+
+// Initialize locked relays query
+const lockedRelaysQuery = useLockedRelaysQuery(address);
+
+// Compute locked count separately
+const lockedCount = computed(() => {
+  const locks = processedLocks.value;
+  const allRelays = allRelaysQuery.value;
+
+  if (!locks || !allRelays) return 0;
+
+  return allRelays.filter(
+    (relay) => relay.active && locks[relay.fingerprint] !== undefined
+  ).length;
+});
+
+const lockedCountPending = computed(
+  () => isConnected.value && locksPending.value
+);
+
+// Active relays count (hardware/locked that are claimed)
+const activeCount = computed(() => {
+  const locks = processedLocks.value;
+  const hardwareStatus = hardwareStatusQuery.value;
+  const allRelays = allRelaysQuery.value;
+
+  if (!allRelays || (!locks && !hardwareStatus)) return 0;
+
+  return allRelays.filter((relay) => {
+    const isHardware = hardwareStatus[relay.fingerprint];
+    const isLocked = locks ? locks[relay.fingerprint] !== undefined : false;
+
+    if (isHardware) {
+      return relay.active && relay.status === 'verified';
+    } else {
+      return relay.active && relay.status === 'verified' && isLocked;
+    }
+  }).length;
+});
+
+const activeCountPending = computed(
+  () => isConnected.value && (relayDataPending.value || locksPending.value)
+);
+
+// Pending states - only show loading when connected
+const registeredCountPending = computed(
+  () => isConnected.value && relayDataPending.value
+);
+const hardwareCountPending = computed(
+  () => isConnected.value && relayDataPending.value
+);
+const claimedCountPending = computed(
+  () => isConnected.value && relayDataPending.value
+);
+
+// Expose values as computed
+const registeredCount = registeredCountQuery;
+const hardwareCount = hardwareCountQuery;
+const claimedCount = claimedCountQuery;
+
 const hasEnoughBalance = ref(false);
 const hasEnoughBalancePending = ref(true);
 
-const checkIsLocked = (fingerprint: string) =>
-  hodlerStore.relayIsLocked(fingerprint);
+// Watch allRelays for balance check
+watch(allRelaysQuery, async (allRelays) => {
+  if (!allRelays || !address.value) return;
+  hasEnoughBalancePending.value = true;
+  hasEnoughBalance.value = await calculateBalance(allRelays, address.value);
+  hasEnoughBalancePending.value = false;
+});
 
-const { data: isHardwareResolved, pending: hardwareStatusPending } =
-  await useAsyncData(
-    'hardwareStatus',
-    () =>
-      fetchHardwareStatus(allRelays.value.map((relay) => relay.fingerprint)),
-    { watch: [() => allRelays.value] }
-  );
-
-const checkIsHardware = (fingerprint: string) =>
-  isHardwareResolved.value?.[fingerprint];
-
-watch(
-  [allRelays, allRelaysPending, address],
-  async ([allRelays, allRelaysPending, address]) => {
-    if (!allRelays || allRelaysPending || !address) return;
-    hasEnoughBalancePending.value = true;
-    hasEnoughBalance.value = await calculateBalance(allRelays, address);
-
-    // add timeout before updating
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    hasEnoughBalancePending.value = false;
-  }
-);
-
-const fetchInitialData = async (
-  newAddress: string | undefined,
-  forceRefresh = false
-) => {
-  if (!isConnected || !newAddress || !address) return;
-
+// Initialize on mount
+onMounted(async () => {
   try {
-    if (!hodlerStore?.initialized || forceRefresh) {
-      lockedPending.value = true;
-      // claimedPending.value = true;
-      claimablePending.value = true;
-    }
-
     await Promise.all([
       userStore.getTokenBalance(),
-      (!hodlerStore?.initialized || forceRefresh) && useHodler()?.refresh(),
       useRelayRewards().refresh(),
-      useDistribution().airdropTokens(newAddress as string),
     ]);
   } catch (error) {
-    console.error(error);
-  } finally {
-    //wait 1 second before setting pending to false
-    lockedPending.value = false;
-    claimablePending.value = false;
-  }
-};
-
-onMounted(async () => {
-  isLoading.value = true;
-
-  try {
-    // await initDistribution();
-    // initRelayRegistry();
-    initHodler();
-    // add 5 seconds delay
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-
-    await fetchInitialData(userStore.userData.address);
-  } catch (error) {
     console.error('Error during onMounted execution', error);
-  } finally {
-    isLoading.value = false;
   }
 });
 
-watch(
-  () => userStore.userData.address,
-  async (newAddress?: string) => {
-    await fetchInitialData(newAddress, true);
-  }
-);
-
 const {
   data: stakingRewards,
-  isPending: stakingRewardsPending,
+  isPending: stakingRewardsPendingRaw,
   refetch: refetchStakingRewards,
 } = useQuery({
   queryKey: ['claimableRewards', address],
@@ -915,39 +865,103 @@ const {
   enabled: computed(() => !!address.value),
 });
 
-const calculatedAirdropPending = ref(false);
+const stakingRewardsPending = computed(
+  () => isConnected.value && stakingRewardsPendingRaw.value
+);
 
-const hasClaimableStakingRewards = computed(() => {
-  return (
-    stakingRewards.value && new BigNumber(stakingRewards.value).isGreaterThan(0)
-  );
+// Fetch airdrop data from Supabase
+const { data: airdropData, isPending: airdropPendingRaw } = useQuery({
+  queryKey: ['airdropTokens', address],
+  queryFn: async () => {
+    if (!address.value) return '0';
+
+    const runtimeConfig = useRuntimeConfig();
+    const AIRDROP_API_URL = runtimeConfig.public.airdropApi;
+    const VARIATION_API_URL = runtimeConfig.public.variationApi;
+
+    try {
+      const [airdropResponse, variationResponse] = await Promise.all([
+        fetch(AIRDROP_API_URL),
+        fetch(VARIATION_API_URL),
+      ]);
+
+      const airdropDataArray = await airdropResponse.json();
+      const variationDataArray = await variationResponse.json();
+
+      const userAirdrop = airdropDataArray.find(
+        (entry: { id: string; airdrop: number }) =>
+          entry.id.toLowerCase() === address.value?.toLowerCase()
+      );
+
+      const variation = variationDataArray.find(
+        (entry: { id: string; variation: number }) =>
+          entry.id.toLowerCase() === address.value?.toLowerCase()
+      );
+
+      const airDropValue = new BigNumber(userAirdrop?.airdrop ?? '0');
+      const variationValue = new BigNumber(variation?.variation ?? '0');
+      const result = airDropValue.minus(variationValue).toString();
+
+      return result;
+    } catch (error) {
+      console.error('Error fetching airdrop data:', error);
+      return '0';
+    }
+  },
+  enabled: computed(() => !!address.value),
 });
 
-//watch and do the calculate airdrop
-watch(
-  () => [
-    hodlerStore.claimData.totalClaimed,
-    hodlerStore.airDropTokens,
-    stakingRewards.value,
-  ],
-  ([totalClaimedTokens, airDropTokens]) => {
-    calculatedAirdropPending.value = true;
-    if (totalClaimedTokens && airDropTokens) {
-      const baseAirdrop = calculateAirdrop(totalClaimedTokens, airDropTokens);
-
-      // Apply 10% bonus if user has claimable staking rewards
-      if (hasClaimableStakingRewards.value) {
-        hodlerStore.calculatedAirdrop = new BigNumber(baseAirdrop)
-          .multipliedBy(1.1)
-          .toString(10);
-      } else {
-        hodlerStore.calculatedAirdrop = baseAirdrop;
-      }
-
-      calculatedAirdropPending.value = false;
-    }
-  }
+const airdropPending = computed(
+  () => isConnected.value && airdropPendingRaw.value
 );
+
+const hasClaimedStakingRewards = computed(() => {
+  if (!hodlerInfo.value) return false;
+  return new BigNumber(hodlerInfo.value[5].toString() || '0').isGreaterThan(0);
+});
+
+const {
+  data: hodlerInfo,
+  isPending: hodlerInfoPendingRaw,
+  refetch: refetchHolderInfo,
+} = useReadContract({
+  address: hodlerContract,
+  abi: hodlerAbi,
+  functionName: 'hodlers',
+  args: [computed(() => address.value as `0x${string}`)],
+  query: {
+    enabled: computed(() => !!address.value),
+  },
+});
+
+const hodlerInfoPending = computed(
+  () => isConnected.value && hodlerInfoPendingRaw.value
+);
+
+// Total claimed tokens for airdrop calculation (claimedRelayRewards only)
+const totalClaimedForAirdrop = computed(() => {
+  if (!hodlerInfo.value) return '0';
+  return new BigNumber(hodlerInfo.value[4].toString() || '0')
+    .dividedBy(Math.pow(10, 18))
+    .toString();
+});
+
+// Calculate airdrop eligibility
+const calculatedAirdrop = computed(() => {
+  if (!totalClaimedForAirdrop.value || !airdropData.value) return '0';
+
+  const baseAirdrop = calculateAirdrop(
+    totalClaimedForAirdrop.value,
+    airdropData.value
+  );
+
+  // Apply 10% bonus if user has claimable staking rewards
+  if (hasClaimedStakingRewards.value) {
+    return new BigNumber(baseAirdrop).multipliedBy(1.1).toString(10);
+  } else {
+    return baseAirdrop;
+  }
+});
 
 const handleClaimAllRewards = async () => {
   isRedeemLoading.value = true;
@@ -961,25 +975,8 @@ const handleClaimAllRewards = async () => {
     }
 
     const response = await hodler.claim();
-    // console.log('Claim response: ', response);
     if (response) {
-      // toast.add({
-      //   icon: 'i-heroicons-information-circle',
-      //   color: 'blue',
-      //   title: 'Please wait',
-      //   description:
-      //     'Please wait for the data to refresh, this may take a few seconds',
-      //   timeout: 13000,
-      // });
-
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      await Promise.all([
-        // useRelayRewards().refreshAuthedUserClaimableTokens(),
-        useDistribution().airdropTokens(userStore.userData.address as string),
-      ]);
-
-      // toast.remove('Please wait');
 
       toast.add({
         icon: 'i-heroicons-check-circle',
@@ -987,13 +984,6 @@ const handleClaimAllRewards = async () => {
         title: 'Success',
         description: 'Rewards redeemed successfully',
       });
-
-      // toast.add({
-      //   icon: 'i-heroicons-check-circle',
-      //   color: 'blue',
-      //   title: 'Data refreshed',
-      //   description: 'Data has been refreshed',
-      // });
     } else {
       throw new Error('No response from claim');
     }
@@ -1016,8 +1006,6 @@ const handleClaimAllRewards = async () => {
   }
 };
 
-const runtimeConfig = useRuntimeConfig();
-const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 const withdrawInput = ref('');
 const withdrawAmount = computed(
   () => validateTokenInput(withdrawInput.value) || '0'
@@ -1068,20 +1056,6 @@ watch(isConfirmed, (confirmed) => {
   }
 });
 
-const {
-  data: hodlerInfo,
-  isPending: hodlerInfoPending,
-  refetch: refetchHolderInfo,
-} = useReadContract({
-  address: hodlerContract,
-  abi: hodlerAbi,
-  functionName: 'hodlers',
-  args: [computed(() => address.value as `0x${string}`)],
-  query: {
-    enabled: computed(() => !!address.value),
-  },
-});
-
 const totalClaimable = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
   return new BigNumber(stakingRewards.value?.toString() || '0').plus(
@@ -1101,12 +1075,6 @@ const hasClaimableRewards = computed(() => {
   return totalClaimable.value.isGreaterThan(0);
 });
 
-// watch(hodlerInfo, (info) => {
-//   if (info) {
-//     console.log('hodlerInfo: ', toRaw(info));
-//   }
-// });
-
 const availableTokens = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
   return new BigNumber(hodlerInfo.value[0].toString() || '0');
@@ -1114,7 +1082,7 @@ const availableTokens = computed(() => {
 
 const {
   data: stakesData,
-  isLoading: stakesPending,
+  isLoading: stakesPendingRaw,
   error,
   refetch: refetchStakes,
 } = useReadContract({
@@ -1127,6 +1095,10 @@ const {
   },
 });
 
+const stakesPending = computed(
+  () => isConnected.value && stakesPendingRaw.value
+);
+
 const totalStaked = computed(() => {
   if (!stakesData.value) return BigNumber(0);
 
@@ -1138,7 +1110,7 @@ const totalStaked = computed(() => {
 
 const {
   data: vaultsData,
-  isPending: vaultsPending,
+  isPending: vaultsPendingRaw,
   refetch: refetchVaults,
 } = useReadContract({
   address: hodlerContract,
@@ -1148,6 +1120,60 @@ const {
   query: {
     enabled: computed(() => !!address.value),
   },
+});
+
+const {
+  data: locksData,
+  isPending: locksPendingRaw,
+  refetch: refetchLocks,
+} = useReadContract({
+  address: hodlerContract,
+  abi: hodlerAbi,
+  functionName: 'getLocks',
+  args: [computed(() => address.value as `0x${string}`)],
+  query: {
+    enabled: computed(() => !!address.value),
+  },
+});
+
+const vaultsPending = computed(
+  () => isConnected.value && vaultsPendingRaw.value
+);
+
+const locksPending = computed(() => isConnected.value && locksPendingRaw.value);
+
+// Transform locks data from raw contract return to processed format
+const processedLocks = computed(() => {
+  if (!locksData.value) return {};
+
+  const locksResult: Record<
+    string,
+    { fingerprint: string; operator: string; amount: string }
+  > = {};
+
+  for (let i = 0; i < locksData.value.length; i++) {
+    const lock = locksData.value[i];
+    const fingerprint = lock.fingerprint as string;
+    const operator = lock.operator as string;
+    const amount = new BigNumber(lock.amount.toString())
+      .dividedBy(Math.pow(10, 18))
+      .toFixed(3);
+    locksResult[fingerprint] = {
+      fingerprint,
+      operator,
+      amount,
+    };
+  }
+
+  return locksResult;
+});
+
+// Calculate total locked tokens from processed locks
+const totalLockedTokens = computed(() => {
+  const locks = processedLocks.value;
+  return Object.values(locks).reduce((acc, lock) => {
+    return acc.plus(new BigNumber(lock.amount));
+  }, new BigNumber(0));
 });
 
 const totalVaulted = computed(() => {
@@ -1192,9 +1218,9 @@ const totalContract = computed(() => {
   if (!hodlerInfo.value) return BigNumber(0);
 
   const available = new BigNumber(hodlerInfo.value[0].toString() || '0');
-  const totalLocked = new BigNumber(
-    hodlerStore.lockedTokens.toString() || '0'
-  ).multipliedBy(new BigNumber(10).pow(18));
+  const totalLocked = totalLockedTokens.value.multipliedBy(
+    new BigNumber(10).pow(18)
+  );
 
   return available.plus(
     totalVaulted.value.plus(totalStaked.value).plus(totalLocked)
@@ -1202,10 +1228,13 @@ const totalContract = computed(() => {
 });
 
 const isPending = computed(() => {
+  if (!isConnected.value) return false;
+
   return (
     hodlerInfoPending.value ||
     vaultsPending.value ||
-    lockedRelaysPending.value ||
+    locksPending.value ||
+    lockedRelaysQuery.isPending.value ||
     stakesPending.value
   );
 });
@@ -1293,8 +1322,6 @@ const submitWithdrawForm = async () => {
     return;
   }
 
-  // console.log('withdraw amount: ', withdrawAmount.value);
-
   if (!withdrawAmount.value || Number(withdrawAmount.value) <= 0) {
     toast.add({
       title: 'Enter a valid withdraw amount',
@@ -1341,7 +1368,6 @@ const {
         { name: 'Address', value: address.value },
       ],
     });
-    // console.log('getRewardedRelayRewards result: ', result);
 
     if (!result?.Messages[0]?.Data) {
       noClaimableData.value = true;
@@ -1391,7 +1417,9 @@ const refetchRelayRewards = () => {
 };
 
 const relayRewardsPending = computed(
-  () => claimedDataPending.value || claimableDataPending.value
+  () =>
+    isConnected.value &&
+    (claimedDataPending.value || claimableDataPending.value)
 );
 
 const relayRewards = computed(() => {
