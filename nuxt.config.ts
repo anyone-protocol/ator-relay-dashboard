@@ -55,9 +55,16 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       aoCuUrl: 'https://cu.anyone.tech', //'https://cu.anyone.permaweb.services',
+      hyperbeamUrl: 'https://hb-stage.anyone.tech',
       operatorRegistryProcessId: '_-JHiTCYy8cG4dsQDm0kHKF0I3rJit1uxbPdNqQBE_Q',
+      operatorRegistryHyperbeamProcessId:
+        'hvDrJZWwTjAI7Li38biqu1D9FCUT1q6sAUKNDKaH-xc',
+      operatorDynamicViews: 'AdA_mCo4vNXn-mCjZPmXPldZ92p07bzjkX0eQonsPNY',
       relayRewardsProcessId: 'QZJTY63XZtHOHo_qPaEX7VdtemZh4rpj821xcanPGXA',
-      stakingRewardsProcessId: 'aQ5MmpWnb4hq1XPklhuny6Q59Idl2URl0_5meNZhmRo',
+      relayRewardsHyperbeamProcessId:
+        'Ic4FU2PEyBuD1SK8J6gnOvCXn_y0SA_Ek4w68iVmyjg',
+      relayDynamicViews: '1KzeNerLNZMMjmyvhCQU6ERq5jBH5znsdf2FGk3dBiw',
+      stakingRewardsProcessId: 'ayGn9GtIKAnNK6gupa8htNfuLBVgpjszMglUosl0y8M',
       stakingSnapshotController: '6FyQki05iUsRdoY252dE4GlGItW4jpIr_t21VA3D6Zw',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: '53a5b087ab4cb303a799325360098216',
