@@ -4,8 +4,11 @@
   >
     <p class="justify-self-end text-[9px] mb-auto">WALLET</p>
     <div class="inline-flex items-baseline justify-end gap-2">
-      <template v-if="tokenBalancePending">
-        <USkeleton class="w-full h-8" />
+      <template v-if="isConnected && tokenBalancePending">
+        <div class="flex flex-col items-end gap-1">
+          <USkeleton class="w-20 h-6" />
+          <USkeleton class="w-14 h-4" />
+        </div>
       </template>
       <template v-else>
         <div class="flex flex-col items-end">
@@ -30,7 +33,6 @@ import { getChainId } from '@wagmi/core';
 
 const runtimeConfig = useRuntimeConfig();
 const { isConnected, address } = useAccount({ config } as any);
-const userAddress = computed(() => address.value);
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 
 const chainId = getChainId(config);
@@ -39,12 +41,12 @@ const tokenContract = runtimeConfig.public
   .sepoliaAtorTokenContract as `0x${string}`;
 
 const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
-  address: address.value,
+  address: computed(() => address.value),
   // need to confirm whether to set dynamically or use only mainnet
   chainId: chainId,
   token: tokenContract,
   query: {
-    enabled: computed(() => !!address.value),
+    enabled: computed(() => !!address.value && isConnected.value),
   },
 });
 </script>
