@@ -63,7 +63,7 @@ export default defineNuxtConfig({
       relayRewardsProcessId: 'QZJTY63XZtHOHo_qPaEX7VdtemZh4rpj821xcanPGXA',
       relayRewardsHyperbeamProcessId:
         'Ic4FU2PEyBuD1SK8J6gnOvCXn_y0SA_Ek4w68iVmyjg',
-      relayDynamicViews: '1KzeNerLNZMMjmyvhCQU6ERq5jBH5znsdf2FGk3dBiw',
+      relayDynamicViews: 's8HG29eG5gxFX8eLda54udvl1G74Qac8Tg11FgVyM18',
       stakingRewardsProcessId: 'ayGn9GtIKAnNK6gupa8htNfuLBVgpjszMglUosl0y8M',
       stakingSnapshotController: '6FyQki05iUsRdoY252dE4GlGItW4jpIr_t21VA3D6Zw',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
