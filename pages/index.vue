@@ -1408,7 +1408,7 @@ const {
   isPending: claimableDataPending,
   refetch: refetchClaimableRelayRewards,
 } = useQuery({
-  queryKey: ['claimableRelayRewards', address, isHyperbeamEnabled],
+  queryKey: computed(() => ['claimableRelayRewards', address.value, isHyperbeamEnabled.value]),
   queryFn: async () => {
     if (!address.value) return new BigNumber(0);
 
@@ -1477,7 +1477,7 @@ const {
   refetch: refetchClaimedRelayRewards,
   isError: claimedDataError,
 } = useQuery({
-  queryKey: ['claimedRelayRewards', address, isHyperbeamEnabled],
+  queryKey: computed(() => ['claimedRelayRewards', address.value, isHyperbeamEnabled.value]),
   queryFn: async () => {
     if (!address.value) return new BigNumber(0);
 

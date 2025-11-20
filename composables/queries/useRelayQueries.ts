@@ -66,11 +66,17 @@ export const useRelayInfoQuery = (
   };
 
   return useQuery({
-    queryKey: computed(() => ['relayInfo', address.value]),
+    queryKey: computed(() => [
+      'relayInfo',
+      address.value,
+      isHyperbeamEnabled.value,
+    ]),
     queryFn: async () => {
       if (!address.value) return null;
 
       let relayInfo;
+
+      console.log('fetching relay info...');
 
       if (isHyperbeamEnabled.value) {
         relayInfo = await fetchRelaysViaHyperbeam(address.value);
