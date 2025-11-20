@@ -13,11 +13,62 @@ export const useStakingRewards = () => {
   const config = useRuntimeConfig();
   const processId = config.public.stakingRewardsProcessId;
   const logger = new Logger('StakingRewards');
+  const featureFlags = useFeatureFlags();
+  const isHyperbeamEnabled = computed(() =>
+    featureFlags.getFlag('experimentalHyperbeam')
+  );
+
+  const getClaimableStakingRewardsHyperbeam = async (
+    address: string
+  ): Promise<OperatorRewards[] | null> => {
+    try {
+      const hyperbeamUrl = config.public.hyperbeamUrl;
+      const processId = config.public.relayRewardsHyperbeamProcessId;
+      const scriptTxId = config.public.relayDynamicViews;
+      const url = `${hyperbeamUrl}/${processId}~process@1.0/now/~lua@5.3a&module=${scriptTxId}/get_rewards?address=${`0x${address.slice(2).toUpperCase()}` as `0x${string}`}`;
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch staking rewards: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      logger.info('stakingRewardsDataHyperbeam: ', data);
+
+      // Parse hyperbeam response format
+      const operatorRewards: OperatorRewards[] = [];
+      if (data && typeof data === 'object') {
+        for (const operator in data) {
+          const redeemable = new BigNumber(data[operator] || '0');
+          if (redeemable.gt(0)) {
+            operatorRewards.push({
+              operator: `0x${operator.slice(2).toUpperCase()}`,
+              redeemable: redeemable.toString(),
+            });
+          }
+        }
+      }
+
+      return operatorRewards;
+    } catch (error) {
+      logger.error(
+        'Error fetching claimable staking rewards via hyperbeam',
+        error
+      );
+      return null;
+    }
+  };
 
   const getClaimableStakingRewards = async (
     address: string
   ): Promise<OperatorRewards[] | null> => {
     try {
+      if (isHyperbeamEnabled.value) {
+        return await getClaimableStakingRewardsHyperbeam(address);
+      }
+
       const { result } = await sendAosDryRun({
         processId,
         tags: [
@@ -57,8 +108,44 @@ export const useStakingRewards = () => {
     }
   };
 
+  const getTotalClaimableStakingRewardsHyperbeam = async (address: string) => {
+    try {
+      const hyperbeamUrl = config.public.hyperbeamUrl;
+      const processId = config.public.relayRewardsHyperbeamProcessId;
+      const scriptTxId = config.public.relayDynamicViews;
+      const url = `${hyperbeamUrl}/${processId}~process@1.0/now/~lua@5.3a&module=${scriptTxId}/get_rewards?address=${`0x${address.slice(2).toUpperCase()}` as `0x${string}`}`;
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch total staking rewards: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      logger.info('totalStakingRewardsDataHyperbeam: ', data);
+
+      let totalClaimable = new BigNumber(0);
+      if (data && typeof data === 'object') {
+        for (const operator in data) {
+          const redeemable = new BigNumber(data[operator] || '0');
+          totalClaimable = totalClaimable.plus(redeemable);
+        }
+      }
+
+      return totalClaimable.toString();
+    } catch (error) {
+      logger.error('Error fetching total staking rewards via hyperbeam', error);
+      return null;
+    }
+  };
+
   const getTotalClaimableStakingRewards = async (address: string) => {
     try {
+      if (isHyperbeamEnabled.value) {
+        return await getTotalClaimableStakingRewardsHyperbeam(address);
+      }
+
       const { result } = await sendAosDryRun({
         processId,
         tags: [
@@ -90,27 +177,6 @@ export const useStakingRewards = () => {
     }
   };
 
-  const getLastRoundMetadata = async () => {
-    try {
-      const { result } = await sendAosDryRun({
-        processId,
-        tags: [{ name: 'Action', value: 'Last-Round-Metadata' }],
-      });
-
-      if (!result || !result.Messages || result.Messages.length === 0) {
-        logger.error('No messages found in the result');
-        return null;
-      }
-
-      const data: LastRoundMetadata = JSON.parse(result.Messages[0].Data);
-      logger.info('Last round metadata: ', data);
-      return data;
-    } catch (error) {
-      logger.error('Error fetching last round metadata', error);
-      return null;
-    }
-  };
-
   const getLastSnapshot = async () => {
     try {
       const { result } = await sendAosDryRun({
@@ -125,27 +191,6 @@ export const useStakingRewards = () => {
 
       const data: LastSnapshot = JSON.parse(result.Messages[0].Data);
       logger.info('Last snapshot: ', data);
-      return data;
-    } catch (error) {
-      logger.error('Error fetching last round metadata', error);
-      return null;
-    }
-  };
-
-  const getStakingRewardsState = async () => {
-    try {
-      const { result } = await sendAosDryRun({
-        processId,
-        tags: [{ name: 'Action', value: 'View-State' }],
-      });
-
-      if (!result || !result.Messages || result.Messages.length === 0) {
-        logger.error('No messages found in the result');
-        return null;
-      }
-
-      const data: StakingRewardsState = JSON.parse(result.Messages[0].Data);
-      logger.info('Staking rewards state: ', data);
       return data;
     } catch (error) {
       logger.error('Error fetching last round metadata', error);
@@ -253,9 +298,7 @@ export const useStakingRewards = () => {
   return {
     getClaimableStakingRewards,
     getTotalClaimableStakingRewards,
-    getLastRoundMetadata,
     getLastSnapshot,
-    getStakingRewardsState,
     getStakingSnapshot,
     claimStakingRewards,
   };

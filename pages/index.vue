@@ -852,12 +852,21 @@ watch(allRelaysQuery, async (allRelays) => {
 //   }
 // });
 
+const featureFlags = useFeatureFlags();
+const isHyperbeamEnabled = computed(() =>
+  featureFlags.getFlag('experimentalHyperbeam')
+);
+
 const {
   data: stakingRewards,
   isPending: stakingRewardsPendingRaw,
   refetch: refetchStakingRewards,
 } = useQuery({
-  queryKey: ['claimableRewards', address],
+  queryKey: computed(() => [
+    'claimableRewards',
+    address.value,
+    isHyperbeamEnabled.value,
+  ]),
   queryFn: async () => {
     if (!address.value) return '0';
 
@@ -1352,10 +1361,6 @@ const submitWithdrawForm = async () => {
 };
 
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
-const featureFlags = useFeatureFlags();
-const isHyperbeamEnabled = computed(() =>
-  featureFlags.getFlag('experimentalHyperbeam')
-);
 const noClaimableData = ref(false);
 
 // Get-Rewards: Claimable relay rewards
@@ -1408,7 +1413,11 @@ const {
   isPending: claimableDataPending,
   refetch: refetchClaimableRelayRewards,
 } = useQuery({
-  queryKey: computed(() => ['claimableRelayRewards', address.value, isHyperbeamEnabled.value]),
+  queryKey: computed(() => [
+    'claimableRelayRewards',
+    address.value,
+    isHyperbeamEnabled.value,
+  ]),
   queryFn: async () => {
     if (!address.value) return new BigNumber(0);
 
@@ -1477,7 +1486,11 @@ const {
   refetch: refetchClaimedRelayRewards,
   isError: claimedDataError,
 } = useQuery({
-  queryKey: computed(() => ['claimedRelayRewards', address.value, isHyperbeamEnabled.value]),
+  queryKey: computed(() => [
+    'claimedRelayRewards',
+    address.value,
+    isHyperbeamEnabled.value,
+  ]),
   queryFn: async () => {
     if (!address.value) return new BigNumber(0);
 
