@@ -737,6 +737,7 @@ import {
   useLockedRelaysQuery,
   useLockedRelaysCountQuery,
 } from '~/composables/queries/useLockedRelaysQuery';
+import { useFeatureFlags } from '~/composables/useFeatureFlags';
 
 const userStore = useUserStore();
 const hodlerStore = useHolderStore();
@@ -840,16 +841,16 @@ watch(allRelaysQuery, async (allRelays) => {
 });
 
 // Initialize on mount
-onMounted(async () => {
-  try {
-    await Promise.all([
-      userStore.getTokenBalance(),
-      useRelayRewards().refresh(),
-    ]);
-  } catch (error) {
-    console.error('Error during onMounted execution', error);
-  }
-});
+// onMounted(async () => {
+//   try {
+//     await Promise.all([
+//       userStore.getTokenBalance(),
+//       useRelayRewards().refresh(),
+//     ]);
+//   } catch (error) {
+//     console.error('Error during onMounted execution', error);
+//   }
+// });
 
 const {
   data: stakingRewards,
@@ -1351,36 +1352,124 @@ const submitWithdrawForm = async () => {
 };
 
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
+const featureFlags = useFeatureFlags();
+const isHyperbeamEnabled = computed(() =>
+  featureFlags.getFlag('experimentalHyperbeam')
+);
 const noClaimableData = ref(false);
+
+// Get-Rewards: Claimable relay rewards
+
+const getClaimableRelayRewardsDryRun = async (
+  addr: string
+): Promise<BigNumber> => {
+  const { result } = await sendAosDryRun({
+    processId: relayRewardsProcessId,
+    tags: [
+      { name: 'Action', value: 'Get-Rewards' },
+      { name: 'Address', value: addr },
+    ],
+  });
+
+  if (!result?.Messages[0]?.Data) {
+    noClaimableData.value = true;
+    return new BigNumber(0);
+  }
+
+  noClaimableData.value = false;
+  const claimable = new BigNumber(result?.Messages[0].Data);
+  console.log('claimable relay rewards: ', claimable);
+  return claimable;
+};
+
+const getClaimableRelayRewardsHyperbeam = async (
+  addr: string
+): Promise<BigNumber> => {
+  const processId = runtimeConfig.public.relayRewardsHyperbeamProcessId;
+  const scriptTxId = runtimeConfig.public.relayDynamicViews;
+  const hyperbeamUrl = runtimeConfig.public.hyperbeamUrl;
+  const url = `${hyperbeamUrl}/${processId}~process@1.0/now/~lua@5.3a&module=${scriptTxId}/get_rewards?address=${`0x${addr.slice(2).toUpperCase()}` as `0x${string}`}`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch claimable rewards: ${response.statusText}`
+    );
+  }
+
+  const data = await response.json();
+  const claimable = new BigNumber(data || '0');
+  console.log('claimable relay rewards (hyperbeam): ', claimable);
+  return claimable;
+};
 
 const {
   data: claimableData,
   isPending: claimableDataPending,
   refetch: refetchClaimableRelayRewards,
 } = useQuery({
-  queryKey: ['claimableRelayRewards', address],
+  queryKey: ['claimableRelayRewards', address, isHyperbeamEnabled],
   queryFn: async () => {
     if (!address.value) return new BigNumber(0);
-    const { result } = await sendAosDryRun({
-      processId: relayRewardsProcessId,
-      tags: [
-        { name: 'Action', value: 'Get-Rewards' },
-        { name: 'Address', value: address.value },
-      ],
-    });
 
-    if (!result?.Messages[0]?.Data) {
-      noClaimableData.value = true;
-      return new BigNumber(0);
+    if (isHyperbeamEnabled.value) {
+      return await getClaimableRelayRewardsHyperbeam(address.value);
     } else {
-      noClaimableData.value = false;
-      const claimable = new BigNumber(result?.Messages[0].Data);
-      console.log('claimable relay rewards: ', claimable);
-      return claimable;
+      return await getClaimableRelayRewardsDryRun(address.value);
     }
   },
   enabled: computed(() => !!address.value),
 });
+
+// Get-Claimed: Already claimed relay rewards
+
+const getClaimedRelayRewardsDryRun = async (
+  addr: string
+): Promise<BigNumber> => {
+  const { result } = await sendAosDryRun({
+    processId: relayRewardsProcessId,
+    tags: [
+      { name: 'Action', value: 'Get-Claimed' },
+      { name: 'Address', value: addr },
+    ],
+  });
+  console.log('getClaimedRelayRewards result: ', result);
+  if (!result?.Messages[0]?.Data) {
+    return new BigNumber(0);
+  }
+
+  const data = JSON.parse(result?.Messages[0]?.Data);
+  const claimed = new BigNumber(data || '0');
+  console.log('claimed relay rewards: ', claimed.toString());
+  return claimed;
+};
+
+const getClaimedRelayRewardsHyperbeam = async (
+  addr: string
+): Promise<BigNumber> => {
+  const processId = runtimeConfig.public.relayRewardsHyperbeamProcessId;
+  const scriptTxId = runtimeConfig.public.relayDynamicViews;
+  const hyperbeamUrl = runtimeConfig.public.hyperbeamUrl;
+  const url = `${hyperbeamUrl}/${processId}~process@1.0/now/~lua@5.3a&module=${scriptTxId}/get_claimed?address=${`0x${addr.slice(2).toUpperCase()}` as `0x${string}`}`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch claimed rewards: ${response.statusText}`);
+  }
+
+  let data;
+
+  try {
+    data = await response.json();
+    console.log('claimed relay rewards hyper data: ', data);
+  } catch (error) {
+    console.error('Error formatting response data');
+  }
+
+  const claimed = new BigNumber(data || '0');
+  console.log('claimed relay rewards (hyperbeam): ', claimed.toString());
+  return claimed;
+};
 
 const {
   data: claimedData,
@@ -1388,25 +1477,15 @@ const {
   refetch: refetchClaimedRelayRewards,
   isError: claimedDataError,
 } = useQuery({
-  queryKey: ['claimedRelayRewards', address],
+  queryKey: ['claimedRelayRewards', address, isHyperbeamEnabled],
   queryFn: async () => {
     if (!address.value) return new BigNumber(0);
-    const { result } = await sendAosDryRun({
-      processId: relayRewardsProcessId,
-      tags: [
-        { name: 'Action', value: 'Get-Claimed' },
-        { name: 'Address', value: address.value },
-      ],
-    });
-    console.log('getClaimedRelayRewards result: ', result);
-    if (!result?.Messages[0]?.Data) {
-      return new BigNumber(0);
-    }
 
-    const data = JSON.parse(result?.Messages[0]?.Data);
-    const claimed = new BigNumber(data || '0');
-    console.log('claimed relay rewards: ', claimed.toString());
-    return claimed;
+    if (isHyperbeamEnabled.value) {
+      return await getClaimedRelayRewardsHyperbeam(address.value);
+    } else {
+      return await getClaimedRelayRewardsDryRun(address.value);
+    }
   },
   enabled: computed(() => !!address.value),
 });
