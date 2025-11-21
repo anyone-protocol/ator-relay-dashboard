@@ -488,6 +488,7 @@ import BigNumber from 'bignumber.js';
 import { useDebounceFn } from '@vueuse/core';
 import { useTemplateRef } from 'vue';
 import { isValidNumericInput } from '~/utils/validate';
+import { useHyperbeamFlag } from '~/composables/useHyperbeamFlag';
 
 interface Vault {
   amount: bigint;
@@ -629,10 +630,8 @@ const { data: stakingSnapshot } = useQuery({
   enabled: computed(() => !!address.value),
 });
 
-const featureFlags = useFeatureFlags();
-const isHyperbeamEnabled = computed(() =>
-  featureFlags.getFlag('experimentalHyperbeam')
-);
+const { hyperbeamEnabled } = useHyperbeamFlag();
+const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
 
 const { data: operatorRewardsData } = useQuery({
   queryKey: computed(() => ['operatorRewards', address.value, isHyperbeamEnabled.value]),

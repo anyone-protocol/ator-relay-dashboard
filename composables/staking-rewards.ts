@@ -8,15 +8,15 @@ import type {
   StakingRewardsState,
   StakingSnapshot,
 } from '~/types/staking-rewards';
+import { useHyperbeamFlag } from './useHyperbeamFlag';
+import { computed } from 'vue';
 
 export const useStakingRewards = () => {
   const config = useRuntimeConfig();
   const processId = config.public.stakingRewardsProcessId;
   const logger = new Logger('StakingRewards');
-  const featureFlags = useFeatureFlags();
-  const isHyperbeamEnabled = computed(() =>
-    featureFlags.getFlag('experimentalHyperbeam')
-  );
+  const { hyperbeamEnabled } = useHyperbeamFlag();
+  const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
 
   const getClaimableStakingRewardsHyperbeam = async (
     address: string

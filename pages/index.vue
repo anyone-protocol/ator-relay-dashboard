@@ -737,7 +737,7 @@ import {
   useLockedRelaysQuery,
   useLockedRelaysCountQuery,
 } from '~/composables/queries/useLockedRelaysQuery';
-import { useFeatureFlags } from '~/composables/useFeatureFlags';
+import { useHyperbeamFlag } from '~/composables/useHyperbeamFlag';
 
 const userStore = useUserStore();
 const hodlerStore = useHolderStore();
@@ -852,10 +852,8 @@ watch(allRelaysQuery, async (allRelays) => {
 //   }
 // });
 
-const featureFlags = useFeatureFlags();
-const isHyperbeamEnabled = computed(() =>
-  featureFlags.getFlag('experimentalHyperbeam')
-);
+const { hyperbeamEnabled } = useHyperbeamFlag();
+const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
 
 const {
   data: stakingRewards,

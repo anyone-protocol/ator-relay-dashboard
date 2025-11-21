@@ -119,6 +119,15 @@ export default defineAppConfig({
         },
       },
     },
+    toggle: {
+      default: {
+        color: 'cyan',
+      },
+      inactive: 'dark:bg-neutral-800',
+      container: {
+        base: 'dark:bg-neutral-200',
+      },
+    },
   },
   icon: {
     size: '24px', // default <Icon> size applied
