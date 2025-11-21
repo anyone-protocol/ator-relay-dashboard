@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/vue-query';
+import { computed } from 'vue';
+import type { Ref } from 'vue';
+import { useOperatorRegistry } from '../operator-registry';
+import { useHyperbeamFlag } from '../useHyperbeamFlag';
+import { useRuntimeConfig } from '#app';
 
 export const useRelays = (address: Ref<string | undefined>) => {
   const operatorRegistry = useOperatorRegistry();
-  const featureFlags = useFeatureFlags();
-  const isHyperbeamEnabled = computed(() =>
-    featureFlags.getFlag('experimentalHyperbeam')
-  );
+  const { hyperbeamEnabled } = useHyperbeamFlag();
+  const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
 
   const unflattenRelayInfo = (flatData: Record<string, boolean>) => {
     const result = {
@@ -52,7 +55,11 @@ export const useRelays = (address: Ref<string | undefined>) => {
   };
 
   return useQuery({
-    queryKey: ['relays', address],
+    queryKey: computed(() => [
+      'relays',
+      address.value,
+      isHyperbeamEnabled.value,
+    ]),
     queryFn: async () => {
       if (!address.value) return null;
 

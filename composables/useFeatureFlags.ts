@@ -1,5 +1,6 @@
 import { ref, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useHyperbeamFlag } from './useHyperbeamFlag';
 
 export type FeatureFlag = 'experimentalHyperbeam';
 
@@ -11,6 +12,8 @@ const STORAGE_KEY = 'ator_feature_flags';
 
 export const useFeatureFlags = () => {
   const route = useRoute();
+  const { hyperbeamEnabled, setEnabled: setHyperbeamEnabled } =
+    useHyperbeamFlag();
   const flags = ref<FeatureFlagsState>({});
 
   const isFeatureFlag = (key: string): key is FeatureFlag => {
@@ -49,6 +52,11 @@ export const useFeatureFlags = () => {
     loadFromStorage();
     processQueryParams();
     saveToStorage();
+
+    // Sync experimentalHyperbeam to useHyperbeamFlag
+    if (flags.value.experimentalHyperbeam !== undefined) {
+      setHyperbeamEnabled(flags.value.experimentalHyperbeam);
+    }
   };
 
   // Initialize on first use
@@ -67,8 +75,15 @@ export const useFeatureFlags = () => {
   };
 
   const setFlag = (flagKey: FeatureFlag, value: boolean) => {
+    console.log(`[FeatureFlags] Setting ${flagKey} to ${value}`);
     flags.value[flagKey] = value;
+    console.log(`[FeatureFlags] Flag state after update:`, flags.value);
     saveToStorage();
+
+    // Sync to useHyperbeamFlag if setting experimentalHyperbeam
+    if (flagKey === 'experimentalHyperbeam') {
+      setHyperbeamEnabled(value);
+    }
   };
 
   const resetFlags = () => {

@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/vue-query';
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import type { ComputedRef, Ref } from 'vue';
 import { useOperatorRegistry } from '../operator-registry';
 import { useRelayCache } from '../relayCache';
-import { useFeatureFlags } from '../useFeatureFlags';
+import { useHyperbeamFlag } from '../useHyperbeamFlag';
 import { useRuntimeConfig } from '#app';
 import Logger from '~/utils/logger';
 
@@ -16,10 +16,8 @@ export const useRelayInfoQuery = (
   address: Ref<string | undefined> | ComputedRef<string | undefined>
 ) => {
   const operatorRegistry = useOperatorRegistry();
-  const featureFlags = useFeatureFlags();
-  const isHyperbeamEnabled = computed(() =>
-    featureFlags.getFlag('experimentalHyperbeam')
-  );
+  const { hyperbeamEnabled } = useHyperbeamFlag();
+  const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
 
   const unflattenRelayInfo = (flatData: Record<string, boolean>) => {
     const result = {
@@ -65,12 +63,14 @@ export const useRelayInfoQuery = (
     return data;
   };
 
-  return useQuery({
-    queryKey: computed(() => [
-      'relayInfo',
-      address.value,
-      isHyperbeamEnabled.value,
-    ]),
+  const queryKeyComputed = computed(() => {
+    const key = ['relayInfo', address.value, isHyperbeamEnabled.value];
+    console.log('[useRelayInfoQuery] queryKey:', key);
+    return key;
+  });
+
+  const query = useQuery({
+    queryKey: queryKeyComputed,
     queryFn: async () => {
       if (!address.value) return null;
 
@@ -102,6 +102,8 @@ export const useRelayInfoQuery = (
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes (was cacheTime)
   });
+
+  return query;
 };
 
 /**

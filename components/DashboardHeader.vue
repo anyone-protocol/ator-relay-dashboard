@@ -5,6 +5,7 @@ import ButtonConnect from './ui-kit/ButtonConnect.vue';
 import ButtonMobileMenu from './ui-kit/ButtonMobileMenu.vue';
 import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
 import TitleAndLogo from './ui-kit/TitleAndLogo.vue';
+import HyperbeamToggle from './HyperbeamToggle.vue';
 
 const menuStore = useMenuStore();
 </script>
@@ -23,7 +24,12 @@ const menuStore = useMenuStore();
       <div class="flex gap-2 items-center">
         <TitleAndLogo />
       </div>
-      <nav class="hidden lg:flex justify-center flex-1 h-full items-center">
+      <nav
+        class="hidden lg:flex justify-center flex-1 h-full items-center relative"
+      >
+        <div class="absolute left-8">
+          <HyperbeamToggle />
+        </div>
         <ul class="flex justify-center items-center space-x-2 lg:space-x-3">
           <div
             class="flex items-center gap-1 ring-1 ring-neutral-200 dark:ring-neutral-800 p-1 rounded-md"

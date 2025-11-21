@@ -488,6 +488,7 @@ import BigNumber from 'bignumber.js';
 import { useDebounceFn } from '@vueuse/core';
 import { useTemplateRef } from 'vue';
 import { isValidNumericInput } from '~/utils/validate';
+import { useHyperbeamFlag } from '~/composables/useHyperbeamFlag';
 
 interface Vault {
   amount: bigint;
@@ -533,13 +534,8 @@ const { isLoading: isConfirming, isSuccess: isConfirmed } =
 const toast = useToast();
 const { copy, copied, text: copiedText } = useClipboard();
 const runtimeConfig = useRuntimeConfig();
-const {
-  getClaimableStakingRewards,
-  getLastRoundMetadata,
-  getLastSnapshot,
-  getStakingRewardsState,
-  getStakingSnapshot,
-} = useStakingRewards();
+const { getClaimableStakingRewards, getLastSnapshot, getStakingSnapshot } =
+  useStakingRewards();
 
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 const tokenContract = runtimeConfig.public
@@ -634,20 +630,11 @@ const { data: stakingSnapshot } = useQuery({
   enabled: computed(() => !!address.value),
 });
 
-const { data: lastRoundMeta } = useQuery({
-  queryKey: ['lastRoundMeta'],
-  queryFn: getLastRoundMetadata,
-  enabled: computed(() => !!address.value),
-});
-
-const { data: stakingRewardsState } = useQuery({
-  queryKey: ['stakingRewardsState'],
-  queryFn: getStakingRewardsState,
-  enabled: computed(() => !!address.value),
-});
+const { hyperbeamEnabled } = useHyperbeamFlag();
+const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
 
 const { data: operatorRewardsData } = useQuery({
-  queryKey: ['operatorRewards', address],
+  queryKey: computed(() => ['operatorRewards', address.value, isHyperbeamEnabled.value]),
   queryFn: async () => {
     if (!address.value) return [];
     return getClaimableStakingRewards(address.value);
