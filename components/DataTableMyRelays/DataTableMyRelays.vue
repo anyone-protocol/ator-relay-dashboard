@@ -16,7 +16,6 @@ import LockStatusColumn from './columns/LockStatusColumn.vue';
 import RegistrationActionColumn from './columns/RegistrationActionColumn.vue';
 import { ethers } from 'ethers';
 import { defineProps, useTemplateRef } from 'vue';
-import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
 import { hodlerAbi } from '~/assets/abi/hodler';
 import { getBlock } from '@wagmi/core';
 import { useDebounceFn } from '@vueuse/core';
@@ -26,6 +25,10 @@ import Ticker from '../ui-kit/Ticker.vue';
 import { useRelays } from '~/composables/queries/useRelays';
 import { useRelayMetrics } from '~/composables/queries/useRelayMetrics';
 import { useRelayMutations } from '@/composables/mutations/useRelayMutations';
+import {
+  useRelayMetricsQueries,
+  useHardwareRelaysCountQuery,
+} from '~/composables/queries/useRelayQueries';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -35,7 +38,6 @@ const props = defineProps<{
 const toast = useToast();
 const userStore = useUserStore();
 const metricsStore = useMetricsStore();
-const hodlerStore = useHolderStore();
 
 const isHovered = ref(false);
 const isUnlocking = ref(false);
@@ -147,72 +149,14 @@ watch(
   }
 );
 
-const initialLocksLoading = ref<boolean>(true); // only true until first data arrives
-const hardwareLoading = ref<boolean>(false);
-const hasReceivedLocksData = ref<boolean>(false); // track if we've received data
+// Fetch hardware status using query-based approach
+const {
+  relayInfoQuery,
+  hardwareStatusQuery,
+} = useRelayMetricsQueries(address);
 
-// local locks map - fetched from store but managed locally
-const lockedRelaysMap = ref<Record<string, boolean>>({});
-
-const isHardwareResolved = ref<Record<string, boolean>>({});
-
-watch(
-  () => hodlerStore.locks,
-  (locks) => {
-    const map: Record<string, boolean> = {};
-    for (const fingerprint of Object.keys(locks)) {
-      map[fingerprint] = true;
-    }
-    lockedRelaysMap.value = map;
-
-    // Mark that we've received data from contract (after initial empty state)
-    // Check hodlerStore.initialized to know if fetch has completed
-    if (!hasReceivedLocksData.value && hodlerStore.initialized) {
-      hasReceivedLocksData.value = true;
-      initialLocksLoading.value = false;
-    }
-  },
-  { immediate: true, deep: true }
-);
-
-// Also watch the initialized flag to unblock loading when hodler finishes init
-watch(
-  () => hodlerStore.initialized,
-  (initialized) => {
-    if (initialized && !hasReceivedLocksData.value) {
-      hasReceivedLocksData.value = true;
-      initialLocksLoading.value = false;
-    }
-  }
-);
-
-// Fetch hardware status when allRelays changes
-watch(
-  () => allRelays.value,
-  async (relays) => {
-    if (relays.length === 0) {
-      isHardwareResolved.value = {};
-      hardwareLoading.value = false;
-      return;
-    }
-
-    hardwareLoading.value = true;
-    try {
-      const fingerprints = relays.map((relay) => relay.fingerprint);
-      const hardware = await fetchHardwareStatus(fingerprints);
-      isHardwareResolved.value = hardware;
-    } catch (error) {
-      console.error('Error fetching hardware status:', error);
-      isHardwareResolved.value = {};
-    } finally {
-      hardwareLoading.value = false;
-    }
-  },
-  { immediate: true }
-);
-
-// Only show loading skeleton during initial load (until first data arrives)
-const isLoadingLockStatus = computed(() => initialLocksLoading.value);
+// Hardware status is computed, so isPending comes from relayInfoQuery
+const isHardwareResolved = computed(() => hardwareStatusQuery.value || {});
 
 const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
@@ -346,7 +290,7 @@ const getVerifiedItems = (row: RelayRow) => {
   // if locked, show unlock and claimed, else show renounce
 
   const isHardware = isHardwareResolved.value?.[row.fingerprint];
-  const isLocked = hodlerStore.relayIsLocked(row.fingerprint);
+  const isLocked = lockedRelaysMap.value?.[row.fingerprint];
   const isClaimed = row.status === 'verified';
   const skipSideMenu = !isClaimed && !isLocked && !isHardware;
 
@@ -518,7 +462,7 @@ const filterUniqueRelays = (relays: RelayRow[]) => {
 const getTableData = (tab: RelayTabType) => {
   switch (tab) {
     case 'locked':
-      return Object.keys(hodlerStore.locks).map((fingerprint) => {
+      return Object.keys(lockedRelaysMap.value).map((fingerprint) => {
         const metrics = metricsData.value?.[fingerprint];
         return {
           fingerprint,
@@ -580,6 +524,44 @@ const handleUnlockRelay = async (fingerprint: string) => {
 };
 
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
+
+// Fetch locks directly from contract using useReadContract
+const {
+  data: locksData,
+  isPending: locksPending,
+  refetch: refetchLocks,
+} = useReadContract({
+  address: hodlerContract,
+  abi: hodlerAbi,
+  functionName: 'getLocks',
+  args: [computed(() => address.value as `0x${string}`)],
+  query: {
+    enabled: computed(() => !!address.value),
+  },
+});
+
+// Transform locks data into a map for easy lookup
+const lockedRelaysMap = computed(() => {
+  if (!locksData.value) return {};
+
+  const map: Record<string, boolean> = {};
+  for (const lock of locksData.value) {
+    map[lock.fingerprint as string] = true;
+  }
+  return map;
+});
+
+// Get lock details (operator) for ownership check
+const getRelayOwner = (fingerprint: string): string | null => {
+  if (!locksData.value) return null;
+  const lock = locksData.value.find((l) => l.fingerprint === fingerprint);
+  return lock ? (lock.operator as string) : null;
+};
+
+// Loading state: show skeleton while locks are being fetched
+const isLoadingLockStatus = computed(
+  () => isConnected.value && locksPending.value
+);
 
 const {
   data: vaultsData,
@@ -867,7 +849,7 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
             v-if="
               !row.isWorking &&
               (row.status === 'verified' ||
-                hodlerStore.relayIsLocked(row.fingerprint) ||
+                lockedRelaysMap[row.fingerprint] ||
                 isHardwareResolved?.[row.fingerprint])
             "
             :items="getVerifiedItems(row)"
@@ -1183,7 +1165,7 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
             row.status === 'verified' ||
             isHardwareResolved[row.fingerprint]
           "
-          :is-loading="hardwareLoading"
+          :is-loading="relayInfoQuery.isPending.value"
           :has-registration-credit="relayCredits[row.fingerprint]"
           :registration-credits-required="registrationCreditsRequired ?? false"
           :family-verified="familyVerified[row.fingerprint]"
@@ -1209,10 +1191,8 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
       <template #owner-data="{ row }">
         <UBadge
           v-if="
-            hodlerStore.isRelayOwner(
-              row.fingerprint,
-              userStore.userData.address!
-            )
+            getRelayOwner(row.fingerprint)?.toLowerCase() ===
+            userStore.userData.address?.toLowerCase()
           "
           color="white"
           variant="solid"
