@@ -147,40 +147,72 @@ watch(
   }
 );
 
-const { locks: lockedRelays, loading: lockedRelaysPending } =
-  storeToRefs(hodlerStore);
+const initialLocksLoading = ref<boolean>(true); // only true until first data arrives
+const hardwareLoading = ref<boolean>(false);
+const hasReceivedLocksData = ref<boolean>(false); // track if we've received data
 
-const lockedRelaysMap = ref<Record<string, boolean | undefined>>({});
+// local locks map - fetched from store but managed locally
+const lockedRelaysMap = ref<Record<string, boolean>>({});
 
-// const lockedRelaysPending = ref<boolean>(true);
+const isHardwareResolved = ref<Record<string, boolean>>({});
+
 watch(
-  [
-    () => hodlerStore.locks,
-    () => allRelays.value,
-    address,
-    lockedRelaysPending,
-  ],
-  async ([locks, relays]) => {
-    if (lockedRelaysPending.value) return;
-    lockedRelaysPending.value = true;
-    let data: Record<string, boolean | undefined> = {};
+  () => hodlerStore.locks,
+  (locks) => {
+    const map: Record<string, boolean> = {};
     for (const fingerprint of Object.keys(locks)) {
-      data[fingerprint] = true; // All fingerprints in locks are locked
+      map[fingerprint] = true;
     }
-    lockedRelaysMap.value = data;
-    lockedRelaysPending.value = false;
+    lockedRelaysMap.value = map;
+
+    // Mark that we've received data from contract (after initial empty state)
+    // Check hodlerStore.initialized to know if fetch has completed
+    if (!hasReceivedLocksData.value && hodlerStore.initialized) {
+      hasReceivedLocksData.value = true;
+      initialLocksLoading.value = false;
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+// Also watch the initialized flag to unblock loading when hodler finishes init
+watch(
+  () => hodlerStore.initialized,
+  (initialized) => {
+    if (initialized && !hasReceivedLocksData.value) {
+      hasReceivedLocksData.value = true;
+      initialLocksLoading.value = false;
+    }
   }
 );
 
-const {
-  data: isHardwareResolved,
-  error: hardwareStatusError,
-  pending: hardwareStatusPending,
-} = await useAsyncData(
-  'hardwareStatus',
-  () => fetchHardwareStatus(allRelays.value.map((relay) => relay.fingerprint)),
-  { watch: [() => allRelays.value] }
+// Fetch hardware status when allRelays changes
+watch(
+  () => allRelays.value,
+  async (relays) => {
+    if (relays.length === 0) {
+      isHardwareResolved.value = {};
+      hardwareLoading.value = false;
+      return;
+    }
+
+    hardwareLoading.value = true;
+    try {
+      const fingerprints = relays.map((relay) => relay.fingerprint);
+      const hardware = await fetchHardwareStatus(fingerprints);
+      isHardwareResolved.value = hardware;
+    } catch (error) {
+      console.error('Error fetching hardware status:', error);
+      isHardwareResolved.value = {};
+    } finally {
+      hardwareLoading.value = false;
+    }
+  },
+  { immediate: true }
 );
+
+// Only show loading skeleton during initial load (until first data arrives)
+const isLoadingLockStatus = computed(() => initialLocksLoading.value);
 
 const ethAddress = ref<string>('');
 const ethAddressError = ref<string | null>(null);
@@ -1103,9 +1135,9 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
       <template #lockStatus-data="{ row }">
         <LockStatusColumn
           :is-locked="lockedRelaysMap[row.fingerprint]"
-          :is-hardware="isHardwareResolved?.[row.fingerprint]"
+          :is-hardware="isHardwareResolved[row.fingerprint]"
           :is-verified="row.status === 'verified'"
-          :is-loading="lockedRelaysPending"
+          :is-loading="isLoadingLockStatus"
         />
       </template>
 
@@ -1149,9 +1181,9 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
           :is-locked="
             lockedRelaysMap[row.fingerprint] ||
             row.status === 'verified' ||
-            isHardwareResolved?.[row.fingerprint]
+            isHardwareResolved[row.fingerprint]
           "
-          :is-loading="hardwareStatusPending"
+          :is-loading="hardwareLoading"
           :has-registration-credit="relayCredits[row.fingerprint]"
           :registration-credits-required="registrationCreditsRequired ?? false"
           :family-verified="familyVerified[row.fingerprint]"
