@@ -150,10 +150,7 @@ watch(
 );
 
 // Fetch hardware status using query-based approach
-const {
-  relayInfoQuery,
-  hardwareStatusQuery,
-} = useRelayMetricsQueries(address);
+const { relayInfoQuery, hardwareStatusQuery } = useRelayMetricsQueries(address);
 
 // Hardware status is computed, so isPending comes from relayInfoQuery
 const isHardwareResolved = computed(() => hardwareStatusQuery.value || {});
@@ -706,9 +703,9 @@ const loadMoreIfNeeded = async () => {
 const debouncedHandleScroll = useDebounceFn(handleScroll, 200);
 
 watch(
-  [allRelays, claimableRelays, props.currentTab],
+  [allRelays, claimableRelays, props.currentTab, relayTableRef],
   async () => {
-    if (process.client && relayTableRef.value) {
+    if (import.meta.client && relayTableRef.value) {
       await nextTick(); // Ensure DOM is updated
       visibleItems.value = ITEMS_PER_LOAD; // Reset on tab change
       loadMoreIfNeeded();
