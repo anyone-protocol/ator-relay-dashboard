@@ -33,7 +33,7 @@
                 </Popover>
               </div>
               <div class="inline-flex items-baseline gap-2">
-                <template v-if="vaultsPending">
+                <template v-if="vaultsPending && isConnected">
                   <USkeleton class="w-[8rem] h-6" />
                 </template>
                 <template v-else>
@@ -634,7 +634,11 @@ const { hyperbeamEnabled } = useHyperbeamFlag();
 const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
 
 const { data: operatorRewardsData } = useQuery({
-  queryKey: computed(() => ['operatorRewards', address.value, isHyperbeamEnabled.value]),
+  queryKey: computed(() => [
+    'operatorRewards',
+    address.value,
+    isHyperbeamEnabled.value,
+  ]),
   queryFn: async () => {
     if (!address.value) return [];
     return getClaimableStakingRewards(address.value);
@@ -1114,7 +1118,7 @@ const {
   functionName: 'getVaults',
   args: [hodlerAddress.value as `0x${string}`],
   query: {
-    enabled: computed(() => isConnected.value),
+    enabled: computed(() => !!hodlerAddress.value && isConnected.value),
   },
 });
 

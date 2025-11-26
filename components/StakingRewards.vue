@@ -21,7 +21,7 @@
       </Popover>
     </div>
     <div class="inline-flex items-baseline gap-2">
-      <template v-if="claimableRewardsPending">
+      <template v-if="claimableRewardsPending && isConnected">
         <USkeleton class="w-[8rem] h-6" />
       </template>
       <template v-else>
@@ -79,7 +79,7 @@ const { data: claimableRewards, isPending: claimableRewardsPending } = useQuery(
 
       return getTotalClaimableStakingRewards(address.value);
     },
-    enabled: !!address.value,
+    enabled: computed(() => !!address.value && isConnected.value),
   }
 );
 
