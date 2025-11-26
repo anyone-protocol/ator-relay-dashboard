@@ -840,17 +840,29 @@ watch(allRelaysQuery, async (allRelays) => {
   hasEnoughBalancePending.value = false;
 });
 
+// Refresh hodler when address changes
+watch(address, async (newAddress) => {
+  if (!newAddress) return;
+  try {
+    await useHodler()?.refresh();
+  } catch (error) {
+    console.error('Error refreshing hodler on address change:', error);
+  }
+});
+
 // Initialize on mount
-// onMounted(async () => {
-//   try {
-//     await Promise.all([
-//       userStore.getTokenBalance(),
-//       useRelayRewards().refresh(),
-//     ]);
-//   } catch (error) {
-//     console.error('Error during onMounted execution', error);
-//   }
-// });
+onMounted(async () => {
+  try {
+    initHodler();
+    await Promise.all([
+      userStore.getTokenBalance(),
+      useRelayRewards().refresh(),
+      useHodler()?.refresh(),
+    ]);
+  } catch (error) {
+    console.error('Error during onMounted execution', error);
+  }
+});
 
 const { hyperbeamEnabled } = useHyperbeamFlag();
 const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
