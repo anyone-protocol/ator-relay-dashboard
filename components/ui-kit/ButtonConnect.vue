@@ -5,13 +5,12 @@ import {
   useSwitchChain,
   type Config,
 } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
+import { config, defaultChain } from '@/config/wagmi.config';
 import Address from './Address.vue';
 import { ref } from 'vue';
 import { getChainId } from '@wagmi/core';
 import { useUserStore } from '@/stores/useUserStore';
 import { useAppKit } from '@reown/appkit/vue';
-import { sepolia } from 'viem/chains';
 
 const { address, status, isDisconnected, isReconnecting, isConnecting } =
   useAccount({ config });
@@ -33,11 +32,11 @@ const handleDisconnect = () => {
 };
 
 watch([chainId, address], async ([newChainId, newAddress]) => {
-  if (newAddress && newChainId !== sepolia.id) {
+  if (newAddress && newChainId !== defaultChain.id) {
     try {
-      switchChain({ chainId: sepolia.id });
+      switchChain({ chainId: defaultChain.id });
     } catch (error) {
-      console.error('Failed to switch to Sepolia:', error);
+      console.error(`Failed to switch to ${defaultChain.name}:`, error);
     }
   }
 });

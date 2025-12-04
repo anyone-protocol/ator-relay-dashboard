@@ -12,14 +12,40 @@ export const networksLocal: [AppKitNetwork, ...AppKitNetwork[]] = [
   hardhat,
 ];
 
+const getDefaultChainAndTransport = () => {
+  const appEnv = process.env.NUXT_PUBLIC_APP_ENV || 'dev';
+  const rpcUrl =
+    process.env.NUXT_PUBLIC_EVM_RPC || 'https://sepolia.gateway.tenderly.co';
+
+  if (appEnv === 'live') {
+    return {
+      defaultChain: mainnet,
+      transports: {
+        [mainnet.id]: http(rpcUrl),
+        [sepolia.id]: http(
+          'https://ethereum-sepolia.rpc.subquery.network/public'
+        ),
+      },
+    };
+  }
+
+  return {
+    defaultChain: sepolia,
+    transports: {
+      [mainnet.id]: http('https://eth-mainnet.public.blastapi.io'),
+      [sepolia.id]: http(rpcUrl),
+    },
+  };
+};
+
+const { defaultChain, transports } = getDefaultChainAndTransport();
+export { defaultChain };
+
 export const wagmiAdapter = new WagmiAdapter({
   networks,
   projectId,
   ssr: false,
-  transports: {
-    [mainnet.id]: http('https://eth-mainnet.public.blastapi.io'),
-    [sepolia.id]: http('https://ethereum-sepolia.rpc.subquery.network/public'),
-  },
+  transports,
 });
 
 export const mainNetConfig = new WagmiAdapter({
