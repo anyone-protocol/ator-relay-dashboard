@@ -54,7 +54,6 @@ export default defineNuxtConfig({
   // See: https://nuxt.com/docs/guide/going-further/runtime-config
   runtimeConfig: {
     public: {
-      appEnv: 'dev',
       evmRpc: 'https://sepolia.gateway.tenderly.co',
       aoCuUrl: 'https://cu.anyone.tech', //'https://cu.anyone.permaweb.services',
       hyperbeamUrl: 'https://hb-stage.anyone.tech',

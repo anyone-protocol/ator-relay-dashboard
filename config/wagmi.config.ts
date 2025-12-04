@@ -13,11 +13,11 @@ export const networksLocal: [AppKitNetwork, ...AppKitNetwork[]] = [
 ];
 
 const getDefaultChainAndTransport = () => {
-  const appEnv = process.env.NUXT_PUBLIC_APP_ENV || 'dev';
+  const phase = process.env.NUXT_PUBLIC_PHASE || 'dev';
   const rpcUrl =
     process.env.NUXT_PUBLIC_EVM_RPC || 'https://sepolia.gateway.tenderly.co';
 
-  if (appEnv === 'live') {
+  if (phase === 'live') {
     return {
       defaultChain: mainnet,
       transports: {

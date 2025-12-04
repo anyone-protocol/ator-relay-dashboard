@@ -14,19 +14,19 @@ let initialized = false;
  */
 export const useHyperbeamFlag = () => {
   const config = useRuntimeConfig();
-  const appEnv = config.public.appEnv;
+  const phase = config.public.phase;
 
   // Initialize on first use
   if (!initialized) {
     const stored = localStorage.getItem(STORAGE_KEY);
     // Force hyperbeam off on live
-    hyperbeamEnabledRef.value = appEnv === 'live' ? false : stored === 'true';
+    hyperbeamEnabledRef.value = phase === 'live' ? false : stored === 'true';
     initialized = true;
   }
 
   const setEnabled = (value: boolean) => {
     // Prevent enabling hyperbeam on live
-    if (appEnv === 'live') {
+    if (phase === 'live') {
       hyperbeamEnabledRef.value = false;
       localStorage.setItem(STORAGE_KEY, 'false');
       return;

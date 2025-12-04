@@ -18,8 +18,8 @@ const openCommitUrl = () => {
 const isOpen = ref(false);
 
 const getNetworkName = () => {
-  const appEnv = runtimeConfig.public.appEnv;
-  return appEnv === 'live' ? 'Mainnet' : 'Sepolia';
+  const phase = runtimeConfig.public.phase;
+  return phase === 'live' ? 'Mainnet' : 'Sepolia';
 };
 
 const contractLinks = [
@@ -61,10 +61,10 @@ const contractLinks = [
 ];
 
 const getLink = (address: string, type: string) => {
-  const appEnv = runtimeConfig.public.appEnv;
+  const phase = runtimeConfig.public.phase;
   switch (type) {
     case 'evm':
-      if (appEnv === 'live') {
+      if (phase === 'live') {
         return `https://etherscan.io/address/${address}`;
       }
       return `https://sepolia.etherscan.io/address/${address}`;

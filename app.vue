@@ -12,9 +12,9 @@ import { metadata } from '@/config/web3modal.config';
 
 const nuxtConfig = useRuntimeConfig();
 const projectId = nuxtConfig.public.walletConnectProjectId;
-const appEnv = nuxtConfig.public.appEnv;
+const phase = nuxtConfig.public.phase;
 
-const selectedNetworks = appEnv === 'live' ? networks : networksLocal;
+const selectedNetworks = phase === 'live' ? networks : networksLocal;
 
 createAppKit({
   adapters: [wagmiAdapter as ChainAdapter],

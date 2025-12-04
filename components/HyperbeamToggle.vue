@@ -9,8 +9,8 @@ const runtimeConfig = useRuntimeConfig();
 const shouldShowToggle = computed(() => {
   if (!isConnected.value) return false;
 
-  const appEnv = runtimeConfig.public.appEnv;
-  if (appEnv === 'live') return false;
+  const phase = runtimeConfig.public.phase;
+  if (phase === 'live') return false;
 
   const hostname = window.location.hostname;
   return (

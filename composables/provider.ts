@@ -8,10 +8,10 @@ export const NETWORKS = {
 
 const getProviderConfig = () => {
   const config = useRuntimeConfig();
-  const appEnv = config.public.appEnv;
+  const phase = config.public.phase;
   const rpcUrl = config.public.evmRpc;
 
-  if (appEnv === 'live') {
+  if (phase === 'live') {
     return {
       url: rpcUrl,
       fallbacks: {

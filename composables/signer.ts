@@ -5,9 +5,9 @@ const logger = new Logger('Signer');
 
 const getTargetChainInfo = () => {
   const config = useRuntimeConfig();
-  const appEnv = config.public.appEnv;
+  const phase = config.public.phase;
 
-  if (appEnv === 'live') {
+  if (phase === 'live') {
     return {
       name: NETWORKS.MAINNET.name,
       hex: NETWORKS.MAINNET.hex,
