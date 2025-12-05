@@ -53,9 +53,46 @@ const {
   error: relaysError,
 } = useRelays(computed(() => address.value));
 
+const runtimeConfig = useRuntimeConfig();
+const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
+
+// Fetch locks directly from contract using useReadContract
+const {
+  data: locksData,
+  isPending: locksPending,
+  refetch: refetchLocks,
+} = useReadContract({
+  address: hodlerContract,
+  abi: hodlerAbi,
+  functionName: 'getLocks',
+  args: [computed(() => address.value as `0x${string}`)],
+  query: {
+    enabled: computed(() => !!address.value),
+  },
+});
+
+// Transform locks data into a map for easy lookup
+const lockedRelaysMap = computed(() => {
+  if (!locksData.value) return {};
+
+  const map: Record<string, boolean> = {};
+  for (const lock of locksData.value) {
+    map[lock.fingerprint as string] = true;
+  }
+  return map;
+});
+
 const allFingerprints = computed(() => {
-  if (!relaysData.value) return [];
-  return [...relaysData.value.verified, ...relaysData.value.claimable];
+  const ownedFingerprints = relaysData.value
+    ? [...relaysData.value.verified, ...relaysData.value.claimable]
+    : [];
+
+  // Include delegated lock fingerprints so we can fetch metrics for them
+  const delegatedFingerprints = Object.keys(lockedRelaysMap.value).filter(
+    (fp) => !ownedFingerprints.includes(fp)
+  );
+
+  return [...ownedFingerprints, ...delegatedFingerprints];
 });
 
 const { data: metricsData, isPending: metricsPending } =
@@ -117,7 +154,6 @@ const claimableRelays = computed<RelayRow[]>(() => {
 
 const registerModalOpen = ref(false);
 
-const runtimeConfig = useRuntimeConfig();
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
 
 const relayCredits = ref<Record<string, boolean | undefined>>({});
@@ -463,10 +499,13 @@ const getTableData = (tab: RelayTabType) => {
         const metrics = metricsData.value?.[fingerprint];
         return {
           fingerprint,
+          status: 'locked',
           nickname: metrics?.nickname || '-',
           consensusWeight: Number(metrics?.consensus_weight) || 0,
           observedBandwidth: metrics?.observed_bandwidth || 0,
           active: metrics?.running || false,
+          class: relayClasses.value[fingerprint] || '',
+          isWorking: workingRelays.value[fingerprint] || false,
         };
       });
     case 'all':
@@ -519,34 +558,6 @@ const handleUnlockRelay = async (fingerprint: string) => {
     isUnlocking.value = false;
   }
 };
-
-const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
-
-// Fetch locks directly from contract using useReadContract
-const {
-  data: locksData,
-  isPending: locksPending,
-  refetch: refetchLocks,
-} = useReadContract({
-  address: hodlerContract,
-  abi: hodlerAbi,
-  functionName: 'getLocks',
-  args: [computed(() => address.value as `0x${string}`)],
-  query: {
-    enabled: computed(() => !!address.value),
-  },
-});
-
-// Transform locks data into a map for easy lookup
-const lockedRelaysMap = computed(() => {
-  if (!locksData.value) return {};
-
-  const map: Record<string, boolean> = {};
-  for (const lock of locksData.value) {
-    map[lock.fingerprint as string] = true;
-  }
-  return map;
-});
 
 // Get lock details (operator) for ownership check
 const getRelayOwner = (fingerprint: string): string | null => {
