@@ -291,8 +291,8 @@ const handleLockRemote = async () => {
   try {
     const hodler = useHodler();
     await hodler?.lock(
-      fingerPrintRegister.value,
-      ethAddress.value
+      fingerPrintRegister.value.trim(),
+      ethAddress.value.trim()
     );
     // Lock succeeded (hodler.lock shows its own success toast)
     registerModalOpen.value = false;
