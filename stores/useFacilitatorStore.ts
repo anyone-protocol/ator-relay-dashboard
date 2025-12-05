@@ -174,10 +174,13 @@ export const useFacilitatorStore = defineStore('facilitator', {
             {
               label: 'View transaction',
               click: () => {
-                window.open(
-                  `https://sepolia.etherscan.io/tx/${tx.hash}`,
-                  '_blank'
-                );
+                const config = useRuntimeConfig();
+                const phase = config.public.phase;
+                const explorerUrl =
+                  phase === 'live'
+                    ? `https://etherscan.io/tx/${tx.hash}`
+                    : `https://sepolia.etherscan.io/tx/${tx.hash}`;
+                window.open(explorerUrl, '_blank');
               },
             },
           ],

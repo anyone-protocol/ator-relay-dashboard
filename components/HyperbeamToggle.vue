@@ -4,9 +4,13 @@ import { useHyperbeamFlag } from '~/composables/useHyperbeamFlag';
 
 const { isConnected } = useAccount();
 const { hyperbeamEnabled, setEnabled } = useHyperbeamFlag();
+const runtimeConfig = useRuntimeConfig();
 
 const shouldShowToggle = computed(() => {
   if (!isConnected.value) return false;
+
+  const phase = runtimeConfig.public.phase;
+  if (phase === 'live') return false;
 
   const hostname = window.location.hostname;
   return (

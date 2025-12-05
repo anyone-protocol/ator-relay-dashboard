@@ -17,6 +17,11 @@ const openCommitUrl = () => {
 
 const isOpen = ref(false);
 
+const getNetworkName = () => {
+  const phase = runtimeConfig.public.phase;
+  return phase === 'live' ? 'Mainnet' : 'Sepolia';
+};
+
 const contractLinks = [
   {
     name: 'Operator Registry Process',
@@ -24,12 +29,12 @@ const contractLinks = [
     type: 'ao',
   },
   {
-    name: 'Sepolia Hodler Contract',
+    name: `${getNetworkName()} Hodler Contract`,
     address: runtimeConfig.public.hodlerContract,
     type: 'evm',
   },
   {
-    name: 'Sepolia ANyONe Token',
+    name: `${getNetworkName()} ANyONe Token`,
     address: runtimeConfig.public.sepoliaAtorTokenContract,
     type: 'evm',
   },
@@ -56,11 +61,15 @@ const contractLinks = [
 ];
 
 const getLink = (address: string, type: string) => {
+  const phase = runtimeConfig.public.phase;
   switch (type) {
+    case 'evm':
+      if (phase === 'live') {
+        return `https://etherscan.io/address/${address}`;
+      }
+      return `https://sepolia.etherscan.io/address/${address}`;
     case 'evmMain':
       return `https://etherscan.io/address/${address}`;
-    case 'evm':
-      return `https://sepolia.etherscan.io/address/${address}`;
     case 'arweave':
       return `https://sonar.warp.cc/#/app/contract/${address}?network=mainnet`;
     case 'viewblock':

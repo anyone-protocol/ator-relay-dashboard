@@ -6,26 +6,56 @@ export const NETWORKS = {
   HARDHAT: { decimal: 31_337, hex: '0x7a69', name: 'hardhat' },
 };
 
+const getProviderConfig = () => {
+  const config = useRuntimeConfig();
+  const phase = config.public.phase;
+  const rpcUrl = config.public.evmRpc;
+
+  if (phase === 'live') {
+    return {
+      url: rpcUrl,
+      fallbacks: {
+        blastapi: 'https://eth-mainnet.public.blastapi.io',
+        cloudflare: 'https://cloudflare-eth.com',
+        alchemy: '-',
+        ankr: '-',
+        etherscan: '-',
+        infura: '-',
+        tenderly: '-',
+      },
+    };
+  }
+
+  return {
+    url: rpcUrl,
+    fallbacks: {
+      tenderly: 'https://gateway.tenderly.co/public/sepolia',
+      first: 'https://sepolia.drpc.org',
+      blastapi: 'https://eth-sepolia.public.blastapi.io',
+      onerpc: '1rpc.io/sepolia',
+      alchemy: '-',
+      ankr: '-',
+      cloudflare: '-',
+      etherscan: '-',
+      infura: '-',
+    },
+  };
+};
+
 export const useSuggestMetaMask = () =>
   useState<boolean | undefined>('suggest-meta-mask', () => false);
 
 export const suggestMetaMask = useSuggestMetaMask();
 
-let provider: AbstractProvider | BrowserProvider = ethers.getDefaultProvider(
-  'https://sepolia.gateway.tenderly.co',
-  {
-    // NB: Required to force fallback provider. Errors with sepolia otherwise.
-    tenderly: 'https://gateway.tenderly.co/public/sepolia',
-    first: 'https://sepolia.drpc.org',
-    blastapi: 'https://eth-sepolia.public.blastapi.io',
-    onerpc: 'https://1rpc.io/sepolia',
-    alchemy: '-',
-    ankr: '-',
-    cloudflare: '-',
-    etherscan: '-',
-    infura: '-',
-  }
-);
+let provider: AbstractProvider | BrowserProvider;
+
+const initializeProvider = () => {
+  const { url, fallbacks } = getProviderConfig();
+  return ethers.getDefaultProvider(url, fallbacks);
+};
+
+// Initialize provider on module load
+provider = initializeProvider();
 
 export const initializeBrowserProvider = () => {
   if (window && window.ethereum) {
