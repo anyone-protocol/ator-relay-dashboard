@@ -774,15 +774,14 @@ const {
 const lockedRelaysQuery = useLockedRelaysQuery(address);
 
 // Compute locked count separately
+// This includes both owned and delegated locks
 const lockedCount = computed(() => {
   const locks = processedLocks.value;
-  const allRelays = allRelaysQuery.value;
 
-  if (!locks || !allRelays) return 0;
+  if (!locks) return 0;
 
-  return allRelays.filter(
-    (relay) => relay.active && locks[relay.fingerprint] !== undefined
-  ).length;
+  // Count all locks (both owned and delegated)
+  return Object.keys(locks).length;
 });
 
 const lockedCountPending = computed(

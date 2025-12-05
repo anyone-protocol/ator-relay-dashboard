@@ -290,30 +290,15 @@ const handleLockRemote = async () => {
 
   try {
     const hodler = useHodler();
-    const success = await hodler?.lock(
+    await hodler?.lock(
       fingerPrintRegister.value,
       ethAddress.value
     );
-    if (success != null && typeof success != typeof Error) {
-      registerModalOpen.value = false;
-      toast.add({
-        title: 'Success',
-        description: 'Fingerprint registered successfully',
-        color: 'green',
-      });
-      lockRemoteLoading.value = false;
-    } else {
-      // handle error
-      toast.add({
-        title: 'Error',
-        description: 'Error registering fingerprint',
-        color: 'red',
-      });
-      lockRemoteLoading.value = false;
-    }
+    // Lock succeeded (hodler.lock shows its own success toast)
+    registerModalOpen.value = false;
+    lockRemoteLoading.value = false;
   } catch (error: any) {
-    // handle error
-
+    // Lock failed - hodler.lock shows its own error toast
     lockRemoteLoading.value = false;
   }
 };
