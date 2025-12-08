@@ -42,7 +42,13 @@ export const useRelayMutations = () => {
   });
 
   const unlockMutation = useMutation({
-    mutationFn: async (fingerprint: string) => {
+    mutationFn: async ({
+      fingerprint,
+      operator,
+    }: {
+      fingerprint: string;
+      operator: string;
+    }) => {
       const hodler = useHodler();
       if (!hodler) {
         throw new Error('Hodler not available');
@@ -50,10 +56,7 @@ export const useRelayMutations = () => {
       if (!userStore.userData.address) {
         throw new Error('User address not available');
       }
-      const result = await hodler.unlock(
-        fingerprint,
-        userStore.userData.address
-      );
+      const result = await hodler.unlock(fingerprint, operator);
 
       if (!result) {
         throw new Error('ACTION_REJECTED');

@@ -530,7 +530,16 @@ const handleUnlockRelay = async (fingerprint: string) => {
   isUnlocking.value = true;
 
   try {
-    await unlockMutation.mutateAsync(fingerprint);
+    // Get the operator address from the lock data
+    const lock = locksData.value?.find((l) => l.fingerprint === fingerprint);
+    if (!lock) {
+      throw new Error('Lock not found');
+    }
+
+    await unlockMutation.mutateAsync({
+      fingerprint,
+      operator: lock.operator as string,
+    });
 
     toast.add({
       icon: 'i-heroicons-check-circle',
