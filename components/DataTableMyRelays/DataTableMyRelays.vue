@@ -377,6 +377,9 @@ const handleLockRelay = async (fingerprint: string) => {
   try {
     await lockMutation.mutateAsync({ fingerprint, ethAddress: '' });
 
+    // Immediately refetch locks to show the new lock in the UI
+    await refetchLocks();
+
     const maxTries = 3;
     let currentTry = 0;
 
@@ -463,6 +466,9 @@ const handleLockRemote = async () => {
       ethAddress: ethAddress.value,
     });
 
+    // Immediately refetch locks to show the new lock in the UI
+    await refetchLocks();
+
     registerModalOpen.value = false;
 
     toast.add({
@@ -530,7 +536,16 @@ const handleUnlockRelay = async (fingerprint: string) => {
   isUnlocking.value = true;
 
   try {
-    await unlockMutation.mutateAsync(fingerprint);
+    // Get the operator address from the lock data
+    const lock = locksData.value?.find((l) => l.fingerprint === fingerprint);
+    if (!lock) {
+      throw new Error('Lock not found');
+    }
+
+    await unlockMutation.mutateAsync({
+      fingerprint,
+      operator: lock.operator as string,
+    });
 
     toast.add({
       icon: 'i-heroicons-check-circle',
@@ -579,7 +594,7 @@ const {
   address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'getVaults',
-  args: [address.value as `0x${string}`],
+  args: [computed(() => address.value as `0x${string}`)],
   query: {
     enabled: computed(() => isConnected.value),
   },
