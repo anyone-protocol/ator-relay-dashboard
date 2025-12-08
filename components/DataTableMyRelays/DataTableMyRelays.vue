@@ -377,6 +377,9 @@ const handleLockRelay = async (fingerprint: string) => {
   try {
     await lockMutation.mutateAsync({ fingerprint, ethAddress: '' });
 
+    // Immediately refetch locks to show the new lock in the UI
+    await refetchLocks();
+
     const maxTries = 3;
     let currentTry = 0;
 
@@ -462,6 +465,9 @@ const handleLockRemote = async () => {
       fingerprint: fingerPrintRegister.value,
       ethAddress: ethAddress.value,
     });
+
+    // Immediately refetch locks to show the new lock in the UI
+    await refetchLocks();
 
     registerModalOpen.value = false;
 
@@ -588,7 +594,7 @@ const {
   address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'getVaults',
-  args: [address.value as `0x${string}`],
+  args: [computed(() => address.value as `0x${string}`)],
   query: {
     enabled: computed(() => isConnected.value),
   },
