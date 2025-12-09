@@ -21,7 +21,8 @@ export const useRelayMutations = () => {
   const { address } = useAccount({ config } as any);
   const runtimeConfig = useRuntimeConfig();
   const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
-  const tokenContract = runtimeConfig.public.tokenContractMain as `0x${string}`;
+  const tokenContract = runtimeConfig.public
+    .sepoliaAtorTokenContract as `0x${string}`;
 
   const lockMutation = useMutation({
     mutationFn: async ({
