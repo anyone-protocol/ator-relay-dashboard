@@ -7,6 +7,15 @@ on:
       - 'dev_*'
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: 'Deployment phase'
+        required: true
+        default: 'prelive'
+        type: choice
+        options:
+          - prelive
 env:
   IMAGE_NAME: ator-relay-dashboard
 
@@ -43,6 +52,7 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=stage
+          [ "${{ inputs.phase }}" == "prelive" ] && VERSION=prelive
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
 
@@ -64,7 +74,8 @@ jobs:
           unzip levant.zip
           [[ -n $(grep "dev" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-dev.hcl
           [[ -n $(grep "stage" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-stage.hcl
-          [[ -z $(grep "stage" deploy-vars.json) && -z $(grep "dev" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-live.hcl
+          [[ -n $(grep "prelive" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-prelive.hcl
+          [[ -z $(grep "stage" deploy-vars.json) && -z $(grep "dev" deploy-vars.json) && -z $(grep "prelive" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-live.hcl
 
           curl -L https://releases.hashicorp.com/nomad/1.8.3/nomad_1.8.3_linux_amd64.zip -o nomad.zip
           unzip nomad.zip
