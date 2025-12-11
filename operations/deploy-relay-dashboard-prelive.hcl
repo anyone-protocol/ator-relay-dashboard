@@ -119,8 +119,8 @@ job "deploy-relay-dashboard-prelive" {
         rclone sync .output/public r2:{{ .Data.data.CLOUDFLARE_DEPLOY_BUCKET }}/
         {{ end }}
 
-        echo "Publishing static files to Arweave"
-        pnpm run deploy:arweave
+        # echo "Publishing static files to Arweave"
+        # pnpm run deploy:arweave
         EOF
         destination = "local/entrypoint.sh"
         perms = "0755"
