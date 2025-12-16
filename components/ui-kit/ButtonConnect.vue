@@ -5,12 +5,14 @@ import {
   useSwitchChain,
   type Config,
 } from '@wagmi/vue';
-import { config, defaultChain } from '@/config/wagmi.config';
+import { config } from '@/config/wagmi.config';
 import Address from './Address.vue';
 import { ref } from 'vue';
 import { getChainId } from '@wagmi/core';
 import { useUserStore } from '@/stores/useUserStore';
 import { useAppKit } from '@reown/appkit/vue';
+
+const defaultChain = useDefaultChain();
 
 const { address, status, isDisconnected, isReconnecting, isConnecting } =
   useAccount({ config });
@@ -32,11 +34,11 @@ const handleDisconnect = () => {
 };
 
 watch([chainId, address], async ([newChainId, newAddress]) => {
-  if (newAddress && newChainId !== defaultChain.id) {
+  if (newAddress && newChainId !== defaultChain.value.id) {
     try {
-      switchChain({ chainId: defaultChain.id });
+      switchChain({ chainId: defaultChain.value.id });
     } catch (error) {
-      console.error(`Failed to switch to ${defaultChain.name}:`, error);
+      console.error(`Failed to switch to ${defaultChain.value.name}:`, error);
     }
   }
 });
