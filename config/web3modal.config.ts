@@ -10,7 +10,9 @@ export const metadata = {
 export const getAnonAddress = () => {
   const runtimeConfig = useRuntimeConfig();
 
-  return runtimeConfig.public.sepoliaAtorTokenContract;
+  return runtimeConfig.public.phase === 'live'
+    ? runtimeConfig.public.atorTokenContract
+    : runtimeConfig.public.sepoliaAtorTokenContract;
 };
 
 export const getAnonAddressMain = () => {

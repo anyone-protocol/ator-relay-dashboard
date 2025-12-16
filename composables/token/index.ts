@@ -134,7 +134,9 @@ export const initToken = async () => {
 
   if (!token) {
     token = new Token(
-      runtimeConfig.public.sepoliaAtorTokenContract as string,
+      runtimeConfig.public.phase === 'live'
+        ? (runtimeConfig.public.atorTokenContract as string)
+        : (runtimeConfig.public.sepoliaAtorTokenContract as string),
       provider
     );
   }

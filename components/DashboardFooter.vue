@@ -35,7 +35,9 @@ const contractLinks = [
   },
   {
     name: `${getNetworkName()} ANyONe Token`,
-    address: runtimeConfig.public.sepoliaAtorTokenContract,
+    address: runtimeConfig.public.phase === 'live'
+      ? runtimeConfig.public.atorTokenContract
+      : runtimeConfig.public.sepoliaAtorTokenContract,
     type: 'evm',
   },
   {

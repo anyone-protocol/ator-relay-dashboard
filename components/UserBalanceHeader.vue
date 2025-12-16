@@ -37,8 +37,9 @@ const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 
 const chainId = getChainId(config);
 
-const tokenContract = runtimeConfig.public
-  .sepoliaAtorTokenContract as `0x${string}`;
+const tokenContract = runtimeConfig.public.phase === 'live'
+  ? runtimeConfig.public.atorTokenContract as `0x${string}`
+  : runtimeConfig.public.sepoliaAtorTokenContract as `0x${string}`;
 
 const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
   address: computed(() => address.value),

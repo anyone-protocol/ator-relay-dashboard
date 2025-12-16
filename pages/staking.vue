@@ -538,8 +538,9 @@ const { getClaimableStakingRewards, getLastSnapshot, getStakingSnapshot } =
   useStakingRewards();
 
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
-const tokenContract = runtimeConfig.public
-  .sepoliaAtorTokenContract as `0x${string}`;
+const tokenContract = runtimeConfig.public.phase === 'live'
+  ? runtimeConfig.public.atorTokenContract as `0x${string}`
+  : runtimeConfig.public.sepoliaAtorTokenContract as `0x${string}`;
 
 const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
