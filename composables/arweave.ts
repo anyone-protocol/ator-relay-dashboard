@@ -11,7 +11,7 @@ const arweaveConfig =
       }
     : window.location.hostname === 'dashboard.anyone.io' ||
         window.location.hostname === 'dashboard-stage.anyone.io' ||
-        window.location.hostname === 'livedashboardtest.anyone.io'
+        window.location.hostname === 'dashboard-prelive.anyone.io'
       ? { protocol: 'https', host: 'ar.anyone.tech', port: 443, timeout: 60000 }
       : { timeout: 60000 };
 // : { protocol: 'https', host: window.location.hostname , port: 443 }; / removed on prod
