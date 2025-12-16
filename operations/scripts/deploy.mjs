@@ -62,7 +62,7 @@ async function deploy() {
     })
   logger.info(
     `ANT updated! TTL 1 hour. View Set-Record message at `
-      + `https://ao.link/#/entity/${deployedMessageId}`
+      + `https://aolink.ar.anyone.tech/#/entity/${deployedMessageId}`
   )
 }
 

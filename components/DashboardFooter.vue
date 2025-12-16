@@ -77,7 +77,7 @@ const getLink = (address: string, type: string) => {
     case 'viewblock':
       return `https://viewblock.io/arweave/address/${address}`;
     case 'ao':
-      return `https://ao.link/#/entity/${address}`;
+      return `https://aolink.ar.anyone.tech/#/entity/${address}`;
     default:
       return '#';
   }
