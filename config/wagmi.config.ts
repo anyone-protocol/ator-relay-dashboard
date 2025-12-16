@@ -13,13 +13,17 @@ export const networksLocal: [AppKitNetwork, ...AppKitNetwork[]] = [
 ];
 
 const getDefaultChainAndTransport = () => {
-  const config = useRuntimeConfig();
+  const phase = process.env.NUXT_PUBLIC_PHASE || 'dev';
+  const rpcUrl =
+    process.env.NUXT_PUBLIC_EVM_RPC || 'https://sepolia.gateway.tenderly.co';
 
-  if (config.public.phase === 'live') {
+  console.log('Wagmi Config Phase & url', phase, rpcUrl);
+
+  if (phase === 'live') {
     return {
       defaultChain: mainnet,
       transports: {
-        [mainnet.id]: http(config.public.evmRpc as string),
+        [mainnet.id]: http(rpcUrl),
         [sepolia.id]: http(
           'https://ethereum-sepolia.rpc.subquery.network/public'
         ),
@@ -31,7 +35,7 @@ const getDefaultChainAndTransport = () => {
     defaultChain: sepolia,
     transports: {
       [mainnet.id]: http('https://eth-mainnet.public.blastapi.io'),
-      [sepolia.id]: http(config.public.evmRpc as string),
+      [sepolia.id]: http(rpcUrl),
     },
   };
 };
