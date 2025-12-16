@@ -1,12 +1,14 @@
 import { WagmiPlugin } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
-import { defineNuxtPlugin } from '#app';
+import { createWagmiConfig } from '@/config/wagmi.config';
+import { defineNuxtPlugin, useRuntimeConfig } from '#app';
 
 export default defineNuxtPlugin((nuxtApp) => {
   const runtimeConfig = useRuntimeConfig();
+  const phase = runtimeConfig.public.phase || 'dev';
+  const rpcUrl =
+    runtimeConfig.public.evmRpc || 'https://sepolia.gateway.tenderly.co';
 
-  nuxtApp.vueApp.use(WagmiPlugin, {
-    config:
-      runtimeConfig.public.phase === 'live' ? config.sepolia : config.mainnet,
-  });
+  const { config } = createWagmiConfig(rpcUrl, phase);
+
+  nuxtApp.vueApp.use(WagmiPlugin, { config });
 });
