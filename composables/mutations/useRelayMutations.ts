@@ -8,6 +8,7 @@ import { config } from '@/config/wagmi.config';
 import { useOperatorRegistry } from '~/composables/operator-registry';
 import { useUserStore } from '~/stores/useUserStore';
 import { hodlerAbi } from '~/assets/abi/hodler';
+import { tokenAbi } from '~/assets/abi/token';
 import {
   readContract,
   writeContract,
@@ -47,68 +48,85 @@ export const useRelayMutations = () => {
         functionName: 'LOCK_SIZE',
       });
 
-      // Step 1: Approve token
-      toast.add({
-        icon: 'i-heroicons-clock',
-        color: 'primary',
-        id: 'approve-token',
-        timeout: 0,
-        title: 'Approving token...',
-        closeButton: undefined,
-      });
-
-      const approveHash = await writeContract(config, {
+      // Check current allowance
+      const currentAllowance = await readContract(config, {
         address: tokenContract,
-        abi: [
-          {
-            name: 'approve',
-            type: 'function',
-            stateMutability: 'nonpayable',
-            inputs: [
-              { name: 'spender', type: 'address' },
-              { name: 'amount', type: 'uint256' },
-            ],
-            outputs: [{ name: '', type: 'bool' }],
-          },
-        ],
-        functionName: 'approve',
-        args: [hodlerContract, lockSize],
+        abi: tokenAbi,
+        functionName: 'allowance',
+        args: [address.value as `0x${string}`, hodlerContract],
       });
 
-      await waitForTransactionReceipt(config, { hash: approveHash });
+      // Approve token (only if needed)
+      if (currentAllowance < lockSize) {
+        toast.add({
+          icon: 'i-heroicons-clock',
+          color: 'primary',
+          id: 'approve-token',
+          timeout: 0,
+          title: 'Approving token...',
+          closeButton: undefined,
+        });
 
-      toast.remove('approve-token');
-      toast.add({
-        icon: 'i-heroicons-check-circle',
-        id: 'token-approved',
-        color: 'primary',
-        title:
-          'Token approved! Please accept the transaction to lock the relay.',
-      });
+        try {
+          const approveHash = await writeContract(config, {
+            address: tokenContract,
+            abi: tokenAbi,
+            functionName: 'approve',
+            args: [hodlerContract, lockSize],
+          });
 
-      // Step 2: Lock
+          await waitForTransactionReceipt(config, {
+            hash: approveHash,
+            timeout: 60_000,
+          });
+
+          toast.remove('approve-token');
+          toast.add({
+            icon: 'i-heroicons-check-circle',
+            id: 'token-approved',
+            color: 'primary',
+            title:
+              'Token approved! Please accept the transaction to lock the relay.',
+          });
+        } catch (error: any) {
+          toast.remove('approve-token');
+          throw error;
+        }
+      }
+
       const operator = ethAddress || address.value;
-      const lockHash = await writeContract(config, {
-        address: hodlerContract,
-        abi: hodlerAbi,
-        functionName: 'lock',
-        args: [fingerprint, operator as `0x${string}`],
-      });
 
-      toast.remove('token-approved');
-      toast.add({
-        icon: 'i-heroicons-clock',
-        color: 'primary',
-        id: 'lock-relay',
-        timeout: 0,
-        title: 'Locking relay...',
-        closeButton: undefined,
-      });
+      try {
+        const lockHash = await writeContract(config, {
+          address: hodlerContract,
+          abi: hodlerAbi,
+          functionName: 'lock',
+          args: [fingerprint, operator as `0x${string}`],
+        });
 
-      await waitForTransactionReceipt(config, { hash: lockHash });
-      toast.remove('lock-relay');
+        toast.remove('token-approved');
+        toast.add({
+          icon: 'i-heroicons-clock',
+          color: 'primary',
+          id: 'lock-relay',
+          timeout: 0,
+          title: 'Locking relay...',
+          closeButton: undefined,
+        });
 
-      return lockHash;
+        await waitForTransactionReceipt(config, {
+          hash: lockHash,
+          timeout: 60_000,
+        });
+
+        toast.remove('lock-relay');
+
+        return lockHash;
+      } catch (error: any) {
+        toast.remove('token-approved');
+        toast.remove('lock-relay');
+        throw error;
+      }
     },
     onSuccess: () => {
       // Invalidate wagmi contract read queries
@@ -123,6 +141,11 @@ export const useRelayMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['lastRound'] });
     },
     onError: (error) => {
+      const toast = useToast();
+      // Clean up any remaining toasts
+      toast.remove('approve-token');
+      toast.remove('token-approved');
+      toast.remove('lock-relay');
       console.error('Lock mutation failed:', error);
     },
   });
