@@ -60,4 +60,7 @@ export const mainNetConfig = new WagmiAdapter({
   ssr: false,
 });
 
-export const config = wagmiAdapter.wagmiConfig;
+export const config = {
+  sepolia: wagmiAdapter.wagmiConfig,
+  mainnet: mainNetConfig.wagmiConfig,
+};
