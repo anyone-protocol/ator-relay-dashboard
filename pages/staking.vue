@@ -559,7 +559,7 @@ const selectedOperator = ref<Operator | null>(null);
 const operatorRewards = ref<OperatorRewards[]>([]);
 const hodlerAddress = computed(() => address.value);
 const runningThreshold = computed(
-  () => lastSnapshot.value?.Configuration.Requirements.Running
+  () => lastSnapshot.value?.Configuration?.Requirements?.Running
 );
 const stakedOperators = computed(() => {
   if (!stakesData.value) return [];

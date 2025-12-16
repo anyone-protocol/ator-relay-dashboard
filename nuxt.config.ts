@@ -72,6 +72,7 @@ export default defineNuxtConfig({
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',
       facilitatorContract: '0x88b1b22c890D986DF6A3D29f060ee539721E76C3',
       sepoliaAtorTokenContract: '0x3F7D7e1161B4CbC172517a2957A13814f4a657A2',
+      atorTokenContract: '0xFeAc2Eae96899709a43E252B6B92971D32F9C0F9',
       tokenContractMain: '0xFeAc2Eae96899709a43E252B6B92971D32F9C0F9',
       distributionContract: '22rOD-_0isRZQaw0EBGh6Ko0ri5IPE7cYTaMThhPENk',
       metricsDeployer: '53E8wWz8XkP9pGDQrgTi69GLAzZ6geX8bJckcifBr1Q',
