@@ -38,28 +38,3 @@ export function createWagmiConfig(rpcUrl: string, phase: string) {
     config: wagmiAdapter.wagmiConfig,
   };
 }
-
-// Default exports for components that import statically
-// Plugin and app.vue use createWagmiConfig() with runtime env vars
-const getDefaultPhase = () => {
-  if (typeof process !== 'undefined' && process.env) {
-    return process.env.NUXT_PUBLIC_PHASE || 'dev';
-  }
-  return 'dev';
-};
-
-const defaultRpcUrl = 'https://sepolia.gateway.tenderly.co';
-const defaultResult = createWagmiConfig(defaultRpcUrl, getDefaultPhase());
-
-export const config = defaultResult.config;
-export const defaultChain = defaultResult.defaultChain;
-
-export const mainNetConfig = new WagmiAdapter({
-  chains: [mainnet],
-  networks: [mainnet],
-  transports: {
-    [mainnet.id]: http(),
-  },
-  projectId,
-  ssr: false,
-});
