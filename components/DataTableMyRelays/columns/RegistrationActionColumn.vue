@@ -78,16 +78,16 @@ const props = defineProps<{
           props.familyRequired
         "
         size="md"
-        color="green"
+        color="yellow"
         variant="outline"
-        label="Family Not Verified"
+        label="Loading"
         class="flex-col text-xs w-auto px-5"
         :trailing="false"
         :disabled="true"
         block
       >
-        <div class="text-sm font-medium">Family</div>
-        <div>Not Verified</div>
+        <div class="text-sm font-medium">Loading</div>
+        <div>Loading</div>
       </UButton>
 
       <UButton
