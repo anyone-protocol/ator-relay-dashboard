@@ -32,9 +32,8 @@ import { getChainId } from '@wagmi/core';
 
 const runtimeConfig = useRuntimeConfig();
 const config = useConfig();
-const { isConnected, address } = useAccount({ config } as any);
+const { isConnected, address } = useAccount();
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
-
 const chainId = getChainId(config);
 
 const tokenContract = runtimeConfig.public.phase === 'live'
