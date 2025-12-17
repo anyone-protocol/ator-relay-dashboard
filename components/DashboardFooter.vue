@@ -2,10 +2,9 @@
 import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
 import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
 import { useAccount } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 
 const runtimeConfig = useRuntimeConfig();
-const { isConnected } = useAccount({ config } as any);
+const { isConnected } = useAccount();
 
 const version = runtimeConfig.public.version;
 const commitHash = runtimeConfig.public.commitHash || 'dev';

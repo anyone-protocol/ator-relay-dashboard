@@ -711,8 +711,8 @@ import {
   useReadContract,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useConfig
 } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 import { useUserStore } from '@/stores/useUserStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import Button from '@/components/ui-kit/Button.vue';
@@ -739,9 +739,10 @@ import {
 } from '~/composables/queries/useLockedRelaysQuery';
 import { useHyperbeamFlag } from '~/composables/useHyperbeamFlag';
 
+const config = useConfig();
 const userStore = useUserStore();
 const hodlerStore = useHolderStore();
-const { isConnected, address } = useAccount({ config } as any);
+const { isConnected, address } = useAccount();
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
 
@@ -835,7 +836,7 @@ const hasEnoughBalancePending = ref(true);
 watch(allRelaysQuery, async (allRelays) => {
   if (!allRelays || !address.value) return;
   hasEnoughBalancePending.value = true;
-  hasEnoughBalance.value = await calculateBalance(allRelays, address.value);
+  hasEnoughBalance.value = await calculateBalance(config, allRelays, address.value);
   hasEnoughBalancePending.value = false;
 });
 

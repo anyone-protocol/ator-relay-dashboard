@@ -3,8 +3,8 @@ import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useConfig,
 } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 import { useOperatorRegistry } from '~/composables/operator-registry';
 import { useUserStore } from '~/stores/useUserStore';
 import { hodlerAbi } from '~/assets/abi/hodler';
@@ -16,10 +16,11 @@ import {
 } from '@wagmi/core';
 
 export const useRelayMutations = () => {
+  const config = useConfig();
   const queryClient = useQueryClient();
   const operatorRegistry = useOperatorRegistry();
   const userStore = useUserStore();
-  const { address } = useAccount({ config } as any);
+  const { address } = useAccount();
   const runtimeConfig = useRuntimeConfig();
   const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
   const tokenContract =

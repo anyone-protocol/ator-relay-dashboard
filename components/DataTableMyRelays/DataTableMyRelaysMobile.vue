@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useAccount } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 import { type RelayRow, type RelayTabType } from '@/types/relay';
 import { RELAY_COLUMS, TABS, VERBS } from '@/constants/relay';
 import { useMetricsStore } from '@/stores/useMetricsStore';
@@ -25,7 +24,6 @@ const props = defineProps<{
   currentTab: RelayTabType;
   registerModalOpen: boolean;
 }>();
-
 const toast = useToast();
 const userStore = useUserStore();
 const metricsStore = useMetricsStore();
@@ -42,7 +40,7 @@ const fingerprints = computed(() => {
 });
 
 const { allRelays, claimableRelays } = storeToRefs(userStore);
-const { address } = useAccount({ config } as any);
+const { address } = useAccount();
 const registerModalOpen = ref(false);
 const runtimeConfig = useRuntimeConfig();
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;

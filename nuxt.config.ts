@@ -55,7 +55,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       evmRpc: 'https://sepolia.gateway.tenderly.co',
-      aoCuUrl: 'https://cu.anyone.tech', //'https://cu.anyone.permaweb.services',
+      aoCuUrl: 'https://cu.anyone.tech',
       hyperbeamUrl: 'https://hb-stage.anyone.tech',
       operatorRegistryProcessId: '_-JHiTCYy8cG4dsQDm0kHKF0I3rJit1uxbPdNqQBE_Q',
       operatorRegistryHyperbeamProcessId:

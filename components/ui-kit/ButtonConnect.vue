@@ -4,8 +4,8 @@ import {
   useDisconnect,
   useSwitchChain,
   type Config,
+  useConfig,
 } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 import Address from './Address.vue';
 import { ref } from 'vue';
 import { getChainId } from '@wagmi/core';
@@ -13,7 +13,7 @@ import { useUserStore } from '@/stores/useUserStore';
 import { useAppKit } from '@reown/appkit/vue';
 
 const defaultChain = useDefaultChain();
-
+const config = useConfig();
 const { address, status, isDisconnected, isReconnecting, isConnecting } =
   useAccount({ config });
 const { open } = useAppKit();

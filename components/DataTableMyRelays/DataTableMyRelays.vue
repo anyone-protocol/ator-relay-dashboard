@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { useAccount, useReadContract } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
+import { useAccount, useConfig, useReadContract } from '@wagmi/vue';
 import {
   type RelayMeta,
   type RelayRow,
@@ -34,7 +33,7 @@ const props = defineProps<{
   currentTab: RelayTabType;
   registerModalOpen: boolean;
 }>();
-
+const config = useConfig();
 const toast = useToast();
 const userStore = useUserStore();
 const metricsStore = useMetricsStore();
@@ -44,7 +43,7 @@ const isUnlocking = ref(false);
 const workingRelays = ref<Record<string, boolean>>({});
 const relayClasses = ref<Record<string, string>>({});
 
-const { address, isConnected } = useAccount({ config } as any);
+const { address, isConnected } = useAccount();
 
 const {
   data: relaysData,

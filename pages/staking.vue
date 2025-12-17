@@ -474,13 +474,13 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useBalance,
+  useConfig
 } from '@wagmi/vue';
 import { hodlerAbi } from '../assets/abi/hodler';
 import { tokenAbi } from '../assets/abi/token';
 import { getAddress, parseEther } from 'viem';
 import { useClipboard, useVirtualList } from '@vueuse/core';
 import { getBlock, getChainId } from '@wagmi/core';
-import { config } from '~/config/wagmi.config';
 import Popover from '~/components/ui-kit/Popover.vue';
 import Ticker from '~/components/ui-kit/Ticker.vue';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
@@ -516,6 +516,7 @@ interface OperatorRewards {
   redeemable: string;
 }
 
+const config = useConfig();
 const queryClient = useQueryClient();
 
 const { address, isConnected } = useAccount();
