@@ -378,96 +378,8 @@
             </div>
 
             <div
-              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 lg:gap-2 mb-2 lg:mb-0"
+              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-2 lg:gap-2 mb-2 lg:mb-0"
             >
-              <div
-                class="mb-4 lg:mb-0 flex flex-col justify-end border-l-4 border-cyan-600 pl-3"
-              >
-                <div class="flex items-center gap-1">
-                  <h3 class="text-sm text-nowrap">Eligible for next airdrop</h3>
-                  <Popover
-                    placement="top"
-                    :arrow="false"
-                    class="h-max grid place-items-center"
-                  >
-                    <template #content>
-                      <div class="text-xs font-normal">
-                        Total number of redeemed tokens, minus any tokens
-                        received or forfeited from previous airdrops.
-                        <span
-                          v-if="hasClaimedStakingRewards"
-                          class="block mt-2"
-                        >
-                          You are eligible for a 10% bonus on this airdrop
-                          reward thanks to participation in staking.
-                        </span>
-                      </div>
-                    </template>
-                    <template #trigger>
-                      <Icon name="heroicons:exclamation-circle" />
-                    </template>
-                  </Popover>
-                </div>
-                <template v-if="airdropPending || hodlerInfoPending">
-                  <USkeleton class="w-[10rem] h-10 mt-2" />
-                </template>
-                <template v-else>
-                  <span v-if="isConnected" class="text-3xl font-medium">
-                    {{ formatEtherNoRound(calculatedAirdrop) }}
-                  </span>
-                  <span v-if="!isConnected" class="text-3xl font-medium">
-                    --
-                  </span>
-                  <Ticker class="text-sm" />
-                  <div
-                    v-if="
-                      isConnected &&
-                      !hasEnoughBalancePending &&
-                      !hasEnoughBalance
-                    "
-                    class="flex items-center gap-2 mt-2"
-                  >
-                    <span
-                      class="w-2 h-2 bg-red-600 rounded-full text-xs"
-                    ></span>
-                    <span class="text-xs text-nowrap"
-                      >Mainnet balance too low</span
-                    >
-                    <Popover
-                      placement="top"
-                      :arrow="false"
-                      class="h-max grid place-items-center"
-                    >
-                      <template #content>
-                        <div class="text-xs font-normal">
-                          <span class="text-xs font-normal">
-                            Your wallet <strong>must</strong> hold 100 $ANYONE
-                            tokens on Ethereum mainnet for every
-                            <strong>Active Relay</strong> (Excluding Anyone
-                            hardware relays) or the eligble airdrop will be
-                            forfeited.
-                            <br />
-                            Current balance:
-                            <b>{{
-                              (
-                                Number(tokenBalance.value) /
-                                Math.pow(10, tokenBalance.decimals)
-                              ).toFixed(0)
-                            }}</b>
-                          </span>
-                        </div>
-                      </template>
-                      <template #trigger>
-                        <Icon
-                          name="heroicons:exclamation-circle"
-                          class="size-3"
-                        />
-                      </template>
-                    </Popover>
-                  </div>
-                </template>
-              </div>
-
               <div
                 class="mb-4 lg:mb-0 flex flex-col justify-start border-l-4 border-cyan-600 pl-3 flex-shrink-0"
               >
@@ -488,7 +400,7 @@
 
               <div
                 v-if="isConnected"
-                class="redeem flex gap-6 items-center flex-shrink-0"
+                class="redeem flex gap-6 items-center flex-shrink-0 justify-end"
               >
                 <div class="divider hidden lg:visible"></div>
                 <div>
