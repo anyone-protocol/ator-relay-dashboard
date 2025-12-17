@@ -312,25 +312,21 @@
             <div
               class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 lg:gap-2 mb-2 lg:mb-0"
             >
-              <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-                <div class="flex flex-col items-start gap-2">
-                  <h3 class="text-sm">Total claimed rewards</h3>
-                </div>
-                <template v-if="hodlerInfoPending">
+              <div
+                class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
+              >
+                <h3 class="text-sm">Relay rewards</h3>
+                <template v-if="relayRewardsPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
                 </template>
                 <template v-else>
                   <span v-if="isConnected" class="text-3xl font-medium">
-                    {{
-                      formatEtherNoRound(
-                        !totalClaimed.isNaN() ? totalClaimed.toString() : '0'
-                      )
-                    }}
+                    {{ formatEtherNoRound(relayRewards?.toString() || '0') }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
                   </span>
-                  <Ticker />
+                  <Ticker class="text-sm" />
                 </template>
               </div>
 
@@ -352,8 +348,34 @@
                 </template>
               </div>
 
+              <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
+                <div class="flex flex-col items-start gap-2">
+                  <h3 class="text-sm">Total claimed rewards</h3>
+                </div>
+                <template v-if="hodlerInfoPending">
+                  <USkeleton class="w-[10rem] h-10 mt-2" />
+                </template>
+                <template v-else>
+                  <span v-if="isConnected" class="text-3xl font-medium">
+                    {{
+                      formatEtherNoRound(
+                        !totalClaimed.isNaN() ? totalClaimed.toString() : '0'
+                      )
+                    }}
+                  </span>
+                  <span v-if="!isConnected" class="text-3xl font-medium">
+                    --
+                  </span>
+                  <Ticker />
+                </template>
+              </div>
+            </div>
+
+            <div
+              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-2 lg:gap-2 mb-2 lg:mb-0"
+            >
               <div
-                class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
+                class="mb-4 lg:mb-0 flex flex-col justify-start border-l-4 border-cyan-600 pl-3 flex-shrink-0"
               >
                 <h3 class="text-sm">Total claimable rewards</h3>
                 <template v-if="stakingRewardsPending || relayRewardsPending">
@@ -368,28 +390,6 @@
                           : '0'
                       )
                     }}
-                  </span>
-                  <span v-if="!isConnected" class="text-3xl font-medium">
-                    --
-                  </span>
-                  <Ticker class="text-sm" />
-                </template>
-              </div>
-            </div>
-
-            <div
-              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-2 lg:gap-2 mb-2 lg:mb-0"
-            >
-              <div
-                class="mb-4 lg:mb-0 flex flex-col justify-start border-l-4 border-cyan-600 pl-3 flex-shrink-0"
-              >
-                <h3 class="text-sm">Relay rewards</h3>
-                <template v-if="relayRewardsPending">
-                  <USkeleton class="w-[10rem] h-10 mt-2" />
-                </template>
-                <template v-else>
-                  <span v-if="isConnected" class="text-3xl font-medium">
-                    {{ formatEtherNoRound(relayRewards?.toString() || '0') }}
                   </span>
                   <span v-if="!isConnected" class="text-3xl font-medium">
                     --
