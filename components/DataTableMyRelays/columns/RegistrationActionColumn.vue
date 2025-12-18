@@ -87,7 +87,6 @@ const props = defineProps<{
         block
       >
         <div class="text-sm font-medium">Loading</div>
-        <div>Loading</div>
       </UButton>
 
       <UButton
