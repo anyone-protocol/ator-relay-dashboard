@@ -4,11 +4,14 @@ import { defineNuxtPlugin, useRuntimeConfig } from '#app';
 
 export default defineNuxtPlugin((nuxtApp) => {
   const runtimeConfig = useRuntimeConfig();
-  const phase = runtimeConfig.public.phase || 'dev';
-  const rpcUrl =
-    runtimeConfig.public.evmRpc || 'https://sepolia.gateway.tenderly.co';
 
-  const { config } = createWagmiConfig(rpcUrl, phase);
+  const { config } = createWagmiConfig({
+    rpcUrl:
+      runtimeConfig.public.evmRpc === 'default'
+        ? undefined
+        : runtimeConfig.public.evmRpc,
+    phase: runtimeConfig.public.phase,
+  });
 
   nuxtApp.vueApp.use(WagmiPlugin, { config });
 });

@@ -571,7 +571,8 @@ export class Hodler {
         to,
         value,
       });
-      console.log('Funding transaction sent:', fundingResult);
+      console.log('Funding transaction sent');
+      await new Promise((r) => setTimeout(r, 5000)); // wait 5 seconds before waiting for confirmation
       await fundingResult.wait(20);
 
       // Note: Redeem is an alternative option for transfer.

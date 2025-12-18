@@ -7,9 +7,9 @@ const projectId = '53a5b087ab4cb303a799325360098216';
 
 export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, sepolia];
 
-export function createWagmiConfig(rpcUrl: string, phase: string) {
-  // console.log('Wagmi Config Phase & url: ', phase, rpcUrl);
-
+export function createWagmiConfig(opts: { rpcUrl?: string; phase: string }) {
+  const { rpcUrl, phase } = opts;
+  console.log('Wagmi Config Phase & url: ', phase, rpcUrl);
   const isLive = phase === 'live';
   const defaultChain = isLive ? mainnet : sepolia;
   const selectedNetworks: [AppKitNetwork, ...AppKitNetwork[]] = isLive

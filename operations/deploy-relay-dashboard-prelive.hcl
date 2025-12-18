@@ -60,7 +60,7 @@ job "deploy-relay-dashboard-prelive" {
         PHASE="live"
         NODE_OPTIONS="--max-old-space-size=4096"
         DASHBOARD_VERSION="[[.commit_sha]]"
-        NUXT_PUBLIC_EVM_RPC="https://eth-mainnet.public.blastapi.io"
+        NUXT_PUBLIC_EVM_RPC="default"
         NUXT_PUBLIC_PHASE="live"
       }
 
