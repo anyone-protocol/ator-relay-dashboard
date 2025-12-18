@@ -9,12 +9,16 @@ import {
   formatEther,
 } from 'ethers';
 import BigNumber from 'bignumber.js';
+import { sendTransaction, waitForTransactionReceipt } from '@wagmi/core';
+import { useConfig } from '@wagmi/vue';
 
 import abi from './Hodler.json';
 import Logger from '~/utils/logger';
 import type { ClaimData, Lock, Vault } from '~/types/hodler';
 import { useHolderStore } from '~/stores/useHodlerStore';
 import { useToken } from '../token';
+import { config } from 'winston';
+import type { TransactionReceipt } from 'viem';
 // first round
 
 const runtimeConfig = useRuntimeConfig();
@@ -516,9 +520,10 @@ export class Hodler {
     });
   }
 
-  async claim(): Promise<TransactionResponse | null> {
+  async claim(): Promise<TransactionReceipt | null> {
     const toast = useToast();
     const auth = useUserStore();
+    const config = useConfig();
     const address = auth.userData?.address;
 
     if (!address) throw new Error('User address not found');
@@ -557,23 +562,27 @@ export class Hodler {
     }
 
     try {
-      const [, , currentGas] = await this.contract.hodlers(address);
-      console.log(
-        'Current gas budget:',
-        ethers.formatEther(currentGas.toString())
-      );
+      // const [, , currentGas] = await this.contract.hodlers(address);
+      // console.log(
+      //   'Current gas budget:',
+      //   ethers.formatEther(currentGas.toString())
+      // );
 
       const gasEstimate = ethers.parseEther('0.00012');
       const value = gasEstimate.toString();
       const to = await this.contract.getAddress();
 
-      const fundingResult = await this.signer.sendTransaction({
-        to,
-        value,
-      });
-      console.log('Funding transaction sent');
-      await new Promise((r) => setTimeout(r, 5000)); // wait 5 seconds before waiting for confirmation
-      await fundingResult.wait(20);
+      // const fundingResult = await this.signer.sendTransaction({
+      //   to,
+      //   value,
+      // });
+      const hash = await sendTransaction(config, { to, value });
+      console.log('Funding transaction sent', hash);
+      const fundingResult = (await waitForTransactionReceipt(config, {
+        hash,
+      })) as TransactionReceipt;
+      // await new Promise((r) => setTimeout(r, 5000)); // wait 5 seconds before waiting for confirmation
+      // await fundingResult.wait(20);
 
       // Note: Redeem is an alternative option for transfer.
       // It doesn't add gas budget, and it pulls the funds directly into account.
