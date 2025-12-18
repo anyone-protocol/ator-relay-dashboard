@@ -572,7 +572,7 @@ export class Hodler {
         value,
       });
       console.log('Funding transaction sent:', fundingResult);
-      await fundingResult.wait();
+      await fundingResult.wait(20);
 
       // Note: Redeem is an alternative option for transfer.
       // It doesn't add gas budget, and it pulls the funds directly into account.
