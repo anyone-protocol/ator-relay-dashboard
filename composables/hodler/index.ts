@@ -558,10 +558,10 @@ export class Hodler {
 
     try {
       const [, , currentGas] = await this.contract.hodlers(address);
-      // console.log(
-      //   'Current gas budget:',
-      //   ethers.formatEther(currentGas.toString())
-      // );
+      console.log(
+        'Current gas budget:',
+        ethers.formatEther(currentGas.toString())
+      );
 
       const gasEstimate = ethers.parseEther('0.00012');
       const value = gasEstimate.toString();
@@ -571,9 +571,8 @@ export class Hodler {
         to,
         value,
       });
-
+      console.log('Funding transaction sent:', fundingResult);
       await fundingResult.wait();
-      // console.log('Funding transaction sent:', fundingResult);
 
       // Note: Redeem is an alternative option for transfer.
       // It doesn't add gas budget, and it pulls the funds directly into account.
