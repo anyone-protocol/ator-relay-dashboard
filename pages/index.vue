@@ -920,6 +920,7 @@ const handleClaimAllRewards = async () => {
       throw new Error('No response from claim');
     }
   } catch (error) {
+    console.error('Error redeeming rewards:', error);
     toast.add({
       icon: 'i-heroicons-x-circle',
       color: 'red',
