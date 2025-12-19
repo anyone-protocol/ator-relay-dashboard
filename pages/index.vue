@@ -894,7 +894,6 @@ const calculatedAirdrop = computed(() => {
     return baseAirdrop;
   }
 });
-
 const handleClaimAllRewards = async () => {
   isRedeemLoading.value = true;
   progressLoading.value = 1;
@@ -906,7 +905,7 @@ const handleClaimAllRewards = async () => {
       throw new Error('Hodler not initialized');
     }
 
-    const response = await hodler.claim();
+    const response = await hodler.claim(config);
     if (response) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 

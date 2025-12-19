@@ -520,10 +520,9 @@ export class Hodler {
     });
   }
 
-  async claim(): Promise<TransactionReceipt | null> {
+  async claim(config: any): Promise<TransactionReceipt | null> {
     const toast = useToast();
     const auth = useUserStore();
-    const config = useConfig();
     const address = auth.userData?.address;
 
     if (!address) throw new Error('User address not found');
