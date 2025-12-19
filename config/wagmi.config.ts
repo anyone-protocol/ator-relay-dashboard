@@ -7,22 +7,33 @@ const projectId = '53a5b087ab4cb303a799325360098216';
 
 export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, sepolia];
 
-export function createWagmiConfig(opts: { rpcUrl?: string; phase: string }) {
-  const { rpcUrl, phase } = opts;
-  console.log('Wagmi Config Phase & url: ', phase, rpcUrl);
-  const isLive = phase === 'live';
+export function createWagmiConfig() {
+  const runtimeConfig = useRuntimeConfig();
+  console.log(
+    'Wagmi Config Phase & url: ',
+    runtimeConfig.public.phase,
+    runtimeConfig.public.evmRpc
+  );
+  const isLive = runtimeConfig.public.phase === 'live';
   const defaultChain = isLive ? mainnet : sepolia;
   const selectedNetworks: [AppKitNetwork, ...AppKitNetwork[]] = isLive
     ? [mainnet]
     : [sepolia];
-
   const transports = isLive
     ? {
-        [mainnet.id]: http(rpcUrl),
+        [mainnet.id]: http(
+          runtimeConfig.public.evmRpc === 'default'
+            ? undefined
+            : runtimeConfig.public.evmRpc
+        ),
       }
     : ({
         [mainnet.id]: http('https://eth-mainnet.public.blastapi.io'),
-        [sepolia.id]: http(rpcUrl),
+        [sepolia.id]: http(
+          runtimeConfig.public.evmRpc === 'default'
+            ? undefined
+            : runtimeConfig.public.evmRpc
+        ),
       } as any);
 
   const wagmiAdapter = new WagmiAdapter({

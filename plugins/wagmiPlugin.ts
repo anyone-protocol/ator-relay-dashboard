@@ -1,17 +1,9 @@
 import { WagmiPlugin } from '@wagmi/vue';
 import { createWagmiConfig } from '@/config/wagmi.config';
-import { defineNuxtPlugin, useRuntimeConfig } from '#app';
+import { defineNuxtPlugin } from '#app';
 
 export default defineNuxtPlugin((nuxtApp) => {
-  const runtimeConfig = useRuntimeConfig();
-
-  const { config } = createWagmiConfig({
-    rpcUrl:
-      runtimeConfig.public.evmRpc === 'default'
-        ? undefined
-        : runtimeConfig.public.evmRpc,
-    phase: runtimeConfig.public.phase,
-  });
+  const { config } = createWagmiConfig();
 
   nuxtApp.vueApp.use(WagmiPlugin, { config });
 });
