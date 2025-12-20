@@ -20,7 +20,7 @@ onMounted(() => {
       <a class="underline" href="https://t.me/anyonedevelopment/181">
         details
       </a>
-    </div>
+    </div> -->
     <div class="xl:p-6">
       <div
         class="mx-auto w-full max-w-screen-2xl h-[calc(100vh-0px)] sm:h-[calc(100vh-50px)] lg:h-[calc(100vh-0px)] xl:h-[calc(100vh-50px)] xl:rounded-xl flex flex-col"
