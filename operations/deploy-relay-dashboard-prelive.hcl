@@ -62,7 +62,6 @@ job "deploy-relay-dashboard-prelive" {
         DASHBOARD_VERSION="[[.commit_sha]]"
         NUXT_PUBLIC_EVM_RPC="default"
         NUXT_PUBLIC_PHASE="live"
-        NUXT_PUBLIC_SHOW_MAINTENANCE_BANNER="true"
       }
 
       template {
