@@ -12,6 +12,7 @@ onMounted(() => {
     class="relative isolate h-full min-h-screen bg-neutral-50 dark:bg-neutral-900"
   >
     <div
+      v-if="config.public.showMaintenanceBanner"
       class="absolute top-0 w-full bg-yellow-400 text-black text-center text-xs font-medium py-1"
     >
       The Anyone Protocol Dashboard is currently migrating from Testnet to
