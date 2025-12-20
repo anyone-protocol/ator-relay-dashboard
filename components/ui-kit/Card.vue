@@ -5,6 +5,7 @@ defineProps<{
   title?: string;
   icon?: string;
   noPadding?: boolean;
+  noMargin?: boolean;
 }>();
 
 const isVisible = ref(false);
@@ -38,7 +39,7 @@ const onInView = ([{ isIntersecting }]: [{ isIntersecting: boolean }]) => {
         {{ title }}
       </h2>
       <!-- Padding -->
-      <div class="flex-col flex h-full mt-4">
+      <div :class="[noMargin ? 'mt-0' : 'mt-4']" class="flex-col flex h-full">
         <slot></slot>
       </div>
       <div
