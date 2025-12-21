@@ -122,16 +122,12 @@ const allRelays = computed<RelayRow[]>(() => {
     fingerprint: fp,
     status: 'verified',
     ...mapMetricsToRow(metricsData.value?.[fp]),
-    class: relayClasses.value[fp] || '',
-    isWorking: workingRelays.value[fp] || false,
   }));
 
   const claimable: RelayRow[] = relaysData.value.claimable.map((fp) => ({
     fingerprint: fp,
     status: 'claimable',
     ...mapMetricsToRow(metricsData.value?.[fp]),
-    class: relayClasses.value[fp] || '',
-    isWorking: workingRelays.value[fp] || false,
   }));
 
   return [...verified, ...claimable];
@@ -368,6 +364,8 @@ const handleTabChange = (key: string) => {
 };
 
 const handleLockRelay = async (fingerprint: string) => {
+  // console.log('in lock function');
+
   workingRelays.value[fingerprint] = true;
   relayActionOngoing.value = true;
   relayClasses.value[fingerprint] =
@@ -509,8 +507,6 @@ const getTableData = (tab: RelayTabType) => {
           consensusWeight: Number(metrics?.consensus_weight) || 0,
           observedBandwidth: metrics?.observed_bandwidth || 0,
           active: metrics?.running || false,
-          class: relayClasses.value[fingerprint] || '',
-          isWorking: workingRelays.value[fingerprint] || false,
         };
       });
     case 'all':
@@ -863,13 +859,13 @@ const debouncedLoadMoreIfNeeded = useDebounceFn(loadMoreIfNeeded, 200);
       <template #actions-data="{ row }">
         <div class="w-8">
           <Icon
-            v-if="row.isWorking"
+            v-if="workingRelays[row.fingerprint]"
             name="heroicons:arrow-path-20-solid"
             class="h-6 w-6 animate-spin"
           />
           <UDropdown
             v-if="
-              !row.isWorking &&
+              !workingRelays[row.fingerprint] &&
               (row.status === 'verified' ||
                 lockedRelaysMap[row.fingerprint] ||
                 isHardwareResolved?.[row.fingerprint])

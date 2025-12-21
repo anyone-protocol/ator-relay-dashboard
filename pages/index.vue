@@ -308,14 +308,51 @@
         <div
           class="flex w-full flex-col gap-4 lg:flex-row-reverse lg:justify-between"
         >
-          <Card title="Rewards History" icon="eos-icons:trusted-organization">
+          <Card :noMargin="true">
+            <!-- Title and Claim Button -->
+            <div class="flex justify-between items-center mb-4">
+              <div class="flex items-center gap-2">
+                <Icon name="eos-icons:trusted-organization" />
+                <h3 class="text-xl font-medium">Rewards History</h3>
+              </div>
+              <div v-if="isConnected">
+                <UButton
+                  :disabled="!hasClaimableRewards || isRedeemLoading"
+                  @click="handleClaimAllRewards"
+                  class="mb-2"
+                  variant="outline"
+                  color="cyan"
+                  size="md"
+                >
+                  <span v-if="isRedeemLoading">Processing...</span>
+                  <span v-else-if="hasClaimableRewards">Claim Rewards</span>
+                  <span v-else>Nothing to claim</span>
+                </UButton>
+                <div v-if="progressLoading" class="text-center">
+                  <UProgress animation="carousel">
+                    <template #indicator="{ progressLoading }">
+                      <div class="text-center">
+                        <span v-if="progressLoading === 1" class="text-xs">
+                          1 / 2 Accepting Request...
+                        </span>
+                        <span v-else class="text-xs">
+                          2 / 2 Accepting Request...
+                        </span>
+                      </div>
+                    </template>
+                  </UProgress>
+                </div>
+              </div>
+            </div>
+
+            <!-- Claimable rewards row -->
             <div
               class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 lg:gap-2 mb-2 lg:mb-0"
             >
               <div
                 class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
               >
-                <h3 class="text-sm">Relay rewards</h3>
+                <h3 class="text-sm">Claimable relay rewards</h3>
                 <template v-if="relayRewardsPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
                 </template>
@@ -333,7 +370,7 @@
               <div
                 class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
               >
-                <h3 class="text-sm">Staking rewards</h3>
+                <h3 class="text-sm">Claimable staking rewards</h3>
                 <template v-if="stakingRewardsPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
                 </template>
@@ -349,34 +386,6 @@
               </div>
 
               <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-                <div class="flex flex-col items-start gap-2">
-                  <h3 class="text-sm">Total claimed rewards</h3>
-                </div>
-                <template v-if="hodlerInfoPending">
-                  <USkeleton class="w-[10rem] h-10 mt-2" />
-                </template>
-                <template v-else>
-                  <span v-if="isConnected" class="text-3xl font-medium">
-                    {{
-                      formatEtherNoRound(
-                        !totalClaimed.isNaN() ? totalClaimed.toString() : '0'
-                      )
-                    }}
-                  </span>
-                  <span v-if="!isConnected" class="text-3xl font-medium">
-                    --
-                  </span>
-                  <Ticker />
-                </template>
-              </div>
-            </div>
-
-            <div
-              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-2 lg:gap-2 mb-2 lg:mb-0"
-            >
-              <div
-                class="mb-4 lg:mb-0 flex flex-col justify-start border-l-4 border-cyan-600 pl-3 flex-shrink-0"
-              >
                 <h3 class="text-sm">Total claimable rewards</h3>
                 <template v-if="stakingRewardsPending || relayRewardsPending">
                   <USkeleton class="w-[10rem] h-10 mt-2" />
@@ -397,40 +406,66 @@
                   <Ticker class="text-sm" />
                 </template>
               </div>
+            </div>
+
+            <!-- Claimed rewards row -->
+            <div
+              class="flex justify-between items-start lg:items-center flex-col lg:grid lg:grid-cols-3 lg:gap-2 mb-2 lg:mb-0"
+            >
+              <div
+                class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
+              >
+                <h3 class="text-sm">Claimed relay rewards</h3>
+                <template v-if="hodlerInfoPending">
+                  <USkeleton class="w-[10rem] h-10 mt-2" />
+                </template>
+                <template v-else>
+                  <span v-if="isConnected" class="text-3xl font-medium">
+                    {{ formatEtherNoRound(claimedRelayRewards.toString()) }}
+                  </span>
+                  <span v-if="!isConnected" class="text-3xl font-medium">
+                    --
+                  </span>
+                  <Ticker class="text-sm" />
+                </template>
+              </div>
 
               <div
-                v-if="isConnected"
-                class="redeem flex gap-6 items-center flex-shrink-0 justify-end"
+                class="mb-4 flex flex-col justify-start border-l-4 border-cyan-600 pl-3"
               >
-                <div class="divider hidden lg:visible"></div>
-                <div>
-                  <UButton
-                    :disabled="!hasClaimableRewards || isRedeemLoading"
-                    @click="handleClaimAllRewards"
-                    class="mb-2"
-                    variant="outline"
-                    color="cyan"
-                    size="xl"
-                  >
-                    <span v-if="isRedeemLoading">Processing...</span>
-                    <span v-else-if="hasClaimableRewards">Claim Rewards</span>
-                    <span v-else>Nothing to claim</span>
-                  </UButton>
-                  <div v-if="progressLoading" class="text-center">
-                    <UProgress animation="carousel">
-                      <template #indicator="{ progressLoading }">
-                        <div class="text-center">
-                          <span v-if="progressLoading === 1" class="text-xs">
-                            1 / 2 Accepting Request...
-                          </span>
-                          <span v-else class="text-xs">
-                            2 / 2 Accepting Request...
-                          </span>
-                        </div>
-                      </template>
-                    </UProgress>
-                  </div>
-                </div>
+                <h3 class="text-sm">Claimed staking rewards</h3>
+                <template v-if="hodlerInfoPending">
+                  <USkeleton class="w-[10rem] h-10 mt-2" />
+                </template>
+                <template v-else>
+                  <span v-if="isConnected" class="text-3xl font-medium">
+                    {{ formatEtherNoRound(claimedStakingRewards.toString()) }}
+                  </span>
+                  <span v-if="!isConnected" class="text-3xl font-medium">
+                    --
+                  </span>
+                  <Ticker class="text-sm" />
+                </template>
+              </div>
+
+              <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
+                <h3 class="text-sm">Total claimed rewards</h3>
+                <template v-if="hodlerInfoPending">
+                  <USkeleton class="w-[10rem] h-10 mt-2" />
+                </template>
+                <template v-else>
+                  <span v-if="isConnected" class="text-3xl font-medium">
+                    {{
+                      formatEtherNoRound(
+                        !totalClaimed.isNaN() ? totalClaimed.toString() : '0'
+                      )
+                    }}
+                  </span>
+                  <span v-if="!isConnected" class="text-3xl font-medium">
+                    --
+                  </span>
+                  <Ticker class="text-sm" />
+                </template>
               </div>
             </div>
           </Card>
@@ -1000,6 +1035,16 @@ const totalClaimed = computed(() => {
   return new BigNumber(hodlerInfo.value[4].toString() || '0').plus(
     new BigNumber(hodlerInfo.value[5].toString() || '0')
   );
+});
+
+const claimedRelayRewards = computed(() => {
+  if (!hodlerInfo.value) return BigNumber(0);
+  return new BigNumber(hodlerInfo.value[4].toString() || '0');
+});
+
+const claimedStakingRewards = computed(() => {
+  if (!hodlerInfo.value) return BigNumber(0);
+  return new BigNumber(hodlerInfo.value[5].toString() || '0');
 });
 
 const hasClaimableRewards = computed(() => {
