@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { switchChain, watchAccount, watchChainId } from '@wagmi/core';
-import { useAccount } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
+import { useAccount, useConfig } from '@wagmi/vue';
 
-const { chainId } = useAccount({ config });
+const config = useConfig();
+const { chainId } = useAccount();
 const defaultChain = useDefaultChain();
 
 const unwatch = watchAccount(config, {

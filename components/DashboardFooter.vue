@@ -2,10 +2,9 @@
 import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
 import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
 import { useAccount } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 
 const runtimeConfig = useRuntimeConfig();
-const { isConnected } = useAccount({ config } as any);
+const { isConnected } = useAccount();
 
 const version = runtimeConfig.public.version;
 const commitHash = runtimeConfig.public.commitHash || 'dev';
@@ -75,9 +74,9 @@ const getLink = (address: string, type: string) => {
     case 'arweave':
       return `https://sonar.warp.cc/#/app/contract/${address}?network=mainnet`;
     case 'viewblock':
-      return `https://viewblock.io/arweave/address/${address}`;
+      return `https://viewblock.io/arweave/address/${address}?tab=items`;
     case 'ao':
-      return `https://ao.link/#/entity/${address}`;
+      return `https://aolink.ar.anyone.tech/#/entity/${address}`;
     default:
       return '#';
   }

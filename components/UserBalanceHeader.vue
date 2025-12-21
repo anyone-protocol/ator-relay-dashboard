@@ -26,22 +26,25 @@
 </template>
 
 <script lang="ts" setup>
-import { useAccount, useBalance } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
+import { useAccount, useBalance, useConfig } from '@wagmi/vue';
 import Ticker from './ui-kit/Ticker.vue';
 import { getChainId } from '@wagmi/core';
 
 const runtimeConfig = useRuntimeConfig();
-const { isConnected, address } = useAccount({ config } as any);
+const config = useConfig();
+const { isConnected, address } = useAccount();
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
-
 const chainId = getChainId(config);
 
 const tokenContract = runtimeConfig.public.phase === 'live'
   ? runtimeConfig.public.atorTokenContract as `0x${string}`
   : runtimeConfig.public.sepoliaAtorTokenContract as `0x${string}`;
 
-const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
+const {
+  data: tokenBalance,
+  isPending: tokenBalancePending,
+  error: tokenBalanceError,
+} = useBalance({
   address: computed(() => address.value),
   // need to confirm whether to set dynamically or use only mainnet
   chainId: chainId,
@@ -49,5 +52,10 @@ const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
   query: {
     enabled: computed(() => !!address.value && isConnected.value),
   },
+});
+watch(tokenBalanceError, (newError) => {
+  if (newError) {
+    console.error('Error fetching token balance:', newError);
+  }
 });
 </script>

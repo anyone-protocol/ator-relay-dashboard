@@ -658,8 +658,8 @@ import {
   useReadContract,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useConfig
 } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 import { useUserStore } from '@/stores/useUserStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import Button from '@/components/ui-kit/Button.vue';
@@ -686,9 +686,10 @@ import {
 } from '~/composables/queries/useLockedRelaysQuery';
 import { useHyperbeamFlag } from '~/composables/useHyperbeamFlag';
 
+const config = useConfig();
 const userStore = useUserStore();
 const hodlerStore = useHolderStore();
-const { isConnected, address } = useAccount({ config } as any);
+const { isConnected, address } = useAccount();
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);
 
@@ -782,7 +783,7 @@ const hasEnoughBalancePending = ref(true);
 watch(allRelaysQuery, async (allRelays) => {
   if (!allRelays || !address.value) return;
   hasEnoughBalancePending.value = true;
-  hasEnoughBalance.value = await calculateBalance(allRelays, address.value);
+  hasEnoughBalance.value = await calculateBalance(config, allRelays, address.value);
   hasEnoughBalancePending.value = false;
 });
 
@@ -928,7 +929,6 @@ const calculatedAirdrop = computed(() => {
     return baseAirdrop;
   }
 });
-
 const handleClaimAllRewards = async () => {
   isRedeemLoading.value = true;
   progressLoading.value = 1;
@@ -940,7 +940,7 @@ const handleClaimAllRewards = async () => {
       throw new Error('Hodler not initialized');
     }
 
-    const response = await hodler.claim();
+    const response = await hodler.claim(config);
     if (response) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -954,6 +954,7 @@ const handleClaimAllRewards = async () => {
       throw new Error('No response from claim');
     }
   } catch (error) {
+    console.error('Error redeeming rewards:', error);
     toast.add({
       icon: 'i-heroicons-x-circle',
       color: 'red',

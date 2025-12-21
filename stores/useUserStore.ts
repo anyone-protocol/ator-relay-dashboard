@@ -1,9 +1,8 @@
 import { formatEther } from 'viem';
-import { useAccount } from '@wagmi/vue';
+import { useAccount, useConfig } from '@wagmi/vue';
 import { getBalance } from '@wagmi/core';
 import { type GetBalanceReturnType } from '@wagmi/core';
 import type { RelayMeta } from '@/types/relay';
-import { config } from '@/config/wagmi.config';
 import { getAnonAddressMain } from '@/config/web3modal.config';
 import type { RelayRow } from '@/types/relay';
 import { useRelayCache } from '~/composables/relayCache';
@@ -19,7 +18,7 @@ const nuxtConfig = useRuntimeConfig();
 export const useUserStore = defineStore('user', {
   state: () => ({
     address: null as `0x${string}` | null,
-    userData: useAccount({ config } as any),
+    userData: useAccount(),
     tokenBalance: {
       value: 0n,
       symbol: '',
@@ -57,7 +56,7 @@ export const useUserStore = defineStore('user', {
       }
       // const token = getAnonAddress() as `0x${string}`;
       const token = getAnonAddressMain() as `0x${string}`;
-
+      const config = useConfig();
       this.tokenBalance = await getBalance(config, {
         chainId: mainnet.id,
         token,

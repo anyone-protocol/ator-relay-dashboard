@@ -19,7 +19,7 @@ const rpcUrl =
 const selectedNetworks =
   phase === 'live' ? [networks[0]] : ([networks[1]] as any);
 
-const { wagmiAdapter } = createWagmiConfig(rpcUrl, phase);
+const { wagmiAdapter } = createWagmiConfig();
 
 createAppKit({
   adapters: [wagmiAdapter as ChainAdapter],

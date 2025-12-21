@@ -55,7 +55,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       evmRpc: 'https://sepolia.gateway.tenderly.co',
-      aoCuUrl: 'https://cu.anyone.tech', //'https://cu.anyone.permaweb.services',
+      aoCuUrl: 'https://cu.anyone.tech',
       hyperbeamUrl: 'https://hb-stage.anyone.tech',
       operatorRegistryProcessId: '_-JHiTCYy8cG4dsQDm0kHKF0I3rJit1uxbPdNqQBE_Q',
       operatorRegistryHyperbeamProcessId:
@@ -93,6 +93,7 @@ export default defineNuxtConfig({
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
       version: '2.0.18',
+      showMaintenanceBanner: false,
     },
   },
 

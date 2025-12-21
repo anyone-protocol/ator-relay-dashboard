@@ -9,7 +9,10 @@ export const NETWORKS = {
 const getProviderConfig = () => {
   const config = useRuntimeConfig();
   const phase = config.public.phase;
-  const rpcUrl = config.public.evmRpc;
+  const rpcUrl =
+    config.public.evmRpc === 'default'
+      ? 'https://eth-mainnet.public.blastapi.io'
+      : config.public.evmRpc;
 
   if (phase === 'live') {
     return {

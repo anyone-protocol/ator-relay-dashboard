@@ -60,7 +60,7 @@ job "deploy-relay-dashboard-live" {
         PHASE="live"
         NODE_OPTIONS="--max-old-space-size=4096"
         DASHBOARD_VERSION="[[.commit_sha]]"
-        NUXT_PUBLIC_EVM_RPC="https://eth-mainnet.public.blastapi.io"
+        NUXT_PUBLIC_EVM_RPC="default" # "https://eth-mainnet.public.blastapi.io"
         NUXT_PUBLIC_PHASE="live"
       }
 
@@ -80,10 +80,8 @@ job "deploy-relay-dashboard-live" {
         NUXT_PUBLIC_RELAY_REWARDS_PROCESS_ID="{{ key "smart-contracts/live/relay-rewards-address" }}"
         NUXT_PUBLIC_STAKING_REWARDS_PROCESS_ID="{{ key "smart-contracts/live/staking-rewards-address" }}"
         NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/live/validator-address-base64" }}"
-        NUXT_PUBLIC_FACILITATOR_CONTRACT="{{ key "facilitator/sepolia/live/address" }}"
-        NUXT_PUBLIC_HODLER_CONTRACT="{{ key "hodler/sepolia/live/address" }}"
-        NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/sepolia/live/address" }}"
-        NUXT_PUBLIC_REGISTRATOR_CONTRACT="{{ key "registrator/sepolia/live/address" }}"
+        NUXT_PUBLIC_HODLER_CONTRACT="{{ key "hodler/ethereum/live/address" }}"
+        NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/ethereum/live/address" }}"
         {{ with secret "kv/live-protocol/deploy-relay-dashboard-live" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
         PERMAWEB_KEY="{{ .Data.data.DASHBOARD_OWNER_KEY }}"

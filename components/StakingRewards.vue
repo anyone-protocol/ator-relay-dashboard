@@ -59,13 +59,12 @@
 <script lang="ts" setup>
 import { useMutation, useQuery } from '@tanstack/vue-query';
 import { useAccount } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 import Card from './ui-kit/Card.vue';
 import Ticker from './ui-kit/Ticker.vue';
 import Popover from './ui-kit/Popover.vue';
 import BigNumber from 'bignumber.js';
 
-const { isConnected, address } = useAccount({ config } as any);
+const { isConnected, address } = useAccount();
 
 const toast = useToast();
 const { getTotalClaimableStakingRewards, claimStakingRewards } =

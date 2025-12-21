@@ -3,7 +3,6 @@ import { type RelayRow, type RelayTabType } from '@/types/relay';
 import BigNumber from 'bignumber.js';
 import { getAnonAddressMain } from '~/config/web3modal.config';
 import { getBalance } from '@wagmi/core';
-import { config } from '@/config/wagmi.config';
 import { mainnet } from 'viem/chains';
 import { ethers } from 'ethers';
 
@@ -17,11 +16,11 @@ type LokedRelaysType = Record<
 >;
 
 export const calculateBalance = async (
+  config: any,
   relays: RelayRow[],
   address: `0x${string}`
 ) => {
   const token = getAnonAddressMain() as `0x${string}`;
-
   const tokenBalance = await getBalance(config, {
     chainId: mainnet.id,
     token,

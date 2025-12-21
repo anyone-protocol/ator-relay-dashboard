@@ -7,22 +7,33 @@ const projectId = '53a5b087ab4cb303a799325360098216';
 
 export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, sepolia];
 
-export function createWagmiConfig(rpcUrl: string, phase: string) {
-  // console.log('Wagmi Config Phase & url: ', phase, rpcUrl);
-
-  const isLive = phase === 'live';
+export function createWagmiConfig() {
+  const runtimeConfig = useRuntimeConfig();
+  console.log(
+    'Wagmi Config Phase & url: ',
+    runtimeConfig.public.phase,
+    runtimeConfig.public.evmRpc
+  );
+  const isLive = runtimeConfig.public.phase === 'live';
   const defaultChain = isLive ? mainnet : sepolia;
   const selectedNetworks: [AppKitNetwork, ...AppKitNetwork[]] = isLive
     ? [mainnet]
     : [sepolia];
-
   const transports = isLive
     ? {
-        [mainnet.id]: http(rpcUrl),
+        [mainnet.id]: http(
+          runtimeConfig.public.evmRpc === 'default'
+            ? undefined
+            : runtimeConfig.public.evmRpc
+        ),
       }
     : ({
         [mainnet.id]: http('https://eth-mainnet.public.blastapi.io'),
-        [sepolia.id]: http(rpcUrl),
+        [sepolia.id]: http(
+          runtimeConfig.public.evmRpc === 'default'
+            ? undefined
+            : runtimeConfig.public.evmRpc
+        ),
       } as any);
 
   const wagmiAdapter = new WagmiAdapter({
@@ -38,28 +49,3 @@ export function createWagmiConfig(rpcUrl: string, phase: string) {
     config: wagmiAdapter.wagmiConfig,
   };
 }
-
-// Default exports for components that import statically
-// Plugin and app.vue use createWagmiConfig() with runtime env vars
-const getDefaultPhase = () => {
-  if (typeof process !== 'undefined' && process.env) {
-    return process.env.NUXT_PUBLIC_PHASE || 'dev';
-  }
-  return 'dev';
-};
-
-const defaultRpcUrl = 'https://sepolia.gateway.tenderly.co';
-const defaultResult = createWagmiConfig(defaultRpcUrl, getDefaultPhase());
-
-export const config = defaultResult.config;
-export const defaultChain = defaultResult.defaultChain;
-
-export const mainNetConfig = new WagmiAdapter({
-  chains: [mainnet],
-  networks: [mainnet],
-  transports: {
-    [mainnet.id]: http(),
-  },
-  projectId,
-  ssr: false,
-});

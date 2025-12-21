@@ -3,7 +3,6 @@ import { initFacilitator } from '@/composables/facilitator';
 import { formatEther } from 'ethers';
 
 import { useAccount } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 
 import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
@@ -22,7 +21,7 @@ import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
 const userStore = useUserStore();
 const facilitatorStore = useFacilitatorStore();
 const registratorStore = useRegistratorStore();
-const { isConnected } = useAccount({ config });
+const { isConnected } = useAccount();
 const facilitator = useFacilitator();
 const isRedeemLoading = ref(false);
 const progressLoading = ref(0);

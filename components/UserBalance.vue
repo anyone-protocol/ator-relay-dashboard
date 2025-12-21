@@ -31,14 +31,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useAccount } from '@wagmi/vue';
-import { config } from '@/config/wagmi.config';
 import Ticker from './ui-kit/Ticker.vue';
 import { useUserStore } from '@/stores/useUserStore';
 import { watchAccount } from '@wagmi/core';
 
 const userStore = useUserStore();
 const { address, tokenBalance, tokenBalanceUsd } = storeToRefs(userStore);
-const { isConnected } = useAccount({ config } as any);
+const { isConnected } = useAccount();
 
 const balancePending = ref(false);
 const balanceUsdPending = ref(false);
