@@ -32,7 +32,7 @@ const props = defineProps<{
         label="Claimed"
         class="flex-col text-xs w-auto px-5"
         @click="emit('onLockRelay', props.row.fingerprint)"
-        :disabled="row?.isWorking || props.relayActionOngoing"
+        :disabled="props.relayActionOngoing"
         block
       >
         <div class="text-sm font-medium">Lock</div>
@@ -52,7 +52,7 @@ const props = defineProps<{
         label="Claim Now"
         @click="emit('relayAction', 'claim', props.row.fingerprint)"
         :trailing="false"
-        :disabled="row?.isWorking || props.relayActionOngoing"
+        :disabled="props.relayActionOngoing"
         block
       />
       <UButton
