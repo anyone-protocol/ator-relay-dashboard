@@ -1173,21 +1173,15 @@ const filteredStakedOperators = computed(() => {
     .filter((op) => op.amount > 0n)
     .filter((op) => {
       if (!debouncedSearchQuery.value) return true;
-      if (debouncedSearchQuery.value.startsWith('0x')) {
-        return op.operator
-          .toLowerCase()
-          .includes(debouncedSearchQuery.value.toLowerCase());
-      }
+      const query = debouncedSearchQuery.value.toLowerCase();
       const operatorData = allOperators.value.find(
         (aOp) => aOp.operator === op.operator
       );
-      return (
+      // Check both operator address and domain names
+      return op.operator.toLowerCase().includes(query) ||
         operatorData?.domains?.some((domain) =>
-          domain.name
-            .toLowerCase()
-            .includes(debouncedSearchQuery.value.toLowerCase())
-        ) || false
-      );
+          domain.name.toLowerCase().includes(query)
+        ) || false;
     })
     .map((op) => {
       const operatorData = allOperators.value.find(
@@ -1286,16 +1280,12 @@ const updateOperators = async () => {
       })
       .filter((op) => {
         if (!debouncedSearchQuery.value) return true;
-        if (debouncedSearchQuery.value.startsWith('0x')) {
-          return op.operator
-            .toLowerCase()
-            .includes(debouncedSearchQuery.value.toLowerCase());
-        }
-        return op.domains?.some((domain) =>
-          domain.name
-            .toLowerCase()
-            .includes(debouncedSearchQuery.value.toLowerCase())
-        );
+        const query = debouncedSearchQuery.value.toLowerCase();
+        // Check both operator address and domain names
+        return op.operator.toLowerCase().includes(query) ||
+          op.domains?.some((domain) =>
+            domain.name.toLowerCase().includes(query)
+          ) || false;
       });
   } catch (error) {
     console.error('OperatorRegistryError:', error);
