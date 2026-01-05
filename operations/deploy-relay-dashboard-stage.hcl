@@ -119,8 +119,8 @@ job "deploy-relay-dashboard-stage" {
         rclone sync .output/public r2:{{ .Data.data.CLOUDFLARE_DEPLOY_BUCKET }}/
         {{ end }}
 
-        echo "Publishing static files to Arweave"
-        pnpm run deploy:arweave
+        echo "Skipping publishing static files to Arweave in Stage"
+        # pnpm run deploy:arweave
         EOF
         destination = "local/entrypoint.sh"
         perms = "0755"
