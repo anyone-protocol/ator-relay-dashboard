@@ -474,7 +474,7 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useBalance,
-  useConfig
+  useConfig,
 } from '@wagmi/vue';
 import { hodlerAbi } from '../assets/abi/hodler';
 import { tokenAbi } from '../assets/abi/token';
@@ -539,9 +539,10 @@ const { getClaimableStakingRewards, getLastSnapshot, getStakingSnapshot } =
   useStakingRewards();
 
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
-const tokenContract = runtimeConfig.public.phase === 'live'
-  ? runtimeConfig.public.atorTokenContract as `0x${string}`
-  : runtimeConfig.public.sepoliaAtorTokenContract as `0x${string}`;
+const tokenContract =
+  runtimeConfig.public.phase === 'live'
+    ? (runtimeConfig.public.atorTokenContract as `0x${string}`)
+    : (runtimeConfig.public.sepoliaAtorTokenContract as `0x${string}`);
 
 const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
@@ -716,7 +717,16 @@ const operatorColumns = computed(() => {
       { key: 'total', label: 'Total Stakes', sortable: true },
       { key: 'running', label: 'Running', sortable: true },
       { key: 'domains', label: 'Domains', sortable: true },
-      { key: 'redeemableRewards', label: 'Rewards', sortable: true },
+      {
+        key: 'redeemableRewards',
+        label: 'Rewards',
+        sortable: true,
+        sort: (a: string, b: string, direction: 'asc' | 'desc') => {
+          const aNum = parseFloat(a || '0');
+          const bNum = parseFloat(b || '0');
+          return direction === 'asc' ? aNum - bNum : bNum - aNum;
+        },
+      },
       { key: 'actions', label: 'Actions' },
     ];
   }
@@ -1029,19 +1039,23 @@ const submitStakeForm = async () => {
     // console.log('amount: ', amount);
 
     currentWriteAction.value = 'stake';
-    if (
-      allowance.value === undefined ||
-      (new BigNumber(allowance.value.toString()).lt(amountToStake) &&
-        new BigNumber(amountToStake).gt(available))
-    ) {
-      // console.log('Approving tokens...');
-      await writeContractAsync({
-        address: tokenContract,
-        abi: tokenAbi,
-        functionName: 'approve',
-        args: [hodlerContract, amountToStake],
-      });
+    // Only approve if staking amount exceeds available balance in contract
+    if (new BigNumber(amountToStake).gt(available)) {
+      // Check if we need to approve more tokens
+      if (
+        allowance.value === undefined ||
+        new BigNumber(allowance.value.toString()).lt(amountToStake)
+      ) {
+        // console.log('Approving tokens...');
+        await writeContractAsync({
+          address: tokenContract,
+          abi: tokenAbi,
+          functionName: 'approve',
+          args: [hodlerContract, amountToStake],
+        });
+      }
     }
+    // If staking from available balance only, no approval needed
 
     // console.log('writing to contract...');
     await writeContractAsync({
@@ -1178,10 +1192,13 @@ const filteredStakedOperators = computed(() => {
         (aOp) => aOp.operator === op.operator
       );
       // Check both operator address and domain names
-      return op.operator.toLowerCase().includes(query) ||
+      return (
+        op.operator.toLowerCase().includes(query) ||
         operatorData?.domains?.some((domain) =>
           domain.name.toLowerCase().includes(query)
-        ) || false;
+        ) ||
+        false
+      );
     })
     .map((op) => {
       const operatorData = allOperators.value.find(
@@ -1282,10 +1299,13 @@ const updateOperators = async () => {
         if (!debouncedSearchQuery.value) return true;
         const query = debouncedSearchQuery.value.toLowerCase();
         // Check both operator address and domain names
-        return op.operator.toLowerCase().includes(query) ||
+        return (
+          op.operator.toLowerCase().includes(query) ||
           op.domains?.some((domain) =>
             domain.name.toLowerCase().includes(query)
-          ) || false;
+          ) ||
+          false
+        );
       });
   } catch (error) {
     console.error('OperatorRegistryError:', error);
