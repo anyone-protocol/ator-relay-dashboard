@@ -716,7 +716,16 @@ const operatorColumns = computed(() => {
       { key: 'total', label: 'Total Stakes', sortable: true },
       { key: 'running', label: 'Running', sortable: true },
       { key: 'domains', label: 'Domains', sortable: true },
-      { key: 'redeemableRewards', label: 'Rewards', sortable: true },
+      {
+        key: 'redeemableRewards',
+        label: 'Rewards',
+        sortable: true,
+        sort: (a: string, b: string, direction: 'asc' | 'desc') => {
+          const aNum = parseFloat(a || '0');
+          const bNum = parseFloat(b || '0');
+          return direction === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+      },
       { key: 'actions', label: 'Actions' },
     ];
   }
