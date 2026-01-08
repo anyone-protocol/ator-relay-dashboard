@@ -6,8 +6,8 @@ import { logger } from './util/logger.mjs'
 // ar://anyone process id (latest)
 const processId = 'MI3R01E2jfo2ailiPXDBLqHlcnUlRfrlGjR0ATjsMi0'
 const DEPLOY_FOLDER = `${process.cwd()}/.output/public`
-const gatewayUrl = process.env.GATEWAY || 'https://ar.anyone.tech'
-const url = process.env.BUNDLER || 'https://ar.anyone.tech/bundler'
+// const gatewayUrl = process.env.GATEWAY || 'https://ar.anyone.tech'
+// const url = process.env.BUNDLER || 'https://ar.anyone.tech/bundler'
 const permawebKey = process.env.PERMAWEB_KEY || 'NO_KEY'
 
 let undername = 'dev'
@@ -24,8 +24,8 @@ async function deploy() {
   const signer = new ArweaveSigner(jwk)
   const turbo = TurboFactory.authenticated({
     signer,
-    gatewayUrl,
-    uploadServiceConfig: { url, logger }
+    // gatewayUrl,
+    // uploadServiceConfig: { url, logger }
   })
   const ant = ANT.init({ processId, signer, logger })
   const {
