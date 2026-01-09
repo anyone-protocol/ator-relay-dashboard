@@ -646,9 +646,7 @@ const { data: operatorRewardsData } = useQuery({
     if (!address.value) return [];
     return getClaimableStakingRewards(address.value);
   },
-  enabled: computed(
-    () => !!address.value && currentTab.value === 'stakedOperators'
-  ),
+  enabled: computed(() => !!address.value && isConnected.value),
 });
 
 watch(operatorRewardsData, (newData) => {
