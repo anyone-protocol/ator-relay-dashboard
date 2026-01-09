@@ -622,13 +622,13 @@ const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
 });
 
 const { data: lastSnapshot } = useQuery({
-  queryKey: ['lastSnapshot'],
+  queryKey: computed(() => ['lastSnapshot', address.value]),
   queryFn: getLastSnapshot,
   enabled: computed(() => !!address.value),
 });
 
 const { data: stakingSnapshot } = useQuery({
-  queryKey: ['stakingSnapshot'],
+  queryKey: computed(() => ['stakingSnapshot', address.value]),
   queryFn: getStakingSnapshot,
   enabled: computed(() => !!address.value),
 });
@@ -662,7 +662,7 @@ const {
   address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'getStakes',
-  args: [hodlerAddress.value as `0x${string}`],
+  args: computed(() => [hodlerAddress.value as `0x${string}`] as const),
   query: {
     enabled:
       !!hodlerAddress.value && computed(() => currentTab.value === 'operators'),
@@ -680,7 +680,7 @@ const { data: allowance } = useReadContract({
   address: tokenContract,
   abi: tokenAbi,
   functionName: 'allowance',
-  args: [hodlerAddress.value as `0x${string}`, hodlerContract],
+  args: computed(() => [hodlerAddress.value as `0x${string}`, hodlerContract] as const),
   query: {
     enabled: !!hodlerAddress.value && !!tokenAddress.value,
   },
@@ -1130,7 +1130,7 @@ const {
   address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'getVaults',
-  args: [hodlerAddress.value as `0x${string}`],
+  args: computed(() => [hodlerAddress.value as `0x${string}`] as const),
   query: {
     enabled: computed(() => !!hodlerAddress.value && isConnected.value),
   },
@@ -1138,6 +1138,12 @@ const {
 
 watch(vaultsData, async (vaults) => {
   if (vaults) {
+    updateTotalClaimable();
+  }
+});
+
+watch(address, () => {
+  if (isConnected.value) {
     updateTotalClaimable();
   }
 });
@@ -1166,7 +1172,7 @@ const {
   address: hodlerContract,
   abi: hodlerAbi,
   functionName: 'hodlers',
-  args: [hodlerAddress.value as `0x${string}`],
+  args: computed(() => [hodlerAddress.value as `0x${string}`] as const),
   query: { enabled: true },
 });
 
@@ -1320,6 +1326,11 @@ watch([stakingSnapshot, runningThreshold], () => {
     currentTab.value === 'operators' ||
     currentTab.value === 'stakedOperators'
   ) {
+    updateOperators();
+  }
+});
+watch(address, () => {
+  if (isConnected.value && (currentTab.value === 'operators' || currentTab.value === 'stakedOperators')) {
     updateOperators();
   }
 });
