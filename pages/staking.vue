@@ -47,16 +47,6 @@
                       </span>
                       <Ticker class="text-[9px] leading-tight" />
                     </div>
-                    <!-- <UButton
-                      :disabled="!isConnected || totalClaimableAmount <= 0n"
-                      @click="claimTokens"
-                      variant="outline"
-                      color="cyan"
-                      size="2xs"
-                      class="text-[9px] md:text-xs"
-                    >
-                      Redeem expired
-                    </UButton> -->
                   </div>
                 </template>
               </div>
@@ -180,186 +170,23 @@
             </template>
           </UTable>
 
-          <!-- Stake dialog -->
-          <UModal v-model="stakeDialogOpen">
-            <UCard
-              class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
-            >
-              <div class="flex gap-2 mb-2 pb-2">
-                <Icon
-                  name="i-heroicons-chart-pie-20-solid"
-                  color="#24adc3"
-                  class="h-6 w-auto"
-                ></Icon>
+          <!-- Dialogs -->
+          <StakeDialog
+            v-model:open="stakeDialogOpen"
+            :operator="selectedOperator"
+            :token-balance="tokenBalance"
+            :hodler-info="hodlerInfo"
+            :is-staking="isStaking"
+            :is-submitting="isSubmitting"
+            @stake="handleStake"
+          />
 
-                <h4 class="text-lg font-semibold">Stake with operator:</h4>
-              </div>
-              <form @submit.prevent="submitStakeForm" class="w-full md:w-auto">
-                <UInput
-                  color="gray"
-                  variant="outline"
-                  class="mb-6"
-                  :disabled="true"
-                  :model-value="selectedOperator?.operator"
-                />
-                <div class="w-full flex flex-col items-end gap-1 mb-2">
-                  <span class="text-xs w-max"
-                    >Wallet:
-                    <span class="text-cyan-600 dark:text-cyan-300">
-                      {{ formatEtherNoRound(tokenBalance?.value || '0') }}
-                      <Ticker class="text-[9px]" />
-                    </span>
-                  </span>
-                  <span class="text-xs w-max"
-                    >Available:
-                    <span
-                      class="text-xs w-max text-cyan-600 dark:text-cyan-300"
-                    >
-                      {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
-                      <Ticker class="text-[9px]" />
-                    </span>
-                  </span>
-                </div>
-                <div class="flex flex-col gap-2">
-                  <div class="relative mb-1">
-                    <UInput
-                      :disabled="isSubmitting"
-                      v-model="stakeInput"
-                      color="neutral"
-                      placeholder="Amount to stake"
-                      min="0"
-                      @keypress="restrictKeypress($event)"
-                    />
-                    <UButton
-                      :disabled="!validateMaxStake()"
-                      @click="setMaxStake"
-                      size="2xs"
-                      variant="ghost"
-                      color="neutral"
-                      class="absolute right-2 top-1/2 -translate-y-1/2"
-                    >
-                      Max
-                    </UButton>
-                  </div>
-                  <span
-                    v-if="stakeMessage.text"
-                    class="text-xs"
-                    :class="{
-                      'text-cyan-600 dark:text-cyan-300':
-                        stakeMessage.type === 'info',
-                      'text-amber-600 dark:text-amber-300':
-                        stakeMessage.type === 'error',
-                    }"
-                  >
-                    {{ stakeMessage.text }}
-                  </span>
-                  <span
-                    v-else-if="lessThanMinimumStake"
-                    class="text-xs text-amber-600 dark:text-amber-300"
-                  >
-                    Less than minimum stake. You must stake at least 1 token.
-                  </span>
-                  <div class="flex justify-end gap-3 mt-5">
-                    <UButton
-                      size="xs"
-                      type="button"
-                      variant="outline"
-                      color="cyan"
-                      class="justify-center text-md"
-                      @click="stakeDialogOpen = false"
-                    >
-                      Cancel
-                    </UButton>
-                    <UButton
-                      :loading="isStaking"
-                      :disabled="isSubmitting || !isValidStakeInput()"
-                      type="submit"
-                      size="xs"
-                      variant="solid"
-                      color="cyan"
-                      class="justify-center text-md"
-                    >
-                      {{ isStaking ? 'Staking...' : 'Stake' }}
-                    </UButton>
-                  </div>
-                </div>
-              </form>
-            </UCard>
-          </UModal>
-
-          <!-- Unstake dialog -->
-          <UModal v-model="unstakeDialogOpen">
-            <UCard
-              class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
-            >
-              <div class="flex gap-2 mb-2 pb-2">
-                <Icon
-                  name="i-heroicons-chart-pie-20-solid"
-                  color="#24adc3"
-                  class="h-6 w-auto"
-                ></Icon>
-
-                <h4 class="text-lg font-semibold">Unstake from operator:</h4>
-              </div>
-              <form
-                @submit.prevent="submitUnstakeForm"
-                class="mt-6 md:mt-0 w-full md:w-auto"
-              >
-                <!-- <div class="text-gray-400 mb-2">Staking with operator:</div> -->
-                <UInput
-                  color="gray"
-                  variant="outline"
-                  class="mb-6"
-                  :disabled="true"
-                  :model-value="selectedOperator?.operator"
-                />
-                <div class="flex flex-col gap-2">
-                  <div class="text-neutral-400 text-sm">Amount to unstake:</div>
-                  <div class="relative">
-                    <UInput
-                      v-model="unstakeInput"
-                      color="neutral"
-                      placeholder="Amount to unstake"
-                      min="0"
-                      @keypress="restrictKeypress($event)"
-                    />
-                    <UButton
-                      @click="setMaxUnstake"
-                      size="2xs"
-                      variant="ghost"
-                      color="neutral"
-                      class="absolute right-2 top-1/2 -translate-y-1/2"
-                    >
-                      Max
-                    </UButton>
-                  </div>
-                  <div class="flex justify-end gap-3 mt-5">
-                    <UButton
-                      size="xs"
-                      type="button"
-                      variant="outline"
-                      color="cyan"
-                      class="justify-center text-md"
-                      @click="unstakeDialogOpen = false"
-                    >
-                      Cancel
-                    </UButton>
-                    <UButton
-                      :disabled="!isValidUnstakeInput()"
-                      :loading="isUnstaking"
-                      type="submit"
-                      size="xs"
-                      variant="solid"
-                      color="cyan"
-                      class="justify-center text-md"
-                    >
-                      {{ isUnstaking ? 'Unstaking...' : 'Unstake' }}
-                    </UButton>
-                  </div>
-                </div>
-              </form>
-            </UCard>
-          </UModal>
+          <UnstakeDialog
+            v-model:open="unstakeDialogOpen"
+            :operator="selectedOperator"
+            :is-unstaking="isUnstaking"
+            @unstake="handleUnstake"
+          />
         </template>
         <template #vaults="{ item }">
           <UTable
@@ -444,7 +271,6 @@ div[role='tablist'] {
 .tab {
   position: relative;
   cursor: pointer;
-  // padding: 6px 20px;
   font-weight: 400;
   font-size: 16px;
 }
@@ -468,6 +294,8 @@ div[role='tablist'] {
 
 <script lang="ts" setup>
 import Card from '~/components/ui-kit/Card.vue';
+import StakeDialog from '~/components/staking/StakeDialog.vue';
+import UnstakeDialog from '~/components/staking/UnstakeDialog.vue';
 import {
   useReadContract,
   useAccount,
@@ -486,8 +314,7 @@ import Ticker from '~/components/ui-kit/Ticker.vue';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import BigNumber from 'bignumber.js';
 import { useDebounceFn } from '@vueuse/core';
-import { useTemplateRef } from 'vue';
-import { isValidNumericInput } from '~/utils/validate';
+import { filterOperatorsByQuery } from '~/utils/filterOperators';
 import { useHyperbeamFlag } from '~/composables/useHyperbeamFlag';
 
 interface Vault {
@@ -546,19 +373,13 @@ const tokenContract =
 
 const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
-const stakeInput = ref('');
-const maxStakeAmount = ref('');
-const stakeAmount = computed(() => validateTokenInput(stakeInput.value) || '0');
-const maxUnstakeAmount = ref<bigint>(0n);
-const unstakeInput = ref('');
-const unstakeAmount = computed(
-  () => validateTokenInput(unstakeInput.value) || '0'
-);
 const totalClaimableAmount = ref<bigint>(0n);
 const searchQuery = ref('');
 const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
 const selectedOperator = ref<Operator | null>(null);
 const operatorRewards = ref<OperatorRewards[]>([]);
+const lastStakeAmount = ref<string>('');
+const lastUnstakeAmount = ref<string>('');
 const hodlerAddress = computed(() => address.value);
 const runningThreshold = computed(
   () => lastSnapshot.value?.Configuration?.Requirements?.Running
@@ -574,7 +395,6 @@ const stakedOperators = computed(() => {
         normalizeOp(r.operator as `0x${string}`) ===
           normalizeOp(stake.operator) && new BigNumber(r.redeemable).gt(0)
     );
-    // console.log('reward: ', reward);
     return {
       operator: `0x${stake.operator.slice(2).toUpperCase()}`,
       amount: stake.amount,
@@ -680,7 +500,9 @@ const { data: allowance } = useReadContract({
   address: tokenContract,
   abi: tokenAbi,
   functionName: 'allowance',
-  args: computed(() => [hodlerAddress.value as `0x${string}`, hodlerContract] as const),
+  args: computed(
+    () => [hodlerAddress.value as `0x${string}`, hodlerContract] as const
+  ),
   query: {
     enabled: !!hodlerAddress.value && !!tokenAddress.value,
   },
@@ -788,221 +610,12 @@ const vaultColumns = [
   },
 ];
 
-const stakeMessage = computed(() => {
-  if (
-    new BigNumber(stakeAmount.value).lt(1) ||
-    !isValidNumericInput(stakeInput.value)
-  )
-    return { text: '', type: 'info' };
-
-  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
-  const available = hodlerInfo.value?.[0]
-    ? new BigNumber(hodlerInfo.value[0].toString())
-    : new BigNumber(0);
-  const walletBalance = tokenBalance.value?.value
-    ? new BigNumber(tokenBalance.value.value.toString())
-    : new BigNumber(0);
-
-  if (amount.lte(available)) {
-    return {
-      text: `Using ${formatEtherNoRound(amount.toString())} tokens available in contract (max. ${formatEtherNoRound(available.toString())})`,
-      type: 'info',
-    };
-  } else if (amount.lte(walletBalance)) {
-    return {
-      text: `Using ${formatEtherNoRound(amount.toString())} tokens from wallet (max. ${formatEtherNoRound(walletBalance.toString())})`,
-      type: 'info',
-    };
-  } else {
-    return {
-      text: 'Chosen amount exceeds both contract and wallet balance.',
-      type: 'error',
-    };
-  }
-});
-
-const validateMaxStake = () => {
-  const available = hodlerInfo.value?.[0]
-    ? new BigNumber(hodlerInfo.value[0].toString())
-    : new BigNumber(0);
-  const walletBalance = tokenBalance.value?.value
-    ? new BigNumber(tokenBalance.value.value.toString())
-    : new BigNumber(0);
-  return available.gte(1) || walletBalance.gte(1);
-};
-
-const lessThanMinimumStake = computed(() => {
-  if (!stakeAmount.value || stakeAmount.value === '0') return false;
-  const amount = new BigNumber(parseEther(stakeAmount.value).toString());
-  return amount.isLessThan(parseEther('1').toString());
-});
-
-const isValidStakeInput = () => {
-  if (!stakeInput.value || !isValidNumericInput(stakeInput.value)) return false;
-
-  console.log('validating stake input...');
-
-  const cleanedValue = stakeInput.value.replace(/,/g, '').trim();
-  const amount = new BigNumber(parseEther(cleanedValue).toString());
-  const walletBalance = tokenBalance.value?.value
-    ? new BigNumber(tokenBalance.value.value.toString())
-    : new BigNumber(0);
-
-  const availableBalance = hodlerInfo.value?.[0]
-    ? new BigNumber(hodlerInfo.value[0].toString())
-    : new BigNumber(0);
-
-  if (amount.isNaN()) return false;
-
-  console.log('amount: ', amount.toString());
-  console.log('walletBalance: ', walletBalance.toString());
-  console.log('availableBalance: ', availableBalance.toString());
-
-  const formattedAmount = formatEtherNoRound(amount.toString());
-
-  return (
-    new BigNumber(formattedAmount).gte(1) &&
-    (amount.lte(walletBalance) || amount.lte(availableBalance))
-  );
-};
-
-const isValidUnstakeInput = () => {
-  if (!unstakeInput.value || !isValidNumericInput(unstakeInput.value))
-    return false;
-  const cleanedValue = unstakeInput.value.replace(/,/g, '').trim();
-  const amount = new BigNumber(parseEther(cleanedValue).toString());
-  const stakedAmount = selectedOperator.value?.amount
-    ? new BigNumber(selectedOperator.value.amount.toString())
-    : new BigNumber(0);
-  return amount.isGreaterThan(0) && amount.isLessThanOrEqualTo(stakedAmount);
-};
-
-const restrictKeypress = (event: KeyboardEvent) => {
-  const allowedKeys = /[0-9.,]/;
-  const input = event.target as HTMLInputElement;
-  const value = input.value;
-  // Prevent multiple decimals
-  if (event.key === '.' && value.includes('.')) {
-    event.preventDefault();
-    return;
-  }
-  // Allow control keys (e.g., Backspace, Delete, Arrow keys)
-  if (
-    event.key.length === 1 && // Only check single-character keys
-    !allowedKeys.test(event.key)
-  ) {
-    event.preventDefault();
-  }
-};
-
 const block = await getBlock(config);
 
-watch(stakeDialogOpen, (open) => {
-  if (!open) {
-    handleCloseStakeDialog();
-  }
-});
-
-watch(stakeInput, (value) => {
-  if (value) {
-    maxStakeAmount.value = '';
-  }
-});
-
-watch(unstakeInput, (value) => {
-  if (value) {
-    maxUnstakeAmount.value = 0n;
-  }
-});
-
-watch(stakesData, (newData) => {
-  if (newData) {
-    console.log('stakesData:', toRaw(newData));
-  }
-});
-
-const handleCloseStakeDialog = () => {
-  if (isStaking.value) {
-    toast.add({
-      id: 'staking',
-      title: `Staking ${stakeAmount.value} tokens with operator...`,
-      color: 'blue',
-      timeout: 0,
-    });
-  } else {
-    stakeInput.value = '';
-  }
-  stakeDialogOpen.value = false;
-};
-
-const setMaxStake = () => {
-  const available = hodlerInfo.value?.[0]
-    ? new BigNumber(hodlerInfo.value[0].toString())
-    : new BigNumber(0);
-  const walletBalance = tokenBalance.value?.value
-    ? new BigNumber(tokenBalance.value.value.toString())
-    : new BigNumber(0);
-
-  const maxSource = available.gte(walletBalance) ? available : walletBalance;
-  stakeInput.value = formatEtherNoRound(maxSource.toString());
-  setTimeout(() => {
-    maxStakeAmount.value = maxSource.toString();
-  }, 50);
-};
-
-const setMaxUnstake = () => {
-  if (selectedOperator.value?.amount) {
-    const amountStr = selectedOperator.value.amount.toString();
-    const bigNumberValue = new BigNumber(amountStr);
-    const etherValue = bigNumberValue.div(new BigNumber('1e18')); // Convert to Ether
-    // Calculate decimals: adjust based on wei string length to show significant digits
-    const decimals = Math.max(0, 18 - (amountStr.length - 1)); // Ensure non-negative
-    const maxAmount = formatEtherNoRound(
-      amountStr,
-      etherValue.isZero() ? 2 : decimals
-    );
-    unstakeInput.value = maxAmount;
-    setTimeout(() => {
-      maxUnstakeAmount.value = selectedOperator.value?.amount || 0n;
-    }, 50);
-  }
-};
-
-watch(unstakeDialogOpen, (open) => {
-  if (!open) {
-    handleCloseUnstakeDialog();
-  }
-});
-
-const handleCloseUnstakeDialog = () => {
-  if (isUnstaking.value) {
-    toast.add({
-      id: 'unstaking',
-      title: `Unstaking ${unstakeAmount.value} tokens from operator...`,
-      color: 'blue',
-      timeout: 0,
-    });
-  } else {
-    unstakeInput.value = '';
-  }
-  unstakeDialogOpen.value = false;
-};
-
-const submitStakeForm = async () => {
-  if (!isConnected) {
+const handleStake = async (data: { amount: string; maxAmount: string }) => {
+  if (!isConnected.value) {
     toast.add({
       title: 'Please connect your wallet to stake',
-      color: 'red',
-    });
-    return;
-  }
-
-  if (
-    (!maxStakeAmount.value && !stakeAmount.value) ||
-    Number(stakeAmount.value) <= 0
-  ) {
-    toast.add({
-      title: 'Enter a valid stake amount',
       color: 'red',
     });
     return;
@@ -1017,34 +630,31 @@ const submitStakeForm = async () => {
   }
 
   try {
-    // console.log('parsing amount...');
     const available = new BigNumber(
       hodlerInfo.value ? hodlerInfo.value[0].toString() : '0'
     );
 
     const amountToStake = parseEther(
-      maxStakeAmount.value
-        ? formatEtherNoRound(maxStakeAmount.value)
-        : stakeAmount.value
+      data.maxAmount ? formatEtherNoRound(data.maxAmount) : data.amount
     ).toString();
 
-    // console.log('amount: ', amount);
-    // console.log('max amount: ', maxStakeAmount.value);
-
-    // console.log('amountToStake: ', amountToStake);
-
-    // console.log('available: ', available);
-    // console.log('amount: ', amount);
-
+    // store amount for success toast
+    lastStakeAmount.value = data.amount;
     currentWriteAction.value = 'stake';
+
+    toast.add({
+      id: 'staking',
+      title: `Staking ${data.amount} tokens with operator...`,
+      color: 'blue',
+      timeout: 0,
+    });
+
     // Only approve if staking amount exceeds available balance in contract
     if (new BigNumber(amountToStake).gt(available)) {
-      // Check if we need to approve more tokens
       if (
         allowance.value === undefined ||
         new BigNumber(allowance.value.toString()).lt(amountToStake)
       ) {
-        // console.log('Approving tokens...');
         await writeContractAsync({
           address: tokenContract,
           abi: tokenAbi,
@@ -1053,9 +663,7 @@ const submitStakeForm = async () => {
         });
       }
     }
-    // If staking from available balance only, no approval needed
 
-    // console.log('writing to contract...');
     await writeContractAsync({
       address: hodlerContract,
       abi: hodlerAbi,
@@ -1072,18 +680,10 @@ const submitStakeForm = async () => {
   }
 };
 
-const submitUnstakeForm = async () => {
-  if (!isConnected) {
+const handleUnstake = async (data: { amount: string; maxAmount: bigint }) => {
+  if (!isConnected.value) {
     toast.add({
       title: 'Please connect your wallet to unstake',
-      color: 'red',
-    });
-    return;
-  }
-
-  if (!unstakeAmount.value || Number(unstakeAmount.value) <= 0) {
-    toast.add({
-      title: 'Enter a valid amount to unstake',
       color: 'red',
     });
     return;
@@ -1098,12 +698,18 @@ const submitUnstakeForm = async () => {
   }
 
   try {
+    // Store amount for success toast
+    lastUnstakeAmount.value = data.amount;
     currentWriteAction.value = 'unstake';
-    const amount = maxUnstakeAmount.value
-      ? maxUnstakeAmount.value
-      : parseEther(unstakeAmount.value.toString());
 
-    // console.log('unstake amount: ', amount);
+    toast.add({
+      id: 'unstaking',
+      title: `Unstaking ${data.amount} tokens from operator...`,
+      color: 'blue',
+      timeout: 0,
+    });
+
+    const amount = data.maxAmount || parseEther(data.amount.toString());
 
     await writeContractAsync({
       address: hodlerContract,
@@ -1180,42 +786,31 @@ const claimable = async (available: bigint) => {
   const TIMESTAMP_BUFFER = 15 * 60;
   const block = await getBlock(config);
   const timestamp = block.timestamp;
-  // console.log('block_timestamp: ', timestamp);
-  // console.log('available_timestamp: ', available);
   return available < timestamp - BigInt(TIMESTAMP_BUFFER);
 };
 
 const filteredStakedOperators = computed(() => {
   if (!isConnected.value) return [];
-  return stakedOperators.value
-    .filter((op) => op.amount > 0n)
-    .filter((op) => {
-      if (!debouncedSearchQuery.value) return true;
-      const query = debouncedSearchQuery.value.toLowerCase();
-      const operatorData = allOperators.value.find(
-        (aOp) => aOp.operator === op.operator
-      );
-      // Check both operator address and domain names
-      return (
-        op.operator.toLowerCase().includes(query) ||
-        operatorData?.domains?.some((domain) =>
-          domain.name.toLowerCase().includes(query)
-        ) ||
-        false
-      );
-    })
-    .map((op) => {
-      const operatorData = allOperators.value.find(
-        (aOp) => aOp.operator === op.operator
-      );
-      // console.log(`operatorData for ${op.operator}: `, operatorData);
-      return {
-        ...op,
-        total: operatorData?.total ?? 0n,
-        running: operatorData?.running ?? false,
-        domains: operatorData?.domains ?? [],
-      };
-    });
+
+  const stakedWithPositiveAmount = stakedOperators.value.filter(
+    (op) => op.amount > 0n
+  );
+  const filtered = filterOperatorsByQuery(
+    stakedWithPositiveAmount,
+    debouncedSearchQuery.value
+  );
+
+  return filtered.map((op) => {
+    const operatorData = allOperators.value.find(
+      (aOp) => aOp.operator === op.operator
+    );
+    return {
+      ...op,
+      total: operatorData?.total ?? 0n,
+      running: operatorData?.running ?? false,
+      domains: operatorData?.domains ?? [],
+    };
+  });
 });
 
 const debouncedSearchQuery = ref('');
@@ -1286,31 +881,23 @@ const updateOperators = async () => {
 
     const threshold = runningThreshold.value ?? 0.5;
 
-    allOperators.value = combinedOperators
-      .map((op) => {
-        const networkData = normalizedNetwork[op.operator];
-        const running = networkData?.running || 0;
-        const expected = networkData?.expected || 0;
-        return {
-          ...op,
-          total: normalizedStakes[op.operator]
-            ? BigInt(normalizedStakes[op.operator])
-            : 0n,
-          running: expected > 0 ? running / expected >= threshold : false,
-        };
-      })
-      .filter((op) => {
-        if (!debouncedSearchQuery.value) return true;
-        const query = debouncedSearchQuery.value.toLowerCase();
-        // Check both operator address and domain names
-        return (
-          op.operator.toLowerCase().includes(query) ||
-          op.domains?.some((domain) =>
-            domain.name.toLowerCase().includes(query)
-          ) ||
-          false
-        );
-      });
+    const operatorsWithData = combinedOperators.map((op) => {
+      const networkData = normalizedNetwork[op.operator];
+      const running = networkData?.running || 0;
+      const expected = networkData?.expected || 0;
+      return {
+        ...op,
+        total: normalizedStakes[op.operator]
+          ? BigInt(normalizedStakes[op.operator])
+          : 0n,
+        running: expected > 0 ? running / expected >= threshold : false,
+      };
+    });
+
+    allOperators.value = filterOperatorsByQuery(
+      operatorsWithData,
+      debouncedSearchQuery.value
+    );
   } catch (error) {
     console.error('OperatorRegistryError:', error);
   }
@@ -1330,7 +917,10 @@ watch([stakingSnapshot, runningThreshold], () => {
   }
 });
 watch(address, () => {
-  if (isConnected.value && (currentTab.value === 'operators' || currentTab.value === 'stakedOperators')) {
+  if (
+    isConnected.value &&
+    (currentTab.value === 'operators' || currentTab.value === 'stakedOperators')
+  ) {
     updateOperators();
   }
 });
@@ -1341,26 +931,22 @@ onMounted(() => {
 watch(isConfirmed, (confirmed) => {
   if (confirmed) {
     if (currentWriteAction.value === 'stake') {
+      stakeDialogOpen.value = false;
       toast.remove('staking');
       toast.add({
-        title: `Staked ${stakeAmount.value} tokens with operator`,
+        title: `Staked ${lastStakeAmount.value} tokens with operator`,
         color: 'green',
       });
-      stakeInput.value = '';
-      maxStakeAmount.value = '';
       currentWriteAction.value = null;
-      stakeDialogOpen.value = false;
       refetchStakes();
     } else if (currentWriteAction.value === 'unstake') {
+      unstakeDialogOpen.value = false;
       toast.remove('unstaking');
       toast.add({
-        title: `Unstaked ${unstakeAmount.value} tokens from operator`,
+        title: `Unstaked ${lastUnstakeAmount.value} tokens from operator`,
         color: 'green',
       });
-      unstakeInput.value = '';
-      maxUnstakeAmount.value = 0n;
       currentWriteAction.value = null;
-      unstakeDialogOpen.value = false;
       refetchStakes();
       refetchVaults();
     } else if (currentWriteAction.value === 'openExpired') {
@@ -1393,16 +979,13 @@ const getAllOperators = async () => {
     const response = await fetch(`${metricsAPI}/operators?withDomains=true`);
 
     const data: OperatorWithDomain[] = await response.json();
-
-    console.log('Fetched relay operators:', data);
     return data;
   } catch (error) {
     console.error('Error fetching operators:', error);
   }
 };
 
-const { cacheOperators, getCachedOperators, clearCachedOperators } =
-  useOperatorCache();
+const { cacheOperators, getCachedOperators } = useOperatorCache();
 
 const {
   data: operatorsWithDomains,
