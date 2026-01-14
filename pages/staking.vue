@@ -926,6 +926,7 @@ watch(address, () => {
 });
 onMounted(() => {
   if (currentTab.value === 'operators' && isConnected.value) updateOperators();
+  if (isConnected.value) updateTotalClaimable();
 });
 
 watch(isConfirmed, (confirmed) => {
