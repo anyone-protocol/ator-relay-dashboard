@@ -57,9 +57,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useMutation, useQuery } from '@tanstack/vue-query';
+import { useQuery } from '@tanstack/vue-query';
 import { useAccount } from '@wagmi/vue';
-import Card from './ui-kit/Card.vue';
 import Ticker from './ui-kit/Ticker.vue';
 import Popover from './ui-kit/Popover.vue';
 import BigNumber from 'bignumber.js';
@@ -72,7 +71,7 @@ const { getTotalClaimableStakingRewards, claimStakingRewards } =
 
 const { data: claimableRewards, isPending: claimableRewardsPending } = useQuery(
   {
-    queryKey: ['claimableRewards', address],
+    queryKey: computed(() => ['claimableRewards', address]),
     queryFn: async () => {
       if (!address.value) return '0';
 
@@ -81,42 +80,4 @@ const { data: claimableRewards, isPending: claimableRewardsPending } = useQuery(
     enabled: computed(() => !!address.value && isConnected.value),
   }
 );
-
-const {
-  mutate: claimStakingRewardsMutation,
-  data: claimStakingRewardsResult,
-  isPending: claimStakingRewardsPending,
-  isSuccess: claimStakingRewardsSuccess,
-  isError: claimStakingRewardsError,
-} = useMutation({
-  mutationFn: async () => {
-    if (!address.value) {
-      toast.add({
-        title: 'Please connect wallet to claim',
-        color: 'red',
-      });
-      return;
-    }
-
-    return claimStakingRewards(address.value);
-  },
-});
-
-watch([claimStakingRewardsSuccess, claimStakingRewardsError], () => {
-  if (claimStakingRewardsError) {
-    toast.add({
-      title: 'Failed to claim staking rewards',
-      color: 'red',
-    });
-  }
-
-  // TODO - need to do more robust check here
-  if (claimStakingRewardsSuccess) {
-    toast.add({
-      title: `Successfully claimed ${claimableRewards.value} tokens`,
-      color: 'green',
-    });
-    claimableRewards.value = '0';
-  }
-});
 </script>
