@@ -86,7 +86,6 @@
                 ? allOperators
                 : filteredStakedOperators
             "
-            :sort="currentTab === 'stakedOperators' ? { column: 'redeemableRewards', direction: 'desc' } : undefined"
           >
             <template #operator-data="{ row }: { row: Operator }">
               <span> {{ truncatedAddress(row.operator) }} </span>
@@ -798,7 +797,7 @@ const filteredStakedOperators = computed(() => {
     debouncedSearchQuery.value
   );
 
-  return filtered.map((op) => {
+  const withData = filtered.map((op) => {
     const operatorData = allOperators.value.find(
       (aOp) => aOp.operator === op.operator
     );
@@ -808,6 +807,18 @@ const filteredStakedOperators = computed(() => {
       running: operatorData?.running ?? false,
       domains: operatorData?.domains ?? [],
     };
+  });
+
+  return withData.sort((a, b) => {
+    // Primary sort: by amount (Your stake) descending
+    if (a.amount > b.amount) return -1;
+    if (a.amount < b.amount) return 1;
+    // Secondary sort: by total (Total Stakes) descending
+    const aTotal = a.total ?? 0n;
+    const bTotal = b.total ?? 0n;
+    if (aTotal > bTotal) return -1;
+    if (aTotal < bTotal) return 1;
+    return 0;
   });
 });
 
@@ -892,10 +903,22 @@ const updateOperators = async () => {
       };
     });
 
-    allOperators.value = filterOperatorsByQuery(
+    const filtered = filterOperatorsByQuery(
       operatorsWithData,
       debouncedSearchQuery.value
     );
+
+    allOperators.value = filtered.sort((a, b) => {
+      // Primary sort: by amount (Your stake) descending
+      if (a.amount > b.amount) return -1;
+      if (a.amount < b.amount) return 1;
+      // Secondary sort: by total (Total Stakes) descending
+      const aTotal = a.total ?? 0n;
+      const bTotal = b.total ?? 0n;
+      if (aTotal > bTotal) return -1;
+      if (aTotal < bTotal) return 1;
+      return 0;
+    });
   } catch (error) {
     console.error('OperatorRegistryError:', error);
   }
