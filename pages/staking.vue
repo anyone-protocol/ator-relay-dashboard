@@ -86,6 +86,7 @@
                 ? allOperators
                 : filteredStakedOperators
             "
+            :sort="currentTab === 'stakedOperators' ? { column: 'redeemableRewards', direction: 'desc' } : undefined"
           >
             <template #operator-data="{ row }: { row: Operator }">
               <span> {{ truncatedAddress(row.operator) }} </span>
