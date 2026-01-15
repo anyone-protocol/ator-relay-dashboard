@@ -377,7 +377,6 @@ const totalClaimableAmount = ref<bigint>(0n);
 const searchQuery = ref('');
 const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
 const selectedOperator = ref<Operator | null>(null);
-const operatorRewards = ref<OperatorRewards[]>([]);
 const lastStakeAmount = ref<string>('');
 const lastUnstakeAmount = ref<string>('');
 const hodlerAddress = computed(() => address.value);
@@ -390,7 +389,7 @@ const stakedOperators = computed(() => {
     `0x${operator.slice(2).toUpperCase()}` as `0x${string}`;
 
   const stakes: Operator[] = stakesData.value.map((stake) => {
-    const reward = operatorRewards.value.find(
+    const reward = operatorRewardsData.value?.find(
       (r) =>
         normalizeOp(r.operator as `0x${string}`) ===
           normalizeOp(stake.operator) && new BigNumber(r.redeemable).gt(0)
@@ -469,10 +468,6 @@ const { data: operatorRewardsData } = useQuery({
   enabled: computed(() => !!address.value && isConnected.value),
 });
 
-watch(operatorRewardsData, (newData) => {
-  if (newData) operatorRewards.value = newData;
-});
-
 const {
   data: stakesData,
   isLoading,
@@ -484,8 +479,10 @@ const {
   functionName: 'getStakes',
   args: computed(() => [hodlerAddress.value as `0x${string}`] as const),
   query: {
-    enabled:
-      !!hodlerAddress.value && computed(() => currentTab.value === 'operators'),
+    enabled: computed(() =>
+      !!hodlerAddress.value &&
+      (currentTab.value === 'operators' || currentTab.value === 'stakedOperators')
+    ),
   },
 });
 
