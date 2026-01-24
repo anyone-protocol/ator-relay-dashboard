@@ -23,12 +23,6 @@
         @update:currentTab="handleTabChange"
         :registerModalOpen="registerModalOpen"
       />
-      <!-- <DataTableMyRelaysMobile
-        v-else
-        :currentTab="currentTab"
-        @update:currentTab="handleTabChange"
-        :registerModalOpen="registerModalOpen"
-      /> -->
     </Card>
   </DashboardMobileSection>
   <UModal
@@ -129,10 +123,6 @@
           >
             Lock Now
           </UButton>
-          <!-- Ribbon Effect -->
-          <!-- <div
-            class="ribbon right-[-10px] md:right-[-5px] top-[90%] sm:top-[89%] w-[40px] h-[4px] sm:w-[60px] md:h-[6px]"
-          ></div> -->
         </div>
       </UContainer>
     </UCard>
@@ -166,20 +156,13 @@ import { ref, onMounted, watch } from 'vue';
 import { useUserStore } from '@/stores/useUserStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
 import DataTableMyRelays from '@/components/DataTableMyRelays/DataTableMyRelays.vue';
-// import DataTableMyRelaysMobile from '@/components/DataTableMyRelays/DataTableMyRelaysMobile.vue';
-import { initFacilitator } from '@/composables/facilitator';
 import { initToken } from '@/composables/token';
 import { type RelayTabType } from '@/types/relay';
 import Card from '~/components/ui-kit/Card.vue';
 import { useMetricsStore } from '@/stores/useMetricsStore';
-import { useMediaQuery } from '@vueuse/core';
-import { useFacilitator } from '@/composables/facilitator';
 import { initHodler, useHodler } from '~/composables/hodler';
 
-const isMobile = useMediaQuery('(max-width: 1024px)');
-
 const userStore = useUserStore();
-// const facilitatorStore = useFacilitatorStore();
 const hodlerStore = useHolderStore();
 const hodler = useHodler();
 const registerModalOpen = ref(false);
@@ -192,16 +175,11 @@ const initializeAndFetchData = async (
   forceRefresh = false
 ) => {
   try {
-    // isLoading.value = true;
-
     metricsStore.refreshRelayMetrics();
     await Promise.all([
-      // (!facilitatorStore?.initialized || forceRefresh) &&
-      //   useFacilitator()?.refresh(),
       (!hodlerStore?.initialized || forceRefresh) && useHodler()?.refresh(),
       ,
     ]);
-    console.log('Data fetching complete');
   } catch (error) {
     console.error('Error during initialization:', error);
   } finally {
@@ -228,25 +206,12 @@ watch(
 );
 
 onMounted(async () => {
-  console.log('Mounted - Starting initialization');
   initializeAndFetchData(userStore.userData.address);
   await useRelayRewards().refresh();
-  // initFacilitator();
   initToken();
   initHodler();
   await new Promise((resolve) => setTimeout(resolve, 2000));
 });
-
-// watch(
-//   () => userStore.userData.address,
-//   async (newAddress?: string) => {
-//     try {
-//       await useDistribution().refresh()
-//     } catch (error) {
-//       console.error('Error during address change handling:', error);
-//     }
-//   }
-// );
 
 const handleTabChange = (key: RelayTabType) => {
   currentTab.value = key;
