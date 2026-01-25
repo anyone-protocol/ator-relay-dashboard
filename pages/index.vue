@@ -1221,7 +1221,7 @@ const isPending = computed(() => {
 });
 
 const claimable = async (available: bigint) => {
-  const TIMESTAMP_BUFFER = 30 * 60;
+  const TIMESTAMP_BUFFER = 60 * 60;
   const block = await getBlock(config);
   const timestamp = block.timestamp;
   return available < timestamp - BigInt(TIMESTAMP_BUFFER);
