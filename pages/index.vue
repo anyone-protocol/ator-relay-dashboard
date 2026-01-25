@@ -658,7 +658,7 @@ import {
   useReadContract,
   useWriteContract,
   useWaitForTransactionReceipt,
-  useConfig
+  useConfig,
 } from '@wagmi/vue';
 import { useUserStore } from '@/stores/useUserStore';
 import DashboardMobileSection from '@/components/DashboardMobileSection.vue';
@@ -783,7 +783,11 @@ const hasEnoughBalancePending = ref(true);
 watch(allRelaysQuery, async (allRelays) => {
   if (!allRelays || !address.value) return;
   hasEnoughBalancePending.value = true;
-  hasEnoughBalance.value = await calculateBalance(config, allRelays, address.value);
+  hasEnoughBalance.value = await calculateBalance(
+    config,
+    allRelays,
+    address.value
+  );
   hasEnoughBalancePending.value = false;
 });
 
@@ -1217,7 +1221,7 @@ const isPending = computed(() => {
 });
 
 const claimable = async (available: bigint) => {
-  const TIMESTAMP_BUFFER = 15 * 60;
+  const TIMESTAMP_BUFFER = 30 * 60;
   const block = await getBlock(config);
   const timestamp = block.timestamp;
   return available < timestamp - BigInt(TIMESTAMP_BUFFER);
