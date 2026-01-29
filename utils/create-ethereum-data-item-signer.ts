@@ -1,4 +1,4 @@
-import { createData, Signer } from './arbundles-lite';
+import { createData, Signer } from '@dha-team/arbundles';
 
 export type SignedDataItemsCache = {
   [key: string]: {
