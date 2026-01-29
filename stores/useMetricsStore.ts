@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia';
 
 import Logger from '@/utils/logger';
-import { parseTimestampTag } from '@/utils/transactions';
-import { useTxCache } from '@/composables/txCache';
 
 const config = useRuntimeConfig();
 

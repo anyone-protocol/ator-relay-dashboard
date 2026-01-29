@@ -6,8 +6,7 @@ import {
   JsonRpcSigner,
   SigningKey,
 } from 'ethers';
-
-import { InjectedEthereumSigner } from '~/utils/arbundles-lite/signing/chains/injectedEthereumSigner';
+import { InjectedEthereumSigner } from '@dha-team/arbundles';
 
 export class AoSigner extends InjectedEthereumSigner {
   public declare signer: JsonRpcSigner;
