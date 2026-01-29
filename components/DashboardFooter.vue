@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import ReportIssueDialog from '@/components/ui-kit/ReportIssueDialog.vue';
-import ReportIssueButton from '@/components/ui-kit/ReportIssueButton.vue';
 import { useAccount } from '@wagmi/vue';
 
 const runtimeConfig = useRuntimeConfig();
@@ -89,7 +87,19 @@ const getLink = (address: string, type: string) => {
   >
     <div class="flex justify-between items-center rounded-xl w-full">
       <div class="lg:flex items-center gap-2 hidden h-full">
-        <ReportIssueButton class="uniform-height" v-if="isConnected" />
+        <UButton
+          v-if="isConnected"
+          color="gray"
+          variant="soft"
+          :to="`${runtimeConfig.public.githubNewIssueUrl}?template=bug_report.md`"
+          target="_blank"
+          class="ring-1 ring-inset ring-neutral-200 dark:ring-neutral-700 bg-neutral-100 dark:bg-neutral-800/50 hover:dark:bg-neutral-800/25"
+        >
+          <UIcon name="i-heroicons-exclamation-circle" />
+          <div>
+            <span>Report Issue</span>
+          </div>
+        </UButton>
       </div>
 
       <div class="lg:flex hidden ml-3 mr-auto">
@@ -102,8 +112,6 @@ const getLink = (address: string, type: string) => {
           View Contracts
         </UButton>
       </div>
-
-      <ReportIssueDialog />
 
       <div
         @click="openCommitUrl"

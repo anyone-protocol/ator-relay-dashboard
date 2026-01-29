@@ -1,4 +1,4 @@
-FROM node:23.11.0-alpine AS build
+FROM node:22.22-alpine3.23 AS build
 ARG NUXT_PUBLIC_COMMIT_HASH
 ENV NUXT_PUBLIC_COMMIT_HASH=${NUXT_PUBLIC_COMMIT_HASH}
 RUN apk add git python3 make g++ curl unzip rclone

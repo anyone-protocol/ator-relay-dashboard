@@ -2,8 +2,8 @@
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 import ButtonConnect from './ui-kit/ButtonConnect.vue';
 import ButtonThemeToggle from './ui-kit/ButtonThemeToggle.vue';
-import ReportIssueButton from './ui-kit/ReportIssueButton.vue';
 
+const runtimeConfig = useRuntimeConfig();
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const lgAndLarger = breakpoints.greaterOrEqual('lg');
 
@@ -48,7 +48,18 @@ router.beforeEach(async () => {
             >Staking</UButton
           >
         </RouterLink>
-        <ReportIssueButton class="w-[8rem]" />
+        <UButton
+          color="gray"
+          variant="soft"
+          :to="`${runtimeConfig.public.githubNewIssueUrl}?template=bug_report.md`"
+          target="_blank"
+          class="w-[8rem] ring-1 ring-inset ring-neutral-200 dark:ring-neutral-700 bg-neutral-100 dark:bg-neutral-800/50 hover:dark:bg-neutral-800/25"
+        >
+          <UIcon name="i-heroicons-exclamation-circle" />
+          <div>
+            <span>Report Issue</span>
+          </div>
+        </UButton>
       </div>
       <div
         class="w-full bg-gradient-to-r from-neutral-600/10 via-cyan-600 to-neutral-600/10 h-px"
