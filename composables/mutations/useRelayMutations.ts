@@ -1,10 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
-import {
-  useAccount,
-  useWriteContract,
-  useWaitForTransactionReceipt,
-  useConfig,
-} from '@wagmi/vue';
+import { useAccount, useConfig } from '@wagmi/vue';
 import { useOperatorRegistry } from '~/composables/operator-registry';
 import { useUserStore } from '~/stores/useUserStore';
 import { hodlerAbi } from '~/assets/abi/hodler';
@@ -14,6 +9,7 @@ import {
   writeContract,
   waitForTransactionReceipt,
 } from '@wagmi/core';
+import BigNumber from 'bignumber.js';
 
 export const useRelayMutations = () => {
   const config = useConfig();
@@ -49,49 +45,64 @@ export const useRelayMutations = () => {
         functionName: 'LOCK_SIZE',
       });
 
-      // Check current allowance
-      const currentAllowance = await readContract(config, {
-        address: tokenContract,
-        abi: tokenAbi,
-        functionName: 'allowance',
-        args: [address.value as `0x${string}`, hodlerContract],
+      const hodlerInfo = await readContract(config, {
+        address: hodlerContract,
+        abi: hodlerAbi,
+        functionName: 'hodlers',
+        args: [address.value as `0x${string}`],
       });
+      const available = new BigNumber(
+        hodlerInfo ? hodlerInfo[0].toString() : '0'
+      );
 
-      // Approve token (only if needed)
-      if (currentAllowance < lockSize) {
-        toast.add({
-          icon: 'i-heroicons-clock',
-          color: 'primary',
-          id: 'approve-token',
-          timeout: 0,
-          title: 'Approving token...',
-          closeButton: undefined,
+      // only approve if lock size exceeds available balance in contract
+      if (new BigNumber(lockSize.toString()).gt(available)) {
+        const currentAllowance = await readContract(config, {
+          address: tokenContract,
+          abi: tokenAbi,
+          functionName: 'allowance',
+          args: [address.value as `0x${string}`, hodlerContract],
         });
 
-        try {
-          const approveHash = await writeContract(config, {
-            address: tokenContract,
-            abi: tokenAbi,
-            functionName: 'approve',
-            args: [hodlerContract, lockSize],
-          });
-
-          await waitForTransactionReceipt(config, {
-            hash: approveHash,
-            timeout: 60_000,
-          });
-
-          toast.remove('approve-token');
+        // Approve token (only if needed)
+        if (
+          currentAllowance === undefined ||
+          new BigNumber(currentAllowance.toString()).lt(lockSize.toString())
+        ) {
           toast.add({
-            icon: 'i-heroicons-check-circle',
-            id: 'token-approved',
+            icon: 'i-heroicons-clock',
             color: 'primary',
-            title:
-              'Token approved! Please accept the transaction to lock the relay.',
+            id: 'approve-token',
+            timeout: 0,
+            title: 'Approving token...',
+            closeButton: undefined,
           });
-        } catch (error: any) {
-          toast.remove('approve-token');
-          throw error;
+
+          try {
+            const approveHash = await writeContract(config, {
+              address: tokenContract,
+              abi: tokenAbi,
+              functionName: 'approve',
+              args: [hodlerContract, lockSize],
+            });
+
+            await waitForTransactionReceipt(config, {
+              hash: approveHash,
+              timeout: 60_000,
+            });
+
+            toast.remove('approve-token');
+            toast.add({
+              icon: 'i-heroicons-check-circle',
+              id: 'token-approved',
+              color: 'primary',
+              title:
+                'Token approved! Please accept the transaction to lock the relay.',
+            });
+          } catch (error: any) {
+            toast.remove('approve-token');
+            throw error;
+          }
         }
       }
 

@@ -493,7 +493,7 @@ const { data: tokenAddress } = useReadContract({
   query: { enabled: computed(() => currentTab.value === 'operators') },
 });
 
-const { data: allowance } = useReadContract({
+const { data: allowance, refetch: refetchAllowance } = useReadContract({
   address: tokenContract,
   abi: tokenAbi,
   functionName: 'allowance',
@@ -658,6 +658,9 @@ const handleStake = async (data: { amount: string; maxAmount: string }) => {
           functionName: 'approve',
           args: [hodlerContract, amountToStake],
         });
+
+        // Refetch allowance to ensure fresh data
+        await refetchAllowance();
       }
     }
 
