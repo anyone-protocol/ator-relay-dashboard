@@ -10,7 +10,7 @@
             />
             <h2 class="text-2xl md:text-[2rem]">Staking</h2>
           </div>
-          <div class="flex flex-col items-center md:flex-row gap-2">
+          <div class="flex flex-col items-center md:flex-row gap-4">
             <div class="flex flex-col">
               <div class="flex items-center gap-1">
                 <h3 class="text-[10px] md:text-xs">Redeemable Tokens</h3>
@@ -52,6 +52,115 @@
               </div>
             </div>
             <StakingRewards />
+            <div class="flex flex-col border-l-2 border-cyan-600 pl-4">
+              <div class="flex items-center gap-1">
+                <h3 class="text-md md:text-xs">Total Delegated to You</h3>
+                <Popover
+                  placement="left"
+                  :arrow="false"
+                  class="h-max grid place-items-center"
+                >
+                  <template #content>
+                    <span class="text-xs font-normal">
+                      Tokens that have been delegated to you by others.
+                    </span>
+                  </template>
+                  <template #trigger>
+                    <Icon name="heroicons:exclamation-circle" />
+                  </template>
+                </Popover>
+              </div>
+              <div class="inline-flex items-baseline gap-2">
+                <template v-if="isLastSnapshotPending && isConnected">
+                  <USkeleton class="w-[8rem] h-6" />
+                </template>
+                <template v-else>
+                  <div class="flex gap-2 items-end md:items-center md:gap-3">
+                    <div class="flex gap-1 items-baseline">
+                      <span class="text-base md:text-xl">
+                        <template v-if="isConnected">
+                          {{ currentOperatorTotalDelegated }}
+                        </template>
+                        <template v-else>--</template>
+                      </span>
+                      <Ticker class="text-[9px] leading-tight" />
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+            <div class="flex flex-col border-l-2 border-cyan-600 pl-4">
+              <div class="flex items-center gap-1">
+                <h3 class="text-[10px] md:text-xs">Relays Online (last epoch)</h3>
+                <Popover
+                  placement="left"
+                  :arrow="false"
+                  class="h-max grid place-items-center"
+                >
+                  <template #content>
+                    <span class="text-xs font-normal">
+                      Percentage of your relays that were online during the last epoch.
+                    </span>
+                  </template>
+                  <template #trigger>
+                    <Icon name="heroicons:exclamation-circle" />
+                  </template>
+                </Popover>
+              </div>
+              <div class="inline-flex items-baseline gap-2">
+                <template v-if="isStakingSnapshotPending && isConnected">
+                  <USkeleton class="w-[8rem] h-6" />
+                </template>
+                <template v-else>
+                  <div class="flex gap-2 items-end md:items-center md:gap-3">
+                    <div class="flex gap-1 items-baseline">
+                      <span class="text-base md:text-xl">
+                        <template v-if="isConnected">
+                          {{ currentOperator?.percentRunning }}%
+                        </template>
+                        <template v-else>--</template>
+                      </span>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+            <div class="flex flex-col border-l-2 border-cyan-600 pl-4">
+              <div class="flex items-center gap-1">
+                <h3 class="text-[10px] md:text-xs">Staking APY (estimate)</h3>
+                <Popover
+                  placement="left"
+                  :arrow="false"
+                  class="h-max grid place-items-center"
+                >
+                  <template #content>
+                    <span class="text-xs font-normal">
+                      Estimated annual staking percentage yield based on total network stakes.
+                    </span>
+                  </template>
+                  <template #trigger>
+                    <Icon name="heroicons:exclamation-circle" />
+                  </template>
+                </Popover>
+              </div>
+              <div class="inline-flex items-baseline gap-2">
+                <template v-if="isStakingSnapshotPending && isConnected">
+                  <USkeleton class="w-[8rem] h-6" />
+                </template>
+                <template v-else>
+                  <div class="flex gap-2 items-end md:items-center md:gap-3">
+                    <div class="flex gap-1 items-baseline">
+                      <span class="text-base md:text-xl">
+                        <template v-if="isConnected">
+                          {{ currentApy }}%
+                        </template>
+                        <template v-else>--</template>
+                      </span>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
           </div>
         </div>
         <div class="relative">
@@ -307,7 +416,7 @@ import {
 import { hodlerAbi } from '../assets/abi/hodler';
 import { tokenAbi } from '../assets/abi/token';
 import { getAddress, parseEther } from 'viem';
-import { useClipboard, useVirtualList } from '@vueuse/core';
+import { useClipboard } from '@vueuse/core';
 import { getBlock, getChainId } from '@wagmi/core';
 import Popover from '~/components/ui-kit/Popover.vue';
 import Ticker from '~/components/ui-kit/Ticker.vue';
@@ -405,6 +514,24 @@ const stakedOperators = computed(() => {
   return stakes;
 });
 const allOperators = ref<Operator[]>([]);
+const currentOperator = ref<Operator & { percentRunning?: number } | null>(null);
+const currentOperatorTotalDelegated = computed(() => {
+  if (!currentOperator.value) { return '--'; }
+  if (!lastSnapshot.value) { return '--'; }
+  let totalDelegated = 0n;
+  for (const hodlerAddress in lastSnapshot.value.Details) {
+    if (hodlerAddress === `0x${currentOperator.value.operator.slice(2).toUpperCase()}`) {
+      console.log('Skipping self-delegation in total delegation');
+      continue;
+    }
+    const currentOperatorDelegation = lastSnapshot.value.Details[hodlerAddress as `0x${string}`][`0x${currentOperator.value.operator.slice(2).toUpperCase()}`];
+    if (currentOperatorDelegation) {
+      totalDelegated += BigInt(currentOperatorDelegation.Score.Staked);
+    }
+  }
+  return formatEtherNoRound(totalDelegated);
+});
+const currentApy = ref<string>('--');
 const vaults = computed(() => {
   if (!vaultsData.value) return [];
   const data = vaultsData.value
@@ -440,13 +567,13 @@ const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
   },
 });
 
-const { data: lastSnapshot } = useQuery({
+const { data: lastSnapshot, isPending: isLastSnapshotPending } = useQuery({
   queryKey: computed(() => ['lastSnapshot', address.value]),
   queryFn: getLastSnapshot,
-  enabled: computed(() => !!address.value),
+  enabled: computed(() => !!address.value)
 });
 
-const { data: stakingSnapshot } = useQuery({
+const { data: stakingSnapshot, isPending: isStakingSnapshotPending } = useQuery({
   queryKey: computed(() => ['stakingSnapshot', address.value]),
   queryFn: getStakingSnapshot,
   enabled: computed(() => !!address.value),
@@ -882,6 +1009,16 @@ const updateOperators = async () => {
         )
       : {};
 
+    const totalStakes = stakingSnapshot.value?.Stakes
+      ? Object.values(stakingSnapshot.value.Stakes).reduce(
+          (acc, val) => acc + BigInt(val),
+          0n
+        )
+      : 0n;
+    currentApy.value = totalStakes > 0n
+      ? BigNumber(1825000).div(BigNumber(totalStakes).div(10e18)).toFixed(2)
+      : '--';
+
     const normalizedNetwork = stakingSnapshot.value?.Network
       ? Object.fromEntries(
           Object.entries(stakingSnapshot.value.Network).map(([addr, data]) => [
@@ -906,6 +1043,22 @@ const updateOperators = async () => {
       };
     });
 
+    const currentOperatorAddress = `0x${address.value?.slice(2).toUpperCase()}`
+    currentOperator.value = operatorsWithData.find(
+      (op) =>
+        op.operator.toUpperCase() ===
+        address.value?.toUpperCase()
+    ) || null;
+    if (currentOperator.value) {
+      if (normalizedNetwork[currentOperatorAddress]) {
+        currentOperator.value['percentRunning'] = normalizedNetwork[currentOperatorAddress].running /
+          normalizedNetwork[currentOperatorAddress].expected *
+          100;
+      } else {
+        currentOperator.value['percentRunning'] = 0;
+      }
+    }
+
     const filtered = filterOperatorsByQuery(
       operatorsWithData,
       debouncedSearchQuery.value
@@ -922,6 +1075,8 @@ const updateOperators = async () => {
       if (aTotal < bTotal) return 1;
       return 0;
     });
+    console.log('Got all operators', allOperators.value);
+    console.log('Got current operator', currentOperator.value);
   } catch (error) {
     console.error('OperatorRegistryError:', error);
   }

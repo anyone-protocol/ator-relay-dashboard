@@ -14,12 +14,14 @@ export interface StakingSnapshot {
   Timestamp: number;
 }
 
+export interface NetworkRunningCount {
+  expected: number;
+  running: number;
+  found: number;
+}
+
 interface Network {
-  [address: `0x${string}`]: {
-    expected: number;
-    running: number;
-    found: number;
-  };
+  [address: `0x${string}`]: NetworkRunningCount;
 }
 
 interface Stakes {
@@ -51,17 +53,19 @@ export interface StakingRewardsState {
 }
 
 interface Details {
-  [address: `0x${string}`]: {
-    Rating: string;
-    Reward: {
-      Operator: string;
-      Hodler: string;
-    };
-    Score: {
-      Share: number;
-      Staked: string;
-      Restaked: string;
-      Running: number;
+  [hodlerAddress: `0x${string}`]: {
+    [operatorAddress: `0x${string}`]: {
+      Rating: string;
+      Reward: {
+        Operator: string;
+        Hodler: string;
+      };
+      Score: {
+        Share: number;
+        Staked: string;
+        Restaked: string;
+        Running: number;
+      };
     };
   };
 }

@@ -91,7 +91,7 @@ export default defineNuxtConfig({
       supportWalletPublicKeyBase64:
         'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
-      version: '2.0.24',
+      version: '2.1.0',
       showMaintenanceBanner: false,
     },
   },

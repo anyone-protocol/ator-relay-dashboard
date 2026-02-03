@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col border-l-2 border-cyan-600 pl-3">
+  <div class="flex flex-col border-l-2 border-cyan-600 pl-4">
     <div class="flex items-center gap-1">
       <h3 class="text-[10px] md:text-xs">Collectable Rewards</h3>
       <Popover
