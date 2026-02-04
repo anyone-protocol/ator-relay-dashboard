@@ -125,7 +125,7 @@
                 </template>
               </div>
             </div>
-            <div class="flex flex-col border-l-2 border-cyan-600 pl-4">
+            <!-- <div class="flex flex-col border-l-2 border-cyan-600 pl-4">
               <div class="flex items-center gap-1">
                 <h3 class="text-[10px] md:text-xs">Staking APY (estimate)</h3>
                 <Popover
@@ -160,7 +160,7 @@
                   </div>
                 </template>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
         <div class="relative">
@@ -575,8 +575,7 @@ const { data: lastSnapshot, isPending: isLastSnapshotPending } = useQuery({
 
 const { data: stakingSnapshot, isPending: isStakingSnapshotPending } = useQuery({
   queryKey: computed(() => ['stakingSnapshot', address.value]),
-  queryFn: getStakingSnapshot,
-  enabled: computed(() => !!address.value),
+  queryFn: getStakingSnapshot
 });
 
 const { hyperbeamEnabled } = useHyperbeamFlag();
@@ -962,8 +961,9 @@ watch(searchQuery, (newValue) => {
   debouncedSearch(newValue);
 });
 
-const updateOperators = async () => {
-  if (!isConnected.value) {
+const updateOperators = async (reason?: string) => {
+  console.debug('start updateOperators, reason:', reason, 'staking snapshot:', stakingSnapshot.value);
+  if (!stakingSnapshot.value) {
     allOperators.value = [];
     return;
   }
@@ -1009,15 +1009,16 @@ const updateOperators = async () => {
         )
       : {};
 
-    const totalStakes = stakingSnapshot.value?.Stakes
-      ? Object.values(stakingSnapshot.value.Stakes).reduce(
-          (acc, val) => acc + BigInt(val),
-          0n
-        )
-      : 0n;
-    currentApy.value = totalStakes > 0n
-      ? BigNumber(1825000).div(BigNumber(totalStakes).div(10e18)).toFixed(2)
-      : '--';
+    // const totalStakes = stakingSnapshot.value?.Stakes
+    //   ? Object.values(stakingSnapshot.value.Stakes).reduce(
+    //       (acc, val) => acc + BigInt(val),
+    //       0n
+    //     )
+    //   : 0n;
+    // currentApy.value = totalStakes > 0n
+    //   ? BigNumber(1825000).div(formatEtherNoRound(totalStakes)).toFixed(2)
+    //   : '--';
+    // console.debug('total stakes:', totalStakes, 'total stakes whole tokens:', formatEtherNoRound(totalStakes), 'current apy:', currentApy.value);
 
     const normalizedNetwork = stakingSnapshot.value?.Network
       ? Object.fromEntries(
@@ -1029,7 +1030,6 @@ const updateOperators = async () => {
       : {};
 
     const threshold = runningThreshold.value ?? 0.5;
-
     const operatorsWithData = combinedOperators.map((op) => {
       const networkData = normalizedNetwork[op.operator];
       const running = networkData?.running || 0;
@@ -1043,20 +1043,23 @@ const updateOperators = async () => {
       };
     });
 
-    const currentOperatorAddress = `0x${address.value?.slice(2).toUpperCase()}`
-    currentOperator.value = operatorsWithData.find(
-      (op) =>
-        op.operator.toUpperCase() ===
-        address.value?.toUpperCase()
-    ) || null;
-    if (currentOperator.value) {
-      if (normalizedNetwork[currentOperatorAddress]) {
-        currentOperator.value['percentRunning'] = normalizedNetwork[currentOperatorAddress].running /
-          normalizedNetwork[currentOperatorAddress].expected *
-          100;
-      } else {
-        currentOperator.value['percentRunning'] = 0;
+    if (address.value) {
+      const currentOperatorAddress = `0x${address.value?.slice(2).toUpperCase()}`
+      currentOperator.value = operatorsWithData.find(
+        (op) =>
+          op.operator.toUpperCase() ===
+          address.value?.toUpperCase()
+      ) || null;
+      if (currentOperator.value) {
+        if (normalizedNetwork[currentOperatorAddress]) {
+          currentOperator.value['percentRunning'] = normalizedNetwork[currentOperatorAddress].running /
+            normalizedNetwork[currentOperatorAddress].expected *
+            100;
+        } else {
+          currentOperator.value['percentRunning'] = 0;
+        }
       }
+      console.debug('Got current operator', currentOperator.value);
     }
 
     const filtered = filterOperatorsByQuery(
@@ -1075,16 +1078,15 @@ const updateOperators = async () => {
       if (aTotal < bTotal) return 1;
       return 0;
     });
-    console.log('Got all operators', allOperators.value);
-    console.log('Got current operator', currentOperator.value);
+    console.debug('Got all operators', allOperators.value);
   } catch (error) {
     console.error('OperatorRegistryError:', error);
   }
 };
 
-watch([stakedOperators, debouncedSearchQuery], updateOperators);
+watch([stakedOperators, debouncedSearchQuery], () => updateOperators('staledOperators or debouncedSearchQuery changed'));
 watch(currentTab, (newTab) => {
-  if (newTab === 'operators' || newTab === 'stakedOperators') updateOperators();
+  if (newTab === 'operators' || newTab === 'stakedOperators') updateOperators('currentTab changed');
   if (newTab === 'vaults') updateTotalClaimable();
 });
 watch([stakingSnapshot, runningThreshold], () => {
@@ -1092,7 +1094,7 @@ watch([stakingSnapshot, runningThreshold], () => {
     currentTab.value === 'operators' ||
     currentTab.value === 'stakedOperators'
   ) {
-    updateOperators();
+    updateOperators('stakingSnapshot or runningThreshold changed');
   }
 });
 watch(address, () => {
@@ -1100,11 +1102,10 @@ watch(address, () => {
     isConnected.value &&
     (currentTab.value === 'operators' || currentTab.value === 'stakedOperators')
   ) {
-    updateOperators();
+    updateOperators('address changed');
   }
 });
 onMounted(() => {
-  if (currentTab.value === 'operators' && isConnected.value) updateOperators();
   if (isConnected.value) updateTotalClaimable();
 });
 
