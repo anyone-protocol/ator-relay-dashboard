@@ -4,304 +4,348 @@
   >
     <div class="flex w-full flex-col gap-4 lg:col-span-6">
       <DashboardMobileSection title="account-balance">
-        <Card title="Contract Balance" :icon="'eos-icons:master-outlined'">
-          <div
-            class="flex justify-between items-start lg:items-start flex-col lg:flex-row mb-2 lg:mb-0 lg:justify-between"
-          >
-            <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
-              <span class="flex gap-1 items-center">
-                <h3>Total Contract Balance</h3>
-                <Popover
-                  placement="top"
-                  :arrow="false"
-                  class="h-max grid place-items-center"
-                >
-                  <template #content>
-                    <span class="text-xs font-normal text-nowrap">
-                      Your total amount of tokens in the protocol: <br />
-                      <strong>Available</strong>, <strong>Locked</strong>,
-                      <strong>Staked</strong> and <strong>Vaulted</strong>.
-                    </span>
-                  </template>
-                  <template #trigger>
-                    <Icon name="heroicons:exclamation-circle" />
-                  </template>
-                </Popover>
-              </span>
-              <div class="inline-flex flex-col items-baseline">
-                <template v-if="isPending">
-                  <USkeleton class="w-[15rem] h-10" />
-                </template>
-                <template v-else>
-                  <span v-if="isConnected" class="text-4xl font-medium">
-                    {{ formatEtherNoRound(totalContract.toString()) }}
-                  </span>
-                  <span v-if="!isConnected" class="text-4xl font-medium">
-                    --
-                  </span>
-                  <Ticker />
-                </template>
-              </div>
-            </div>
-            <UButton
-              :disabled="availableTokens.isZero()"
-              @click="withdrawDialogOpen = true"
-              variant="outline"
-              color="cyan"
-              size="xl"
+        <div class="flex w-full flex-col gap-4 lg:flex-row lg:justify-between">
+          <Card title="Contract Balance" :icon="'eos-icons:master-outlined'" class="flex-grow">
+            <div
+              class="flex justify-between items-start lg:items-start flex-col lg:flex-row mb-2 lg:mb-0 lg:justify-between"
             >
-              {{
-                isWithdrawing
-                  ? 'Withdrawing...'
-                  : availableTokens.isZero()
-                    ? 'Nothing to withdraw'
-                    : 'Withdraw available'
-              }}
-            </UButton>
-
-            <UModal v-model="withdrawDialogOpen">
-              <UCard
-                class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
-              >
-                <h4 class="text-lg font-semibold mb-6">Withdraw tokens</h4>
-                <form
-                  @submit.prevent="submitWithdrawForm"
-                  class="mt-6 md:mt-0 w-full md:w-auto"
-                >
-                  <label for="withdrawAmount" class="text-sm"
-                    >Amount to withdraw:
-                  </label>
-                  <div class="relative">
-                    <UInput
-                      :disabled="isWithdrawing"
-                      v-model="withdrawInput"
-                      name="withdrawAmount"
-                      class="mt-2 mb-6"
-                      color="neutral"
-                      placeholder="Withdraw amount"
-                      type="text"
-                    />
-                    <UButton
-                      :disabled="availableTokens.isZero() || isWithdrawing"
-                      @click="setMaxWithdraw"
-                      size="2xs"
-                      variant="ghost"
-                      color="neutral"
-                      class="absolute right-2 top-1/2 -translate-y-1/2"
-                    >
-                      Max
-                    </UButton>
-                  </div>
-                  <div class="flex justify-end gap-3">
-                    <UButton
-                      variant="outline"
-                      color="cyan"
-                      @click="withdrawDialogOpen = false"
-                    >
-                      Cancel
-                    </UButton>
-                    <UButton
-                      :disabled="!parseFloat(withdrawAmount)"
-                      :loading="isWithdrawing"
-                      variant="solid"
-                      color="cyan"
-                      type="submit"
-                    >
-                      {{ isWithdrawing ? 'Withdrawing...' : 'Withdraw' }}
-                    </UButton>
-                  </div>
-                </form>
-              </UCard>
-            </UModal>
-          </div>
-
-          <div
-            class="flex gap-5 lg:gap-16 xl:gap-24 2xl:gap-32 flex-col lg:flex-row my-4 lg:my-0 lg:mt-2"
-          >
-            <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
-              <div
-                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
-              >
-                <div class="flex items-center gap-1">
-                  <Icon name="material-symbols:check-box-rounded" />
-                  <h3 class="text-sm">Available</h3>
+              <div class="mb-4 flex flex-col border-l-4 border-cyan-600 pl-3">
+                <span class="flex gap-1 items-center">
+                  <h3>Total Contract Balance</h3>
                   <Popover
                     placement="top"
                     :arrow="false"
                     class="h-max grid place-items-center"
                   >
                     <template #content>
-                      <span class="text-xs font-normal">
-                        Available tokens in the smart contract. These tokens are
-                        separate to your wallet balance and can be locked,
-                        staked or withdrawn back to your wallet.
+                      <span class="text-xs font-normal text-nowrap">
+                        Your total amount of tokens in the protocol: <br />
+                        <strong>Available</strong>, <strong>Locked</strong>,
+                        <strong>Staked</strong> and <strong>Vaulted</strong>.
                       </span>
                     </template>
                     <template #trigger>
                       <Icon name="heroicons:exclamation-circle" />
                     </template>
                   </Popover>
-                </div>
+                </span>
                 <div class="inline-flex flex-col items-baseline">
-                  <template v-if="hodlerInfoPending">
-                    <USkeleton class="w-[10rem] h-10" />
+                  <template v-if="isPending">
+                    <USkeleton class="w-[15rem] h-10" />
                   </template>
                   <template v-else>
-                    <span v-if="isConnected" class="text-3xl font-medium">
-                      {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
+                    <span v-if="isConnected" class="text-4xl font-medium">
+                      {{ formatEtherNoRound(totalContract.toString()) }}
                     </span>
-                    <span v-if="!isConnected" class="text-3xl font-medium">
+                    <span v-if="!isConnected" class="text-4xl font-medium">
                       --
                     </span>
-                    <Ticker class="text-sm" />
-                  </template>
-                </div>
-              </div>
-            </div>
-            <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
-              <div
-                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
-              >
-                <div class="flex items-center gap-1">
-                  <Icon name="material-symbols:lock" />
-                  <h3 class="text-sm">Locked</h3>
-                  <Popover
-                    placement="top"
-                    :arrow="false"
-                    class="h-max grid place-items-center"
-                  >
-                    <template #content>
-                      <span class="text-xs font-normal">
-                        Tokens locked for your own relays, or delegated to other
-                        relays. Manage them from the
-                        <RouterLink
-                          to="/relays"
-                          style="text-decoration: underline"
-                          ><strong>Relays</strong>
-                        </RouterLink>
-                        tab.
-                      </span>
-                    </template>
-                    <template #trigger>
-                      <Icon name="heroicons:exclamation-circle" />
-                    </template>
-                  </Popover>
-                </div>
-                <div class="inline-flex flex-col items-baseline">
-                  <template v-if="locksPending">
-                    <USkeleton class="w-[10rem] h-10" />
-                  </template>
-                  <template v-else>
-                    <span v-if="isConnected" class="text-3xl font-medium">
-                      {{ totalLockedTokens.toFixed(2) }}
-                    </span>
-                    <span v-if="!isConnected" class="text-3xl font-medium">
-                      --
-                    </span>
-                    <Ticker class="text-sm" />
-                  </template>
-                </div>
-              </div>
-            </div>
-            <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
-              <div
-                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
-              >
-                <div class="flex items-center gap-1">
-                  <Icon name="i-heroicons-chart-pie-20-solid" />
-                  <h3 class="text-sm">Staked</h3>
-                  <Popover
-                    placement="top"
-                    :arrow="false"
-                    class="h-max grid place-items-center"
-                  >
-                    <template #content>
-                      <span class="text-xs font-normal">
-                        Your total staked tokens, including relay rewards which
-                        are auto-compounded. Manage them from the
-                        <RouterLink
-                          to="/staking"
-                          style="text-decoration: underline"
-                          ><strong>Staking</strong>
-                        </RouterLink>
-                        tab.
-                      </span>
-                    </template>
-                    <template #trigger>
-                      <Icon name="heroicons:exclamation-circle" />
-                    </template>
-                  </Popover>
-                </div>
-                <div class="inline-flex flex-col items-baseline">
-                  <template v-if="stakesPending">
-                    <USkeleton class="w-[10rem] h-10" />
-                  </template>
-                  <template v-else>
-                    <span v-if="isConnected" class="text-3xl font-medium">
-                      {{ formatEtherNoRound(totalStaked.toString()) }}
-                    </span>
-                    <span v-if="!isConnected" class="text-3xl font-medium">
-                      --
-                    </span>
-                    <Ticker class="text-sm" />
-                  </template>
-                </div>
-              </div>
-            </div>
-            <div class="flex gap-0 lg:gap-3 flex-col lg:flex-row lg:items-end">
-              <div
-                class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
-              >
-                <div class="flex items-center gap-1">
-                  <Icon name="material-symbols:lock" />
-                  <h3 class="text-sm">Vaulted</h3>
-                  <Popover
-                    placement="top"
-                    :arrow="false"
-                    class="h-max grid place-items-center"
-                  >
-                    <template #content>
-                      <span class="text-xs font-normal">
-                        Tokens are <strong>Vaulted</strong> for a fixed time
-                        period when you unlock a relay or unstake tokens.
-                        <strong>Redeem Expired</strong> redeems all tokens from
-                        expired vaults.
-                      </span>
-                    </template>
-                    <template #trigger>
-                      <Icon name="heroicons:exclamation-circle" />
-                    </template>
-                  </Popover>
-                </div>
-                <div class="inline-flex flex-col items-baseline">
-                  <template v-if="vaultsPending">
-                    <USkeleton class="w-[10rem] h-10" />
-                  </template>
-                  <template v-else>
-                    <span v-if="isConnected" class="text-3xl font-medium">
-                      {{ formatEtherNoRound(totalVaulted.toString()) }}
-                    </span>
-                    <span v-if="!isConnected" class="text-3xl font-medium">
-                      --
-                    </span>
-                    <Ticker class="text-sm" />
+                    <Ticker />
                   </template>
                 </div>
               </div>
               <UButton
-                :disabled="!isConnected || totalVaultClaimable.isZero()"
-                :loading="isRedeemingTokens"
-                @click="redeemTokens"
+                :disabled="availableTokens.isZero()"
+                @click="withdrawDialogOpen = true"
                 variant="outline"
                 color="cyan"
-                size="md"
-                class="self-end"
+                size="xl"
               >
-                {{ isRedeemingTokens ? 'Redeeming...' : redeemLabel }}
+                {{
+                  isWithdrawing
+                    ? 'Withdrawing...'
+                    : availableTokens.isZero()
+                      ? 'Nothing to withdraw'
+                      : 'Withdraw available'
+                }}
               </UButton>
+
+              <UModal v-model="withdrawDialogOpen">
+                <UCard
+                  class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
+                >
+                  <h4 class="text-lg font-semibold mb-6">Withdraw tokens</h4>
+                  <form
+                    @submit.prevent="submitWithdrawForm"
+                    class="mt-6 md:mt-0 w-full md:w-auto"
+                  >
+                    <label for="withdrawAmount" class="text-sm"
+                      >Amount to withdraw:
+                    </label>
+                    <div class="relative">
+                      <UInput
+                        :disabled="isWithdrawing"
+                        v-model="withdrawInput"
+                        name="withdrawAmount"
+                        class="mt-2 mb-6"
+                        color="neutral"
+                        placeholder="Withdraw amount"
+                        type="text"
+                      />
+                      <UButton
+                        :disabled="availableTokens.isZero() || isWithdrawing"
+                        @click="setMaxWithdraw"
+                        size="2xs"
+                        variant="ghost"
+                        color="neutral"
+                        class="absolute right-2 top-1/2 -translate-y-1/2"
+                      >
+                        Max
+                      </UButton>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                      <UButton
+                        variant="outline"
+                        color="cyan"
+                        @click="withdrawDialogOpen = false"
+                      >
+                        Cancel
+                      </UButton>
+                      <UButton
+                        :disabled="!parseFloat(withdrawAmount)"
+                        :loading="isWithdrawing"
+                        variant="solid"
+                        color="cyan"
+                        type="submit"
+                      >
+                        {{ isWithdrawing ? 'Withdrawing...' : 'Withdraw' }}
+                      </UButton>
+                    </div>
+                  </form>
+                </UCard>
+              </UModal>
             </div>
-          </div>
-        </Card>
+
+            <div
+              class="flex gap-5 lg:gap-16 xl:gap-24 2xl:gap-32 flex-col lg:flex-row my-4 lg:my-0 lg:mt-2"
+            >
+              <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
+                <div
+                  class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+                >
+                  <div class="flex items-center gap-1">
+                    <Icon name="material-symbols:check-box-rounded" />
+                    <h3 class="text-sm">Available</h3>
+                    <Popover
+                      placement="top"
+                      :arrow="false"
+                      class="h-max grid place-items-center"
+                    >
+                      <template #content>
+                        <span class="text-xs font-normal">
+                          Available tokens in the smart contract. These tokens are
+                          separate to your wallet balance and can be locked,
+                          staked or withdrawn back to your wallet.
+                        </span>
+                      </template>
+                      <template #trigger>
+                        <Icon name="heroicons:exclamation-circle" />
+                      </template>
+                    </Popover>
+                  </div>
+                  <div class="inline-flex flex-col items-baseline">
+                    <template v-if="hodlerInfoPending">
+                      <USkeleton class="w-[10rem] h-10" />
+                    </template>
+                    <template v-else>
+                      <span v-if="isConnected" class="text-3xl font-medium">
+                        {{ formatEtherNoRound(hodlerInfo?.[0] || '0') }}
+                      </span>
+                      <span v-if="!isConnected" class="text-3xl font-medium">
+                        --
+                      </span>
+                      <Ticker class="text-sm" />
+                    </template>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
+                <div
+                  class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+                >
+                  <div class="flex items-center gap-1">
+                    <Icon name="material-symbols:lock" />
+                    <h3 class="text-sm">Locked</h3>
+                    <Popover
+                      placement="top"
+                      :arrow="false"
+                      class="h-max grid place-items-center"
+                    >
+                      <template #content>
+                        <span class="text-xs font-normal">
+                          Tokens locked for your own relays, or delegated to other
+                          relays. Manage them from the
+                          <RouterLink
+                            to="/relays"
+                            style="text-decoration: underline"
+                            ><strong>Relays</strong>
+                          </RouterLink>
+                          tab.
+                        </span>
+                      </template>
+                      <template #trigger>
+                        <Icon name="heroicons:exclamation-circle" />
+                      </template>
+                    </Popover>
+                  </div>
+                  <div class="inline-flex flex-col items-baseline">
+                    <template v-if="locksPending">
+                      <USkeleton class="w-[10rem] h-10" />
+                    </template>
+                    <template v-else>
+                      <span v-if="isConnected" class="text-3xl font-medium">
+                        {{ totalLockedTokens.toFixed(2) }}
+                      </span>
+                      <span v-if="!isConnected" class="text-3xl font-medium">
+                        --
+                      </span>
+                      <Ticker class="text-sm" />
+                    </template>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-0 lg:gap-32 flex-col lg:flex-row">
+                <div
+                  class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+                >
+                  <div class="flex items-center gap-1">
+                    <Icon name="i-heroicons-chart-pie-20-solid" />
+                    <h3 class="text-sm">Staked</h3>
+                    <Popover
+                      placement="top"
+                      :arrow="false"
+                      class="h-max grid place-items-center"
+                    >
+                      <template #content>
+                        <span class="text-xs font-normal">
+                          Your total staked tokens, including relay rewards which
+                          are auto-compounded. Manage them from the
+                          <RouterLink
+                            to="/staking"
+                            style="text-decoration: underline"
+                            ><strong>Staking</strong>
+                          </RouterLink>
+                          tab.
+                        </span>
+                      </template>
+                      <template #trigger>
+                        <Icon name="heroicons:exclamation-circle" />
+                      </template>
+                    </Popover>
+                  </div>
+                  <div class="inline-flex flex-col items-baseline">
+                    <template v-if="stakesPending">
+                      <USkeleton class="w-[10rem] h-10" />
+                    </template>
+                    <template v-else>
+                      <span v-if="isConnected" class="text-3xl font-medium">
+                        {{ formatEtherNoRound(totalStaked.toString()) }}
+                      </span>
+                      <span v-if="!isConnected" class="text-3xl font-medium">
+                        --
+                      </span>
+                      <Ticker class="text-sm" />
+                    </template>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-0 lg:gap-3 flex-col lg:flex-row lg:items-end">
+                <div
+                  class="mb-4 flex flex-col border-l-4 border-cyan-600 lg:my-0 pl-3"
+                >
+                  <div class="flex items-center gap-1">
+                    <Icon name="material-symbols:lock" />
+                    <h3 class="text-sm">Vaulted</h3>
+                    <Popover
+                      placement="top"
+                      :arrow="false"
+                      class="h-max grid place-items-center"
+                    >
+                      <template #content>
+                        <span class="text-xs font-normal">
+                          Tokens are <strong>Vaulted</strong> for a fixed time
+                          period when you unlock a relay or unstake tokens.
+                          <strong>Redeem Expired</strong> redeems all tokens from
+                          expired vaults.
+                        </span>
+                      </template>
+                      <template #trigger>
+                        <Icon name="heroicons:exclamation-circle" />
+                      </template>
+                    </Popover>
+                  </div>
+                  <div class="inline-flex flex-col items-baseline">
+                    <template v-if="vaultsPending">
+                      <USkeleton class="w-[10rem] h-10" />
+                    </template>
+                    <template v-else>
+                      <span v-if="isConnected" class="text-3xl font-medium">
+                        {{ formatEtherNoRound(totalVaulted.toString()) }}
+                      </span>
+                      <span v-if="!isConnected" class="text-3xl font-medium">
+                        --
+                      </span>
+                      <Ticker class="text-sm" />
+                    </template>
+                  </div>
+                </div>
+                <UButton
+                  :disabled="!isConnected || totalVaultClaimable.isZero()"
+                  :loading="isRedeemingTokens"
+                  @click="redeemTokens"
+                  variant="outline"
+                  color="cyan"
+                  size="md"
+                  class="self-end"
+                >
+                  {{ isRedeemingTokens ? 'Redeeming...' : redeemLabel }}
+                </UButton>
+              </div>
+            </div>
+          </Card>
+          <Card
+            v-if="runtimeConfig.public.showGovernanceCard"
+            title="Governance"
+            :icon="'heroicons-outline:library'"
+            class="flex-shrink flex flex-col w-max"
+          >
+            <template v-if="hodlerInfo && !hodlerInfo[6]">
+              <p>Toggle on governance mode to gain voting power from your staked tokens.</p>
+              <p>This will increase your token unstake time.</p>
+              <p>
+                <a
+                  class="underline pointer"
+                  href="todo-url-to-find-out-more"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >Find out more</a>
+              </p>
+              <p class="text-center mt-4">
+                <UButton
+                  @click="enableGovernance"
+                  variant="outline"
+                  color="purple"
+                  size="xl"
+                >Enable Governance</UButton>
+              </p>
+            </template>
+            <template v-else-if="hodlerInfoPending">
+              <USkeleton class="w-full h-20 mt-2" />
+            </template>
+            <template v-else>
+              <p>Governance has been enabled for your account.</p>
+              <p>You can participate in Snapshot votes for protocol decisions.</p>
+            </template>
+            <p class="text-center mt-4">
+              <a
+                class="underline pointer text-md"
+                href="todo-url-to-snapshot"
+                target="_blank"
+                rel="noopener noreferrer"
+              >Snapshot Governance Page</a>
+            </p>
+          </Card>
+        </div>
       </DashboardMobileSection>
 
       <DashboardMobileSection title="my-rewards">
@@ -904,6 +948,10 @@ const {
     enabled: computed(() => !!address.value),
   },
 });
+watch(hodlerInfo, (newInfo) => {
+  if (!newInfo) return;
+  console.log('got hodlerInfo', newInfo, `isVoter: ${newInfo[6]}`);
+});
 
 const hodlerInfoPending = computed(
   () => isConnected.value && hodlerInfoPendingRaw.value
@@ -988,7 +1036,7 @@ const isWithdrawing = computed(
 );
 const withdrawDialogOpen = ref(false);
 const totalVaultClaimable = ref<BigNumber>(new BigNumber(0));
-const currentWriteAction = ref<'withdraw' | 'openExpired' | null>(null);
+const currentWriteAction = ref<'withdraw' | 'openExpired' | 'enableGovernance' | null>(null);
 
 const { getTotalClaimableStakingRewards, claimStakingRewards } =
   useStakingRewards();
@@ -1330,6 +1378,51 @@ const submitWithdrawForm = async () => {
     });
   }
 };
+
+
+const enableGovernance = async () => {
+  if (!isConnected) {
+    toast.add({
+      title: 'Please connect your wallet to enable governance',
+      color: 'red',
+    });
+    return;
+  }
+
+  if (!hodlerInfo.value) {
+    toast.add({
+      title: 'Hodler information not available',
+      color: 'red',
+    });
+    return;
+  }
+
+  const [,,,,,,isVoter] = hodlerInfo.value;
+  if (isVoter) {
+    toast.add({
+      title: 'Governance is already enabled for your account',
+      color: 'red',
+    });
+    return;
+  }
+
+  try {
+    currentWriteAction.value = 'enableGovernance';
+
+    await writeContractAsync({
+      address: hodlerContract,
+      abi: hodlerAbi,
+      functionName: 'becomeVoter',
+    });
+  } catch (error) {
+    toast.remove('enableGovernance');
+    console.error('EnableGovernanceError: ', error);
+    toast.add({
+      title: 'Failed to enable governance',
+      color: 'red',
+    });
+  }
+}
 
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
 const noClaimableData = ref(false);

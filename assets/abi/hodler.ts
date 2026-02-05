@@ -739,6 +739,11 @@ export const hodlerAbi = [
           internalType: 'uint256',
           type: 'uint256',
         },
+        {
+          internalType: 'bool',
+          name: 'isVoter',
+          type: 'bool'
+        }
       ],
       stateMutability: 'view',
     },

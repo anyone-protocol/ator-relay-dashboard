@@ -46,7 +46,8 @@ export default defineNuxtPlugin((nuxtApp) => {
           colors: {
             //ator colors
             primary: '#03bec5',
-            secondary: '#025675',
+            // secondary: '#025675',
+            secondary: 'rgb(148, 56, 255)',
             accent: '#025d66',
             //extra colors
             'basic-text': '#000000',
@@ -68,7 +69,8 @@ export default defineNuxtPlugin((nuxtApp) => {
             primary: '#03bec5',
             // the styles connected to secondary need to be the same as primary
             // for this theme
-            secondary: '#03bec5',
+            // secondary: '#03bec5',
+            secondary: 'rgb(148, 56, 255)',
             accent: '#025d66',
             'basic-text': '#FFFFFF',
           },

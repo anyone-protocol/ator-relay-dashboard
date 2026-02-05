@@ -61,6 +61,7 @@ job "deploy-relay-dashboard-stage" {
         NODE_OPTIONS="--max-old-space-size=4096"
         DASHBOARD_VERSION="[[.commit_sha]]"
         NUXT_PUBLIC_AO_CU_URL="https://cu-stage.anyone.tech"
+        NUXT_PUBLIC_SHOW_GOVERNANCE_CARD="true"
       }
 
       template {

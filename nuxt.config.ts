@@ -93,6 +93,7 @@ export default defineNuxtConfig({
       commitHash: process.env.NUXT_PUBLIC_COMMIT_HASH || 'dev',
       version: '2.1.0',
       showMaintenanceBanner: false,
+      showGovernanceCard: false,
     },
   },
 
