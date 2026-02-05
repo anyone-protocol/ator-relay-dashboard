@@ -374,7 +374,7 @@
               {{ formatEtherNoRound(row.amount) }}
             </template>
             <template #lastEpochRewarded-data="{ row }: { row: DelegatorDataRow }">
-              {{ formatEtherNoRound(row.lastEpochRewarded) }}
+              {{ formatEtherNoRound(row.lastEpochRewarded, 6) }}
             </template>
           </UTable>
         </template>
