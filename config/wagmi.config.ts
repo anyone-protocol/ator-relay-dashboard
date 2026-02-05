@@ -9,11 +9,6 @@ export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, sepolia];
 
 export function createWagmiConfig() {
   const runtimeConfig = useRuntimeConfig();
-  console.log(
-    'Wagmi Config Phase & url: ',
-    runtimeConfig.public.phase,
-    runtimeConfig.public.evmRpc
-  );
   const isLive = runtimeConfig.public.phase === 'live';
   const defaultChain = isLive ? mainnet : sepolia;
   const selectedNetworks: [AppKitNetwork, ...AppKitNetwork[]] = isLive

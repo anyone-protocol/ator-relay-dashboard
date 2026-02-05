@@ -20,11 +20,11 @@ export interface NetworkRunningCount {
   found: number;
 }
 
-interface Network {
+export interface Network {
   [address: `0x${string}`]: NetworkRunningCount;
 }
 
-interface Stakes {
+export interface Stakes {
   [address: `0x${string}`]: string;
 }
 
@@ -37,6 +37,12 @@ export interface LastRoundMetadata {
     Stakes: string;
   };
   Configuration: Configuration;
+}
+
+export interface StakingRewardsRewarded {
+  [hodlerAddress: `0x${string}`]: {
+    [operatorAddress: `0x${string}`]: string; // Hodler's score per operator stake
+  };
 }
 
 export interface StakingRewardsState {
@@ -52,7 +58,7 @@ export interface StakingRewardsState {
   Shares: [];
 }
 
-interface Details {
+export interface Details {
   [hodlerAddress: `0x${string}`]: {
     [operatorAddress: `0x${string}`]: {
       Rating: string;
@@ -70,7 +76,7 @@ interface Details {
   };
 }
 
-interface Configuration {
+export interface Configuration {
   TokensPerSecond: string;
   Requirements: {
     Running: number;

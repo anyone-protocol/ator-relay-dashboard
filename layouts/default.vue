@@ -1,10 +1,5 @@
 <script setup lang="ts">
 const config = useRuntimeConfig();
-
-const version = config.public.version;
-onMounted(() => {
-  console.log('Dashboard version:', version);
-});
 </script>
 
 <template>

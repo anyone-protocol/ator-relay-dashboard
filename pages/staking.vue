@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col-reverse lg:flex-row gap-5 mt-4 overflow-hidden">
     <Card class="overflow-auto">
-      <div class="flex lg:items-center justify-between mb-6 gap-5">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-5">
         <div class="flex flex-col gap-5 md:flex-row md:items-center md:gap-10">
           <div class="flex items-center space-x-1 md:space-x-2 h-max">
             <Icon
@@ -10,8 +10,8 @@
             />
             <h2 class="text-2xl md:text-[2rem]">Staking</h2>
           </div>
-          <div class="flex flex-col items-center md:flex-row gap-4">
-            <div class="flex flex-col">
+          <div class="flex flex-col md:items-center md:flex-row gap-4">
+            <div class="flex flex-col border-l-2 border-cyan-600 pl-4">
               <div class="flex items-center gap-1">
                 <h3 class="text-[10px] md:text-xs">Redeemable Tokens</h3>
                 <Popover
@@ -71,7 +71,7 @@
                 </Popover>
               </div>
               <div class="inline-flex items-baseline gap-2">
-                <template v-if="isLastSnapshotPending && isConnected">
+                <template v-if="isConnected && (operatorsWithDomainsPending || isStakingSnapshotPending || isLastSnapshotPending)">
                   <USkeleton class="w-[8rem] h-6" />
                 </template>
                 <template v-else>
@@ -91,7 +91,7 @@
             </div>
             <div class="flex flex-col border-l-2 border-cyan-600 pl-4">
               <div class="flex items-center gap-1">
-                <h3 class="text-[10px] md:text-xs">Relays Online (last epoch)</h3>
+                <h3 class="text-[10px] md:text-xs">Your Relays Online</h3>
                 <Popover
                   placement="left"
                   :arrow="false"
@@ -174,21 +174,20 @@
           />
         </div>
       </div>
-
       <UTabs :items="tabItems" @change="onTabChange">
         <template #default="{ item, index, selected }">
           <span class="truncate">{{ item.label }}</span>
         </template>
         <template v-slot:[currentTab]="{ item }">
           <UTable
-            class="max-h-[100vh] overflow-y-auto"
+            class="overflow-y-auto max-h-full md:max-h-[50svh] xl:max-h-[50svh] min-[1536px]:max-h-[50vh] min-[1920px]:max-h-[50vh]"
             id="operators-table"
             ref="operatorTableRef"
             :empty-state="{
               icon: 'i-heroicons-circle-stack-20-solid',
               label: 'No operators.',
             }"
-            :loading="currentTab === 'operators' && operatorsWithDomainsPending"
+            :loading="currentTab === 'operators' && (operatorsWithDomainsPending || isStakingSnapshotPending)"
             :columns="operatorColumns"
             :rows="
               currentTab === 'operators'
@@ -299,6 +298,7 @@
         </template>
         <template #vaults="{ item }">
           <UTable
+            class="overflow-y-auto max-h-full md:max-h-[50svh] xl:max-h-[50svh] min-[1536px]:max-h-[50vh] min-[1920px]:max-h-[50vh]"
             :empty-state="{
               icon: 'i-heroicons-circle-stack-20-solid',
               label: 'No vaults.',
@@ -353,6 +353,31 @@
             </template>
           </UTable>
         </template>
+        <template #delegators="{ item }">
+          <UTable
+            id="delegators-table"
+            ref="delegatorsTableRef"
+            class="overflow-y-auto max-h-full md:max-h-[50svh] xl:max-h-[50svh] min-[1536px]:max-h-[50vh] min-[1920px]:max-h-[50vh]"
+            :empty-state="{
+              icon: 'i-heroicons-circle-stack-20-solid',
+              label: 'No stakes delegated to you.',
+            }"
+            :loading="currentTab === 'delegators' && (operatorsWithDomainsPending || isStakingSnapshotPending || isLastSnapshotPending)"
+            :columns="delegatorColumns"
+            :rows="currentOperatorDelegatedStakes"
+          >
+            <template #address-data="{ row }: { row: DelegatorDataRow }">
+              <span v-if="!isLargeScreen">{{ truncatedAddress(row.address) }} </span>
+              <span v-else>{{ row.address }} </span>
+            </template>
+            <template #amount-data="{ row }: { row: DelegatorDataRow }">
+              {{ formatEtherNoRound(row.amount) }}
+            </template>
+            <template #lastEpochRewarded-data="{ row }: { row: DelegatorDataRow }">
+              {{ formatEtherNoRound(row.lastEpochRewarded) }}
+            </template>
+          </UTable>
+        </template>
       </UTabs>
 
       <div class="mt-5 flex justify-between"></div>
@@ -363,7 +388,7 @@
 <style lang="scss">
 div[role='tablist'] {
   display: grid;
-  grid-template-columns: repeat(3, auto) !important;
+  grid-template-columns: repeat(4, auto) !important;
   width: 100%;
   justify-content: start;
   position: relative;
@@ -416,13 +441,12 @@ import {
 import { hodlerAbi } from '../assets/abi/hodler';
 import { tokenAbi } from '../assets/abi/token';
 import { getAddress, parseEther } from 'viem';
-import { useClipboard } from '@vueuse/core';
+import { useClipboard, useDebounceFn, useMediaQuery } from '@vueuse/core';
 import { getBlock, getChainId } from '@wagmi/core';
 import Popover from '~/components/ui-kit/Popover.vue';
 import Ticker from '~/components/ui-kit/Ticker.vue';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import BigNumber from 'bignumber.js';
-import { useDebounceFn } from '@vueuse/core';
 import { filterOperatorsByQuery } from '~/utils/filterOperators';
 import { useHyperbeamFlag } from '~/composables/useHyperbeamFlag';
 
@@ -452,9 +476,15 @@ interface OperatorRewards {
   redeemable: string;
 }
 
+interface DelegatorDataRow {
+  address: string;
+  amount: bigint;
+  lastEpochRewarded: bigint;
+}
+
 const config = useConfig();
 const queryClient = useQueryClient();
-
+const isLargeScreen = useMediaQuery('(min-width: 1024px)');
 const { address, isConnected } = useAccount();
 const currentWriteAction = ref<
   'stake' | 'unstake' | 'withdraw' | 'openExpired' | null
@@ -484,7 +514,7 @@ const stakeDialogOpen = ref(false);
 const unstakeDialogOpen = ref(false);
 const totalClaimableAmount = ref<bigint>(0n);
 const searchQuery = ref('');
-const currentTab = ref<'operators' | 'stakedOperators' | 'vaults'>('operators');
+const currentTab = ref<'operators' | 'stakedOperators' | 'vaults' | 'delegators'>('operators');
 const selectedOperator = ref<Operator | null>(null);
 const lastStakeAmount = ref<string>('');
 const lastUnstakeAmount = ref<string>('');
@@ -515,22 +545,8 @@ const stakedOperators = computed(() => {
 });
 const allOperators = ref<Operator[]>([]);
 const currentOperator = ref<Operator & { percentRunning?: number } | null>(null);
-const currentOperatorTotalDelegated = computed(() => {
-  if (!currentOperator.value) { return '--'; }
-  if (!lastSnapshot.value) { return '--'; }
-  let totalDelegated = 0n;
-  for (const hodlerAddress in lastSnapshot.value.Details) {
-    if (hodlerAddress === `0x${currentOperator.value.operator.slice(2).toUpperCase()}`) {
-      console.log('Skipping self-delegation in total delegation');
-      continue;
-    }
-    const currentOperatorDelegation = lastSnapshot.value.Details[hodlerAddress as `0x${string}`][`0x${currentOperator.value.operator.slice(2).toUpperCase()}`];
-    if (currentOperatorDelegation) {
-      totalDelegated += BigInt(currentOperatorDelegation.Score.Staked);
-    }
-  }
-  return formatEtherNoRound(totalDelegated);
-});
+const currentOperatorDelegatedStakes = ref<DelegatorDataRow[]>([]);
+const currentOperatorTotalDelegated = ref<string>('--');
 const currentApy = ref<string>('--');
 const vaults = computed(() => {
   if (!vaultsData.value) return [];
@@ -650,6 +666,10 @@ const tabItems = [
     slot: 'vaults',
     label: 'Unstaked Tokens',
   },
+  {
+    slot: 'delegators',
+    label: 'Delegated to You',
+  }
 ];
 
 const operatorColumns = computed(() => {
@@ -731,6 +751,12 @@ const vaultColumns = [
     label: 'Vault status',
     sortable: true,
   },
+];
+
+const delegatorColumns = [
+  { key: 'address', label: 'Delegator', sortable: true },
+  { key: 'amount', label: 'Stake', sortable: true },
+  { key: 'lastEpochRewarded', label: 'Your Share (last epoch)', sortable: true }
 ];
 
 const block = await getBlock(config);
@@ -961,8 +987,8 @@ watch(searchQuery, (newValue) => {
   debouncedSearch(newValue);
 });
 
-const updateOperators = async (reason?: string) => {
-  console.debug('start updateOperators, reason:', reason, 'staking snapshot:', stakingSnapshot.value);
+const updateOperators = (reason?: string) => {
+  // console.log('start updateOperators, reason:', reason, 'staking snapshot:', stakingSnapshot.value);
   if (!stakingSnapshot.value) {
     allOperators.value = [];
     return;
@@ -1018,7 +1044,7 @@ const updateOperators = async (reason?: string) => {
     // currentApy.value = totalStakes > 0n
     //   ? BigNumber(1825000).div(formatEtherNoRound(totalStakes)).toFixed(2)
     //   : '--';
-    // console.debug('total stakes:', totalStakes, 'total stakes whole tokens:', formatEtherNoRound(totalStakes), 'current apy:', currentApy.value);
+    // console.log('total stakes:', totalStakes, 'total stakes whole tokens:', formatEtherNoRound(totalStakes), 'current apy:', currentApy.value);
 
     const normalizedNetwork = stakingSnapshot.value?.Network
       ? Object.fromEntries(
@@ -1058,8 +1084,32 @@ const updateOperators = async (reason?: string) => {
         } else {
           currentOperator.value['percentRunning'] = 0;
         }
+
+        currentOperatorDelegatedStakes.value = [];
+        let totalDelegated = 0n;
+        if (lastSnapshot.value) {
+          for (const hodlerAddress in lastSnapshot.value.Details) {
+            if (hodlerAddress === `0x${currentOperator.value.operator.slice(2).toUpperCase()}`) {
+              continue;
+            }
+            const currentOperatorDelegation = lastSnapshot.value.Details[hodlerAddress as `0x${string}`][`0x${currentOperator.value.operator.slice(2).toUpperCase()}`];
+            if (currentOperatorDelegation) {
+              totalDelegated += BigInt(currentOperatorDelegation.Score.Staked);
+              currentOperatorDelegatedStakes.value.push({
+                address: hodlerAddress,
+                amount: BigInt(currentOperatorDelegation.Score.Staked),
+                lastEpochRewarded: BigInt(currentOperatorDelegation.Reward.Operator)
+              });
+            }
+          }
+        } else {
+          console.log('No last snapshot available to calculate delegated stakes');
+        }
+        currentOperatorTotalDelegated.value = formatEtherNoRound(totalDelegated);
+        // console.log('Got current operator total delegated', currentOperatorTotalDelegated.value);
+        // console.log('Got current operator delegated stakes', currentOperatorDelegatedStakes.value);
       }
-      console.debug('Got current operator', currentOperator.value);
+      // console.log('Got current operator', currentOperator.value);
     }
 
     const filtered = filterOperatorsByQuery(
@@ -1078,7 +1128,7 @@ const updateOperators = async (reason?: string) => {
       if (aTotal < bTotal) return 1;
       return 0;
     });
-    console.debug('Got all operators', allOperators.value);
+    // console.log('Got all operators', allOperators.value?.length, allOperators.value);
   } catch (error) {
     console.error('OperatorRegistryError:', error);
   }
@@ -1106,6 +1156,7 @@ watch(address, () => {
   }
 });
 onMounted(() => {
+  updateOperators('onMounted');
   if (isConnected.value) updateTotalClaimable();
 });
 
@@ -1189,6 +1240,7 @@ const {
 
 watch(operatorsWithDomainsSuccess, (newData) => {
   if (newData && operatorsWithDomains.value?.length) {
+    updateOperators('operatorsWithDomainsSuccess changed');
     cacheOperators(operatorsWithDomains.value);
   }
 });

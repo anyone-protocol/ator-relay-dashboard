@@ -198,6 +198,27 @@ export const useStakingRewards = () => {
     }
   };
 
+  const getStakingRewardsState = async () => {
+    try {
+      const { result } = await sendAosDryRun({
+        processId,
+        tags: [{ name: 'Action', value: 'View-State' }],
+      });
+
+      if (!result || !result.Messages || result.Messages.length === 0) {
+        logger.error('No messages found in the result');
+        return null;
+      }
+
+      const data: LastSnapshot = JSON.parse(result.Messages[0].Data);
+      logger.info('Staking rewards state: ', data);
+      return data;
+    } catch (error) {
+      logger.error('Error fetching staking rewards state', error);
+      return null;
+    }
+  };
+
   const runtimeConfig = useRuntimeConfig();
   const stakingSnapshotController =
     runtimeConfig.public.stakingSnapshotController;
@@ -301,5 +322,6 @@ export const useStakingRewards = () => {
     getLastSnapshot,
     getStakingSnapshot,
     claimStakingRewards,
+    getStakingRewardsState,
   };
 };
