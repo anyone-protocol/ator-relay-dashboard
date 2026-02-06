@@ -115,8 +115,8 @@
                   <div class="flex gap-2 items-end md:items-center md:gap-3">
                     <div class="flex gap-1 items-baseline">
                       <span class="text-base md:text-xl">
-                        <template v-if="isConnected">
-                          {{ currentOperator?.percentRunning }}%
+                        <template v-if="isConnected && currentOperator?.percentRunning !== undefined">
+                          {{ currentOperator.percentRunning.toFixed(2) }}%
                         </template>
                         <template v-else>--</template>
                       </span>
