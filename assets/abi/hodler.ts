@@ -975,4 +975,11 @@ export const hodlerAbi = [
       stateMutability: 'nonpayable',
     },
     { type: 'receive', stateMutability: 'payable' },
+    {
+      inputs: [],
+      name: 'becomeVoter',
+      outputs: [],
+      stateMutability: 'nonpayable',
+      type: 'function'
+    }
   ] as const

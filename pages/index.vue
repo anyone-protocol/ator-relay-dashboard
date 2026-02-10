@@ -309,7 +309,7 @@
             :icon="'heroicons-outline:library'"
             class="flex-shrink flex flex-col w-max"
           >
-            <template v-if="hodlerInfo && !hodlerInfo[6]">
+            <template v-if="!isConnected || !isUserVoter">
               <p>Toggle on governance mode to gain voting power from your staked tokens.</p>
               <p>This will increase your token unstake time.</p>
               <p>
@@ -326,15 +326,17 @@
                   variant="outline"
                   color="purple"
                   size="xl"
+                  :disabled="!isConnected"
+                  :loading="isEnablingGovernancePending"
                 >Enable Governance</UButton>
               </p>
             </template>
-            <template v-else-if="hodlerInfoPending">
-              <USkeleton class="w-full h-20 mt-2" />
-            </template>
-            <template v-else>
+            <template v-else-if="isConnected && isUserVoter">
               <p>Governance has been enabled for your account.</p>
               <p>You can participate in Snapshot votes for protocol decisions.</p>
+            </template>
+            <template v-else-if="hodlerInfoPending">
+              <USkeleton class="w-full h-20 mt-2" />
             </template>
             <p class="text-center mt-4">
               <a
@@ -1379,13 +1381,20 @@ const submitWithdrawForm = async () => {
   }
 };
 
-
+const isUserVoter = computed(() => {
+  if (!hodlerInfo.value) return false;
+  return hodlerInfo.value[6] as boolean;
+});
+const isEnablingGovernancePending = ref(false);
 const enableGovernance = async () => {
+  isEnablingGovernancePending.value = true;
+
   if (!isConnected) {
     toast.add({
       title: 'Please connect your wallet to enable governance',
       color: 'red',
     });
+    isEnablingGovernancePending.value = false;
     return;
   }
 
@@ -1394,21 +1403,21 @@ const enableGovernance = async () => {
       title: 'Hodler information not available',
       color: 'red',
     });
+    isEnablingGovernancePending.value = false;
     return;
   }
 
-  const [,,,,,,isVoter] = hodlerInfo.value;
-  if (isVoter) {
+  if (isUserVoter.value) {
     toast.add({
       title: 'Governance is already enabled for your account',
       color: 'red',
     });
+    isEnablingGovernancePending.value = false;
     return;
   }
 
   try {
     currentWriteAction.value = 'enableGovernance';
-
     await writeContractAsync({
       address: hodlerContract,
       abi: hodlerAbi,
@@ -1418,10 +1427,12 @@ const enableGovernance = async () => {
     toast.remove('enableGovernance');
     console.error('EnableGovernanceError: ', error);
     toast.add({
-      title: 'Failed to enable governance',
+      title: 'Failed to enable governance:',
       color: 'red',
     });
   }
+
+  isEnablingGovernancePending.value = false;
 }
 
 const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
