@@ -315,7 +315,7 @@
               <p>
                 <a
                   class="underline pointer"
-                  href="todo-url-to-find-out-more"
+                  href="https://docs.anyone.io/governance/registering"
                   target="_blank"
                   rel="noopener noreferrer"
                 >Find out more</a>
@@ -341,7 +341,7 @@
             <p class="text-center mt-4">
               <a
                 class="underline pointer text-md"
-                href="todo-url-to-snapshot"
+                href="https://snapshot.org/#/s:daoforanyone.eth"
                 target="_blank"
                 rel="noopener noreferrer"
               >Snapshot Governance Page</a>
