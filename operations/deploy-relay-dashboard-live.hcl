@@ -62,6 +62,7 @@ job "deploy-relay-dashboard-live" {
         DASHBOARD_VERSION="[[.commit_sha]]"
         NUXT_PUBLIC_EVM_RPC="default" # "https://eth-mainnet.public.blastapi.io"
         NUXT_PUBLIC_PHASE="live"
+        NUXT_PUBLIC_SHOW_GOVERNANCE_CARD="true"
       }
 
       template {
