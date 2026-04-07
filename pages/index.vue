@@ -44,22 +44,34 @@
                   </template>
                 </div>
               </div>
-              <UButton
-                :disabled="availableTokens.isZero()"
-                @click="withdrawDialogOpen = true"
-                variant="outline"
-                color="cyan"
-                size="xl"
-              >
-                {{
-                  isWithdrawing
-                    ? 'Withdrawing...'
-                    : availableTokens.isZero()
-                      ? 'Nothing to withdraw'
-                      : 'Withdraw available'
-                }}
-              </UButton>
-
+              <div class="flex flex-col gap-4">
+                <UButton
+                  :disabled="availableTokens.isZero()"
+                  @click="withdrawDialogOpen = true"
+                  variant="outline"
+                  color="cyan"
+                  size="xl"
+                >
+                  {{
+                    isWithdrawing
+                      ? 'Withdrawing...'
+                      : availableTokens.isZero()
+                        ? 'Nothing to withdraw'
+                        : 'Withdraw available'
+                  }}
+                </UButton>
+                <UButton
+                  :disabled="!isConnected || totalVaultClaimable.isZero()"
+                  :loading="isRedeemingTokens"
+                  @click="redeemTokens"
+                  variant="outline"
+                  color="cyan"
+                  size="md"
+                  class="self-end w-full"
+                >
+                  {{ isRedeemingTokens ? 'Redeeming...' : redeemLabel }}
+                </UButton>
+              </div>
               <UModal v-model="withdrawDialogOpen">
                 <UCard
                   class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg relative ring-0"
@@ -289,17 +301,6 @@
                     </template>
                   </div>
                 </div>
-                <UButton
-                  :disabled="!isConnected || totalVaultClaimable.isZero()"
-                  :loading="isRedeemingTokens"
-                  @click="redeemTokens"
-                  variant="outline"
-                  color="cyan"
-                  size="md"
-                  class="self-end"
-                >
-                  {{ isRedeemingTokens ? 'Redeeming...' : redeemLabel }}
-                </UButton>
               </div>
             </div>
           </Card>
