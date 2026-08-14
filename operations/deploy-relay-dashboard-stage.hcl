@@ -91,7 +91,6 @@ job "deploy-relay-dashboard-stage" {
         NUXT_PUBLIC_REGISTRATOR_CONTRACT="{{ key "registrator/sepolia/stage/address" }}"
         {{ with secret "kv/stage-protocol/deploy-relay-dashboard-stage" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
-        PERMAWEB_KEY="{{ .Data.data.DASHBOARD_OWNER_KEY }}"
         NUXT_PUBLIC_STAKING_SNAPSHOT_CONTROLLER="{{ .Data.data.STAKING_REWARDS_CONTROLLER_ADDRESS_ARWEAVE }}"
         {{ end }}
         EOH
@@ -124,9 +123,6 @@ job "deploy-relay-dashboard-stage" {
         echo "Syncing static files to cloudflare r2: {{ .Data.data.CLOUDFLARE_DEPLOY_BUCKET }}"
         rclone sync .output/public r2:{{ .Data.data.CLOUDFLARE_DEPLOY_BUCKET }}/
         {{ end }}
-
-        echo "Skipping publishing static files to Arweave in Stage"
-        # pnpm run deploy:arweave
         EOF
         destination = "local/entrypoint.sh"
         perms = "0755"

@@ -78,9 +78,9 @@ job "deploy-relay-dashboard-prelive" {
       template {
         data = <<-EOH
         # Prelive is the pre-announcement gate: it deliberately reads the SAME live Consul keys as
-        # the live jobspec, so the team verifies the real live configuration. It differs from live
-        # only in publishing to R2 without touching Arweave/ANT. See the stage jobspec for why
-        # these carry `_HYPERBEAM_`.
+        # the live jobspec, so the team verifies the real live configuration before it is
+        # announced. It differs from live only in the R2 bucket it syncs to. See the stage jobspec
+        # for why these carry `_HYPERBEAM_`.
         NUXT_PUBLIC_OPERATOR_REGISTRY_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/live/operator-registry-address" }}"
         NUXT_PUBLIC_RELAY_REWARDS_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/live/relay-rewards-address" }}"
         NUXT_PUBLIC_STAKING_REWARDS_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/live/staking-rewards-address" }}"
@@ -89,7 +89,6 @@ job "deploy-relay-dashboard-prelive" {
         NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/ethereum/live/address" }}"
         {{ with secret "kv/live-protocol/deploy-relay-dashboard-prelive" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
-        PERMAWEB_KEY="{{ .Data.data.DASHBOARD_OWNER_KEY }}"
         NUXT_PUBLIC_STAKING_SNAPSHOT_CONTROLLER="{{ .Data.data.STAKING_REWARDS_CONTROLLER_ADDRESS_ARWEAVE }}"
         {{ end }}
         EOH
@@ -122,9 +121,6 @@ job "deploy-relay-dashboard-prelive" {
         echo "Syncing static files to cloudflare r2: {{ .Data.data.CLOUDFLARE_DEPLOY_BUCKET }}"
         rclone sync .output/public r2:{{ .Data.data.CLOUDFLARE_DEPLOY_BUCKET }}/
         {{ end }}
-
-        # echo "Publishing static files to Arweave"
-        # pnpm run deploy:arweave
         EOF
         destination = "local/entrypoint.sh"
         perms = "0755"

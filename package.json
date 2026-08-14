@@ -8,8 +8,6 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "deploy": "pnpm run generate && pnpm run deploy:arweave",
-    "deploy:arweave": "node operations/scripts/deploy.mjs",
     "prepare": "husky && husky install",
     "test": "echo \"No tests specified\""
   },
@@ -54,8 +52,6 @@
     "winston": "^3.18.3"
   },
   "devDependencies": {
-    "@ar.io/sdk": "3.9.0",
-    "@ardrive/turbo-sdk": "^1.34.0",
     "@iconify-json/uil": "^1.2.3",
     "@nuxtjs/device": "^3.2.4",
     "@types/lodash": "^4.17.20",

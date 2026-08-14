@@ -89,7 +89,6 @@ job "deploy-relay-dashboard-live" {
         NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/ethereum/live/address" }}"
         {{ with secret "kv/live-protocol/deploy-relay-dashboard-live" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
-        PERMAWEB_KEY="{{ .Data.data.DASHBOARD_OWNER_KEY }}"
         NUXT_PUBLIC_STAKING_SNAPSHOT_CONTROLLER="{{ .Data.data.STAKING_REWARDS_CONTROLLER_ADDRESS_ARWEAVE }}"
         {{ end }}
         EOH
@@ -122,9 +121,6 @@ job "deploy-relay-dashboard-live" {
         echo "Syncing static files to cloudflare r2: {{ .Data.data.CLOUDFLARE_DEPLOY_BUCKET }}"
         rclone sync .output/public r2:{{ .Data.data.CLOUDFLARE_DEPLOY_BUCKET }}/
         {{ end }}
-
-        echo "Publishing static files to Arweave"
-        pnpm run deploy:arweave
         EOF
         destination = "local/entrypoint.sh"
         perms = "0755"
