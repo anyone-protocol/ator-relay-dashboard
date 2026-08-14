@@ -18,6 +18,11 @@ overrides:
   # BOUNDED on purpose: `>=8.21.0` alone would allow ws 9.x. Every override here must pin the
   # major, which is exactly what the inert package.json block failed to do.
   'ws@<8.21.0': '>=8.21.0 <9'
+  # bn.js infinite loop (GHSA-378v-28hj-76wf). Both lines are present and both are on paths we
+  # actually execute: 4.x via arweave > asn1.js and via elliptic (ANS-104 signing), 5.x via
+  # @coinbase/wallet-sdk. Patch-level within each major, so bounded to the same major.
+  'bn.js@<4.12.3': '>=4.12.3 <5'
+  'bn.js@>=5.0.0 <5.2.3': '>=5.2.3 <6'
 
 # NOTE: the rest of `overrides` deliberately NOT set here yet — see the audit findings. pnpm 10+ reads
 # overrides from THIS file, so the 29 entries in package.json's `pnpm.overrides` are inert.
