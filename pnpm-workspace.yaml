@@ -3,7 +3,17 @@
 # `prepare` script, which is enough to trip the check.
 allowBuilds:
   # Our own package: git-hosted with a `prepare` script, so pnpm needs it listed.
+  #
+  # BOTH forms are required. pnpm >= ~11.2 refuses a git-hosted package listed by bare name and
+  # demands the fully resolved tarball specifier; older pnpm matches the bare name and ignores the
+  # long key. Listing only the bare name builds fine on a warm store (prepare never re-runs) and
+  # then fails in a clean Docker build with ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED, which is exactly
+  # how this reached CI unnoticed.
+  #
+  # ⚠️ The long key embeds the commit the `#v0.1.3` tag resolves to. Re-pin ao-client and this key
+  # must be updated to match the new `pnpm-lock.yaml` resolution, or clean installs break again.
   '@anyone-protocol/ao-client': true
+  '@anyone-protocol/ao-client@https://codeload.github.com/anyone-protocol/ao-client/tar.gz/3fc04052c7d76691d8345adcb24f6b5bf99d6988': true
   # Optional native builds. Left OFF — every install and test so far has run with these skipped
   # (they fall back to JS), and turning them on would change what has been verified.
   '@reown/appkit': false
