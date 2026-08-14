@@ -448,7 +448,6 @@ import Ticker from '~/components/ui-kit/Ticker.vue';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import BigNumber from 'bignumber.js';
 import { filterOperatorsByQuery } from '~/utils/filterOperators';
-import { useHyperbeamFlag } from '~/composables/useHyperbeamFlag';
 
 interface Vault {
   amount: bigint;
@@ -525,7 +524,7 @@ const runningThreshold = computed(
 const stakedOperators = computed(() => {
   if (!stakesData.value) return [];
   const normalizeOp = (operator: `0x${string}`) =>
-    `0x${operator.slice(2).toUpperCase()}` as `0x${string}`;
+    eip55(operator) as `0x${string}`;
 
   const stakes: Operator[] = stakesData.value.map((stake) => {
     const reward = operatorRewardsData.value?.find(
@@ -534,7 +533,7 @@ const stakedOperators = computed(() => {
           normalizeOp(stake.operator) && new BigNumber(r.redeemable).gt(0)
     );
     return {
-      operator: `0x${stake.operator.slice(2).toUpperCase()}`,
+      operator: eip55(stake.operator),
       amount: stake.amount,
       redeemableRewards: reward
         ? formatEtherNoRound(reward.redeemable, 3)
@@ -553,7 +552,7 @@ const vaults = computed(() => {
   const data = vaultsData.value
     .filter((vault) => vault.kind === 2n)
     .map((vault) => {
-      const data = `0x${vault.data.slice(2).toUpperCase()}`;
+      const data = eip55(vault.data);
       return {
         amount: vault.amount,
         data,
@@ -594,14 +593,11 @@ const { data: stakingSnapshot, isPending: isStakingSnapshotPending } = useQuery(
   queryFn: getStakingSnapshot
 });
 
-const { hyperbeamEnabled } = useHyperbeamFlag();
-const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
 
 const { data: operatorRewardsData } = useQuery({
   queryKey: computed(() => [
     'operatorRewards',
     address.value,
-    isHyperbeamEnabled.value,
   ]),
   queryFn: async () => {
     if (!address.value) return [];
@@ -995,7 +991,7 @@ const updateOperators = (reason?: string) => {
   }
   try {
     const operatorsMap = new Map(
-      operatorsWithDomains.value?.map((op) => [op.address.toUpperCase(), op]) ||
+      operatorsWithDomains.value?.map((op) => [eip55(op.address), op]) ||
         []
     );
 
@@ -1007,7 +1003,7 @@ const updateOperators = (reason?: string) => {
       })) || [];
 
     const normalizedStakedOperators = stakedOperators.value.map((op) => {
-      const upperOp = op.operator.toUpperCase();
+      const upperOp = eip55(op.operator);
       const mappedOp = operatorsMap.get(upperOp);
       return {
         ...op,
@@ -1029,7 +1025,7 @@ const updateOperators = (reason?: string) => {
     const normalizedStakes = stakingSnapshot.value?.Stakes
       ? Object.fromEntries(
           Object.entries(stakingSnapshot.value.Stakes).map(([addr, amount]) => [
-            `0x${addr.slice(2).toUpperCase()}` as `0x${string}`,
+            eip55(addr) as `0x${string}`,
             amount,
           ])
         )
@@ -1049,7 +1045,7 @@ const updateOperators = (reason?: string) => {
     const normalizedNetwork = stakingSnapshot.value?.Network
       ? Object.fromEntries(
           Object.entries(stakingSnapshot.value.Network).map(([addr, data]) => [
-            `0x${addr.slice(2).toUpperCase()}` as `0x${string}`,
+            eip55(addr) as `0x${string}`,
             data,
           ])
         )
@@ -1070,11 +1066,10 @@ const updateOperators = (reason?: string) => {
     });
 
     if (address.value) {
-      const currentOperatorAddress = `0x${address.value?.slice(2).toUpperCase()}`
+      const currentOperatorAddress = eip55(address.value)
       currentOperator.value = operatorsWithData.find(
         (op) =>
-          op.operator.toUpperCase() ===
-          address.value?.toUpperCase()
+          sameAddress(op.operator, address.value)
       ) || null;
       if (currentOperator.value) {
         if (normalizedNetwork[currentOperatorAddress]) {
@@ -1089,10 +1084,13 @@ const updateOperators = (reason?: string) => {
         let totalDelegated = 0n;
         if (lastSnapshot.value) {
           for (const hodlerAddress in lastSnapshot.value.Details) {
-            if (hodlerAddress === `0x${currentOperator.value.operator.slice(2).toUpperCase()}`) {
+            if (sameAddress(hodlerAddress, currentOperator.value.operator)) {
               continue;
             }
-            const currentOperatorDelegation = lastSnapshot.value.Details[hodlerAddress as `0x${string}`][`0x${currentOperator.value.operator.slice(2).toUpperCase()}`];
+            const currentOperatorDelegation =
+              lastSnapshot.value.Details[hodlerAddress as `0x${string}`][
+                eip55(currentOperator.value.operator) as `0x${string}`
+              ];
             if (currentOperatorDelegation) {
               totalDelegated += BigInt(currentOperatorDelegation.Score.Staked);
               currentOperatorDelegatedStakes.value.push({

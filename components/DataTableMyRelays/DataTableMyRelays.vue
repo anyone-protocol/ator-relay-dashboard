@@ -540,7 +540,7 @@ import { useTemplateRef } from 'vue';
 import { hodlerAbi } from '~/assets/abi/hodler';
 import { getBlock } from '@wagmi/core';
 import { useDebounceFn } from '@vueuse/core';
-import { useQueries } from '@tanstack/vue-query';
+import { useQuery } from '@tanstack/vue-query';
 import type { LastRoundData } from '~/composables/relay-rewards';
 import Ticker from '../ui-kit/Ticker.vue';
 import { useRelays } from '~/composables/queries/useRelays';
@@ -665,7 +665,6 @@ const claimableRelays = computed<RelayRow[]>(() => {
 
 const registerModalOpen = ref(false);
 
-const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
 
 const relayCredits = ref<Record<string, boolean | undefined>>({});
 const familyVerified = ref<Record<string, boolean>>({});
@@ -1116,7 +1115,7 @@ const vaults = computed(() => {
   const data = vaultsData.value
     .filter((vault) => vault.kind === 1n) // 1n for locked
     .map((vault) => {
-      const data = `0x${vault.data.slice(2).toUpperCase()}`;
+      const data = eip55(vault.data);
       return {
         amount: vault.amount,
         data,
@@ -1141,60 +1140,37 @@ const fingerprints = computed(() => {
     .map((relay) => relay.fingerprint);
 });
 
-const getLastRoundData = async (fingerprint: string) => {
-  try {
-    const { result } = await sendAosDryRun({
-      processId: relayRewardsProcessId,
-      tags: [
-        { name: 'Action', value: 'Last-Round-Data' },
-        { name: 'Fingerprint', value: fingerprint },
-      ],
-    });
 
-    if (result.Error) {
-      console.error('AOS Error: ' + result.Error);
-      return null;
-    }
-    if (!result.Messages.length || !result.Messages[0].Data) {
-      console.error(`No data found for fingerprint: ${fingerprint}`);
-      return null;
-    }
-
-    return JSON.parse(result.Messages[0].Data) as LastRoundData;
-  } catch (error) {
-    console.error('Error fetching last round data:', error);
-    return null;
-  }
-};
-
-const lastRoundResults = useQueries({
-  queries: computed(() =>
-    fingerprints.value.map((fp) => ({
-      queryKey: computed(() => ['lastRound', fp]),
-      queryFn: () => getLastRoundData(fp),
-      staleTime: 30 * 60 * 1000,
-      gcTime: 60 * 60 * 1000,
-    }))
-  ),
-  combine: (results) => {
-    return {
-      data: results.map((result) => result.data),
-      pending: results.some((result) => result.isPending),
-    };
+/**
+ * ONE request for every relay this operator owns.
+ *
+ * `as/last_round_details?address=` is keyed by the operator's EVM address and returns a
+ * fingerprint -> breakdown map, which is exactly the shape this screen wants. The legacy path
+ * has no equivalent — `Last-Round-Data` takes a single Fingerprint — so it stays a query per
+ * relay, which is 100+ requests for a large operator on a single page load.
+ *
+ * The contract assembles the response by concatenating strings it already stored, so the
+ * per-relay payloads are byte-identical to asking for each one individually.
+ */
+const lastRoundByAddress = useQuery({
+  queryKey: computed(() => ['lastRoundByAddress', address.value]),
+  queryFn: async (): Promise<Record<string, LastRoundData>> => {
+    if (!address.value) return {};
+    const { readView } = useHyperbeamRead();
+    return await readView<Record<string, LastRoundData>>(
+      runtimeConfig.public.relayRewardsHyperbeamProcessId,
+      'last_round_details',
+      { address: address.value }
+    );
   },
+  enabled: computed(() => !!address.value),
+  staleTime: 30 * 60 * 1000,
+  gcTime: 60 * 60 * 1000,
 });
 
-const lastRound = computed(() => {
-  const rounds: Record<string, LastRoundData> = {};
-  lastRoundResults.value.data.forEach((data, index) => {
-    if (data) {
-      rounds[fingerprints.value[index]] = data;
-    }
-  });
-  return rounds;
-});
+const lastRound = computed(() => lastRoundByAddress.data.value ?? {});
 
-const lastRoundPending = computed(() => lastRoundResults.value.pending);
+const lastRoundPending = computed(() => lastRoundByAddress.isPending.value);
 
 const target = useTemplateRef<HTMLDivElement>('target');
 

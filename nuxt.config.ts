@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { replaceCodePlugin } from './plugins/vite-plugin-replace';
 
@@ -54,17 +55,17 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       evmRpc: 'https://sepolia.gateway.tenderly.co',
-      aoCuUrl: 'https://cu.anyone.tech',
       hyperbeamUrl: 'https://hb-stage.anyone.tech',
-      operatorRegistryProcessId: '_-JHiTCYy8cG4dsQDm0kHKF0I3rJit1uxbPdNqQBE_Q',
+      // Hyperbeam PIDs — stage, batch deploy 2026-08-13. These change on every contract
+      // redeploy: `deploy.ts` spawns a fresh process and writes the new id to Consul, so a
+      // stale id here reads a process nobody is writing to any more (and the nginx edge
+      // allowlist follows Consul, so it 403s rather than serving stale data).
       operatorRegistryHyperbeamProcessId:
-        'hvDrJZWwTjAI7Li38biqu1D9FCUT1q6sAUKNDKaH-xc',
-      operatorDynamicViews: 'AdA_mCo4vNXn-mCjZPmXPldZ92p07bzjkX0eQonsPNY',
-      relayRewardsProcessId: 'QZJTY63XZtHOHo_qPaEX7VdtemZh4rpj821xcanPGXA',
+        '2p2aXwksN1kLc_mbl2jWrfdmKw9tHD_PYR5-ZHWEPyc',
       relayRewardsHyperbeamProcessId:
-        'Ic4FU2PEyBuD1SK8J6gnOvCXn_y0SA_Ek4w68iVmyjg',
-      relayDynamicViews: 's8HG29eG5gxFX8eLda54udvl1G74Qac8Tg11FgVyM18',
-      stakingRewardsProcessId: 'ayGn9GtIKAnNK6gupa8htNfuLBVgpjszMglUosl0y8M',
+        'utn6vNEgtyuZivk4gz-2tGWYWVPinJhYk4IDDdqLtUE',
+      stakingRewardsHyperbeamProcessId:
+        '41eqpwcMIyMhCAElq-M3jHMrMSTVENujZDJ09Vnd0nE',
       stakingSnapshotController: '6FyQki05iUsRdoY252dE4GlGItW4jpIr_t21VA3D6Zw',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: '53a5b087ab4cb303a799325360098216',
@@ -100,6 +101,17 @@ export default defineNuxtConfig({
   plugins: [{ src: '~/plugins/vue-query.client.ts', mode: 'client' }],
 
   vite: {
+    resolve: {
+      alias: {
+        // We never use Vue/Nuxt devtools. pinia and vue-router import `setupDevtoolsPlugin`
+        // unconditionally, and that import alone broke `pnpm dev` (Vite served the package's raw
+        // CJS to the browser). Aliasing it to a no-op drops it from the client instead of pinning
+        // a version that happens to ship ESM. See stubs/vue-devtools-api.ts.
+        '@vue/devtools-api': fileURLToPath(
+          new URL('./stubs/vue-devtools-api.ts', import.meta.url)
+        ),
+      },
+    },
     server: {
       hmr: {
         host: 'localhost',

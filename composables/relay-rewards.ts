@@ -3,6 +3,7 @@ import moment from 'moment';
 
 import type { PreviousDistribution } from '@/types/facilitator';
 import Logger from '~/utils/logger';
+import { readContractView } from './useHyperbeamRead';
 
 export type RelayRewardsConfiguration = {
   TokensPerSecond: number;
@@ -118,7 +119,10 @@ export class RelayRewards {
 
   private _refreshing: boolean = false;
 
-  constructor(private readonly processId: string) {}
+  constructor(
+    private readonly processId: string,
+    private readonly hyperbeamUrl: string
+  ) {}
 
   private setRefreshing(refreshing: boolean) {
     // useFacilitatorStore().distributionRefreshing = refreshing;
@@ -265,19 +269,14 @@ export class RelayRewards {
 
   async getClaimable(address: string): Promise<string | null> {
     try {
-      const { result } = await sendAosDryRun({
-        processId: this.processId,
-        tags: [
-          { name: 'Action', value: 'Get-Rewards' },
-          { name: 'Address', value: address },
-        ],
-      });
-
-      console.log('getClaimable result', result);
-
-      const claimable = result?.Messages[0]?.Data || '0';
-
-      return BigNumber(claimable).toString();
+      // `as/rewards` omits the key entirely for an address that has never been rewarded.
+      const data = await readContractView<{ address: string; reward?: string }>(
+        this.hyperbeamUrl,
+        this.processId,
+        'rewards',
+        { address }
+      );
+      return BigNumber(data?.reward || '0').toString();
     } catch (error) {
       this.logger.error('Error fetching claimable rewards', error);
     }
@@ -287,16 +286,13 @@ export class RelayRewards {
 
   async getPreviousRound(): Promise<PreviousRound> {
     try {
-      const { result } = await sendAosDryRun({
-        processId: this.processId,
-        tags: [{ name: 'Action', value: 'Last-Snapshot' }],
-      });
-
-      if (result.Error) {
-        throw new Error('Error from AOS: ' + result.Error);
-      }
-
-      return JSON.parse(result.Messages[0].Data) as PreviousRound;
+      // legacynet `Last-Snapshot` minus Details, which state deliberately does not carry.
+      // refresh() reads Timestamp, Period and Configuration.TokensPerSecond, all present.
+      return await readContractView<PreviousRound>(
+        this.hyperbeamUrl,
+        this.processId,
+        'last_round'
+      );
     } catch (error) {
       this.logger.error('Error fetching previous round', error);
     }
@@ -306,5 +302,8 @@ export class RelayRewards {
 }
 
 const config = useRuntimeConfig();
-const relayRewards = new RelayRewards(config.public.relayRewardsProcessId);
+const relayRewards = new RelayRewards(
+  config.public.relayRewardsHyperbeamProcessId,
+  config.public.hyperbeamUrl
+);
 export const useRelayRewards = () => relayRewards;

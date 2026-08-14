@@ -731,7 +731,6 @@ import {
   useLockedRelaysQuery,
   useLockedRelaysCountQuery,
 } from '~/composables/queries/useLockedRelaysQuery';
-import { useHyperbeamFlag } from '~/composables/useHyperbeamFlag';
 
 const config = useConfig();
 const userStore = useUserStore();
@@ -862,8 +861,6 @@ onMounted(async () => {
   }
 });
 
-const { hyperbeamEnabled } = useHyperbeamFlag();
-const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
 
 const {
   data: stakingRewards,
@@ -873,7 +870,6 @@ const {
   queryKey: computed(() => [
     'claimableRewards',
     address.value,
-    isHyperbeamEnabled.value,
   ]),
   queryFn: async () => {
     if (!address.value) return '0';
@@ -908,12 +904,12 @@ const { data: airdropData, isPending: airdropPendingRaw } = useQuery({
 
       const userAirdrop = airdropDataArray.find(
         (entry: { id: string; airdrop: number }) =>
-          entry.id.toLowerCase() === address.value?.toLowerCase()
+          sameAddress(entry.id, address.value)
       );
 
       const variation = variationDataArray.find(
         (entry: { id: string; variation: number }) =>
-          entry.id.toLowerCase() === address.value?.toLowerCase()
+          sameAddress(entry.id, address.value)
       );
 
       const airDropValue = new BigNumber(userAirdrop?.airdrop ?? '0');
@@ -1041,7 +1037,7 @@ const withdrawDialogOpen = ref(false);
 const totalVaultClaimable = ref<BigNumber>(new BigNumber(0));
 const currentWriteAction = ref<'withdraw' | 'openExpired' | 'enableGovernance' | null>(null);
 
-const { getTotalClaimableStakingRewards, claimStakingRewards } =
+const { getTotalClaimableStakingRewards } =
   useStakingRewards();
 
 const {
@@ -1436,52 +1432,23 @@ const enableGovernance = async () => {
   isEnablingGovernancePending.value = false;
 }
 
-const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
 const noClaimableData = ref(false);
 
 // Get-Rewards: Claimable relay rewards
 
-const getClaimableRelayRewardsDryRun = async (
-  addr: string
-): Promise<BigNumber> => {
-  const { result } = await sendAosDryRun({
-    processId: relayRewardsProcessId,
-    tags: [
-      { name: 'Action', value: 'Get-Rewards' },
-      { name: 'Address', value: addr },
-    ],
-  });
-
-  if (!result?.Messages[0]?.Data) {
-    noClaimableData.value = true;
-    return new BigNumber(0);
-  }
-
-  noClaimableData.value = false;
-  const claimable = new BigNumber(result?.Messages[0].Data);
-  console.log('claimable relay rewards: ', claimable);
-  return claimable;
-};
-
 const getClaimableRelayRewardsHyperbeam = async (
   addr: string
 ): Promise<BigNumber> => {
-  const processId = runtimeConfig.public.relayRewardsHyperbeamProcessId;
-  const scriptTxId = runtimeConfig.public.relayDynamicViews;
-  const hyperbeamUrl = runtimeConfig.public.hyperbeamUrl;
-  const url = `${hyperbeamUrl}/${processId}~process@1.0/now/~lua@5.3a&module=${scriptTxId}/get_rewards?address=${`0x${addr.slice(2).toUpperCase()}` as `0x${string}`}`;
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch claimable rewards: ${response.statusText}`
-    );
-  }
-
-  const data = await response.json();
-  const claimable = new BigNumber(data || '0');
-  console.log('claimable relay rewards (hyperbeam): ', claimable);
-  return claimable;
+  const { readView } = useHyperbeamRead();
+  // `as/rewards` answers `{ address, reward }`. When the address has never been rewarded the
+  // encoder DROPS the absent key entirely — the response is just `{ address }` — so the
+  // fallback is doing real work, not defensive padding.
+  const data = await readView<{ address: string; reward?: string }>(
+    runtimeConfig.public.relayRewardsHyperbeamProcessId,
+    'rewards',
+    { address: addr }
+  );
+  return new BigNumber(data?.reward || '0');
 };
 
 const {
@@ -1492,68 +1459,29 @@ const {
   queryKey: computed(() => [
     'claimableRelayRewards',
     address.value,
-    isHyperbeamEnabled.value,
   ]),
   queryFn: async () => {
     if (!address.value) return new BigNumber(0);
 
-    if (isHyperbeamEnabled.value) {
-      return await getClaimableRelayRewardsHyperbeam(address.value);
-    } else {
-      return await getClaimableRelayRewardsDryRun(address.value);
-    }
+    return await getClaimableRelayRewardsHyperbeam(address.value);
   },
   enabled: computed(() => !!address.value),
 });
 
 // Get-Claimed: Already claimed relay rewards
 
-const getClaimedRelayRewardsDryRun = async (
-  addr: string
-): Promise<BigNumber> => {
-  const { result } = await sendAosDryRun({
-    processId: relayRewardsProcessId,
-    tags: [
-      { name: 'Action', value: 'Get-Claimed' },
-      { name: 'Address', value: addr },
-    ],
-  });
-  console.log('getClaimedRelayRewards result: ', result);
-  if (!result?.Messages[0]?.Data) {
-    return new BigNumber(0);
-  }
-
-  const data = JSON.parse(result?.Messages[0]?.Data);
-  const claimed = new BigNumber(data || '0');
-  console.log('claimed relay rewards: ', claimed.toString());
-  return claimed;
-};
-
 const getClaimedRelayRewardsHyperbeam = async (
   addr: string
 ): Promise<BigNumber> => {
-  const processId = runtimeConfig.public.relayRewardsHyperbeamProcessId;
-  const scriptTxId = runtimeConfig.public.relayDynamicViews;
-  const hyperbeamUrl = runtimeConfig.public.hyperbeamUrl;
-  const url = `${hyperbeamUrl}/${processId}~process@1.0/now/~lua@5.3a&module=${scriptTxId}/get_claimed?address=${`0x${addr.slice(2).toUpperCase()}` as `0x${string}`}`;
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch claimed rewards: ${response.statusText}`);
-  }
-
-  let data;
-
-  try {
-    data = await response.json();
-    console.log('claimed relay rewards hyper data: ', data);
-  } catch (error) {
-    console.error('Error formatting response data');
-  }
-
-  const claimed = new BigNumber(data || '0');
-  console.log('claimed relay rewards (hyperbeam): ', claimed.toString());
-  return claimed;
+  const { readView } = useHyperbeamRead();
+  // `as/claimed` answers `{ address, claimed }`, and omits `claimed` entirely for an address
+  // that has never claimed.
+  const data = await readView<{ address: string; claimed?: string }>(
+    runtimeConfig.public.relayRewardsHyperbeamProcessId,
+    'claimed',
+    { address: addr }
+  );
+  return new BigNumber(data?.claimed || '0');
 };
 
 const {
@@ -1565,16 +1493,11 @@ const {
   queryKey: computed(() => [
     'claimedRelayRewards',
     address.value,
-    isHyperbeamEnabled.value,
   ]),
   queryFn: async () => {
     if (!address.value) return new BigNumber(0);
 
-    if (isHyperbeamEnabled.value) {
-      return await getClaimedRelayRewardsHyperbeam(address.value);
-    } else {
-      return await getClaimedRelayRewardsDryRun(address.value);
-    }
+    return await getClaimedRelayRewardsHyperbeam(address.value);
   },
   enabled: computed(() => !!address.value),
 });

@@ -39,17 +39,6 @@
             </span>
             <Ticker class="text-[9px] leading-tight" />
           </div>
-          <!-- <UButton
-            :disabled="!isConnected || Number(claimableRewards) <= 0"
-            @click="claimStakingRewardsMutation()"
-            variant="outline"
-            color="cyan"
-            size="2xs"
-            class="text-[10px] md:text-xs"
-            :loading="claimStakingRewardsPending"
-          >
-            Redeem
-          </UButton> -->
         </div>
       </template>
     </div>
@@ -66,7 +55,7 @@ import BigNumber from 'bignumber.js';
 const { isConnected, address } = useAccount();
 
 const toast = useToast();
-const { getTotalClaimableStakingRewards, claimStakingRewards } =
+const { getTotalClaimableStakingRewards } =
   useStakingRewards();
 
 const { data: claimableRewards, isPending: claimableRewardsPending } = useQuery(

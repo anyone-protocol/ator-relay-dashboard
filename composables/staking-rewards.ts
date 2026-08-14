@@ -1,4 +1,5 @@
 import Logger from '~/utils/logger';
+import { eip55, sameAddress } from '~/utils/eip55';
 import BigNumber from 'bignumber.js';
 import type {
   GetRewardsResponse,
@@ -8,50 +9,60 @@ import type {
   StakingRewardsState,
   StakingSnapshot,
 } from '~/types/staking-rewards';
-import { useHyperbeamFlag } from './useHyperbeamFlag';
 import { computed } from 'vue';
 
 export const useStakingRewards = () => {
   const config = useRuntimeConfig();
-  const processId = config.public.stakingRewardsProcessId;
   const logger = new Logger('StakingRewards');
-  const { hyperbeamEnabled } = useHyperbeamFlag();
-  const isHyperbeamEnabled = computed(() => hyperbeamEnabled.value);
+
+  /**
+   * Both paths now receive the SAME `{ Rewarded, Claimed }` shape — the legacy `Get-Rewards`
+   * dry-run and the native `as/rewards` view — so they share one parser instead of two that
+   * disagreed. The old hyperbeam branch treated each value as redeemable directly, with no
+   * Claimed subtraction, which would report already-claimed rewards as still claimable.
+   *
+   * Operator keys are canonical EIP-55, which is what the contracts store and return.
+   */
+  const parseOperatorRewards = (
+    data: GetRewardsResponse | null
+  ): OperatorRewards[] => {
+    const operatorRewards: OperatorRewards[] = [];
+    if (!data || Array.isArray(data.Rewarded) || !data.Rewarded) {
+      return operatorRewards;
+    }
+    for (const operator in data.Rewarded) {
+      const rewarded = BigNumber(data.Rewarded[operator] || '0');
+      const claimed = BigNumber(
+        (Array.isArray(data.Claimed) ? undefined : data.Claimed?.[operator]) ||
+          '0'
+      );
+      operatorRewards.push({
+        operator: eip55(operator),
+        redeemable: rewarded.minus(claimed).toString(),
+      });
+    }
+    return operatorRewards;
+  };
+
+  const fetchStakingRewardsHyperbeam = async (
+    address: string
+  ): Promise<GetRewardsResponse | null> => {
+    const { readView } = useHyperbeamRead();
+    // Staking rewards come from the STAKING contract. The previous hyperbeam code read them
+    // from the relay-rewards process, whose `rewards` view answers a single cumulative scalar
+    // rather than the per-operator breakdown this screen renders.
+    return await readView<GetRewardsResponse>(
+      config.public.stakingRewardsHyperbeamProcessId,
+      'rewards',
+      { address }
+    );
+  };
 
   const getClaimableStakingRewardsHyperbeam = async (
     address: string
   ): Promise<OperatorRewards[] | null> => {
     try {
-      const hyperbeamUrl = config.public.hyperbeamUrl;
-      const processId = config.public.relayRewardsHyperbeamProcessId;
-      const scriptTxId = config.public.relayDynamicViews;
-      const url = `${hyperbeamUrl}/${processId}~process@1.0/now/~lua@5.3a&module=${scriptTxId}/get_rewards?address=${`0x${address.slice(2).toUpperCase()}` as `0x${string}`}`;
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch staking rewards: ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      logger.info('stakingRewardsDataHyperbeam: ', data);
-
-      // Parse hyperbeam response format
-      const operatorRewards: OperatorRewards[] = [];
-      if (data && typeof data === 'object') {
-        for (const operator in data) {
-          const redeemable = new BigNumber(data[operator] || '0');
-          if (redeemable.gt(0)) {
-            operatorRewards.push({
-              operator: `0x${operator.slice(2).toUpperCase()}`,
-              redeemable: redeemable.toString(),
-            });
-          }
-        }
-      }
-
-      return operatorRewards;
+      return parseOperatorRewards(await fetchStakingRewardsHyperbeam(address));
     } catch (error) {
       logger.error(
         'Error fetching claimable staking rewards via hyperbeam',
@@ -65,43 +76,7 @@ export const useStakingRewards = () => {
     address: string
   ): Promise<OperatorRewards[] | null> => {
     try {
-      if (isHyperbeamEnabled.value) {
-        return await getClaimableStakingRewardsHyperbeam(address);
-      }
-
-      const { result } = await sendAosDryRun({
-        processId,
-        tags: [
-          { name: 'Action', value: 'Get-Rewards' },
-          { name: 'Address', value: address },
-        ],
-      });
-      const data: GetRewardsResponse = JSON.parse(
-        result?.Messages[0]?.Data || '{}'
-      );
-      if (!data) return null;
-
-      logger.info('stakingRewardsData: ', data);
-
-      const operatorRewards: OperatorRewards[] = [];
-      if (!Array.isArray(data.Rewarded) && Object.keys(data.Rewarded).length) {
-        for (const operator in data.Rewarded) {
-          const rewarded = BigNumber(data.Rewarded[operator] || '0');
-          const claimed = BigNumber(data.Claimed[operator] || '0');
-          const redeemable = rewarded.minus(claimed);
-          // logger.info('rewarded: ', rewarded.toString());
-          // logger.info('claimed: ', claimed.toString());
-          // logger.info('redeemable: ', redeemable.toString());
-          operatorRewards.push({
-            operator: `0x${operator.slice(2).toUpperCase()}`, // Normalize operator address
-            redeemable: redeemable.toString(),
-          });
-        }
-      }
-
-      // logger.info('opRewards: ', operatorRewards);
-
-      return operatorRewards;
+      return await getClaimableStakingRewardsHyperbeam(address);
     } catch (error) {
       logger.error('Error fetching claimable rewards', error);
       return null;
@@ -110,30 +85,12 @@ export const useStakingRewards = () => {
 
   const getTotalClaimableStakingRewardsHyperbeam = async (address: string) => {
     try {
-      const hyperbeamUrl = config.public.hyperbeamUrl;
-      const processId = config.public.relayRewardsHyperbeamProcessId;
-      const scriptTxId = config.public.relayDynamicViews;
-      const url = `${hyperbeamUrl}/${processId}~process@1.0/now/~lua@5.3a&module=${scriptTxId}/get_rewards?address=${`0x${address.slice(2).toUpperCase()}` as `0x${string}`}`;
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch total staking rewards: ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      logger.info('totalStakingRewardsDataHyperbeam: ', data);
-
-      let totalClaimable = new BigNumber(0);
-      if (data && typeof data === 'object') {
-        for (const operator in data) {
-          const redeemable = new BigNumber(data[operator] || '0');
-          totalClaimable = totalClaimable.plus(redeemable);
-        }
-      }
-
-      return totalClaimable.toString();
+      const rewards = parseOperatorRewards(
+        await fetchStakingRewardsHyperbeam(address)
+      );
+      return rewards
+        .reduce((sum, r) => sum.plus(BigNumber(r.redeemable)), BigNumber(0))
+        .toString();
     } catch (error) {
       logger.error('Error fetching total staking rewards via hyperbeam', error);
       return null;
@@ -142,35 +99,7 @@ export const useStakingRewards = () => {
 
   const getTotalClaimableStakingRewards = async (address: string) => {
     try {
-      if (isHyperbeamEnabled.value) {
-        return await getTotalClaimableStakingRewardsHyperbeam(address);
-      }
-
-      const { result } = await sendAosDryRun({
-        processId,
-        tags: [
-          { name: 'Action', value: 'Get-Rewards' },
-          { name: 'Address', value: address },
-        ],
-      });
-      const data: GetRewardsResponse = JSON.parse(result?.Messages[0]?.Data);
-      logger.info('stakingRewardsData: ', data);
-      let totalClaimable = BigNumber(0);
-
-      if (!Array.isArray(data.Rewarded) && Object.keys(data.Rewarded).length) {
-        for (const operator in data.Rewarded) {
-          // logger.info({
-          //   operator: operator,
-          //   rewarded: data.Rewarded[operator],
-          // });
-          const rewarded = BigNumber(data.Rewarded[operator] || '0');
-          const claimed = BigNumber(data.Claimed[operator] || '0');
-          const claimable = rewarded.minus(claimed);
-          totalClaimable = totalClaimable.plus(claimable);
-        }
-      }
-
-      return totalClaimable.toString();
+      return await getTotalClaimableStakingRewardsHyperbeam(address);
     } catch (error) {
       logger.error('Error fetching claimable rewards', error);
       return null;
@@ -179,19 +108,11 @@ export const useStakingRewards = () => {
 
   const getLastSnapshot = async () => {
     try {
-      const { result } = await sendAosDryRun({
-        processId,
-        tags: [{ name: 'Action', value: 'Last-Snapshot' }],
-      });
-
-      if (!result || !result.Messages || result.Messages.length === 0) {
-        logger.error('No messages found in the result');
-        return null;
-      }
-
-      const data: LastSnapshot = JSON.parse(result.Messages[0].Data);
-      logger.info('Last snapshot: ', data);
-      return data;
+      const { readView } = useHyperbeamRead();
+      return await readView<LastSnapshot>(
+        config.public.stakingRewardsHyperbeamProcessId,
+        'last_snapshot'
+      );
     } catch (error) {
       logger.error('Error fetching last round metadata', error);
       return null;
@@ -200,19 +121,14 @@ export const useStakingRewards = () => {
 
   const getStakingRewardsState = async () => {
     try {
-      const { result } = await sendAosDryRun({
-        processId,
-        tags: [{ name: 'Action', value: 'View-State' }],
-      });
-
-      if (!result || !result.Messages || result.Messages.length === 0) {
-        logger.error('No messages found in the result');
-        return null;
-      }
-
-      const data: LastSnapshot = JSON.parse(result.Messages[0].Data);
-      logger.info('Staking rewards state: ', data);
-      return data;
+      // `View-State` pulled the whole contract; `dump` is the runtime-owned equivalent and is
+      // the only whole-state read that still exists. Callers wanting one hodler should use
+      // `rewards` / `claimed` / `shares` instead.
+      const { readView } = useHyperbeamRead();
+      return await readView<LastSnapshot>(
+        config.public.stakingRewardsHyperbeamProcessId,
+        'dump'
+      );
     } catch (error) {
       logger.error('Error fetching staking rewards state', error);
       return null;
@@ -288,40 +204,19 @@ export const useStakingRewards = () => {
     }
   };
 
-  const claimStakingRewards = async (
-    address: string
-  ): Promise<{ messageId: string; result: MessageResult } | null> => {
-    try {
-      const signer = await useAoSigner();
-
-      if (!signer) {
-        logger.error('Signer is null during claim');
-        return null;
-      }
-
-      const { messageId, result } = await sendAosMessage({
-        processId,
-        signer: createEthereumDataItemSigner(signer, true) as any,
-        tags: [
-          { name: 'Action', value: 'Claim-Rewards' },
-          { name: 'Address', value: address },
-        ],
-      });
-
-      return { messageId, result };
-    } catch (error) {
-      logger.error(`Error fetching total claimable rewards`, error);
-    }
-
-    return null;
-  };
+  // NOTE: there is deliberately no AO claim here.
+  //
+  // Users claim by sending an EVM transaction to the Hodler contract (Facilitator on the legacy
+  // path); facilitator-controller then performs the AO write, which is why IT — not the user —
+  // holds the Claim-Rewards role on both reward contracts. A browser-signed AO `Claim-Rewards`
+  // is rejected by the same ACL on legacynet and on the native port, so the previous
+  // implementation could never have succeeded. See composables/hodler `claim()`.
 
   return {
     getClaimableStakingRewards,
     getTotalClaimableStakingRewards,
     getLastSnapshot,
     getStakingSnapshot,
-    claimStakingRewards,
     getStakingRewardsState,
   };
 };

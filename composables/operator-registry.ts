@@ -1,7 +1,7 @@
-import { sendAosDryRun, sendAosMessage, type MessageResult } from '~/utils/aos';
+import { createAoClient } from '@anyone-protocol/ao-client';
 import Logger from '~/utils/logger';
 import { useAoSigner } from './ao-signer';
-import { createEthereumDataItemSigner } from '~/utils/create-ethereum-data-item-signer';
+import { readContractView } from './useHyperbeamRead';
 
 export type OperatorRegistryState = {
   ClaimableFingerprintsToOperatorAddresses: { [fingerprint: string]: string };
@@ -22,110 +22,90 @@ export type GetRelayInfoResult = {
 export class OperatorRegistry {
   private readonly logger = new Logger('OperatorRegistry');
 
-  constructor(private readonly processId: string) {}
+  constructor(
+    private readonly processId: string,
+    private readonly hyperbeamUrl: string
+  ) {}
 
-  async viewState(): Promise<OperatorRegistryState | null> {
-    try {
-      const { result } = await sendAosDryRun({
-        processId: this.processId,
-        tags: [{ name: 'Action', value: 'View-State' }],
-      });
-      const state = JSON.parse(result.Messages[0].Data);
-
-      for (const prop in state) {
-        // NB: Lua returns empty tables as JSON arrays, so we normalize them to
-        //     empty objects as when they are populated they will also be objects
-        if (Array.isArray(state[prop]) && state[prop].length < 1) {
-          state[prop] = {};
-        }
-      }
-
-      return state;
-    } catch (error) {
-      this.logger.error('Error fetching Operator Registry State', error);
+  /**
+   * A signing client for the two writes below.
+   *
+   * `AoSigner` already extends arbundles' `InjectedEthereumSigner`, so ao-client takes it
+   * directly — the write path is a transport swap, not a re-signing. aoconnect only ever
+   * carried the item, and its silent endpoint defaults are the reason it is gone: ao-client
+   * requires an explicit node url and never defaults one.
+   */
+  private async signingClient() {
+    const signer = await useAoSigner();
+    if (!signer) {
+      this.logger.error('Signer is null — wallet not connected or rejected');
+      return null;
     }
-
-    return null;
+    return createAoClient({ url: this.hyperbeamUrl, signer: signer as any });
   }
 
+  /**
+   * One operator's registry entry, in ONE request.
+   *
+   * This replaces a `View-State` dry-run that pulled the WHOLE registry (~2 MB on stage:
+   * 22,599 claimable + 593 verified + 658 hardware) to answer a question about a single
+   * address — the over-fetch the contract's own comments call out. `as/operator` answers it
+   * directly, so `viewState` is gone rather than ported: nothing else used it.
+   *
+   * Each set-valued field is a map of fingerprint -> true when populated and `[]` when empty,
+   * because the Lua encoder cannot tell an empty object from an empty array.
+   */
   async getRelayInfoForAddress(address: string): Promise<GetRelayInfoResult> {
-    this.logger.info(`getRelayInfoForAddress`, address);
-
-    const state = await this.viewState();
-
-    if (!state) {
-      return {
-        claimable: [],
-        verified: [],
-        registrationCredits: [],
-        verifiedHardware: [],
-      };
-    }
-
-    this.logger.info(`Got state`, state);
-
-    const allcapsAddress = '0x' + address.substring(2).toUpperCase();
-
-    const claimable = Object.entries(
-      state.ClaimableFingerprintsToOperatorAddresses
-    )
-      .filter(([_fingerprint, relayAddress]) => relayAddress === allcapsAddress)
-      .map(([fingerprint]) => fingerprint);
-
-    const verified = Object.entries(
-      state.VerifiedFingerprintsToOperatorAddresses
-    )
-      .filter(([_fingerprint, relayAddress]) => relayAddress === allcapsAddress)
-      .map(([fingerprint]) => fingerprint);
-
-    const registrationCredits = Object.entries(
-      state.RegistrationCreditsFingerprintsToOperatorAddresses
-    )
-      .filter(([_fingerprint, relayAddress]) => relayAddress === allcapsAddress)
-      .map(([fingerprint]) => fingerprint);
-
-    const verifiedHardware = Object.keys(
-      state.VerifiedHardwareFingerprints
-    ).filter(
-      (fingerprint) =>
-        claimable.includes(fingerprint) || verified.includes(fingerprint)
-    );
-
-    const relayInfo = {
-      claimable,
-      verified,
-      registrationCredits,
-      verifiedHardware,
+    const empty: GetRelayInfoResult = {
+      claimable: [],
+      verified: [],
+      registrationCredits: [],
+      verifiedHardware: [],
     };
 
-    this.logger.info(`Relay info for ${address}`, relayInfo);
+    try {
+      const entry = await readContractView<{
+        claimable: Record<string, boolean> | [];
+        verified: Record<string, boolean> | [];
+        registrationCredits: Record<string, boolean> | [];
+        hardware: Record<string, boolean> | [];
+      }>(this.hyperbeamUrl, this.processId, 'operator', { address });
 
-    return relayInfo;
+      const keys = (v: unknown): string[] =>
+        v && typeof v === 'object' && !Array.isArray(v)
+          ? Object.keys(v as Record<string, unknown>)
+          : [];
+
+      return {
+        claimable: keys(entry.claimable),
+        verified: keys(entry.verified),
+        registrationCredits: keys(entry.registrationCredits),
+        // `hardware` is this view's name for what the dashboard calls verifiedHardware
+        verifiedHardware: keys(entry.hardware),
+      };
+    } catch (error) {
+      this.logger.error(`Error fetching relay info for ${address}`, error);
+      return empty;
+    }
   }
 
-  async claim(
-    fingerprint: string
-  ): Promise<{ messageId: string; result: MessageResult } | null> {
+  async claim(fingerprint: string) {
     try {
-      const signer = await useAoSigner();
+      const ao = await this.signingClient();
+      if (!ao) return null;
 
-      if (!signer) {
-        this.logger.error('Signer is null during claim');
-
-        return null;
-      }
-
-      const { messageId, result } = await sendAosMessage({
+      return await ao.sendMessage({
         processId: this.processId,
-        signer: createEthereumDataItemSigner(signer, true) as any,
+        action: 'Submit-Fingerprint-Certificate',
+        // Tag names MUST be lowercase: ao-client rejects anything else for the ans104
+        // round-trip, and the runtime title-cases them back (`foldTags`), so the contract still
+        // reads `ctx.tags['Fingerprint-Certificate']`. aoconnect happened to tolerate the
+        // title-cased form on the way out, which is why these carried it.
         tags: [
-          { name: 'Action', value: 'Submit-Fingerprint-Certificate' },
-          { name: 'Fingerprint-Certificate', value: fingerprint },
-          { name: 'UI-Cache-Key', value: `claim-${Date.now().toString()}` },
+          { name: 'fingerprint-certificate', value: fingerprint },
+          { name: 'ui-cache-key', value: `claim-${Date.now().toString()}` },
         ],
       });
-
-      return { messageId, result };
     } catch (error) {
       this.logger.error(`Error claiming fingerprint ${fingerprint}`, error);
     }
@@ -133,29 +113,19 @@ export class OperatorRegistry {
     return null;
   }
 
-  async renounce(
-    fingerprint: string
-  ): Promise<{ messageId: string; result: MessageResult } | null> {
+  async renounce(fingerprint: string) {
     try {
-      const signer = await useAoSigner();
+      const ao = await this.signingClient();
+      if (!ao) return null;
 
-      if (!signer) {
-        this.logger.error('Signer is null during claim');
-
-        return null;
-      }
-
-      const { messageId, result } = await sendAosMessage({
+      return await ao.sendMessage({
         processId: this.processId,
-        signer: createEthereumDataItemSigner(signer, true) as any,
+        action: 'Renounce-Fingerprint-Certificate',
         tags: [
-          { name: 'Action', value: 'Renounce-Fingerprint-Certificate' },
-          { name: 'Fingerprint', value: fingerprint },
-          { name: 'UI-Cache-Key', value: `renounce-${Date.now().toString()}` },
+          { name: 'fingerprint', value: fingerprint },
+          { name: 'ui-cache-key', value: `renounce-${Date.now().toString()}` },
         ],
       });
-
-      return { messageId, result };
     } catch (error) {
       this.logger.error(`Error renouncing fingerprint ${fingerprint}`, error);
     }
@@ -166,6 +136,7 @@ export class OperatorRegistry {
 
 const config = useRuntimeConfig();
 const operatorRegistry = new OperatorRegistry(
-  config.public.operatorRegistryProcessId
+  config.public.operatorRegistryHyperbeamProcessId,
+  config.public.hyperbeamUrl
 );
 export const useOperatorRegistry = () => operatorRegistry;

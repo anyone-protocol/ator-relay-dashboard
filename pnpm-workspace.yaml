@@ -1,0 +1,25 @@
+# pnpm refuses to run build scripts for git-hosted dependencies unless listed here.
+# ao-client is our own package (pinned to a tag) and ships a committed dist/, but it declares a
+# `prepare` script, which is enough to trip the check.
+allowBuilds:
+  # Our own package: git-hosted with a `prepare` script, so pnpm needs it listed.
+  '@anyone-protocol/ao-client': true
+  # Optional native builds. Left OFF — every install and test so far has run with these skipped
+  # (they fall back to JS), and turning them on would change what has been verified.
+  '@reown/appkit': false
+  bufferutil: false
+  esbuild: false
+  keccak: false
+  secp256k1: false
+  utf-8-validate: false
+  vue-demi: false
+
+overrides:
+  # BOUNDED on purpose: `>=8.21.0` alone would allow ws 9.x. Every override here must pin the
+  # major, which is exactly what the inert package.json block failed to do.
+  'ws@<8.21.0': '>=8.21.0 <9'
+
+# NOTE: the rest of `overrides` deliberately NOT set here yet — see the audit findings. pnpm 10+ reads
+# overrides from THIS file, so the 29 entries in package.json's `pnpm.overrides` are inert.
+# Activating them as-written BREAKS the build (`h3@<=1.15.4: >=1.15.5` resolves to h3 2.x,
+# which Nuxt 3.19 cannot load), so they need bounded ranges and a per-override build check.

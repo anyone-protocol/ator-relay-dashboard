@@ -22,7 +22,7 @@ const getNetworkName = () => {
 const contractLinks = [
   {
     name: 'Operator Registry Process',
-    address: runtimeConfig.public.operatorRegistryProcessId,
+    address: runtimeConfig.public.operatorRegistryHyperbeamProcessId,
     type: 'ao',
   },
   {
@@ -39,12 +39,12 @@ const contractLinks = [
   },
   {
     name: 'Relay Rewards Process',
-    address: runtimeConfig.public.relayRewardsProcessId,
+    address: runtimeConfig.public.relayRewardsHyperbeamProcessId,
     type: 'ao',
   },
   {
     name: 'Staking Rewards Process',
-    address: runtimeConfig.public.stakingRewardsProcessId,
+    address: runtimeConfig.public.stakingRewardsHyperbeamProcessId,
     type: 'ao',
   },
   {

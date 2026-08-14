@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+import { eip55, sameAddress } from '~/utils/eip55';
 import moment from 'moment';
 
 import { type Claimable } from '@/utils/contracts';
@@ -157,7 +158,7 @@ export class Distribution {
 
       const userAirdrop = airdropData.find(
         (entry: { id: string; airdrop: number }) =>
-          entry.id.toLowerCase() === address.toLowerCase()
+          sameAddress(entry.id, address)
       );
 
       const variationResponse = await fetch(VARIATION_API_URL);
@@ -168,7 +169,7 @@ export class Distribution {
       const variationData = await variationResponse.json();
       const variation = variationData.filter(
         (entry: { id: string; variation: number }) =>
-          entry.id.toLowerCase() === address.toLowerCase()
+          sameAddress(entry.id, address)
       );
       // console.log('variationResult:', variation);
 

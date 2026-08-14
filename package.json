@@ -14,6 +14,7 @@
     "test": "echo \"No tests specified\""
   },
   "dependencies": {
+    "@anyone-protocol/ao-client": "github:anyone-protocol/ao-client#v0.1.3",
     "@dha-team/arbundles": "1.0.1",
     "@iconify-json/eos-icons": "^1.2.4",
     "@iconify-json/heroicons": "^1.2.3",
@@ -22,7 +23,6 @@
     "@iconify-json/simple-icons": "^1.2.56",
     "@iconify/json": "^2.2.401",
     "@nuxt/ui": "2.14.2",
-    "@permaweb/aoconnect": "0.0.62",
     "@pinia/nuxt": "0.5.1",
     "@reown/appkit": "^1.8.12",
     "@reown/appkit-adapter-wagmi": "^1.8.12",

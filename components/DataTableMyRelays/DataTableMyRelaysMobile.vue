@@ -18,7 +18,7 @@ import { watchAccount } from '@wagmi/core';
 import { defineProps } from 'vue';
 import { fetchHardwareStatus } from '@/composables/utils/useHardwareStatus';
 import { useHodler } from '~/composables/hodler';
-import { useQueries } from '@tanstack/vue-query';
+import { useQuery } from '@tanstack/vue-query';
 
 const props = defineProps<{
   currentTab: RelayTabType;
@@ -43,60 +43,29 @@ const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount();
 const registerModalOpen = ref(false);
 const runtimeConfig = useRuntimeConfig();
-const relayRewardsProcessId = runtimeConfig.public.relayRewardsProcessId;
 
-const getLastRoundData = async (fingerprint: string) => {
-  console.log('Fetching last round data for fingerprint:', fingerprint);
-  try {
-    const { result } = await sendAosDryRun({
-      processId: relayRewardsProcessId,
-      tags: [
-        { name: 'Action', value: 'Last-Round-Data' },
-        { name: 'Fingerprint', value: fingerprint },
-      ],
-    });
-
-    if (result.Error) {
-      console.error('AOS Error: ' + result.Error);
-      return null;
-    }
-    if (!result.Messages.length || !result.Messages[0].Data) {
-      console.error(`No data found for fingerprint: ${fingerprint}`);
-      return null;
-    }
-
-    console.log('Last round result:', result.Messages[0].Data);
-    return JSON.parse(result.Messages[0].Data) as LastRoundData;
-  } catch (error) {
-    console.error('Error fetching last round data:', error);
-    return null;
-  }
-};
-
-const lastRoundResults = useQueries({
-  queries: computed(() =>
-    fingerprints.value.map((fp) => ({
-      queryKey: ['lastRound', fp],
-      queryFn: () => getLastRoundData(fp),
-      enabled: !!fp,
-    }))
-  ),
+/**
+ * ONE request for every relay this operator owns — see the desktop table for the rationale.
+ * The legacy `Last-Round-Data` action takes a single Fingerprint and has no batch form, so it
+ * keeps fanning out; hyperbeam answers the whole set from the operator's address.
+ */
+const lastRoundByAddress = useQuery({
+  queryKey: computed(() => ['lastRoundByAddress', address.value]),
+  queryFn: async (): Promise<Record<string, LastRoundData>> => {
+    if (!address.value) return {};
+    const { readView } = useHyperbeamRead();
+    return await readView<Record<string, LastRoundData>>(
+      runtimeConfig.public.relayRewardsHyperbeamProcessId,
+      'last_round_details',
+      { address: address.value }
+    );
+  },
+  enabled: computed(() => !!address.value),
 });
 
-const lastRound = computed(() => {
-  const rounds: Record<string, LastRoundData> = {};
-  lastRoundResults.value.forEach((query, index) => {
-    console.log('Last round query result:', toRaw(query.data));
-    if (query.data) {
-      rounds[fingerprints.value[index]] = query.data;
-    }
-  });
-  return rounds;
-});
+const lastRound = computed(() => lastRoundByAddress.data.value ?? {});
 
-const lastRoundPending = computed(() =>
-  lastRoundResults.value.some((q) => q.isPending)
-);
+const lastRoundPending = computed(() => lastRoundByAddress.isPending.value);
 
 onMounted(() => {
   // refresh everything every 60 seconds
