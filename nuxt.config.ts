@@ -2,6 +2,47 @@ import { fileURLToPath } from 'node:url';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { replaceCodePlugin } from './plugins/vite-plugin-replace';
 
+/**
+ * Fail a live/prelive build that has not been told which processes to read.
+ *
+ * The runtimeConfig defaults below point at STAGE, because that is what a developer running this
+ * locally wants. Nuxt resolves `NUXT_PUBLIC_FOO_BAR` onto `public.fooBar` silently: a renamed or
+ * mistyped variable in a jobspec does not error, it just leaves the default in place. For a live
+ * build that means shipping a dashboard that reads STAGE contracts to real operators, showing
+ * confidently wrong balances with nothing in the logs to suggest it.
+ *
+ * A missing Consul key is the same class of problem arriving by a different route:
+ * consul-template renders the variable as an EMPTY string rather than omitting it, so the value
+ * is neither the default nor a usable process id. Both are rejected here.
+ *
+ * Only live and prelive are gated. Both set PHASE=live; dev and stage are free to rely on the
+ * defaults.
+ */
+function assertLiveProcessIdsAreExplicit() {
+  const phase = process.env.NUXT_PUBLIC_PHASE || process.env.PHASE;
+  if (phase !== 'live') return;
+
+  const required = [
+    'NUXT_PUBLIC_OPERATOR_REGISTRY_HYPERBEAM_PROCESS_ID',
+    'NUXT_PUBLIC_RELAY_REWARDS_HYPERBEAM_PROCESS_ID',
+    'NUXT_PUBLIC_STAKING_REWARDS_HYPERBEAM_PROCESS_ID',
+    'NUXT_PUBLIC_HYPERBEAM_URL',
+  ];
+  const missing = required.filter((name) => !process.env[name]?.trim());
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Refusing to build for phase "live": ${missing.join(', ')} ` +
+        `${missing.length === 1 ? 'is' : 'are'} unset or empty. ` +
+        `The build would silently fall back to the stage defaults in nuxt.config.ts and serve ` +
+        `stage contract data as if it were live. Check the jobspec env var names and that the ` +
+        `matching smart-contracts/live/* Consul keys exist.`
+    );
+  }
+}
+
+assertLiveProcessIdsAreExplicit();
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },

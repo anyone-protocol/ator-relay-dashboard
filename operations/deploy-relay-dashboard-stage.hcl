@@ -60,7 +60,7 @@ job "deploy-relay-dashboard-stage" {
         PHASE="stage"
         NODE_OPTIONS="--max-old-space-size=4096"
         DASHBOARD_VERSION="[[.commit_sha]]"
-        NUXT_PUBLIC_AO_CU_URL="https://cu-stage.anyone.tech"
+        NUXT_PUBLIC_HYPERBEAM_URL="https://hb-stage.anyone.tech"
         NUXT_PUBLIC_SHOW_GOVERNANCE_CARD="true"
       }
 
@@ -76,9 +76,14 @@ job "deploy-relay-dashboard-stage" {
 
       template {
         data = <<-EOH
-        NUXT_PUBLIC_OPERATOR_REGISTRY_PROCESS_ID="{{ key "smart-contracts/stage/operator-registry-address" }}"
-        NUXT_PUBLIC_RELAY_REWARDS_PROCESS_ID="{{ key "smart-contracts/stage/relay-rewards-address" }}"
-        NUXT_PUBLIC_STAKING_REWARDS_PROCESS_ID="{{ key "smart-contracts/stage/staking-rewards-address" }}"
+        # These Consul keys now hold the NATIVE hyperbeam PIDs: the hyperbeam `deploy.ts` writes
+        # the spawned process id straight to them, so the key paths are unchanged from legacynet
+        # while the values are not. The env var names carry `_HYPERBEAM_` to match the renamed
+        # runtimeConfig keys — Nuxt maps NUXT_PUBLIC_X_Y to public.xY, so a stale name silently
+        # falls back to the hard-coded default in nuxt.config.ts instead of failing.
+        NUXT_PUBLIC_OPERATOR_REGISTRY_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/stage/operator-registry-address" }}"
+        NUXT_PUBLIC_RELAY_REWARDS_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/stage/relay-rewards-address" }}"
+        NUXT_PUBLIC_STAKING_REWARDS_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/stage/staking-rewards-address" }}"
         NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/stage/validator-address-base64" }}"
         NUXT_PUBLIC_FACILITATOR_CONTRACT="{{ key "facilitator/sepolia/stage/address" }}"
         NUXT_PUBLIC_HODLER_CONTRACT="{{ key "hodler/sepolia/stage/address" }}"

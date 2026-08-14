@@ -53,7 +53,10 @@ job "deploy-relay-dashboard-dev" {
       env {
         PHASE="dev"
         DASHBOARD_VERSION="[[.commit_sha]]"
-        NUXT_PUBLIC_AO_CU_URL="https://cu-dev.anyone.tech"
+        # Deliberately hb-STAGE, not hb-dev: the template below reads the `smart-contracts/stage/*`
+        # Consul keys, so those PIDs only exist on the stage node. Pointing this at hb-dev would
+        # ask a node to compute processes it has never seen.
+        NUXT_PUBLIC_HYPERBEAM_URL="https://hb-stage.anyone.tech"
       }
 
       vault {
@@ -78,8 +81,13 @@ job "deploy-relay-dashboard-dev" {
 
       template {
         data = <<-EOH
-        NUXT_PUBLIC_OPERATOR_REGISTRY_PROCESS_ID="{{ key "smart-contracts/stage/operator-registry-address" }}"
-        NUXT_PUBLIC_RELAY_REWARDS_PROCESS_ID="{{ key "smart-contracts/stage/relay-rewards-address" }}"
+        # Dev runs against the STAGE contracts (see the hyperbeam URL note above). See the stage
+        # jobspec for why these carry `_HYPERBEAM_`.
+        NUXT_PUBLIC_OPERATOR_REGISTRY_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/stage/operator-registry-address" }}"
+        NUXT_PUBLIC_RELAY_REWARDS_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/stage/relay-rewards-address" }}"
+        # Was MISSING entirely, so the staking page silently fell back to whatever nuxt.config.ts
+        # happened to carry rather than to what is actually deployed.
+        NUXT_PUBLIC_STAKING_REWARDS_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/stage/staking-rewards-address" }}"
         NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/stage/validator-address-base64" }}"
         NUXT_PUBLIC_FACILITATOR_CONTRACT="{{ key "facilitator/sepolia/stage/address" }}"
         NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/sepolia/stage/address" }}"

@@ -62,6 +62,7 @@ job "deploy-relay-dashboard-prelive" {
         DASHBOARD_VERSION="[[.commit_sha]]"
         NUXT_PUBLIC_EVM_RPC="default"
         NUXT_PUBLIC_PHASE="live"
+        NUXT_PUBLIC_HYPERBEAM_URL="https://hb-live.anyone.tech"
       }
 
       template {
@@ -76,9 +77,13 @@ job "deploy-relay-dashboard-prelive" {
 
       template {
         data = <<-EOH
-        NUXT_PUBLIC_OPERATOR_REGISTRY_PROCESS_ID="{{ key "smart-contracts/live/operator-registry-address" }}"
-        NUXT_PUBLIC_RELAY_REWARDS_PROCESS_ID="{{ key "smart-contracts/live/relay-rewards-address" }}"
-        NUXT_PUBLIC_STAKING_REWARDS_PROCESS_ID="{{ key "smart-contracts/live/staking-rewards-address" }}"
+        # Prelive is the pre-announcement gate: it deliberately reads the SAME live Consul keys as
+        # the live jobspec, so the team verifies the real live configuration. It differs from live
+        # only in publishing to R2 without touching Arweave/ANT. See the stage jobspec for why
+        # these carry `_HYPERBEAM_`.
+        NUXT_PUBLIC_OPERATOR_REGISTRY_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/live/operator-registry-address" }}"
+        NUXT_PUBLIC_RELAY_REWARDS_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/live/relay-rewards-address" }}"
+        NUXT_PUBLIC_STAKING_REWARDS_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/live/staking-rewards-address" }}"
         NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/live/validator-address-base64" }}"
         NUXT_PUBLIC_HODLER_CONTRACT="{{ key "hodler/ethereum/live/address" }}"
         NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/ethereum/live/address" }}"

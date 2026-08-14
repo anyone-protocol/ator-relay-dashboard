@@ -62,6 +62,7 @@ job "deploy-relay-dashboard-live" {
         DASHBOARD_VERSION="[[.commit_sha]]"
         NUXT_PUBLIC_EVM_RPC="default" # "https://eth-mainnet.public.blastapi.io"
         NUXT_PUBLIC_PHASE="live"
+        NUXT_PUBLIC_HYPERBEAM_URL="https://hb-live.anyone.tech"
         NUXT_PUBLIC_SHOW_GOVERNANCE_CARD="true"
       }
 
@@ -77,9 +78,12 @@ job "deploy-relay-dashboard-live" {
 
       template {
         data = <<-EOH
-        NUXT_PUBLIC_OPERATOR_REGISTRY_PROCESS_ID="{{ key "smart-contracts/live/operator-registry-address" }}"
-        NUXT_PUBLIC_RELAY_REWARDS_PROCESS_ID="{{ key "smart-contracts/live/relay-rewards-address" }}"
-        NUXT_PUBLIC_STAKING_REWARDS_PROCESS_ID="{{ key "smart-contracts/live/staking-rewards-address" }}"
+        # See the stage jobspec for why these carry `_HYPERBEAM_`: the key paths are unchanged,
+        # the values are now native PIDs, and a stale env var name fails SILENTLY by falling back
+        # to the nuxt.config.ts default (which points at STAGE).
+        NUXT_PUBLIC_OPERATOR_REGISTRY_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/live/operator-registry-address" }}"
+        NUXT_PUBLIC_RELAY_REWARDS_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/live/relay-rewards-address" }}"
+        NUXT_PUBLIC_STAKING_REWARDS_HYPERBEAM_PROCESS_ID="{{ key "smart-contracts/live/staking-rewards-address" }}"
         NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/live/validator-address-base64" }}"
         NUXT_PUBLIC_HODLER_CONTRACT="{{ key "hodler/ethereum/live/address" }}"
         NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/ethereum/live/address" }}"
