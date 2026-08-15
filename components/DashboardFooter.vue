@@ -67,14 +67,16 @@ const getLink = (address: string, type: string) => {
         return `https://etherscan.io/address/${address}`;
       }
       return `https://sepolia.etherscan.io/address/${address}`;
-    case 'evmMain':
-      return `https://etherscan.io/address/${address}`;
-    case 'arweave':
-      return `https://sonar.warp.cc/#/app/contract/${address}?network=mainnet`;
     case 'viewblock':
       return `https://viewblock.io/arweave/address/${address}?tab=items`;
     case 'ao':
-      return `https://aolink.ar.anyone.tech/#/entity/${address}`;
+      // Lunar, the successor to the deprecated aolink. Hash-routed, hence `/#/explorer/`.
+      //
+      // It reads our processes without being pointed at our node: every message and assignment
+      // is uploaded to Arweave, so the history resolves through the gateway. The node's own
+      // Hyperbuddy was tried first and only renders the process properties from spawn, not a
+      // message history, which is the thing worth linking to.
+      return `https://lunar.arweave.net/#/explorer/${address}/info`;
     default:
       return '#';
   }
