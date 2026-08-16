@@ -4,14 +4,33 @@
 allowBuilds:
   # Our own package: git-hosted with a `prepare` script, so pnpm needs it listed.
   #
-  # BOTH forms are required. pnpm >= ~11.2 refuses a git-hosted package listed by bare name and
-  # demands the fully resolved tarball specifier; older pnpm matches the bare name and ignores the
-  # long key. Listing only the bare name builds fine on a warm store (prepare never re-runs) and
-  # then fails in a clean Docker build with ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED, which is exactly
-  # how this reached CI unnoticed.
+  # 🚨 KNOWN LANDMINE — THE TWO KEYS BELOW BREAK ANY DEPENDENCY CHANGE. 🚨
   #
-  # ⚠️ The long key embeds the commit the `#v0.1.3` tag resolves to. Re-pin ao-client and this key
-  # must be updated to match the new `pnpm-lock.yaml` resolution, or clean installs break again.
+  # Listing one package under two keys is read by pnpm as a versions union and rejected:
+  #     ERR_PNPM_INVALID_VERSION_UNION ... Use exact versions only.
+  #
+  # It is latent because that check only runs when pnpm RE-RESOLVES. Installing from the existing
+  # lockfile — `--frozen-lockfile`, the Docker build, CI — never trips it, so everything looks
+  # green until someone adds, bumps, OR REMOVES a dependency. Removal is not a safe operation
+  # here: it re-resolves like any other change.
+  #
+  # Both keys are present because the two pnpm versions in play want opposite things:
+  #     pnpm 11.1.1  (local)     bare name REQUIRED, long form rejected outright
+  #     pnpm 11.21.0 (container) bare name rejected with ERR_PNPM_GIT_DEP_PREPARE_NOT_ALLOWED,
+  #                              long form required
+  # No single key satisfies both, so this cannot be fixed by editing the keys alone.
+  #
+  # THE FIX, when someone next needs a dependency change:
+  #   1. add `"packageManager": "pnpm@11.21.0"` to package.json and use that version locally
+  #      (the Dockerfile already pins it)
+  #   2. keep ONLY the long key below
+  #   3. re-resolve, then DIFF THE LOCKFILE FOR DRIFT before committing
+  # ⚠️ Step 3 is not optional. Doing this carelessly on 2026-08-15 silently moved
+  # wagmi 2.15.3 -> 3.7.6, react 19 -> 18 and zod 4 -> 3, which broke the wagmi chain config
+  # ("Chain not configured") at runtime. Pin anything that moves rather than accepting it.
+  #
+  # ⚠️ The long key embeds the commit the `#v0.1.3` tag resolves to. Re-pinning ao-client means
+  # updating it to match the new `pnpm-lock.yaml` resolution.
   '@anyone-protocol/ao-client': true
   '@anyone-protocol/ao-client@https://codeload.github.com/anyone-protocol/ao-client/tar.gz/3fc04052c7d76691d8345adcb24f6b5bf99d6988': true
   # Optional native builds. Left OFF — every install and test so far has run with these skipped
