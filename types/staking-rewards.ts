@@ -8,26 +8,6 @@ export interface OperatorRewards {
   redeemable: string;
 }
 
-export interface StakingSnapshot {
-  Network: Network;
-  Stakes: Stakes;
-  Timestamp: number;
-}
-
-export interface NetworkRunningCount {
-  expected: number;
-  running: number;
-  found: number;
-}
-
-export interface Network {
-  [address: `0x${string}`]: NetworkRunningCount;
-}
-
-export interface Stakes {
-  [address: `0x${string}`]: string;
-}
-
 export interface LastRoundMetadata {
   Timestamp: number;
   Period: number;
@@ -83,9 +63,19 @@ export interface Configuration {
   };
 }
 
+export interface NetworkCounts {
+  [operatorAddress: `0x${string}`]: {
+    Expected: number;
+    Running: number;
+    Found: number;
+  };
+}
+
 export interface LastSnapshot {
   Configuration: Configuration;
   Details: Details;
+  // Optional: rounds settled before the contract carried per-operator relay counts have none.
+  Network?: NetworkCounts;
   Timestamp: number;
   Period: number;
   Summary: {

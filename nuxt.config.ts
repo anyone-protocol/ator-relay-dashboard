@@ -107,7 +107,6 @@ export default defineNuxtConfig({
         'utn6vNEgtyuZivk4gz-2tGWYWVPinJhYk4IDDdqLtUE',
       stakingRewardsHyperbeamProcessId:
         '41eqpwcMIyMhCAElq-M3jHMrMSTVENujZDJ09Vnd0nE',
-      stakingSnapshotController: '6FyQki05iUsRdoY252dE4GlGItW4jpIr_t21VA3D6Zw',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: '53a5b087ab4cb303a799325360098216',
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',

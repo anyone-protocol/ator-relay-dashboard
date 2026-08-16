@@ -89,7 +89,6 @@ job "deploy-relay-dashboard-prelive" {
         NUXT_PUBLIC_SEPOLIA_ATOR_TOKEN_CONTRACT="{{ key "ator-token/ethereum/live/address" }}"
         {{ with secret "kv/live-protocol/deploy-relay-dashboard-prelive" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
-        NUXT_PUBLIC_STAKING_SNAPSHOT_CONTROLLER="{{ .Data.data.STAKING_REWARDS_CONTROLLER_ADDRESS_ARWEAVE }}"
         {{ end }}
         EOH
         destination = "secrets/file.env"

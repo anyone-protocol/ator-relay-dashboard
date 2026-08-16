@@ -71,7 +71,7 @@
                 </Popover>
               </div>
               <div class="inline-flex items-baseline gap-2">
-                <template v-if="isConnected && (operatorsWithDomainsPending || isStakingSnapshotPending || isLastSnapshotPending)">
+                <template v-if="isConnected && (operatorsWithDomainsPending || isLastSnapshotPending)">
                   <USkeleton class="w-[8rem] h-6" />
                 </template>
                 <template v-else>
@@ -108,7 +108,7 @@
                 </Popover>
               </div>
               <div class="inline-flex items-baseline gap-2">
-                <template v-if="isStakingSnapshotPending && isConnected">
+                <template v-if="isLastSnapshotPending && isConnected">
                   <USkeleton class="w-[8rem] h-6" />
                 </template>
                 <template v-else>
@@ -144,7 +144,7 @@
                 </Popover>
               </div>
               <div class="inline-flex items-baseline gap-2">
-                <template v-if="isStakingSnapshotPending && isConnected">
+                <template v-if="isLastSnapshotPending && isConnected">
                   <USkeleton class="w-[8rem] h-6" />
                 </template>
                 <template v-else>
@@ -187,7 +187,7 @@
               icon: 'i-heroicons-circle-stack-20-solid',
               label: 'No operators.',
             }"
-            :loading="currentTab === 'operators' && (operatorsWithDomainsPending || isStakingSnapshotPending)"
+            :loading="currentTab === 'operators' && (operatorsWithDomainsPending || isLastSnapshotPending)"
             :columns="operatorColumns"
             :rows="
               currentTab === 'operators'
@@ -362,7 +362,7 @@
               icon: 'i-heroicons-circle-stack-20-solid',
               label: 'No stakes delegated to you.',
             }"
-            :loading="currentTab === 'delegators' && (operatorsWithDomainsPending || isStakingSnapshotPending || isLastSnapshotPending)"
+            :loading="currentTab === 'delegators' && (operatorsWithDomainsPending || isLastSnapshotPending)"
             :columns="delegatorColumns"
             :rows="currentOperatorDelegatedStakes"
           >
@@ -500,7 +500,7 @@ const { isLoading: isConfirming, isSuccess: isConfirmed } =
 const toast = useToast();
 const { copy, copied, text: copiedText } = useClipboard();
 const runtimeConfig = useRuntimeConfig();
-const { getClaimableStakingRewards, getLastSnapshot, getStakingSnapshot } =
+const { getClaimableStakingRewards, getLastSnapshot, deriveOperatorStakes } =
   useStakingRewards();
 
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
@@ -582,16 +582,18 @@ const { data: tokenBalance, isPending: tokenBalancePending } = useBalance({
   },
 });
 
+// `as/last_snapshot` takes no parameters, so it is neither keyed on nor gated by the connected
+// address. It previously was both, which refetched the same round on every address change and
+// withheld it entirely when disconnected — the latter mattered once the operator table started
+// deriving from it rather than from the Arweave publication.
 const { data: lastSnapshot, isPending: isLastSnapshotPending } = useQuery({
-  queryKey: computed(() => ['lastSnapshot', address.value]),
-  queryFn: getLastSnapshot,
-  enabled: computed(() => !!address.value)
+  queryKey: ['lastSnapshot'],
+  queryFn: getLastSnapshot
 });
 
-const { data: stakingSnapshot, isPending: isStakingSnapshotPending } = useQuery({
-  queryKey: computed(() => ['stakingSnapshot', address.value]),
-  queryFn: getStakingSnapshot
-});
+// Per-operator stake and running ratio, derived from the round above rather than fetched from
+// the `staking/snapshot` Arweave publication. Same numbers, one fewer external dependency.
+const operatorStakes = computed(() => deriveOperatorStakes(lastSnapshot.value));
 
 
 const { data: operatorRewardsData } = useQuery({
@@ -984,8 +986,7 @@ watch(searchQuery, (newValue) => {
 });
 
 const updateOperators = (reason?: string) => {
-  // console.log('start updateOperators, reason:', reason, 'staking snapshot:', stakingSnapshot.value);
-  if (!stakingSnapshot.value) {
+  if (!lastSnapshot.value) {
     allOperators.value = [];
     return;
   }
@@ -1022,48 +1023,20 @@ const updateOperators = (reason?: string) => {
       ),
     ];
 
-    const normalizedStakes = stakingSnapshot.value?.Stakes
-      ? Object.fromEntries(
-          Object.entries(stakingSnapshot.value.Stakes).map(([addr, amount]) => [
-            eip55(addr) as `0x${string}`,
-            amount,
-          ])
-        )
-      : {};
+    // Both maps are already keyed by canonical EIP-55 (deriveOperatorStakes normalizes), so no
+    // second normalization pass is needed here.
+    const { stakes: normalizedStakes, running: normalizedRunning } =
+      operatorStakes.value;
 
-    // const totalStakes = stakingSnapshot.value?.Stakes
-    //   ? Object.values(stakingSnapshot.value.Stakes).reduce(
-    //       (acc, val) => acc + BigInt(val),
-    //       0n
-    //     )
-    //   : 0n;
-    // currentApy.value = totalStakes > 0n
-    //   ? BigNumber(1825000).div(formatEtherNoRound(totalStakes)).toFixed(2)
-    //   : '--';
-    // console.log('total stakes:', totalStakes, 'total stakes whole tokens:', formatEtherNoRound(totalStakes), 'current apy:', currentApy.value);
-
-    const normalizedNetwork = stakingSnapshot.value?.Network
-      ? Object.fromEntries(
-          Object.entries(stakingSnapshot.value.Network).map(([addr, data]) => [
-            eip55(addr) as `0x${string}`,
-            data,
-          ])
-        )
-      : {};
-
+    // `running` is a ratio in both sources — derived from the contract's per-operator relay
+    // counts when the round carries them, else the `Score.Running` quotient — so the threshold
+    // applies directly.
     const threshold = runningThreshold.value ?? 0.5;
-    const operatorsWithData = combinedOperators.map((op) => {
-      const networkData = normalizedNetwork[op.operator];
-      const running = networkData?.running || 0;
-      const expected = networkData?.expected || 0;
-      return {
-        ...op,
-        total: normalizedStakes[op.operator]
-          ? BigInt(normalizedStakes[op.operator])
-          : 0n,
-        running: expected > 0 ? running / expected >= threshold : false,
-      };
-    });
+    const operatorsWithData = combinedOperators.map((op) => ({
+      ...op,
+      total: normalizedStakes[op.operator] ?? 0n,
+      running: (normalizedRunning[op.operator] ?? 0) >= threshold,
+    }));
 
     if (address.value) {
       const currentOperatorAddress = eip55(address.value)
@@ -1072,13 +1045,11 @@ const updateOperators = (reason?: string) => {
           sameAddress(op.operator, address.value)
       ) || null;
       if (currentOperator.value) {
-        if (normalizedNetwork[currentOperatorAddress]) {
-          currentOperator.value['percentRunning'] = normalizedNetwork[currentOperatorAddress].running /
-            normalizedNetwork[currentOperatorAddress].expected *
-            100;
-        } else {
-          currentOperator.value['percentRunning'] = 0;
-        }
+        // "Your Relays Online". The old Network map carried running/expected counts and this
+        // divided them; the contract's `Score.Running` is already that quotient, so it only
+        // needs scaling to a percentage.
+        currentOperator.value['percentRunning'] =
+          (normalizedRunning[currentOperatorAddress as `0x${string}`] ?? 0) * 100;
 
         currentOperatorDelegatedStakes.value = [];
         let totalDelegated = 0n;
@@ -1137,12 +1108,12 @@ watch(currentTab, (newTab) => {
   if (newTab === 'operators' || newTab === 'stakedOperators') updateOperators('currentTab changed');
   if (newTab === 'vaults') updateTotalClaimable();
 });
-watch([stakingSnapshot, runningThreshold], () => {
+watch([lastSnapshot, runningThreshold], () => {
   if (
     currentTab.value === 'operators' ||
     currentTab.value === 'stakedOperators'
   ) {
-    updateOperators('stakingSnapshot or runningThreshold changed');
+    updateOperators('lastSnapshot or runningThreshold changed');
   }
 });
 watch(address, () => {

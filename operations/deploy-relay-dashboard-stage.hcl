@@ -91,7 +91,6 @@ job "deploy-relay-dashboard-stage" {
         NUXT_PUBLIC_REGISTRATOR_CONTRACT="{{ key "registrator/sepolia/stage/address" }}"
         {{ with secret "kv/stage-protocol/deploy-relay-dashboard-stage" }}
         NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{ .Data.data.SUPPORT_ADDRESS_BASE64 }}"
-        NUXT_PUBLIC_STAKING_SNAPSHOT_CONTROLLER="{{ .Data.data.STAKING_REWARDS_CONTROLLER_ADDRESS_ARWEAVE }}"
         {{ end }}
         EOH
         destination = "secrets/file.env"

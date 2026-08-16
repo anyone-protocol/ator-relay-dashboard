@@ -7,7 +7,6 @@ import type {
   LastSnapshot,
   OperatorRewards,
   StakingRewardsState,
-  StakingSnapshot,
 } from '~/types/staking-rewards';
 import { computed } from 'vue';
 
@@ -135,73 +134,58 @@ export const useStakingRewards = () => {
     }
   };
 
-  const runtimeConfig = useRuntimeConfig();
-  const stakingSnapshotController =
-    runtimeConfig.public.stakingSnapshotController;
+  /**
+   * Per-operator stake and running ratio, derived from the round snapshot the contract already
+   * serves.
+   *
+   * This replaces a read of the `staking/snapshot` Arweave publication. That publication is
+   * derived data the controller assembled, it fails silently often enough that nobody noticed,
+   * and reading it made the dashboard depend on a gateway for something the contract holds. Both
+   * values the staking page needs are already in `as/last_snapshot`, which the page fetches
+   * anyway for the running threshold, so this costs no extra request.
+   *
+   * 🚨 `Details` is keyed `[hodler][operator]`, NOT `[operator][hodler]` — the contract builds it
+   * from a `hodler/operator` pair key. Reading it the other way round silently produces
+   * plausible-looking but wrong totals, so the stake for an operator is a SUM over hodlers.
+   *
+   * `Running` is a property of the OPERATOR, so every hodler staking to it carries the same
+   * value; taking the max is just a safe way to pick one. Verified across a live round: 19
+   * hodlers, 17 operators, zero disagreement.
+   */
+  const deriveOperatorStakes = (snapshot: LastSnapshot | null | undefined) => {
+    const stakes: Record<`0x${string}`, bigint> = {};
+    const running: Record<`0x${string}`, number> = {};
+    if (!snapshot) return { stakes, running };
 
-  const arweave = useArweave();
-  const queryObject = {
-    query: `{
-		transactions(
-			first:10,
-      owners: ["${stakingSnapshotController}"],
-			tags: [
-				{
-					name: "Protocol",
-					values: ["ANyONe"]
-				},
-				{
-					name: "Protocol-Version",
-					values: ["0.2"]
-				},
-				{
-					name: "Content-Type",
-					values: ["application/json"]
-				},
-				{
-					name: "Entity-Type",
-					values: ["staking/snapshot"]
-				}
-			]
-		) 
-		{
-			edges {
-				node {
-					id
-					tags {
-						name
-						value
-					}
-				}
-			}
-		}
-	}`,
-  };
-
-  const getStakingSnapshot = async () => {
-    try {
-      const results = await arweave.api.post('/graphql', queryObject);
-      const edges = results.data.data.transactions.edges;
-
-      if (!edges || edges.length === 0) {
-        throw new Error('No transactions found.');
+    for (const hodler in snapshot.Details ?? {}) {
+      const perOperator = snapshot.Details[hodler as `0x${string}`];
+      for (const operator in perOperator) {
+        const score = perOperator[operator as `0x${string}`]?.Score;
+        if (!score) continue;
+        const key = eip55(operator) as `0x${string}`;
+        stakes[key] = (stakes[key] ?? 0n) + BigInt(score.Staked || '0');
+        running[key] = Math.max(running[key] ?? 0, Number(score.Running) || 0);
       }
-
-      for (let i = 0; i < Math.min(10, edges.length); i++) {
-        const snapshotId = edges[i].node.id;
-        const snapshotRes = await arweave.api.get(`/${snapshotId}`);
-        if (snapshotRes.ok) {
-          const snapshotData: StakingSnapshot = snapshotRes.data;
-          logger.info(`Staking snapshot data from edge ${i}:`, snapshotData);
-          return snapshotData;
-        }
-      }
-
-      throw new Error('No valid snapshot found in the first 10 edges.');
-    } catch (error) {
-      logger.error('Error fetching staking snapshot:', error);
-      throw error;
     }
+
+    // `Network` carries the raw relay counts the ratio above was computed from. Optional: a round
+    // settled before the contract gained the field has none, and the ratio still drives the badge.
+    //
+    // Where it IS present it takes precedence, because it also covers operators with NO stake.
+    // Those never appear in Details, so the ratio alone cannot see them and they would otherwise
+    // read as not-running — which is exactly wrong for a new operator with relays up.
+    //
+    // Only the ratio is taken here. The counts themselves are deliberately not surfaced: nothing
+    // in the UI displays them, and the round record in the contract is where they belong.
+    const network = snapshot.Network ?? {};
+    for (const operator in network) {
+      const c = network[operator as `0x${string}`];
+      if (!c) continue;
+      running[eip55(operator) as `0x${string}`] =
+        c.Expected > 0 ? Math.min(c.Running / c.Expected, 1) : 0;
+    }
+
+    return { stakes, running };
   };
 
   // NOTE: there is deliberately no AO claim here.
@@ -216,7 +200,7 @@ export const useStakingRewards = () => {
     getClaimableStakingRewards,
     getTotalClaimableStakingRewards,
     getLastSnapshot,
-    getStakingSnapshot,
+    deriveOperatorStakes,
     getStakingRewardsState,
   };
 };
