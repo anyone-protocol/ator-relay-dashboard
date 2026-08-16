@@ -714,7 +714,6 @@ import Card from '@/components/ui-kit/Card.vue';
 import Ticker from '@/components/ui-kit/Ticker.vue';
 import { formatEtherNoRound, calculateAirdrop } from '@/utils/format';
 import Popover from '../components/ui-kit/Popover.vue';
-import { calculateBalance } from '@/composables/utils/useRelaysBalanceCheck';
 import { useRelayRewards } from '@/composables/relay-rewards';
 import { initHodler, useHodler } from '~/composables/hodler';
 import { hodlerAbi } from '../assets/abi/hodler';
@@ -822,20 +821,17 @@ const registeredCount = registeredCountQuery;
 const hardwareCount = hardwareCountQuery;
 const claimedCount = claimedCountQuery;
 
-const hasEnoughBalance = ref(false);
-const hasEnoughBalancePending = ref(true);
-
-// Watch allRelays for balance check
-watch(allRelaysQuery, async (allRelays) => {
-  if (!allRelays || !address.value) return;
-  hasEnoughBalancePending.value = true;
-  hasEnoughBalance.value = await calculateBalance(
-    config,
-    allRelays,
-    address.value
-  );
-  hasEnoughBalancePending.value = false;
-});
+// Removed: a watcher computing `hasEnoughBalance` from a MAINNET token balance.
+//
+// Both refs it wrote were never read — not by the template, not anywhere — so the whole thing was
+// dead weight that still crashed the page. `getBalance(..., { chainId: mainnet.id })` throws
+// "Chain not configured" whenever wagmi is built for a single non-mainnet chain, which is every
+// non-live phase (`networks: [sepolia]`), and the watcher did not catch it. The result was an
+// unhandled rejection and a 500 error page the moment a wallet connected.
+//
+// ⚠️ The underlying config is still inconsistent and worth a look: non-live defines a mainnet
+// TRANSPORT but leaves mainnet out of `networks`, so any other mainnet read would fail the same
+// way. Nothing does one today.
 
 // Refresh hodler when address changes
 watch(address, async (newAddress) => {
