@@ -97,16 +97,21 @@ export default defineNuxtConfig({
     public: {
       evmRpc: 'https://sepolia.gateway.tenderly.co',
       hyperbeamUrl: 'https://hb-stage.anyone.tech',
-      // Hyperbeam PIDs — stage, batch deploy 2026-08-13. These change on every contract
-      // redeploy: `deploy.ts` spawns a fresh process and writes the new id to Consul, so a
-      // stale id here reads a process nobody is writing to any more (and the nginx edge
-      // allowlist follows Consul, so it 403s rather than serving stale data).
+      // Hyperbeam PIDs — stage. These change on every contract redeploy: `deploy.ts` spawns a
+      // fresh process and writes the new id to Consul, so a stale id here reads a process nobody
+      // is writing to any more (and the nginx edge allowlist follows Consul, so it 403s rather
+      // than serving stale data).
+      //
+      // Only LOCAL builds use these. Every deployed phase templates the real id from Consul, so a
+      // stale default is invisible on stage and live — which is exactly why it needs updating by
+      // hand after a redeploy.
       operatorRegistryHyperbeamProcessId:
         '2p2aXwksN1kLc_mbl2jWrfdmKw9tHD_PYR5-ZHWEPyc',
       relayRewardsHyperbeamProcessId:
         'utn6vNEgtyuZivk4gz-2tGWYWVPinJhYk4IDDdqLtUE',
+      // Redeployed 2026-08-16 for the per-operator relay counts.
       stakingRewardsHyperbeamProcessId:
-        '41eqpwcMIyMhCAElq-M3jHMrMSTVENujZDJ09Vnd0nE',
+        'rYv6t6m5ZD6UD2Z6vNbCGgUKYPJDn3Zby7Cwn4vgwXo',
       encryptedMessagesProcessId: '5TW6sze3xuYWBDHKmP19fAdgQhebuNZ0nV0NilOpX2Y',
       walletConnectProjectId: '53a5b087ab4cb303a799325360098216',
       relayRegistryAddress: 'ckFDH7CuiQQNj_Jes3lUDoQgT7Cuh76GEsOAl--T7P8',
