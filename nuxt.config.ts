@@ -30,6 +30,30 @@ function assertLiveProcessIdsAreExplicit() {
   ];
   const missing = required.filter((name) => !process.env[name]?.trim());
 
+  // Non-empty is not the same as correct. `hb-live.anyone.tech` sat in the prelive and live
+  // jobspecs and does not resolve at all — the live node is `hb.anyone.tech`. The check above
+  // passes such a value happily, and the result is a dashboard that builds clean, deploys
+  // clean, and cannot read a single process. Pin the host for the phase that matters.
+  const LIVE_NODE = 'hb.anyone.tech';
+  const url = process.env.NUXT_PUBLIC_HYPERBEAM_URL?.trim();
+  if (url && !missing.includes('NUXT_PUBLIC_HYPERBEAM_URL')) {
+    let host = '';
+    try {
+      host = new URL(url).host;
+    } catch {
+      throw new Error(
+        `Refusing to build for phase "live": NUXT_PUBLIC_HYPERBEAM_URL is not a valid URL (${url}).`
+      );
+    }
+    if (host !== LIVE_NODE) {
+      throw new Error(
+        `Refusing to build for phase "live": NUXT_PUBLIC_HYPERBEAM_URL points at "${host}", ` +
+          `but the live HyperBEAM node is "${LIVE_NODE}". A host that does not resolve produces ` +
+          `a dashboard that builds and deploys cleanly and cannot read any process.`
+      );
+    }
+  }
+
   if (missing.length > 0) {
     throw new Error(
       `Refusing to build for phase "live": ${missing.join(', ')} ` +

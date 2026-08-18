@@ -62,7 +62,7 @@ job "deploy-relay-dashboard-prelive" {
         DASHBOARD_VERSION="[[.commit_sha]]"
         NUXT_PUBLIC_EVM_RPC="default"
         NUXT_PUBLIC_PHASE="live"
-        NUXT_PUBLIC_HYPERBEAM_URL="https://hb-live.anyone.tech"
+        NUXT_PUBLIC_HYPERBEAM_URL="https://hb.anyone.tech"
       }
 
       template {
