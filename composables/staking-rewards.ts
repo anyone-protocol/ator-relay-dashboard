@@ -6,6 +6,8 @@ import type {
   LastRoundMetadata,
   LastSnapshot,
   OperatorRewards,
+  RelayCounts,
+  RelayStatus,
   StakingRewardsState,
 } from '~/types/staking-rewards';
 import { computed } from 'vue';
@@ -155,7 +157,8 @@ export const useStakingRewards = () => {
   const deriveOperatorStakes = (snapshot: LastSnapshot | null | undefined) => {
     const stakes: Record<`0x${string}`, bigint> = {};
     const running: Record<`0x${string}`, number> = {};
-    if (!snapshot) return { stakes, running };
+    const relays: Record<`0x${string}`, RelayCounts> = {};
+    if (!snapshot) return { stakes, running, relays };
 
     for (const hodler in snapshot.Details ?? {}) {
       const perOperator = snapshot.Details[hodler as `0x${string}`];
@@ -174,18 +177,26 @@ export const useStakingRewards = () => {
     // Where it IS present it takes precedence, because it also covers operators with NO stake.
     // Those never appear in Details, so the ratio alone cannot see them and they would otherwise
     // read as not-running — which is exactly wrong for a new operator with relays up.
-    //
-    // Only the ratio is taken here. The counts themselves are deliberately not surfaced: nothing
-    // in the UI displays them, and the round record in the contract is where they belong.
     const network = snapshot.Network ?? {};
     for (const operator in network) {
       const c = network[operator as `0x${string}`];
       if (!c) continue;
-      running[eip55(operator) as `0x${string}`] =
-        c.Expected > 0 ? Math.min(c.Running / c.Expected, 1) : 0;
+      const key = eip55(operator) as `0x${string}`;
+      running[key] = c.Expected > 0 ? Math.min(c.Running / c.Expected, 1) : 0;
+      relays[key] = { online: c.Running, total: c.Expected };
     }
 
-    return { stakes, running };
+    return { stakes, running, relays };
+  };
+
+  const relayStatus = (
+    ratio: number,
+    counts: RelayCounts | undefined,
+    threshold: number
+  ): RelayStatus => {
+    const someOnline = counts ? counts.online > 0 : ratio > 0;
+    if (!someOnline) return 'red';
+    return ratio >= threshold ? 'green' : 'yellow';
   };
 
   // NOTE: there is deliberately no AO claim here.
@@ -201,6 +212,7 @@ export const useStakingRewards = () => {
     getTotalClaimableStakingRewards,
     getLastSnapshot,
     deriveOperatorStakes,
+    relayStatus,
     getStakingRewardsState,
   };
 };

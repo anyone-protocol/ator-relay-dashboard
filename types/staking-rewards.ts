@@ -71,6 +71,13 @@ export interface NetworkCounts {
   };
 }
 
+export interface RelayCounts {
+  online: number;
+  total: number;
+}
+
+export type RelayStatus = 'green' | 'yellow' | 'red';
+
 export interface LastSnapshot {
   Configuration: Configuration;
   Details: Details;

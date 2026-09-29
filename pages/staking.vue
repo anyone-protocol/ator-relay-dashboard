@@ -204,10 +204,16 @@
             <template #total-data="{ row }: { row: Operator }">
               <span> {{ formatEtherNoRound(row.total || '0') }} </span>
             </template>
-            <template #running-data="{ row }: { row: Operator }">
-              <span :class="row.running ? 'text-green-500' : 'text-red-500'"
-                >●</span
+            <template #runningRatio-data="{ row }: { row: Operator }">
+              <div
+                class="flex items-center gap-2"
+                :title="relayStatusTitle(row)"
               >
+                <span :class="relayStatusClass(row)">●</span>
+                <span v-if="row.relays" class="tabular-nums">
+                  {{ row.relays.online }} / {{ row.relays.total }}
+                </span>
+              </div>
             </template>
             <template #domains-data="{ row }: { row: Operator }">
               <div class="flex items-center gap-1">
@@ -448,6 +454,7 @@ import Ticker from '~/components/ui-kit/Ticker.vue';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import BigNumber from 'bignumber.js';
 import { filterOperatorsByQuery } from '~/utils/filterOperators';
+import type { RelayCounts } from '~/types/staking-rewards';
 
 interface Vault {
   amount: bigint;
@@ -461,7 +468,8 @@ interface Operator {
   amount: bigint;
   redeemableRewards?: string;
   total?: bigint;
-  running?: boolean;
+  runningRatio?: number;
+  relays?: RelayCounts;
   domains?: {
     tokenId: string;
     name: string;
@@ -500,8 +508,12 @@ const { isLoading: isConfirming, isSuccess: isConfirmed } =
 const toast = useToast();
 const { copy, copied, text: copiedText } = useClipboard();
 const runtimeConfig = useRuntimeConfig();
-const { getClaimableStakingRewards, getLastSnapshot, deriveOperatorStakes } =
-  useStakingRewards();
+const {
+  getClaimableStakingRewards,
+  getLastSnapshot,
+  deriveOperatorStakes,
+  relayStatus,
+} = useStakingRewards();
 
 const hodlerContract = runtimeConfig.public.hodlerContract as `0x${string}`;
 const tokenContract =
@@ -676,7 +688,7 @@ const operatorColumns = computed(() => {
       { key: 'operator', label: 'Operator', sortable: true },
       { key: 'amount', label: 'Your stake', sortable: true },
       { key: 'total', label: 'Total Stakes', sortable: true },
-      { key: 'running', label: 'Running', sortable: true },
+      { key: 'runningRatio', label: 'Running', sortable: true },
       { key: 'domains', label: 'Domains', sortable: true },
       {
         key: 'redeemableRewards',
@@ -695,11 +707,36 @@ const operatorColumns = computed(() => {
     { key: 'operator', label: 'Operator', sortable: true },
     { key: 'amount', label: 'Your stake', sortable: true },
     { key: 'total', label: 'Total Stakes', sortable: true },
-    { key: 'running', label: 'Running', sortable: true },
+    { key: 'runningRatio', label: 'Running', sortable: true },
     { key: 'domains', label: 'Domains', sortable: true },
     { key: 'actions', label: 'Actions' },
   ];
 });
+
+const RELAY_STATUS_CLASS = {
+  green: 'text-green-500',
+  yellow: 'text-yellow-500',
+  red: 'text-red-500',
+};
+
+const rowRelayStatus = (row: Operator) =>
+  relayStatus(row.runningRatio ?? 0, row.relays, runningThreshold.value ?? 0.5);
+
+const relayStatusClass = (row: Operator) =>
+  RELAY_STATUS_CLASS[rowRelayStatus(row)];
+
+const relayStatusTitle = (row: Operator) => {
+  const required = Math.round((runningThreshold.value ?? 0.5) * 100);
+  const counts = row.relays
+    ? `${row.relays.online} of ${row.relays.total} relays online`
+    : 'Relay counts unavailable';
+  const meaning = {
+    green: `at or above the ${required}% needed to earn staking rewards`,
+    yellow: `below the ${required}% needed to earn staking rewards`,
+    red: 'not earning staking rewards',
+  }[rowRelayStatus(row)];
+  return `${counts}, ${meaning}`;
+};
 
 const operatorActionItems = (row: Operator) => [
   [
@@ -957,7 +994,8 @@ const filteredStakedOperators = computed(() => {
     return {
       ...op,
       total: operatorData?.total ?? 0n,
-      running: operatorData?.running ?? false,
+      runningRatio: operatorData?.runningRatio ?? 0,
+      relays: operatorData?.relays,
       domains: operatorData?.domains ?? [],
     };
   });
@@ -1023,19 +1061,17 @@ const updateOperators = (reason?: string) => {
       ),
     ];
 
-    // Both maps are already keyed by canonical EIP-55 (deriveOperatorStakes normalizes), so no
-    // second normalization pass is needed here.
-    const { stakes: normalizedStakes, running: normalizedRunning } =
-      operatorStakes.value;
+    const {
+      stakes: normalizedStakes,
+      running: normalizedRunning,
+      relays: normalizedRelays,
+    } = operatorStakes.value;
 
-    // `running` is a ratio in both sources — derived from the contract's per-operator relay
-    // counts when the round carries them, else the `Score.Running` quotient — so the threshold
-    // applies directly.
-    const threshold = runningThreshold.value ?? 0.5;
     const operatorsWithData = combinedOperators.map((op) => ({
       ...op,
       total: normalizedStakes[op.operator] ?? 0n,
-      running: (normalizedRunning[op.operator] ?? 0) >= threshold,
+      runningRatio: normalizedRunning[op.operator] ?? 0,
+      relays: normalizedRelays[op.operator],
     }));
 
     if (address.value) {
