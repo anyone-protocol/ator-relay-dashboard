@@ -299,6 +299,27 @@ export class RelayRewards {
 
     throw new Error('No previous round found');
   }
+
+  async getLastRoundByAddress(
+    address: string
+  ): Promise<Record<string, LastRoundData>> {
+    const [{ Timestamp, Period }, detailsByFingerprint] = await Promise.all([
+      this.getPreviousRound(),
+      readContractView<Record<string, LastRoundData['Details']>>(
+        this.hyperbeamUrl,
+        this.processId,
+        'last_round_details',
+        { address }
+      ),
+    ]);
+
+    return Object.fromEntries(
+      Object.entries(detailsByFingerprint).map(([fingerprint, Details]) => [
+        fingerprint,
+        { Timestamp, Period, Details },
+      ])
+    );
+  }
 }
 
 const config = useRuntimeConfig();

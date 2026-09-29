@@ -42,24 +42,13 @@ const fingerprints = computed(() => {
 const { allRelays, claimableRelays } = storeToRefs(userStore);
 const { address } = useAccount();
 const registerModalOpen = ref(false);
-const runtimeConfig = useRuntimeConfig();
 
-/**
- * ONE request for every relay this operator owns — see the desktop table for the rationale.
- * The legacy `Last-Round-Data` action takes a single Fingerprint and has no batch form, so it
- * keeps fanning out; hyperbeam answers the whole set from the operator's address.
- */
 const lastRoundByAddress = useQuery({
   queryKey: computed(() => ['lastRoundByAddress', address.value]),
-  queryFn: async (): Promise<Record<string, LastRoundData>> => {
-    if (!address.value) return {};
-    const { readView } = useHyperbeamRead();
-    return await readView<Record<string, LastRoundData>>(
-      runtimeConfig.public.relayRewardsHyperbeamProcessId,
-      'last_round_details',
-      { address: address.value }
-    );
-  },
+  queryFn: async (): Promise<Record<string, LastRoundData>> =>
+    address.value
+      ? useRelayRewards().getLastRoundByAddress(address.value)
+      : {},
   enabled: computed(() => !!address.value),
 });
 
@@ -771,7 +760,10 @@ const handleUnlockClick = async (fingerprint: string) => {
                 >
                   <span class="text-gray-800 dark:text-white">Period: </span>
                   <span v-if="lastRound[row.fingerprint]?.Period">
-                    {{ lastRound[row.fingerprint].Period / 60 + ' minutes' }}
+                    {{
+                      Math.round(lastRound[row.fingerprint].Period / 60) +
+                      ' minutes'
+                    }}
                   </span>
                   <span v-else>-</span>
                 </div>

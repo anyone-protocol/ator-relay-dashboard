@@ -293,7 +293,10 @@
                 >
                   <span class="text-gray-800 dark:text-white">Period: </span>
                   <span v-if="lastRound[row.fingerprint]?.Period">
-                    {{ lastRound[row.fingerprint].Period / 60 + ' minutes' }}
+                    {{
+                      Math.round(lastRound[row.fingerprint].Period / 60) +
+                      ' minutes'
+                    }}
                   </span>
                   <span v-else>-</span>
                 </div>
@@ -1140,29 +1143,12 @@ const fingerprints = computed(() => {
     .map((relay) => relay.fingerprint);
 });
 
-
-/**
- * ONE request for every relay this operator owns.
- *
- * `as/last_round_details?address=` is keyed by the operator's EVM address and returns a
- * fingerprint -> breakdown map, which is exactly the shape this screen wants. The legacy path
- * has no equivalent — `Last-Round-Data` takes a single Fingerprint — so it stays a query per
- * relay, which is 100+ requests for a large operator on a single page load.
- *
- * The contract assembles the response by concatenating strings it already stored, so the
- * per-relay payloads are byte-identical to asking for each one individually.
- */
 const lastRoundByAddress = useQuery({
   queryKey: computed(() => ['lastRoundByAddress', address.value]),
-  queryFn: async (): Promise<Record<string, LastRoundData>> => {
-    if (!address.value) return {};
-    const { readView } = useHyperbeamRead();
-    return await readView<Record<string, LastRoundData>>(
-      runtimeConfig.public.relayRewardsHyperbeamProcessId,
-      'last_round_details',
-      { address: address.value }
-    );
-  },
+  queryFn: async (): Promise<Record<string, LastRoundData>> =>
+    address.value
+      ? useRelayRewards().getLastRoundByAddress(address.value)
+      : {},
   enabled: computed(() => !!address.value),
   staleTime: 30 * 60 * 1000,
   gcTime: 60 * 60 * 1000,
