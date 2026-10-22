@@ -1,4 +1,4 @@
-FROM node:22.22-alpine3.23 AS build
+FROM docker.io/library/node:22.22.3-alpine3.23@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920 AS build
 ARG NUXT_PUBLIC_COMMIT_HASH
 ENV NUXT_PUBLIC_COMMIT_HASH=${NUXT_PUBLIC_COMMIT_HASH}
 RUN apk add git python3 make g++ curl unzip rclone
