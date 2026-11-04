@@ -61,18 +61,12 @@ importers:
       '@vueuse/core':
         specifier: 11.3.0
         version: 11.3.0(vue@3.5.44(typescript@5.8.3))
-      '@wagmi/connectors':
-        specifier: 6.1.2
-        version: 6.1.2(72a8c89239e23d637c28fa3bfd85ddd1)
       '@wagmi/core':
         specifier: 2.22.1
         version: 2.22.1(@tanstack/query-core@5.76.0)(@types/react@19.2.2)(react@19.2.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.2.0))(viem@2.38.5(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.1.12))
       '@wagmi/vue':
         specifier: 0.3.1
         version: 0.3.1(6c0457bdcb70f8ef88e3913abafda092)
-      '@web3modal/wagmi':
-        specifier: 4.1.1
-        version: 4.1.1(@types/react@19.2.2)(@wagmi/connectors@6.1.2(72a8c89239e23d637c28fa3bfd85ddd1))(@wagmi/core@2.22.1(@tanstack/query-core@5.76.0)(@types/react@19.2.2)(react@19.2.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.2.0))(viem@2.38.5(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.1.12)))(@web3modal/wallet@4.1.1)(typescript@5.8.3)(viem@2.38.5(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.1.12))
       arweave:
         specifier: 1.15.1
         version: 1.15.1
@@ -2584,54 +2578,6 @@ packages:
   '@walletconnect/window-metadata@1.0.1':
     resolution: {integrity: sha512-9koTqyGrM2cqFRW517BPY/iEtUDx2r1+Pwwu5m7sJ7ka79wi3EyqhqcICk/yDmv6jAS1rjKgTKXlEhanYjijcA==}
 
-  '@web3modal/common@4.1.1':
-    resolution: {integrity: sha512-InaJY+PfjtcT4ewySMDTCON2jGuk5kKVuleIz04BWNU92Gm2S4hU7knLhIzPshpyv31Hv3/kO2NFhaxx3CLD+w==}
-
-  '@web3modal/core@4.1.1':
-    resolution: {integrity: sha512-+FT73nYHKqF0VlkB9lo6mvfR/WjB4dz24JPwKb2Vq05JVyOcnbt5S06IeTtjI7zgKv3MyKzDzxh6z1ScgbTaRA==}
-    deprecated: Web3Modal is now Reown AppKit. Please follow the upgrade guide at https://docs.reown.com/appkit/upgrade/from-w3m-to-reown
-
-  '@web3modal/polyfills@4.1.1':
-    resolution: {integrity: sha512-HQ90relyjjLfTj5XJhhDV9l3Mp10Rvv/MN+GCvzEx/xY7Tz4yhmKZUX3c519pz2BeVYjea+xwwu6OoOwd3GAXQ==}
-
-  '@web3modal/scaffold-react@4.1.1':
-    resolution: {integrity: sha512-g+iVswup3MRlDTnwJoIayLDVhFyCVTNTfVaEYaxvr8ADKNb90t3nzY742ZVQOdYitvrWrAMboVaOB6LuLCvrsA==}
-    peerDependencies:
-      react: '>=17'
-      react-dom: '>=17'
-
-  '@web3modal/scaffold-utils@4.1.1':
-    resolution: {integrity: sha512-v9TlKchCPTOGitduI3hUm7PReWcxt55aifYHuCFklwgFatBlUZb/JrXpiCUhp6RpOfnSIA5gV65eyEucIbKY5A==}
-
-  '@web3modal/scaffold-vue@4.1.1':
-    resolution: {integrity: sha512-8qDnRmOR1jMlEB6fuFZ2CiWFYtq6M1OGKcN2DGz4c0dggivsa10cjUXqJqrsic6nUxWKPWou0+osIlJ9hR1YBA==}
-    peerDependencies:
-      vue: '>=3'
-
-  '@web3modal/scaffold@4.1.1':
-    resolution: {integrity: sha512-GBryCiyl+taz5DPq0expxzfMVcrpKjWvEBSAqT1tPUSthnzOWnVF77XlUAYgFZqzPsEu9lQ1dHCdqZx7WWMCXA==}
-    peerDependencies:
-      '@web3modal/wallet': 4.1.1
-
-  '@web3modal/siwe@4.1.1':
-    resolution: {integrity: sha512-qQ4NKxrlD0gcFqh1G3yLlyRYABoBU7uXw3RQqpf1BiJSSMT2ePBfOwsCTJ6OPuT1RjKt9JNBADctua/sqEItCw==}
-    deprecated: Web3Modal is now Reown AppKit. Please follow the upgrade guide at https://docs.reown.com/appkit/upgrade/from-w3m-to-reown
-
-  '@web3modal/ui@4.1.1':
-    resolution: {integrity: sha512-6ntwIdi3VHR1HLIiyoannOAcckDs3XYrxxIu8cflba6UyuASJ6AH/AY3ULE88fvE55jM/Lra3uuOYj8yE5QjUw==}
-    deprecated: Web3Modal is now Reown AppKit. Please follow the upgrade guide at https://docs.reown.com/appkit/upgrade/from-w3m-to-reown
-
-  '@web3modal/wagmi@4.1.1':
-    resolution: {integrity: sha512-XMT+naasTfxmt2ogHO7c2wWL63S9SkfoGEIvd7AaxtqlXZfVKtCqyJJC710WiBUhUCyt9wD6hQNjRB1nWN3TGg==}
-    deprecated: Web3Modal is now Reown AppKit. Please follow the upgrade guide at https://docs.reown.com/appkit/upgrade/from-w3m-to-reown
-    peerDependencies:
-      '@wagmi/connectors': '>=4.0.0'
-      '@wagmi/core': '>=2.0.0'
-      viem: '>=2.0.0'
-
-  '@web3modal/wallet@4.1.1':
-    resolution: {integrity: sha512-KgITukYJXDete4MeH95jditHtQ1gvB+q97td0cjxA+xwzLCgihDfHZEq1kuVg5Fj40ECUV4O6IBc++cNeL9EXQ==}
-
   abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
 
@@ -3378,9 +3324,6 @@ packages:
   date-fns@2.30.0:
     resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
     engines: {node: '>=0.11'}
-
-  dayjs@1.11.10:
-    resolution: {integrity: sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==}
 
   dayjs@1.11.13:
     resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
@@ -5554,9 +5497,6 @@ packages:
   proper-lockfile@4.1.2:
     resolution: {integrity: sha512-TjNPblN4BwAWMXU8s9AEz4JmQxnD1NNL7bNOY/AKUzyamc379FWASUhc/K1pL2noVb+XmZKLL68cjzLsiOAMaA==}
 
-  proxy-compare@2.5.1:
-    resolution: {integrity: sha512-oyfc0Tx87Cpwva5ZXezSp5V9vht1c7dZBhvuV/y3ctkgMVUmiAGDVeeB0dKhGSyT0v1ZTEQYpe/RXlBVBNuCLA==}
-
   proxy-compare@2.6.0:
     resolution: {integrity: sha512-8xuCeM3l8yqdmbPoYeLbrAXCBWu19XEYc5/F28f5qOaoAIMyfmBUkl5axiK+x9olUvRlcekvnm98AP9RDngOIw==}
 
@@ -5620,11 +5560,6 @@ packages:
 
   rc9@3.0.1:
     resolution: {integrity: sha512-gMDyleLWVE+i6Sgtc0QbbY6pEKqYs97NGi6isHQPqYlLemPoO8dxQ3uGi0f4NiP98c+jMW6cG1Kx9dDwfvqARQ==}
-
-  react-dom@19.2.0:
-    resolution: {integrity: sha512-UlbRu4cAiGaIewkPyiRGJk0imDN2T3JjieT6spoL2UeSf5od4n5LB/mQ4ejmxhCFT1tYe8IvaFulzynWovsEFQ==}
-    peerDependencies:
-      react: ^19.2.0
 
   react@19.2.0:
     resolution: {integrity: sha512-tmbWg6W31tQLeB5cdIBOicJDJRR2KzXsV7uSK9iNfLWQ5bIZfxuPEHp7M8wiHyHnn0DD1i7w3Zmin0FtkrwoCQ==}
@@ -5786,9 +5721,6 @@ packages:
   sax@1.6.1:
     resolution: {integrity: sha512-42tBVwLWnaQvW5zc4HbZrTuWccECCZfBi92FDuwtqxasH+JbPB3/FOKb1m222K42R4WxuxzzMsTswfzgtSu64Q==}
     engines: {node: '>=11.0.0'}
-
-  scheduler@0.27.0:
-    resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
 
   scrypt-js@3.0.1:
     resolution: {integrity: sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==}
@@ -6553,18 +6485,6 @@ packages:
   v8flags@4.0.1:
     resolution: {integrity: sha512-fcRLaS4H/hrZk9hYwbdRM35D0U8IYMfEClhXxCivOojl+yTRAZH3Zy2sSy6qVCiGbV9YAtPssP6jaChqC9vPCg==}
     engines: {node: '>= 10.13.0'}
-
-  valtio@1.11.2:
-    resolution: {integrity: sha512-1XfIxnUXzyswPAPXo1P3Pdx2mq/pIqZICkWN60Hby0d9Iqb+MEIpqgYVlbflvHdrp2YR/q3jyKWRPJJ100yxaw==}
-    engines: {node: '>=12.20.0'}
-    peerDependencies:
-      '@types/react': '>=16.8'
-      react: '>=16.8'
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-      react:
-        optional: true
 
   valtio@1.13.2:
     resolution: {integrity: sha512-Qik0o+DSy741TmkqmRfjq+0xpZBXi/Y6+fXZLn0xNF1z/waFMbE3rkivv5Zcf9RrMUp6zswf2J7sbh2KBlba5A==}
@@ -12036,103 +11956,6 @@ snapshots:
       '@walletconnect/window-getters': 1.0.1
       tslib: 1.14.1
 
-  '@web3modal/common@4.1.1':
-    dependencies:
-      dayjs: 1.11.10
-
-  '@web3modal/core@4.1.1(@types/react@19.2.2)(react@19.2.0)':
-    dependencies:
-      '@web3modal/common': 4.1.1
-      '@web3modal/wallet': 4.1.1
-      valtio: 1.11.2(@types/react@19.2.2)(react@19.2.0)
-    transitivePeerDependencies:
-      - '@types/react'
-      - react
-
-  '@web3modal/polyfills@4.1.1':
-    dependencies:
-      buffer: 6.0.3
-
-  '@web3modal/scaffold-react@4.1.1(@types/react@19.2.2)(@web3modal/wallet@4.1.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
-    dependencies:
-      '@web3modal/scaffold': 4.1.1(@types/react@19.2.2)(@web3modal/wallet@4.1.1)(react@19.2.0)
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@web3modal/wallet'
-
-  '@web3modal/scaffold-utils@4.1.1(@types/react@19.2.2)(react@19.2.0)':
-    dependencies:
-      '@web3modal/core': 4.1.1(@types/react@19.2.2)(react@19.2.0)
-      '@web3modal/polyfills': 4.1.1
-      valtio: 1.11.2(@types/react@19.2.2)(react@19.2.0)
-    transitivePeerDependencies:
-      - '@types/react'
-      - react
-
-  '@web3modal/scaffold-vue@4.1.1(@types/react@19.2.2)(@web3modal/wallet@4.1.1)(react@19.2.0)(vue@3.5.44(typescript@5.8.3))':
-    dependencies:
-      '@web3modal/scaffold': 4.1.1(@types/react@19.2.2)(@web3modal/wallet@4.1.1)(react@19.2.0)
-      vue: 3.5.44(typescript@5.8.3)
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@web3modal/wallet'
-      - react
-
-  '@web3modal/scaffold@4.1.1(@types/react@19.2.2)(@web3modal/wallet@4.1.1)(react@19.2.0)':
-    dependencies:
-      '@web3modal/common': 4.1.1
-      '@web3modal/core': 4.1.1(@types/react@19.2.2)(react@19.2.0)
-      '@web3modal/ui': 4.1.1
-      '@web3modal/wallet': 4.1.1
-      lit: 3.1.0
-    optionalDependencies:
-      '@web3modal/siwe': 4.1.1(@types/react@19.2.2)(react@19.2.0)
-    transitivePeerDependencies:
-      - '@types/react'
-      - react
-
-  '@web3modal/siwe@4.1.1(@types/react@19.2.2)(react@19.2.0)':
-    dependencies:
-      '@web3modal/core': 4.1.1(@types/react@19.2.2)(react@19.2.0)
-      '@web3modal/scaffold-utils': 4.1.1(@types/react@19.2.2)(react@19.2.0)
-      lit: 3.1.0
-      valtio: 1.11.2(@types/react@19.2.2)(react@19.2.0)
-    transitivePeerDependencies:
-      - '@types/react'
-      - react
-    optional: true
-
-  '@web3modal/ui@4.1.1':
-    dependencies:
-      lit: 3.1.0
-      qrcode: 1.5.3
-
-  '@web3modal/wagmi@4.1.1(@types/react@19.2.2)(@wagmi/connectors@6.1.2(72a8c89239e23d637c28fa3bfd85ddd1))(@wagmi/core@2.22.1(@tanstack/query-core@5.76.0)(@types/react@19.2.2)(react@19.2.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.2.0))(viem@2.38.5(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.1.12)))(@web3modal/wallet@4.1.1)(typescript@5.8.3)(viem@2.38.5(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.1.12))':
-    dependencies:
-      '@wagmi/connectors': 6.1.2(72a8c89239e23d637c28fa3bfd85ddd1)
-      '@wagmi/core': 2.22.1(@tanstack/query-core@5.76.0)(@types/react@19.2.2)(react@19.2.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.2.0))(viem@2.38.5(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.1.12))
-      '@web3modal/polyfills': 4.1.1
-      '@web3modal/scaffold': 4.1.1(@types/react@19.2.2)(@web3modal/wallet@4.1.1)(react@19.2.0)
-      '@web3modal/scaffold-react': 4.1.1(@types/react@19.2.2)(@web3modal/wallet@4.1.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@web3modal/scaffold-utils': 4.1.1(@types/react@19.2.2)(react@19.2.0)
-      '@web3modal/scaffold-vue': 4.1.1(@types/react@19.2.2)(@web3modal/wallet@4.1.1)(react@19.2.0)(vue@3.5.44(typescript@5.8.3))
-      viem: 2.38.5(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.1.12)
-    optionalDependencies:
-      '@web3modal/siwe': 4.1.1(@types/react@19.2.2)(react@19.2.0)
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      vue: 3.5.44(typescript@5.8.3)
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@web3modal/wallet'
-      - typescript
-
-  '@web3modal/wallet@4.1.1':
-    dependencies:
-      zod: 3.22.4
-
   abbrev@1.1.1: {}
 
   abbrev@3.0.1: {}
@@ -12936,8 +12759,6 @@ snapshots:
   date-fns@2.30.0:
     dependencies:
       '@babel/runtime': 7.28.4
-
-  dayjs@1.11.10: {}
 
   dayjs@1.11.13: {}
 
@@ -15452,8 +15273,6 @@ snapshots:
       retry: 0.12.0
       signal-exit: 3.0.7
 
-  proxy-compare@2.5.1: {}
-
   proxy-compare@2.6.0: {}
 
   proxy-compare@3.0.1: {}
@@ -15524,11 +15343,6 @@ snapshots:
     dependencies:
       defu: 6.1.7
       destr: 2.0.5
-
-  react-dom@19.2.0(react@19.2.0):
-    dependencies:
-      react: 19.2.0
-      scheduler: 0.27.0
 
   react@19.2.0: {}
 
@@ -15715,8 +15529,6 @@ snapshots:
       source-map-js: 1.2.2
 
   sax@1.6.1: {}
-
-  scheduler@0.27.0: {}
 
   scrypt-js@3.0.1: {}
 
@@ -16448,14 +16260,6 @@ snapshots:
   uuid@9.0.1: {}
 
   v8flags@4.0.1: {}
-
-  valtio@1.11.2(@types/react@19.2.2)(react@19.2.0):
-    dependencies:
-      proxy-compare: 2.5.1
-      use-sync-external-store: 1.2.0(react@19.2.0)
-    optionalDependencies:
-      '@types/react': 19.2.2
-      react: 19.2.0
 
   valtio@1.13.2(@types/react@19.2.2)(react@19.2.0):
     dependencies:
