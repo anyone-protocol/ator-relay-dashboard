@@ -55,9 +55,6 @@ importers:
       '@tanstack/vue-query':
         specifier: 5.32.1
         version: 5.32.1(vue@3.5.44(typescript@5.8.3))
-      '@use-wagmi/nuxt':
-        specifier: 2.2.0
-        version: 2.2.0(magicast@0.5.4)
       '@vueuse/components':
         specifier: 10.9.0
         version: 10.9.0(vue@3.5.44(typescript@5.8.3))
@@ -2185,10 +2182,6 @@ packages:
     resolution: {integrity: sha512-pnC8x9HLV3qQXdvWfylUEU25uhfCAy3ly9nmpQz84j9py818DRfU8jOsQ5wjdWtxyU1vX/fW2udfm4jtxUK8Bg==}
     peerDependencies:
       vue: '>=3.5.18'
-
-  '@use-wagmi/nuxt@2.2.0':
-    resolution: {integrity: sha512-+OxVhtLXfCP2zzTlpSMZ+eeKzyvr01DGNvsgn7m5/hZVQVSMmEJq4/8iCGAS2mlM62CVqst95c8k20W0Qek2FQ==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   '@vercel/nft@1.10.2':
     resolution: {integrity: sha512-w+WyX5Ulmj4dtTZrxaulqrjaLZHSbnPzx75SJsTNYmotKsqn1JlLnDJa+lz5hn90HJofhl/2MAtw0mCrgM3qYw==}
@@ -4565,10 +4558,6 @@ packages:
   loader-utils@3.3.1:
     resolution: {integrity: sha512-FMJTLMXfCLMLfJxcX9PFqX5qD88Z5MRGaZCVzfuqeZSPsyiBzs+pahDQjbIWz2QIzPZz0NX9Zy4FX3lmK6YHIg==}
     engines: {node: '>= 12.13.0'}
-
-  local-pkg@0.4.3:
-    resolution: {integrity: sha512-SFppqq5p42fe2qcZQqqEOiVRXl+WCP1MdT6k7BDEW1j++sp5fIY+/fdRQitvKgB5BrBcmrs5m/L0v2FrU5MY1g==}
-    engines: {node: '>=14'}
 
   local-pkg@1.1.2:
     resolution: {integrity: sha512-arhlxbFRmoQHl33a0Zkle/YWlmNwoyt6QNZEIJcqNbdrsix5Lvc4HyyI3EnwxTYlZYc32EbYrQ8SzEZ7dqgg9A==}
@@ -10418,13 +10407,6 @@ snapshots:
       unhead: 2.1.17
       vue: 3.5.44(typescript@5.8.3)
 
-  '@use-wagmi/nuxt@2.2.0(magicast@0.5.4)':
-    dependencies:
-      '@nuxt/kit': 3.20.0(magicast@0.5.4)
-      local-pkg: 0.4.3
-    transitivePeerDependencies:
-      - magicast
-
   '@vercel/nft@1.10.2(rollup@4.62.4)(supports-color@10.2.2)':
     dependencies:
       '@mapbox/node-pre-gyp': 2.0.0(supports-color@10.2.2)
@@ -14191,8 +14173,6 @@ snapshots:
       lit-html: 3.3.1
 
   loader-utils@3.3.1: {}
-
-  local-pkg@0.4.3: {}
 
   local-pkg@1.1.2:
     dependencies:

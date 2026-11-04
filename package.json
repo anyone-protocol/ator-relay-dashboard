@@ -26,7 +26,6 @@
     "@reown/appkit": "1.8.12",
     "@reown/appkit-adapter-wagmi": "1.8.12",
     "@tanstack/vue-query": "5.32.1",
-    "@use-wagmi/nuxt": "2.2.0",
     "@vueuse/components": "10.9.0",
     "@vueuse/core": "11.3.0",
     "@wagmi/connectors": "6.1.2",
