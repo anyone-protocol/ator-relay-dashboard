@@ -85,14 +85,16 @@ After any change to dependencies, review the lockfile diff and build the image b
 
 ## Release workflow
 
-[`deploy.yml`](../.github/workflows/deploy.yml) builds the image, pushes it tagged by commit
-SHA, and deploys one phase:
+[`deploy.yml`](../.github/workflows/deploy.yml) builds the image and pushes it tagged by commit
+SHA on a push to `main`, a `dev_*` branch or a `v*` tag, or on a manual run. It does not deploy.
 
-| Trigger | Phase |
-| --- | --- |
-| Push to `main` | stage |
-| Push to a `dev_*` branch | dev |
-| Push of a `v*` tag | live |
-| Manual run | The phase chosen in the `phase` input |
+Each phase is deployed by running its job spec:
+
+```
+nomad job run operations/deploy-relay-dashboard-<phase>.hcl
+```
+
+The `commit_sha` variable defaults to the image last deployed to that phase. Pass
+`-var commit_sha=<sha>` to deploy another image, then set the default to it.
 
 Each job spec builds the static site and syncs it to a Cloudflare R2 bucket.

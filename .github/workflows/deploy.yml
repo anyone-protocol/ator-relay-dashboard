@@ -8,17 +8,6 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
-    inputs:
-      phase:
-        description: 'Deployment phase'
-        required: true
-        default: 'prelive'
-        type: choice
-        options:
-          - prelive
-          - stage
-          - dev
-          - live
 env:
   IMAGE_NAME: ator-relay-dashboard
 
@@ -49,39 +38,7 @@ jobs:
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "main" ] && VERSION=stage
-          # A manual run picks its own phase. Previously only 'prelive' was honoured, so there was
-          # no manual path to stage and the only route to live was pushing a v* tag.
-          [ -n "${{ inputs.phase }}" ] && VERSION="${{ inputs.phase }}"
           echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-
-          echo -e "{\"deploy\":\"$VERSION\",\"commit_sha\":\"${GITHUB_SHA}\"}" > deploy-vars.json
 
           docker tag $IMAGE_NAME $IMAGE_ID:${GITHUB_SHA}
           docker push $IMAGE_ID:${GITHUB_SHA}
-
-      - name: Deploy new version
-        env:
-          NOMAD_CACERT: operations/admin-ui-ca.crt
-          NOMAD_TOKEN: ${{ secrets.DASHBOARD_NOMAD_TOKEN }}
-          NOMAD_ADDR: ${{ secrets.NOMAD_ADDR }}
-          CONSUL_CACERT: operations/admin-ui-ca.crt
-          CONSUL_HTTP_TOKEN: ${{ secrets.DASHBOARD_CONSUL_HTTP_TOKEN }}
-          CONSUL_ADDR: ${{ secrets.CONSUL_ADDR }}
-        run: |
-          curl -L https://releases.hashicorp.com/levant/0.3.2/levant_0.3.2_linux_amd64.zip -o levant.zip
-          unzip levant.zip
-          [[ -n $(grep "dev" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-dev.hcl
-          [[ -n $(grep "stage" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-stage.hcl
-          [[ -n $(grep "prelive" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-prelive.hcl
-          [[ -z $(grep "stage" deploy-vars.json) && -z $(grep "dev" deploy-vars.json) && -z $(grep "prelive" deploy-vars.json) ]] && ./levant render -var-file="deploy-vars.json" -consul-address=$CONSUL_ADDR -out runtime-job.hcl operations/deploy-relay-dashboard-live.hcl
-
-          curl -L https://releases.hashicorp.com/nomad/1.8.3/nomad_1.8.3_linux_amd64.zip -o nomad.zip
-          unzip nomad.zip
-          ./nomad job run runtime-job.hcl
