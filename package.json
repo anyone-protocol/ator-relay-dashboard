@@ -13,7 +13,7 @@
     "test": "echo \"No tests specified\""
   },
   "dependencies": {
-    "@anyone-protocol/ao-client": "github:anyone-protocol/ao-client#v0.1.3",
+    "@anyone-protocol/ao-client": "github:anyone-protocol/ao-client#v0.1.4",
     "@dha-team/arbundles": "1.0.1",
     "@iconify-json/eos-icons": "^1.2.4",
     "@iconify-json/heroicons": "^1.2.3",
@@ -44,13 +44,16 @@
     "nuxt": "3.21.11",
     "perfect-debounce": "^1.0.0",
     "pinia": "^2.3.1",
+    "react": "19.2.0",
     "sass": "1.77.2",
     "scule": "1.3.0",
     "viem": "^2.38.5",
     "vue": "latest",
     "vue-router": "^4.6.3",
     "vuetify": "3.7.19",
-    "winston": "^3.18.3"
+    "wagmi": "2.15.3",
+    "winston": "^3.18.3",
+    "zod": "4.1.12"
   },
   "devDependencies": {
     "@iconify-json/uil": "^1.2.3",
