@@ -1,3 +1,9 @@
+variable "commit_sha" {
+  type        = string
+  description = "The git commit SHA to use for the runtime image tag"
+  default     = "84250fd11968bd79057457601cd6a68ec5324643"
+}
+
 job "deploy-relay-dashboard-dev" {
   datacenters = [ "ator-fin" ]
   type = "batch"
@@ -17,7 +23,7 @@ job "deploy-relay-dashboard-dev" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.commit_sha]]"
+        image = "ghcr.io/anyone-protocol/ator-relay-dashboard:${var.commit_sha}"
         image_pull_timeout = "15m"
         entrypoint = [ "/usr/src/app/entrypoint.sh" ]
         mount {
@@ -52,7 +58,7 @@ job "deploy-relay-dashboard-dev" {
 
       env {
         PHASE="dev"
-        DASHBOARD_VERSION="[[.commit_sha]]"
+        DASHBOARD_VERSION="${var.commit_sha}"
         # Deliberately hb-STAGE, not hb-dev: the template below reads the `smart-contracts/stage/*`
         # Consul keys, so those PIDs only exist on the stage node. Pointing this at hb-dev would
         # ask a node to compute processes it has never seen.

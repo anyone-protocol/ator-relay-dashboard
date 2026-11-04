@@ -1,3 +1,9 @@
+variable "commit_sha" {
+  type        = string
+  description = "The git commit SHA to use for the runtime image tag"
+  default     = "a15b745d6fe8e09c0c565b70aadac34fe123b8ed"
+}
+
 job "deploy-relay-dashboard-live" {
   datacenters = [ "ator-fin" ]
   type = "batch"
@@ -23,7 +29,7 @@ job "deploy-relay-dashboard-live" {
       }
 
       config {
-        image = "ghcr.io/anyone-protocol/ator-relay-dashboard:[[.commit_sha]]"
+        image = "ghcr.io/anyone-protocol/ator-relay-dashboard:${var.commit_sha}"
         image_pull_timeout = "45m"
         entrypoint = [ "/usr/src/app/entrypoint.sh" ]
         mount {
@@ -59,7 +65,7 @@ job "deploy-relay-dashboard-live" {
       env {
         PHASE="live"
         NODE_OPTIONS="--max-old-space-size=4096"
-        DASHBOARD_VERSION="[[.commit_sha]]"
+        DASHBOARD_VERSION="${var.commit_sha}"
         NUXT_PUBLIC_EVM_RPC="default" # "https://eth-mainnet.public.blastapi.io"
         NUXT_PUBLIC_PHASE="live"
         NUXT_PUBLIC_HYPERBEAM_URL="https://hb.anyone.tech"
