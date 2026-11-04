@@ -21,9 +21,9 @@ allowBuilds:
   # which broke the wagmi chain config at runtime ("Chain not configured"). On 11.21.0 a full
   # re-resolve is a no-op. Always diff the lockfile after one.
   #
-  # ⚠️ The key embeds the commit the `#v0.1.3` tag resolves to. Re-pinning ao-client means
+  # ⚠️ The key embeds the commit the `#v0.1.4` tag resolves to. Re-pinning ao-client means
   # updating it to match the new `pnpm-lock.yaml` resolution.
-  '@anyone-protocol/ao-client@https://codeload.github.com/anyone-protocol/ao-client/tar.gz/3fc04052c7d76691d8345adcb24f6b5bf99d6988': true
+  '@anyone-protocol/ao-client@https://codeload.github.com/anyone-protocol/ao-client/tar.gz/7d7a79dc0a680e8185991088793721d0da1891fb': true
   # Optional native builds. Left OFF — every install and test so far has run with these skipped
   # (they fall back to JS), and turning them on would change what has been verified.
   '@reown/appkit': false
@@ -43,6 +43,9 @@ overrides:
   # @coinbase/wallet-sdk. Patch-level within each major, so bounded to the same major.
   'bn.js@<4.12.3': '>=4.12.3 <5'
   'bn.js@>=5.0.0 <5.2.3': '>=5.2.3 <6'
+  'follow-redirects@<1.16.2': '>=1.16.2 <2'
+  'hono@<4.13.11': '>=4.13.11 <5'
+  'postcss-selector-parser@>=6.0.0 <6.1.5': '>=6.1.5 <7'
 
 # NOTE: the rest of `overrides` deliberately NOT set here yet — see the audit findings. pnpm 10+ reads
 # overrides from THIS file, so the 29 entries in package.json's `pnpm.overrides` are inert.
