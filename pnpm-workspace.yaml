@@ -21,9 +21,9 @@ allowBuilds:
   # which broke the wagmi chain config at runtime ("Chain not configured"). On 11.21.0 a full
   # re-resolve is a no-op. Always diff the lockfile after one.
   #
-  # ⚠️ The key embeds the commit the `#v0.1.4` tag resolves to. Re-pinning ao-client means
+  # ⚠️ The key embeds the commit the `#v0.1.5` tag resolves to. Re-pinning ao-client means
   # updating it to match the new `pnpm-lock.yaml` resolution.
-  '@anyone-protocol/ao-client@https://codeload.github.com/anyone-protocol/ao-client/tar.gz/7d7a79dc0a680e8185991088793721d0da1891fb': true
+  '@anyone-protocol/ao-client@https://codeload.github.com/anyone-protocol/ao-client/tar.gz/aee45fef26038a52ccc754e553247f5b7f670d3d': true
   # Optional native builds. Left OFF — every install and test so far has run with these skipped
   # (they fall back to JS), and turning them on would change what has been verified.
   '@reown/appkit': false
