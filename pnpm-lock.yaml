@@ -17,8 +17,8 @@ importers:
   .:
     dependencies:
       '@anyone-protocol/ao-client':
-        specifier: github:anyone-protocol/ao-client#v0.1.4
-        version: https://codeload.github.com/anyone-protocol/ao-client/tar.gz/7d7a79dc0a680e8185991088793721d0da1891fb(@dha-team/arbundles@1.0.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        specifier: github:anyone-protocol/ao-client#v0.1.5
+        version: https://codeload.github.com/anyone-protocol/ao-client/tar.gz/aee45fef26038a52ccc754e553247f5b7f670d3d(@dha-team/arbundles@1.0.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@dha-team/arbundles':
         specifier: 1.0.1
         version: 1.0.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -171,9 +171,9 @@ packages:
   '@antfu/utils@8.1.1':
     resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
 
-  '@anyone-protocol/ao-client@https://codeload.github.com/anyone-protocol/ao-client/tar.gz/7d7a79dc0a680e8185991088793721d0da1891fb':
-    resolution: {gitHosted: true, integrity: sha512-/bnYcyv6YQxXXHC2UtworF3CBeMEWPTRm5tTCc9KNbeLMyHu/VYw7DZ5n3B47MgauE6BtkKHX1d0gt7mq62Xwg==, tarball: https://codeload.github.com/anyone-protocol/ao-client/tar.gz/7d7a79dc0a680e8185991088793721d0da1891fb}
-    version: 0.1.4
+  '@anyone-protocol/ao-client@https://codeload.github.com/anyone-protocol/ao-client/tar.gz/aee45fef26038a52ccc754e553247f5b7f670d3d':
+    resolution: {gitHosted: true, integrity: sha512-D6ND7XHb1Pwj3UwwVaQ8/NEkiIkp49FSRGLO8dd0uhzk3y8ysO1/FdnAeeztS+9hZPPafyipf6Ljer0zNYLrGQ==, tarball: https://codeload.github.com/anyone-protocol/ao-client/tar.gz/aee45fef26038a52ccc754e553247f5b7f670d3d}
+    version: 0.1.5
     engines: {node: '>=20'}
     peerDependencies:
       '@dha-team/arbundles': ^1.0.3
@@ -6937,7 +6937,7 @@ snapshots:
 
   '@antfu/utils@8.1.1': {}
 
-  '@anyone-protocol/ao-client@https://codeload.github.com/anyone-protocol/ao-client/tar.gz/7d7a79dc0a680e8185991088793721d0da1891fb(@dha-team/arbundles@1.0.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
+  '@anyone-protocol/ao-client@https://codeload.github.com/anyone-protocol/ao-client/tar.gz/aee45fef26038a52ccc754e553247f5b7f670d3d(@dha-team/arbundles@1.0.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
     dependencies:
       '@dha-team/arbundles': 1.0.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
 
