@@ -123,6 +123,7 @@ job "deploy-relay-dashboard-dev" {
       template {
         data = <<-EOF
         #!/bin/sh
+        set -e
 
         echo "Generating static files"
         pnpm run generate
