@@ -1,7 +1,7 @@
 variable "commit_sha" {
   type        = string
   description = "The git commit SHA to use for the runtime image tag"
-  default     = "84250fd11968bd79057457601cd6a68ec5324643"
+  default     = "c20e6d3a3030d252c90adaf423f140bc5e943004"
 }
 
 job "deploy-relay-dashboard-stage" {
